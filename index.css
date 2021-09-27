@@ -1,0 +1,68 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    height: 100%;
+}
+
+body {
+    background: Black;
+    color: white;
+}
+
+h1 {
+    font-size: 16px;
+    margin: 0 0 32px;
+}
+main {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    height: 100%;
+}
+
+nav {
+    padding: 16px;
+}
+canvas {
+    height: 100%;
+    width: 100%;
+}
+
+#art {
+    display: flex;
+    justify-content: center;
+    flex-grow: 1;
+}
+@media only screen and (max-width: 600px) {
+    main {
+        flex-direction: column;
+    }
+}
+
+#controls label{
+    display: block;
+    margin-top: 16px;
+    font-size: 12px;
+}
+
+#pattern_select {
+    width: 100%;
+    padding: 4px;
+}
+
+.control_input_value {
+    display: inline-block;
+    position: relative;
+    top: -3px;
+    margin-inline-start: 2px;
+    font-size: 12px;
+}
+
+input[type='color'] {
+    padding: 0;
+    border: none;
+    background: none;
+    position: relative;
+    top: 2px;
+}
