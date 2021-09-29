@@ -5,6 +5,7 @@ import Eye from './string_art_types/Eye.js';
 const canvas = document.querySelector("canvas");
 const patternSelector = document.querySelector("#pattern_select");
 const controlsEl = document.querySelector("#controls");
+const patternLinkEl = document.querySelector("#pattern_link");
 const patternTypes = [Spirals, Spiral, Eye];
 const patterns = patternTypes.map(Pattern => new Pattern(canvas));
 let currentPattern;
@@ -111,6 +112,7 @@ function findPatternById(patternId) {
 function selectPattern(pattern) {
     currentPattern = pattern;
     renderControls(pattern);
+    patternLinkEl.setAttribute("href", pattern.link);
     currentPattern.draw();
     document.title = `${pattern.name} - String Art Pattern Creator`;
 }

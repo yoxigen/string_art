@@ -1,10 +1,44 @@
+import Nails from "./Nails.js";
+
+const COMMON_CONFIG_CONTROLS = [
+    {
+        key: 'nailsColor',
+        label: 'Nails color',
+        defaultValue: "#ffffff",
+        type: "color",
+    },
+    {
+        key: 'showNails',
+        label: 'Show nails',
+        defaultValue: true,
+        type: "checkbox",
+    },
+    {
+        key: 'showStrings',
+        label: 'Show strings',
+        defaultValue: true,
+        type: "checkbox",
+    },
+    {
+        key: 'nailRadius',
+        label: 'Nail size',
+        defaultValue: 3,
+        type: "range",
+        attr: {
+            min: 1,
+            max: 20,
+            step: 1
+        }
+    },
+];
+
 class StringArt {
     constructor({ configControls, id, name, link, canvas }) {
         if (!canvas) {
             throw new Error("Canvas not specified!");
         }
 
-        this.configControls = configControls;
+        this.configControls = configControls.concat(COMMON_CONFIG_CONTROLS);
         this.name = name;
         this.id = id;
         this.link = link;
@@ -35,7 +69,7 @@ class StringArt {
         return size;
     }
 
-    draw() {
+    setUpDraw() {
         this.canvas.removeAttribute('width');
         this.canvas.removeAttribute('height');
         this.canvas.removeAttribute('style');
@@ -45,28 +79,18 @@ class StringArt {
         this.height = height;
         this.canvas.setAttribute('width', width);
         this.canvas.setAttribute('height', height);
-        this.canvas.style.width = `${width}px`;
-        this.canvas.style.height = `${height}px`;
-
         this.center = this.size.map(value => value / 2);
 
-        if (this.beforeDraw) {
-            this.beforeDraw();
+        if (this.contextNails) {
+            this.contextNails.clearRect(0, 0, ...this.size);
+        } else {
+            this.contextNails = this.canvas.getContext("2d");
         }
-
-        if (this.config.showShape !== false) {
-            this.drawShape(this.config);
-        }
-        
-        this.drawStrings(this.config);
+        this.nails = new Nails(this.contextNails, this.config);
     }
 
-    drawShape(config) {
-        throw new Error("drawShape isn't implemented!");
-    }
-
-    drawStrings(config) {
-        throw new Error("drawStrings isn't implemented!");
+    draw() {
+        throw new Error("draw isn't implemented!");
     }
 }
 

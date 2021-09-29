@@ -55,64 +55,47 @@ class Spiral extends StringArt{
                     type: "color",
                 },
                 {
-                    key: 'shapeColor',
-                    label: 'Shape color',
-                    defaultValue: "#99000f",
-                    type: "color",
-                },
-                {
                     key: 'renderSecondSpiral',
                     label: 'Second spiral',
                     defaultValue: true,
                     type: 'checkbox'
                 },
-                {
-                    key: 'showShape',
-                    label: 'Show shape',
-                    defaultValue: true,
-                    type: "checkbox",
-                }
             ],
             canvas
         })
     }
 
-    beforeDraw() {
-        if (this.contextShape) {
-            this.contextShape.clearRect(0, 0, ...this.size);
+    setUpDraw() {
+        super.setUpDraw();
+
+        if (this.contextStrings) {
 	        this.contextStrings.clearRect(0, 0, ...this.size);
         } else {
-            this.contextShape = this.canvas.getContext("2d");
             this.contextStrings = this.canvas.getContext("2d");
         }
 
-        this.center = Math.min(...this.size) / 2;
-        this.radius = this.center - MARGIN;
-    }
-    
-    getSize(size) {
-        const smallestSize = Math.min(...size);
-        return [smallestSize, smallestSize];
-    }
-
-    drawShape({shapeColor}) {
-        this.contextShape.beginPath();
-        this.contextShape.arc(this.center, this.center, this.radius, 0, Math.PI * 2)
-
-        this.contextShape.strokeStyle = shapeColor;
-        this.contextShape.stroke();
+        this.center = this.size.map(v => v / 2);
+        this.radius = Math.min(...this.center) - MARGIN;
     }
 
     getPoint({step = 0, stepAngle, rotation = 0, inverse = false}) {
-        const point = [
-            this.center + Math.cos(step * stepAngle + rotation) * this.radius,
-            this.center + Math.sin(step * stepAngle + rotation) * this.radius,
+        let point = [
+            Math.cos(step * stepAngle + rotation) * this.radius,
+            Math.sin(step * stepAngle + rotation) * this.radius,
         ];
-        return inverse ? point.reverse() : point;
+        
+        if (inverse) {
+            point = point.reverse();
+        };
+
+        return [
+            this.center[0] + point[0],
+            this.center[1] + point[1]
+        ];
     }
 
     drawSpiral({ rotation, color = "#f00", inverse } = {}) {
-        const {n, repetition, innerLength} = this.config;
+        const {n, repetition, innerLength, showNails, showStrings} = this.config;
         const stepAngle = Math.PI * 2 / n;
         
         this.contextStrings.moveTo(...this.getPoint({ stepAngle: 0, rotation, inverse }));
@@ -122,9 +105,9 @@ class Spiral extends StringArt{
         let repetitionCount = 0;
         
         for(let i=0; currentInnerLength; i++) {
-            this.contextStrings.lineTo(...this.getPoint({step: i + currentInnerLength, stepAngle, rotation, inverse}));
-            this.contextStrings.lineTo(...this.getPoint({ step: i + 1, stepAngle, rotation, inverse}));
-            
+            this.drawPoint(this.getPoint({step: i + currentInnerLength, stepAngle, rotation, inverse}));
+            this.drawPoint(this.getPoint({ step: i + 1, stepAngle, rotation, inverse}));
+
             repetitionCount++;
             if (repetitionCount === repetition) {
                 currentInnerLength--;
@@ -136,10 +119,26 @@ class Spiral extends StringArt{
         this.contextStrings.stroke();
     }
 
-    drawStrings({ color1, color2, renderSecondSpiral }) {
+    drawPoint(point) {
+        if (this.config.showStrings) {
+            this.contextStrings.lineTo(...point);
+        }
+        if (this.config.showNails) {
+            this.nails.addNail(point);
+        }
+    }
+
+    draw() {
+        const { color1, color2, renderSecondSpiral, showNails } = this.config;
+        this.setUpDraw();
+
         this.drawSpiral({ color: color1, rotation: Math.PI * 1.5 });
         if (renderSecondSpiral) {
             this.drawSpiral({ rotation: Math.PI, color: color2, inverse: true});
+        }
+
+        if (showNails) {
+            this.nails.fill();
         }
     }
 }

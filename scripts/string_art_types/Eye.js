@@ -50,29 +50,17 @@ class Eye extends StringArt{
         })
     }
 
-    beforeDraw() {
-        if (this.contextShape) {
-            this.contextShape.clearRect(0, 0, ...this.size);
+    setUpDraw() {
+        super.setUpDraw();
+
+        if (this.contextStrings) {
 	        this.contextStrings.clearRect(0, 0, ...this.size);
         } else {
-            this.contextShape = this.canvas.getContext("2d");
             this.contextStrings = this.canvas.getContext("2d");
         }
 
-        this.nailSpacing = (this.size[0] - 2 * MARGIN) / this.config.n;
-    }
-    
-    getSize(size) {
-        const smallestSize = Math.min(...size);
-        return [smallestSize, smallestSize];
-    }
-
-    drawShape({shapeColor}) {
-        this.contextShape.beginPath();
-        this.contextShape.rect(MARGIN, MARGIN, this.width - 2 * MARGIN, this.height - 2 * MARGIN)
-
-        this.contextShape.strokeStyle = shapeColor;
-        this.contextShape.stroke();
+        this.width = this.height =  Math.min(...this.size);
+        this.nailSpacing = (this.width - 2 * MARGIN) / this.config.n;
     }
 
     // Sides: top, right, bottom, left
@@ -89,10 +77,12 @@ class Eye extends StringArt{
         }
     }
 
-    drawSide({ side, color, shift = 0 }) {
+    drawSide({ side, color, shift = 0, showStrings = true }) {
         const {n} = this.config;
-        this.contextStrings.moveTo(...this.getPoint({ side, index: 0 }));
-        this.contextStrings.beginPath();
+        if (showStrings) {
+            this.contextStrings.moveTo(...this.getPoint({ side, index: 0 }));
+            this.contextStrings.beginPath();
+        }
         
         const sideIndex = SIDES.indexOf(side);
         const nextSide = SIDES[sideIndex === SIDES.length - 1 ? 0 : sideIndex + 1];
@@ -100,23 +90,40 @@ class Eye extends StringArt{
         const strings = n - shift;
 
         for(let i=0; i < strings; i++) {
-            this.contextStrings.lineTo(...this.getPoint({side: nextSide, index: i + shift}));
-            this.contextStrings.lineTo(...this.getPoint({ side, index: i + 1}));
+            this.drawPoint(this.getPoint({side: nextSide, index: i + shift}));
+            this.drawPoint(this.getPoint({ side, index: i + 1}));
         }
       
         this.contextStrings.strokeStyle = color;
         this.contextStrings.stroke();
     }
 
-    drawStrings({ color1, color2, n }) {
+    drawPoint(point) {
+        if (this.config.showStrings) {
+            this.contextStrings.lineTo(...point);
+        }
+
+        if (this.config.showNails) {
+            this.nails.addNail(point);
+        }
+    }
+
+    draw() {
+        this.setUpDraw();
+
+        const { color1, color2, showStrings, showNails } = this.config;
         const colors = [color1, color2];
 
         for(let i=0; i < 4; i++) {
-            this.drawSide({ color: colors[(i + 1) % colors.length], side: SIDES[i], shift: Math.floor(n / 4) });
+            this.drawSide({ 
+                color: colors[i % colors.length], 
+                side: SIDES[i],
+                showStrings
+            });
         }
 
-        for(let i=0; i < 4; i++) {
-            this.drawSide({ color: colors[i % colors.length], side: SIDES[i] });
+        if (showNails) {
+            this.nails.fill();
         }
     }
 }
