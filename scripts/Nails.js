@@ -10,6 +10,7 @@ export default class Nails {
         this.nailRadius = nailRadius;
         this.nailsColor = nailsColor;
         this.context = this.canvas.getContext("2d");
+        this.context.globalCompositeOperation = "source-over";
         this.context.beginPath();
     }
     resetConfig(config) {

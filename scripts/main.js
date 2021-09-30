@@ -1,14 +1,16 @@
 import Spirals from "./string_art_types/Spirals.js";
 import Spiral from './string_art_types/Spiral.js';
 import Eye from './string_art_types/Eye.js';
+import TimesTables from './string_art_types/TimesTables.js';
 
 const canvas = document.querySelector("canvas");
 const patternSelector = document.querySelector("#pattern_select");
 const controlsEl = document.querySelector("#controls");
 const patternLinkEl = document.querySelector("#pattern_link");
-const patternTypes = [Spirals, Spiral, Eye];
+const patternTypes = [TimesTables, Spirals, Spiral, Eye];
 const patterns = patternTypes.map(Pattern => new Pattern(canvas));
 let currentPattern;
+let inputTimeout;
 
 main();
 
@@ -30,6 +32,8 @@ function main() {
 function initControls() {
     controlsEl.addEventListener("input", (e) => {
         requestAnimationFrame(() => {
+            clearTimeout(inputTimeout);
+
             const inputValue = getInputValue(e.target.type, e.target);
             const controlKey = e.target.id.replace(/^config_/, '');
     
@@ -43,16 +47,16 @@ function initControls() {
             }
     
             currentPattern.draw();
+
+            inputTimeout = setTimeout(() => {
+                const configQuery = JSON.stringify(currentPattern.config)
+                history.replaceState({
+                    pattern: currentPattern.id,
+                    config: configQuery
+                }, currentPattern.name, `?pattern=${currentPattern.id}&config=${encodeURIComponent(configQuery)}`)
+            }, 100);
         })
     })
-    
-    controlsEl.addEventListener('change', e => {
-        const configQuery = JSON.stringify(currentPattern.config)
-        history.replaceState({
-            pattern: currentPattern.id,
-            config: configQuery
-        }, currentPattern.name, `?pattern=${currentPattern.id}&config=${encodeURIComponent(configQuery)}`)
-    });
 
     patterns.forEach(pattern => {
         const option = document.createElement('option');
@@ -136,7 +140,7 @@ function renderControls(pattern) {
 
         const controlEl = document.createElement("div");
         controlEl.className = "control";
-        
+
         const label = document.createElement("label");
         label.innerHTML = control.label;
         label.setAttribute("for", controlId);
