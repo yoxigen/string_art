@@ -25,6 +25,8 @@ nav {
     background: #2a2a2a;
     border-right: solid 1px #3a3a3a;
     box-shadow: 1px 0 0px black;
+    max-height: 100%;
+    overflow-y: auto;
 }
 canvas {
     height: 100%;
@@ -77,6 +79,10 @@ label {
     position: relative;
     top: -1px;
     margin-left: 4px;
+}
+
+#controls fieldset {
+   border: solid 1px rgba(255,255,255,.1);
 }
 
 input[type="range"] {

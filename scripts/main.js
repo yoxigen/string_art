@@ -53,7 +53,8 @@ function initControls() {
                 history.replaceState({
                     pattern: currentPattern.id,
                     config: configQuery
-                }, currentPattern.name, `?pattern=${currentPattern.id}&config=${encodeURIComponent(configQuery)}`)
+                }, currentPattern.name, `?pattern=${currentPattern.id}&config=${encodeURIComponent(configQuery)}`);
+                updateControlsVisibility();
             }, 100);
         })
     })
@@ -92,15 +93,17 @@ function updateState(state) {
 function updateInputs(config) {
     Object.entries(config).forEach(([key, value]) => {
         const inputEl = document.querySelector(`#config_${key}`);
-        const inputValueEl = document.querySelector(`#config_${key}_value`);
+        if (inputEl) {
+            const inputValueEl = document.querySelector(`#config_${key}_value`);
 
-        if (inputEl.type === "checkbox") {
-            inputEl.checked = value;
-        } else {
-            inputEl.value = value;
-        }
-        if (inputValueEl) {
-            inputValueEl.innerText = value;
+            if (inputEl.type === "checkbox") {
+                inputEl.checked = value;
+            } else {
+                inputEl.value = value;
+            }
+            if (inputValueEl) {
+                inputValueEl.innerText = value;
+            }
         }
     });
 }
@@ -115,7 +118,7 @@ function findPatternById(patternId) {
 
 function selectPattern(pattern) {
     currentPattern = pattern;
-    renderControls(pattern);
+    renderControls();
     patternLinkEl.setAttribute("href", pattern.link);
     currentPattern.draw();
     document.title = `${pattern.name} - String Art Pattern Creator`;
@@ -132,40 +135,91 @@ function getInputValue(type, inputElement) {
     }
 }
 
-function renderControls(pattern) {
-    controlsEl.innerHTML = "";
-
-    pattern.configControls.forEach(control => {
-        const controlId = `config_${control.key}`;
-
-        const controlEl = document.createElement("div");
-        controlEl.className = "control";
-
-        const label = document.createElement("label");
-        label.innerHTML = control.label;
-        label.setAttribute("for", controlId);
-
-        const inputEl = document.createElement("input");
-
-        inputEl.setAttribute("type", control.type);
-        if (control.type === "checkbox") {
-            inputEl.checked = control.defaultValue;
-            controlEl.appendChild(inputEl);
-            controlEl.appendChild(label);
-        } else {
-            controlEl.appendChild(label);
-            controlEl.appendChild(inputEl);
-            inputEl.value = control.defaultValue;
-            const inputValueEl = document.createElement('span');
-            inputValueEl.id = `config_${control.key}_value`;
-            inputValueEl.innerText = control.defaultValue;
-            inputValueEl.className = "control_input_value";
-            controlEl.appendChild(inputValueEl);
+function updateControlsVisibility(configControls = currentPattern.configControls) {
+    configControls.forEach(control => {
+        if (control.show) {
+            const shouldShowControl = control.show(currentPattern.config);
+            const controlEl = document.querySelector(`#control_${control.key}`);
+            if (controlEl) {
+                if (shouldShowControl) {
+                    controlEl.removeAttribute('hidden');
+                } else {
+                    controlEl.setAttribute('hidden', 'hidden');
+                }
+            }
         }
-        inputEl.id = controlId;
-        if (control.attr) {
-            Object.entries(control.attr).forEach(([attr, value]) => inputEl.setAttribute(attr, value));
+
+        if (control.isDisabled) {
+            const shouldDisableControl = control.isDisabled(currentPattern.config);
+            const inputEl = document.querySelector(`#config_${control.key}`);
+            if (inputEl) {
+                if (shouldDisableControl) {
+                    inputEl.setAttribute('disabled', 'disabled');
+                } else {
+                    inputEl.removeAttribute('disabled');
+                }
+            }
         }
-        controlsEl.appendChild(controlEl);
+
+        if (control.children) {
+            updateControlsVisibility(control.children);
+        }
     });
+}
+
+function renderControls(containerEl = controlsEl, configControls = currentPattern.configControls) {
+    containerEl.innerHTML = "";
+
+    configControls.forEach(control => {
+        const controlId = `config_${control.key}`;
+        let controlEl;
+
+        if (control.type === "group") {
+            controlEl = document.createElement("fieldset");
+            const groupTitleEl = document.createElement("legend");
+            groupTitleEl.innerText = control.label;
+            controlEl.appendChild(groupTitleEl);
+            controlEl.className = "control control_group";
+            const childrenContainer = document.createElement('div');
+            controlEl.appendChild(childrenContainer);
+            renderControls(childrenContainer, control.children);    
+        }
+        else {
+            controlEl = document.createElement("div");
+            controlEl.className = "control";
+
+            const label = document.createElement("label");
+            label.innerHTML = control.label;
+            label.setAttribute("for", controlId);
+
+            const inputEl = document.createElement("input");
+
+            inputEl.setAttribute("type", control.type);
+            const inputValue = currentPattern.config[control.key] ?? control.defaultValue;
+
+            if (control.type === "checkbox") {
+                inputEl.checked = inputValue;
+                controlEl.appendChild(inputEl);
+                controlEl.appendChild(label);
+            } else {
+                controlEl.appendChild(label);
+                controlEl.appendChild(inputEl);
+                inputEl.value =  inputValue;
+                const inputValueEl = document.createElement('span');
+                inputValueEl.id = `config_${control.key}_value`;
+                inputValueEl.innerText = inputValue;
+                inputValueEl.className = "control_input_value";
+                controlEl.appendChild(inputValueEl);
+            }
+            inputEl.id = controlId;
+            if (control.attr) {
+                Object.entries(control.attr).forEach(([attr, value]) => inputEl.setAttribute(attr, value));
+            }
+        }
+
+        controlEl.id = `control_${control.key}`;
+        containerEl.appendChild(controlEl);
+    });
+
+    requestAnimationFrame(() => updateControlsVisibility())
 }

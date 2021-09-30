@@ -18,7 +18,7 @@ export default class TimesTables extends StringArt{
                     type: "range",
                     attr: {
                         min: 3,
-                        max: 200,
+                        max: 240,
                         step: 1
                     }
                 },
@@ -28,7 +28,7 @@ export default class TimesTables extends StringArt{
                     defaultValue: 2,
                     type: "range",
                     attr: {
-                        min: 1,
+                        min: 2,
                         max: 99,
                         step: 1
                     }
@@ -40,43 +40,53 @@ export default class TimesTables extends StringArt{
                     type: "range",
                     attr: {
                         min: 1,
-                        max: 200,
+                        max: 20,
                         step: 1
                     }
                 },
                 {
-                    key: 'color',
-                    label: 'String color',
-                    defaultValue: "#ff4d00",
-                    type: "color",
-                },
-                {
-                    key: 'multicolor',
-                    label: 'Multicolor',
-                    defaultValue: true,
-                    type: "checkbox",
-                },
-                {
-                    key: 'multicolorRange',
-                    label: 'Multicolor range',
-                    defaultValue: 360,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 360,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'multicolorStart',
-                    label: 'Multicolor start',
-                    defaultValue: 0,
-                    type: "range",
-                    attr: {
-                        min: 0,
-                        max: 350,
-                        step: 1
-                    }
+                    key: 'colorGroup',
+                    label: 'Color',
+                    type: 'group',
+                    children: [
+                        {
+                            key: 'multicolor',
+                            label: 'Use multiple colors',
+                            defaultValue: true,
+                            type: "checkbox",
+                        },
+                        {
+                            key: 'multicolorRange',
+                            label: 'Multicolor range',
+                            defaultValue: 360,
+                            type: "range",
+                            attr: {
+                                min: 1,
+                                max: 360,
+                                step: 1
+                            },
+                            show: ({multicolor}) => multicolor,
+                        },
+                        {
+                            key: 'multicolorStart',
+                            label: 'Multicolor start',
+                            defaultValue: 0,
+                            type: "range",
+                            attr: {
+                                min: 0,
+                                max: 350,
+                                step: 1
+                            },
+                            show: ({multicolor}) => multicolor,
+                        },
+                        {
+                            key: 'color',
+                            label: 'String color',
+                            defaultValue: "#ff4d00",
+                            type: "color",
+                            show: ({multicolor}) => !multicolor
+                        },
+                    ]
                 },
             ],
         });

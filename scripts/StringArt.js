@@ -2,33 +2,44 @@ import Nails from "./Nails.js";
 
 const COMMON_CONFIG_CONTROLS = [
     {
-        key: 'nailsColor',
-        label: 'Nails color',
-        defaultValue: "#ffffff",
-        type: "color",
-    },
-    {
-        key: 'showNails',
-        label: 'Show nails',
-        defaultValue: true,
-        type: "checkbox",
-    },
-    {
-        key: 'showStrings',
-        label: 'Show strings',
-        defaultValue: true,
-        type: "checkbox",
-    },
-    {
-        key: 'nailRadius',
-        label: 'Nail size',
-        defaultValue: 3,
-        type: "range",
-        attr: {
-            min: 1,
-            max: 20,
-            step: 1
-        }
+        key: 'general',
+        label: 'General',
+        type: 'group',
+        children: [
+            {
+                key: 'showStrings',
+                label: 'Show strings',
+                defaultValue: true,
+                type: "checkbox",
+                isDisabled: ({showNails}) => !showNails
+            },
+            {
+                key: 'showNails',
+                label: 'Show nails',
+                defaultValue: true,
+                type: "checkbox",
+                isDisabled: ({showStrings}) => !showStrings
+            },
+            {
+                key: 'nailsColor',
+                label: 'Nails color',
+                defaultValue: "#ffffff",
+                type: "color",
+                show: ({showNails}) => showNails
+            },
+            {
+                key: 'nailRadius',
+                label: 'Nail size',
+                defaultValue: 1,
+                type: "range",
+                attr: {
+                    min: 1,
+                    max: 5,
+                    step: 1
+                },
+                show: ({showNails}) => showNails
+            }
+        ]
     },
 ];
 
@@ -48,10 +59,7 @@ class StringArt {
 
     get defaultConfig() {
         if (!this._defaultConfig) {
-            this._defaultConfig = this.configControls.reduce((config, {key, defaultValue}) => ({
-                ...config,
-                [key]: defaultValue
-            }), {});
+            this._defaultConfig = flattenConfig(this.configControls);
         }
 
         return this._defaultConfig;
@@ -91,6 +99,18 @@ class StringArt {
     draw() {
         throw new Error("draw isn't implemented!");
     }
+}
+
+function flattenConfig(configControls) {
+    return configControls.reduce((config, {key, defaultValue, children}) =>
+        children ? {
+            ...config,
+            ...flattenConfig(children)
+        } : {
+            ...config,
+            [key]: defaultValue
+        },
+    {});
 }
 
 export default StringArt;
