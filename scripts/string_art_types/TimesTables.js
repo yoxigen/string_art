@@ -56,6 +56,28 @@ export default class TimesTables extends StringArt{
                     defaultValue: true,
                     type: "checkbox",
                 },
+                {
+                    key: 'multicolorRange',
+                    label: 'Multicolor range',
+                    defaultValue: 360,
+                    type: "range",
+                    attr: {
+                        min: 1,
+                        max: 360,
+                        step: 1
+                    }
+                },
+                {
+                    key: 'multicolorStart',
+                    label: 'Multicolor start',
+                    defaultValue: 0,
+                    type: "range",
+                    attr: {
+                        min: 0,
+                        max: 350,
+                        step: 1
+                    }
+                },
             ],
         });
     }
@@ -71,7 +93,13 @@ export default class TimesTables extends StringArt{
 
         this.center = this.size.map(v => v / 2);
         this.radius = Math.min(...this.center) - MARGIN;
-        this.indexAngle = PI2 / this.config.n;
+
+        const {n, times, multicolorRange} = this.config;
+
+        const extraNails = n % times;
+        this.realNailCount = n - extraNails; // The number of nails should be a multiple of the times, so the strings are exactly on the nails.
+        this.indexAngle = PI2 / this.realNailCount;
+        this.multiColorStep = multicolorRange / times;
     }
 
     getPoint({index = 0, rotation = 0}) {
@@ -91,8 +119,9 @@ export default class TimesTables extends StringArt{
     }
 
     drawTimesTable({ rotation, color = "#f00" }) {
-        const {n, base, showStrings} = this.config;
-        
+        const {base, showStrings} = this.config;
+        const n = this.realNailCount;
+
         this.contextStrings.beginPath();
         this.contextStrings.moveTo(...this.getPoint({ index: 0, rotation }));
         for(let i=0; i < n; i++) {
@@ -125,9 +154,8 @@ export default class TimesTables extends StringArt{
         }
     }
 
-    getTimeColor(time, times) {
-        const colorStep = 360 / times;
-        return `hsl(${time * colorStep}, 80%, 50%)`;
+    getTimeColor(time) {
+        return `hsl(${this.config.multicolorStart + time * this.multiColorStep}, 80%, 50%)`;
     }
 }
             
