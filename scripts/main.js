@@ -135,18 +135,22 @@ function renderControls(pattern) {
         const controlId = `config_${control.key}`;
 
         const controlEl = document.createElement("div");
+        controlEl.className = "control";
+        
         const label = document.createElement("label");
         label.innerHTML = control.label;
         label.setAttribute("for", controlId);
-        controlEl.appendChild(label);
 
         const inputEl = document.createElement("input");
-        controlEl.appendChild(inputEl);
 
         inputEl.setAttribute("type", control.type);
         if (control.type === "checkbox") {
             inputEl.checked = control.defaultValue;
+            controlEl.appendChild(inputEl);
+            controlEl.appendChild(label);
         } else {
+            controlEl.appendChild(label);
+            controlEl.appendChild(inputEl);
             inputEl.value = control.defaultValue;
             const inputValueEl = document.createElement('span');
             inputValueEl.id = `config_${control.key}_value`;

@@ -57,7 +57,7 @@ class Spiral extends StringArt{
                 {
                     key: 'renderSecondSpiral',
                     label: 'Second spiral',
-                    defaultValue: true,
+                    defaultValue: false,
                     type: 'checkbox'
                 },
             ],

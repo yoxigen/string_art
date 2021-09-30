@@ -1,11 +1,20 @@
 const PI2 = Math.PI * 2;
 
 export default class Nails {
-    constructor(canvasContext, { nailRadius, nailsColor}) {
+    constructor(canvas, config) {
+        this.canvas = canvas;
+        this.setConfig(config);
+    }
+
+    setConfig({ nailRadius, nailsColor}) {
         this.nailRadius = nailRadius;
         this.nailsColor = nailsColor;
-        this.context = canvasContext;
-        canvasContext.beginPath();
+        this.context = this.canvas.getContext("2d");
+        this.context.beginPath();
+    }
+    resetConfig(config) {
+        this.context.clearRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+        this.setConfig(config);
     }
 
     addNail([x,y]) {

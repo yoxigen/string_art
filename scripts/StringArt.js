@@ -81,12 +81,11 @@ class StringArt {
         this.canvas.setAttribute('height', height);
         this.center = this.size.map(value => value / 2);
 
-        if (this.contextNails) {
-            this.contextNails.clearRect(0, 0, ...this.size);
+        if (this.nails) {
+            this.nails.resetConfig(this.config);
         } else {
-            this.contextNails = this.canvas.getContext("2d");
+            this.nails = new Nails(this.canvas, this.config);
         }
-        this.nails = new Nails(this.contextNails, this.config);
     }
 
     draw() {
