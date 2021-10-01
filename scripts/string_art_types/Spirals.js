@@ -72,16 +72,10 @@ class Spirals extends StringArt{
         }
     }
     
-    draw() {
-        this.setUpDraw();
-
-        const {
-            n, radiusIncrease, angleStep, nSpirals, color,
-            showNails, nailRadius, nailsColor,
-            showStrings, 
-        } = this.config;
-
-        
+    render({
+        n, radiusIncrease, angleStep, nSpirals, color,
+        showNails, showStrings, 
+    }) {
         if (showStrings) {
             this.contextStrings.moveTo(...this.center);
             this.contextStrings.beginPath();

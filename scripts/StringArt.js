@@ -7,6 +7,12 @@ const COMMON_CONFIG_CONTROLS = [
         type: 'group',
         children: [
             {
+                key: 'darkMode',
+                label: 'Dark mode',
+                defaultValue: true,
+                type: 'checkbox'
+            },
+            {
                 key: 'showStrings',
                 label: 'Show strings',
                 defaultValue: true,
@@ -82,22 +88,37 @@ class StringArt {
         this.canvas.removeAttribute('height');
         this.canvas.removeAttribute('style');
 
-        const [width, height] = this.size = this.getSize([this.canvas.clientWidth, this.canvas.clientHeight]); // [width, height]
-        this.width = width;
-        this.height = height;
+        const [width, height] = this.size = [this.canvas.clientWidth, this.canvas.clientHeight];
+        Object.assign(this, this.size);
         this.canvas.setAttribute('width', width);
         this.canvas.setAttribute('height', height);
         this.center = this.size.map(value => value / 2);
 
         if (this.nails) {
-            this.nails.resetConfig(this.config);
+            this.nails.setConfig(this.config);
         } else {
             this.nails = new Nails(this.canvas, this.config);
         }
     }
 
+    afterDraw() {
+        if (!this.contextBackground) {
+            this.contextBackground = this.canvas.getContext("2d");
+        }
+
+        this.contextBackground.globalCompositeOperation = 'destination-over';
+        this.contextBackground.fillStyle = this.config.darkMode ? '#222222' : '#ffffff';
+        this.contextBackground.fillRect(0, 0, ...this.size);
+    }
+
     draw() {
-        throw new Error("draw isn't implemented!");
+        this.setUpDraw(this.config);
+        this.render(this.config);
+        this.afterDraw(this.config);
+    }
+
+    render(config) {
+        throw new Error("render method not defined!");
     }
 }
 

@@ -82,7 +82,7 @@ function initRouting() {
 function updateState(state) {
     const pattern = findPatternById(state.pattern);
     patternSelector.value = pattern.id;
-    selectPattern(pattern);
+    selectPattern(pattern, false);
     if (state.config) {
         currentPattern.config = JSON.parse(state.config);
         currentPattern.draw();
@@ -116,11 +116,13 @@ function findPatternById(patternId) {
     return pattern;
 }
 
-function selectPattern(pattern) {
+function selectPattern(pattern, draw = true) {
     currentPattern = pattern;
     renderControls();
     patternLinkEl.setAttribute("href", pattern.link);
-    currentPattern.draw();
+    if (draw) {
+        currentPattern.draw();
+    }
     document.title = `${pattern.name} - String Art Pattern Creator`;
 }
 

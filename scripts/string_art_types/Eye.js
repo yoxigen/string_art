@@ -108,10 +108,7 @@ class Eye extends StringArt{
         }
     }
 
-    draw() {
-        this.setUpDraw();
-
-        const { color1, color2, showStrings, showNails } = this.config;
+    render( { color1, color2, showStrings, showNails }) {
         const colors = [color1, color2];
 
         for(let i=0; i < 4; i++) {

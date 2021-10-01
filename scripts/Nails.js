@@ -4,6 +4,7 @@ export default class Nails {
     constructor(canvas, config) {
         this.canvas = canvas;
         this.setConfig(config);
+        this.nails = [];
     }
 
     setConfig({ nailRadius, nailsColor}) {
@@ -12,19 +13,23 @@ export default class Nails {
         this.context = this.canvas.getContext("2d");
         this.context.globalCompositeOperation = "source-over";
         this.context.beginPath();
-    }
-    resetConfig(config) {
-        this.context.clearRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
-        this.setConfig(config);
+        this.nails = [];
     }
 
-    addNail([x,y]) {
-        this.context.moveTo(x + this.nailRadius, y);
-        this.context.arc(x, y, this.nailRadius, 0, PI2)
+    addNail(point) {
+        this.nails.push(point)
     }
 
     fill() {
+        this.context.beginPath();
+        this.nails.forEach(([x, y]) => {
+            this.context.moveTo(x + this.nailRadius, y);
+            this.context.arc(x, y, this.nailRadius, 0, PI2)
+        });
+
         this.context.fillStyle = this.nailsColor;
         this.context.fill();
+
+        this.nails = [];
     }
 }

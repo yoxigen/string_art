@@ -128,10 +128,7 @@ class Spiral extends StringArt{
         }
     }
 
-    draw() {
-        const { color1, color2, renderSecondSpiral, showNails } = this.config;
-        this.setUpDraw();
-
+    render({ color1, color2, renderSecondSpiral, showNails }) {
         this.drawSpiral({ color: color1, rotation: Math.PI * 1.5 });
         if (renderSecondSpiral) {
             this.drawSpiral({ rotation: Math.PI, color: color2, inverse: true});

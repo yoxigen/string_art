@@ -96,7 +96,7 @@ export default class TimesTables extends StringArt{
         super.setUpDraw();
 
         if (this.contextStrings) {
-	        this.contextStrings.clearRect(0, 0, ...this.size);
+	       this.contextStrings.clearRect(0, 0, ...this.size);
         } else {
             this.contextStrings = this.canvas.getContext("2d");
         }
@@ -147,9 +147,7 @@ export default class TimesTables extends StringArt{
         }
     }
 
-    draw() {
-        const { color, multicolor, showNails, times } = this.config;
-        this.setUpDraw();
+    render({ color, multicolor, showNails, times }) {
         const rotationAngle = PI2 / times;
 
         for(let i = 0; i < times; i++) {
