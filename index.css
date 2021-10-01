@@ -13,6 +13,7 @@ body {
 h1 {
     font-size: 16px;
     margin: 0 0 32px;
+    flex-grow: 1;
 }
 main {
     display: flex;
@@ -28,6 +29,13 @@ nav {
     max-height: 100%;
     overflow-y: auto;
 }
+nav header {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    width: 100%;
+}
+
 canvas {
     height: 100%;
     width: 100%;
@@ -51,7 +59,13 @@ a:hover {
 }
 @media only screen and (max-width: 600px) {
     main {
-        flex-direction: column;
+        display: block;
+    }
+
+    nav {
+        max-height: 50vh;
+        border-bottom: solid 1px #3a3a3a;
+        box-shadow: 0 1px 0px black;
     }
 }
 

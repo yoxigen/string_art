@@ -9,7 +9,7 @@ export default class TimesTables extends StringArt{
             canvas,
             name: "Times Tables",
             id: 'times_tables',
-            link: "https://www.youtube.com/watch?v=qhbuKbxJsk8&ab_channel=Mathologer",
+            link: "https://www.youtube.com/watch?v=LWin7w9hF-E&ab_channel=Jorgedelatierra",
             configControls: [
                 {
                     key: 'n',
