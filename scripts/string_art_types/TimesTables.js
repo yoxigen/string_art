@@ -113,9 +113,11 @@ export default class TimesTables extends StringArt{
     }
 
     getPoint({index = 0, rotation = 0}) {
+        const pointAngle = index * this.indexAngle + rotation;
+
         return [
-            this.center[0] + Math.cos(index * this.indexAngle + rotation) * this.radius,
-            this.center[1] + Math.sin(index * this.indexAngle + rotation) * this.radius,
+            this.center[0] + Math.cos(pointAngle) * this.radius,
+            this.center[1] + Math.sin(pointAngle) * this.radius,
         ];
     }
 
@@ -163,7 +165,9 @@ export default class TimesTables extends StringArt{
     }
 
     getTimeColor(time) {
-        return `hsl(${this.config.multicolorStart + time * this.multiColorStep}, 80%, 50%)`;
+        const {multicolorStart, darkMode} = this.config;
+
+        return `hsl(${multicolorStart + time * this.multiColorStep}, 80%, ${darkMode ? 50 : 40}%)`;
     }
 }
             

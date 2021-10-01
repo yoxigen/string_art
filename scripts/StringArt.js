@@ -102,8 +102,11 @@ class StringArt {
         this.canvas.removeAttribute('width');
         this.canvas.removeAttribute('height');
         this.canvas.removeAttribute('style');
-
+requestAnimationFrame(() => {
+    console.log("REAL", document.querySelector('canvas').clientWidth);
+})
         const [width, height] = this.size = [this.canvas.clientWidth, this.canvas.clientHeight];
+        console.log("width", width)
         Object.assign(this, this.size);
         this.canvas.setAttribute('width', width);
         this.canvas.setAttribute('height', height);
@@ -127,9 +130,11 @@ class StringArt {
     }
 
     draw() {
-        this.setUpDraw(this.config);
-        this.render(this.config);
-        this.afterDraw(this.config);
+        requestAnimationFrame(() => {
+            this.setUpDraw(this.config);
+            this.render(this.config);
+            this.afterDraw(this.config);
+        });
     }
 
     render(config) {
