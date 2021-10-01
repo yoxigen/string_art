@@ -7,9 +7,9 @@ export default class Nails {
         this.nails = [];
     }
 
-    setConfig({ nailRadius, nailsColor}) {
+    setConfig({ nailRadius, darkMode}) {
         this.nailRadius = nailRadius;
-        this.nailsColor = nailsColor;
+        this.nailsColor = darkMode ? '#ffffff' : '#000000';
         this.context = this.canvas.getContext("2d");
         this.context.globalCompositeOperation = "source-over";
         this.context.beginPath();

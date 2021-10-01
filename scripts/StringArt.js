@@ -27,13 +27,6 @@ const COMMON_CONFIG_CONTROLS = [
                 isDisabled: ({showStrings}) => !showStrings
             },
             {
-                key: 'nailsColor',
-                label: 'Nails color',
-                defaultValue: "#ffffff",
-                type: "color",
-                show: ({showNails}) => showNails
-            },
-            {
                 key: 'nailRadius',
                 label: 'Nail size',
                 defaultValue: 1,
@@ -44,7 +37,29 @@ const COMMON_CONFIG_CONTROLS = [
                     step: 1
                 },
                 show: ({showNails}) => showNails
-            }
+            },
+            // {
+            //     key: 'width',
+            //     label: 'Width (cm)',
+            //     defaultValue: '',
+            //     type: 'number',
+            //     attr: {
+            //         min: 1,
+            //         max: 200,
+            //         step: 1
+            //     }
+            // },
+            // {
+            //     key: 'height',
+            //     label: 'Height (cm)',
+            //     defaultValue: '',
+            //     type: 'number',
+            //     attr: {
+            //         min: 1,
+            //         max: 200,
+            //         step: 1
+            //     }
+            // }
         ]
     },
 ];
