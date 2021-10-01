@@ -58,7 +58,7 @@ export default class TimesTables extends StringArt{
                         {
                             key: 'multicolorRange',
                             label: 'Multicolor range',
-                            defaultValue: 360,
+                            defaultValue: 180,
                             type: "range",
                             attr: {
                                 min: 1,
@@ -70,11 +70,11 @@ export default class TimesTables extends StringArt{
                         {
                             key: 'multicolorStart',
                             label: 'Multicolor start',
-                            defaultValue: 0,
+                            defaultValue: 256,
                             type: "range",
                             attr: {
                                 min: 0,
-                                max: 350,
+                                max: 360,
                                 step: 1
                             },
                             show: ({multicolor}) => multicolor,
