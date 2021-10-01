@@ -21,7 +21,15 @@ function main() {
     if (history.state?.pattern) {
         updateState(history.state);
     } else {
-        selectPattern(patterns[0]);
+        const queryParams = new URLSearchParams(document.location.search);
+        const queryPattern = queryParams.get('pattern');
+
+        if (queryPattern) {
+            const config = queryParams.get('config');
+            updateState({ pattern: queryPattern, config })
+        } else {
+            selectPattern(patterns[0]);
+        }
     }
 
     window.addEventListener("resize", () =>
