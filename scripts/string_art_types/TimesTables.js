@@ -121,23 +121,19 @@ export default class TimesTables extends StringArt{
         ];
     }
 
-    drawPoint(point) {
+    drawPoint(point, { addNail } = {}) {
         if (this.config.showStrings) {
             this.contextStrings.lineTo(...point);
         }
-        if (this.config.showNails) {
+        if (addNail && this.config.showNails) {
             this.nails.addNail(point);
         }
     }
 
-    drawTimesTable({ rotation, color = "#f00", enableLog }) {
+    drawTimesTable({ rotation, color = "#f00", isFirstTime }) {
         this.log = [];
         const {base, showStrings} = this.config;
         const n = this.realNailCount;
-
-        if (enableLog) {
-            console.log(`%c Start color ${color} `, `background: ${color}; color: #ffffff`);
-        }
 
         this.contextStrings.beginPath();
         this.contextStrings.moveTo(...this.getPoint({ index: 0, rotation }));
@@ -146,35 +142,25 @@ export default class TimesTables extends StringArt{
             this.drawPoint(indexPoint);
             const toIndex = (i * base) % n;
 
-            this.drawPoint(this.getPoint({index: toIndex % n, rotation}));
+            this.drawPoint(this.getPoint({index: toIndex % n, rotation}), { addNail: !isFirstTime });
             this.contextStrings.moveTo(...indexPoint);
-            if (enableLog && i !== toIndex) {
-                this.log.push({ from: i + 1, to: toIndex + 1 });
-            }
         }
       
         if (showStrings) {
             this.contextStrings.strokeStyle = color;
             this.contextStrings.stroke();
         }
-
-        if (enableLog) {
-            console.table(this.log);
-        }
     }
 
-    render({ color, multicolor, showNails, times, enableLog }) {
+    render({ color, multicolor, showNails, times }) {
         const rotationAngle = PI2 / times;
-        if (enableLog) {
-            console.clear();
-            console.log("Start render. Number of nails: " + this.realNailCount);
-        }
 
-        for(let i = 0; i < times; i++) {
-            const timeColor = multicolor ? this.getTimeColor(i, times) : color;
+        for(let time = 0; time < times; time++) {
+            const timeColor = multicolor ? this.getTimeColor(time, times) : color;
             this.drawTimesTable({ 
                 color: timeColor, 
-                rotation: rotationAngle * i 
+                rotation: rotationAngle * time,
+                isFirstTime: time === 0
             });
         }
 
