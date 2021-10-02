@@ -207,6 +207,10 @@ function renderControls(containerEl = controlsEl, configControls = currentPatter
             inputEl.setAttribute("type", control.type);
             const inputValue = currentPattern.config[control.key] ?? control.defaultValue;
 
+            if (control.attr) {
+                Object.entries(control.attr).forEach(([attr, value]) => inputEl.setAttribute(attr, value));
+            }
+
             if (control.type === "checkbox") {
                 inputEl.checked = inputValue;
                 controlEl.appendChild(inputEl);
@@ -214,7 +218,7 @@ function renderControls(containerEl = controlsEl, configControls = currentPatter
             } else {
                 controlEl.appendChild(label);
                 controlEl.appendChild(inputEl);
-                inputEl.value =  inputValue;
+                inputEl.value = inputValue;
                 const inputValueEl = document.createElement('span');
                 inputValueEl.id = `config_${control.key}_value`;
                 inputValueEl.innerText = inputValue;
@@ -222,9 +226,6 @@ function renderControls(containerEl = controlsEl, configControls = currentPatter
                 controlEl.appendChild(inputValueEl);
             }
             inputEl.id = controlId;
-            if (control.attr) {
-                Object.entries(control.attr).forEach(([attr, value]) => inputEl.setAttribute(attr, value));
-            }
         }
 
         controlEl.id = `control_${control.key}`;

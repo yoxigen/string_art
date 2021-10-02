@@ -130,31 +130,50 @@ export default class TimesTables extends StringArt{
         }
     }
 
-    drawTimesTable({ rotation, color = "#f00" }) {
+    drawTimesTable({ rotation, color = "#f00", enableLog }) {
+        this.log = [];
         const {base, showStrings} = this.config;
         const n = this.realNailCount;
+
+        if (enableLog) {
+            console.log(`%c Start color ${color} `, `background: ${color}; color: #ffffff`);
+        }
 
         this.contextStrings.beginPath();
         this.contextStrings.moveTo(...this.getPoint({ index: 0, rotation }));
         for(let i=0; i < n; i++) {
             const indexPoint = this.getPoint({index: i, rotation});
             this.drawPoint(indexPoint);
-            this.drawPoint(this.getPoint({index: (i * base) % n, rotation}));
+            const toIndex = (i * base) % n;
+
+            this.drawPoint(this.getPoint({index: toIndex % n, rotation}));
             this.contextStrings.moveTo(...indexPoint);
+            if (enableLog && i !== toIndex) {
+                this.log.push({ from: i + 1, to: toIndex + 1 });
+            }
         }
       
         if (showStrings) {
             this.contextStrings.strokeStyle = color;
             this.contextStrings.stroke();
         }
+
+        if (enableLog) {
+            console.table(this.log);
+        }
     }
 
-    render({ color, multicolor, showNails, times }) {
+    render({ color, multicolor, showNails, times, enableLog }) {
         const rotationAngle = PI2 / times;
+        if (enableLog) {
+            console.clear();
+            console.log("Start render. Number of nails: " + this.realNailCount);
+        }
 
         for(let i = 0; i < times; i++) {
+            const timeColor = multicolor ? this.getTimeColor(i, times) : color;
             this.drawTimesTable({ 
-                color: multicolor ? this.getTimeColor(i, times) : color, 
+                color: timeColor, 
                 rotation: rotationAngle * i 
             });
         }
