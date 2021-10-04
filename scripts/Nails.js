@@ -16,13 +16,14 @@ export default class Nails {
         this.nails = [];
     }
 
-    addNail(point) {
-        this.nails.push(point)
+    // Adds a nail to be rendered. nail: { point, number }
+    addNail(nail) {
+        this.nails.push(nail);
     }
 
     fill() {
         this.context.beginPath();
-        this.nails.forEach(([x, y]) => {
+        this.nails.forEach(({ point: [x, y] }) => {
             this.context.moveTo(x + this.nailRadius, y);
             this.context.arc(x, y, this.nailRadius, 0, PI2)
         });

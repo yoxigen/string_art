@@ -110,10 +110,11 @@ export default class TimesTables extends StringArt{
         this.realNailCount = n - extraNails; // The number of nails should be a multiple of the times, so the strings are exactly on the nails.
         this.indexAngle = PI2 / this.realNailCount;
         this.multiColorStep = multicolorRange / times;
+        this.timeShift = Math.floor(n / times);
     }
 
-    getPoint({index = 0, rotation = 0}) {
-        const pointAngle = index * this.indexAngle + rotation;
+    getPoint({index = 0}) {
+        const pointAngle = index * this.indexAngle;
 
         return [
             this.center[0] + Math.cos(pointAngle) * this.radius,
@@ -121,29 +122,25 @@ export default class TimesTables extends StringArt{
         ];
     }
 
-    drawPoint(point, { addNail } = {}) {
-        if (this.config.showStrings) {
-            this.contextStrings.lineTo(...point);
-        }
-        if (addNail && this.config.showNails) {
-            this.nails.addNail(point);
-        }
-    }
-
-    drawTimesTable({ rotation, color = "#f00", isFirstTime }) {
+    drawTimesTable({ shift = 0, color = "#f00", isFirstTime }) {
         this.log = [];
         const {base, showStrings} = this.config;
         const n = this.realNailCount;
 
         this.contextStrings.beginPath();
-        this.contextStrings.moveTo(...this.getPoint({ index: 0, rotation }));
+        this.contextStrings.moveTo(...this.getPoint({ index: shift }));
         for(let i=0; i < n; i++) {
-            const indexPoint = this.getPoint({index: i, rotation});
-            this.drawPoint(indexPoint);
-            const toIndex = (i * base) % n;
+            const indexPoint = this.getPoint({index: i + shift});
+            if (isFirstTime && this.config.showNails) {
+                this.nails.addNail({ point: indexPoint, number: i });
+            }
 
-            this.drawPoint(this.getPoint({index: toIndex % n, rotation}), { addNail: !isFirstTime });
-            this.contextStrings.moveTo(...indexPoint);
+            if (this.config.showStrings && i) {
+                const toIndex = (i * base) % n;
+                this.contextStrings.lineTo(...indexPoint);
+                this.contextStrings.lineTo(...this.getPoint({index: toIndex + shift}));
+                this.contextStrings.moveTo(...indexPoint);
+            }
         }
       
         if (showStrings) {
@@ -152,15 +149,15 @@ export default class TimesTables extends StringArt{
         }
     }
 
-    render({ color, multicolor, showNails, times }) {
-        const rotationAngle = PI2 / times;
+    render({ color, multicolor, showNails, showStrings, times }) {
+        const timesToDraw = showStrings ? times : 1;
 
-        for(let time = 0; time < times; time++) {
+        for(let time = 0; time < timesToDraw; time++) {
             const timeColor = multicolor ? this.getTimeColor(time, times) : color;
             this.drawTimesTable({ 
                 color: timeColor, 
-                rotation: rotationAngle * time,
-                isFirstTime: time === 0
+                isFirstTime: time === 0,
+                shift: this.timeShift * time
             });
         }
 

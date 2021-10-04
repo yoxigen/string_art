@@ -105,7 +105,7 @@ class Spiral extends StringArt{
         let repetitionCount = 0;
         
         for(let i=0; currentInnerLength; i++) {
-            this.drawPoint(this.getPoint({step: i + currentInnerLength, stepAngle, rotation, inverse}));
+            this.drawPoint(this.getPoint({ step: i + currentInnerLength, stepAngle, rotation, inverse }));
             this.drawPoint(this.getPoint({ step: i + 1, stepAngle, rotation, inverse}));
 
             repetitionCount++;
@@ -124,7 +124,7 @@ class Spiral extends StringArt{
             this.contextStrings.lineTo(...point);
         }
         if (this.config.showNails) {
-            this.nails.addNail(point);
+            this.nails.addNail({point});
         }
     }
 

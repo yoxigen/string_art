@@ -104,7 +104,7 @@ class Eye extends StringArt{
         }
 
         if (this.config.showNails) {
-            this.nails.addNail(point);
+            this.nails.addNail({point});
         }
     }
 

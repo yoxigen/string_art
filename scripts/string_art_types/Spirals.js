@@ -98,7 +98,7 @@ class Spirals extends StringArt{
                 }
 
                 if (showNails) {
-                    this.nails.addNail(point);
+                    this.nails.addNail({point, number: `${s-i}`});
                 }
             }
             
