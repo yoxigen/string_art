@@ -93,9 +93,10 @@ function updateState(state) {
     selectPattern(pattern, false);
     if (state.config) {
         currentPattern.config = JSON.parse(state.config);
-        currentPattern.draw();
-        updateInputs(currentPattern.config);
     }
+    
+    currentPattern.draw();
+    updateInputs(currentPattern.config);
 }
 
 function updateInputs(config) {
