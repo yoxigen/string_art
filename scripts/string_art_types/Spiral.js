@@ -67,13 +67,6 @@ class Spiral extends StringArt{
 
     setUpDraw() {
         super.setUpDraw();
-
-        if (this.contextStrings) {
-	        this.contextStrings.clearRect(0, 0, ...this.size);
-        } else {
-            this.contextStrings = this.canvas.getContext("2d");
-        }
-
         this.center = this.size.map(v => v / 2);
         this.radius = Math.min(...this.center) - MARGIN;
     }
@@ -98,8 +91,8 @@ class Spiral extends StringArt{
         const {n, repetition, innerLength, showNails, showStrings} = this.config;
         const stepAngle = Math.PI * 2 / n;
         
-        this.contextStrings.moveTo(...this.getPoint({ stepAngle: 0, rotation, inverse }));
-        this.contextStrings.beginPath();
+        this.ctx.moveTo(...this.getPoint({ stepAngle: 0, rotation, inverse }));
+        this.ctx.beginPath();
         
         let currentInnerLength = innerLength;
         let repetitionCount = 0;
@@ -115,13 +108,13 @@ class Spiral extends StringArt{
             }
         }
       
-        this.contextStrings.strokeStyle = color;
-        this.contextStrings.stroke();
+        this.ctx.strokeStyle = color;
+        this.ctx.stroke();
     }
 
     drawPoint(point) {
         if (this.config.showStrings) {
-            this.contextStrings.lineTo(...point);
+            this.ctx.lineTo(...point);
         }
         if (this.config.showNails) {
             this.nails.addNail({point});

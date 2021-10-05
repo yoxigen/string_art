@@ -61,24 +61,14 @@ class Spirals extends StringArt{
             canvas
         })
     }
-
-    setUpDraw() {
-        super.setUpDraw();
-
-        if (this.contextStrings) {
-	        this.contextStrings.clearRect(0, 0, ...this.size);
-        } else {
-            this.contextStrings = this.canvas.getContext("2d");
-        }
-    }
     
     render({
         n, radiusIncrease, angleStep, nSpirals, color,
         showNails, showStrings, 
     }) {
         if (showStrings) {
-            this.contextStrings.moveTo(...this.center);
-            this.contextStrings.beginPath();
+            this.ctx.moveTo(...this.center);
+            this.ctx.beginPath();
         }
 
         let currentRadius = 0;
@@ -94,7 +84,7 @@ class Spirals extends StringArt{
                 ];
 
                 if (showStrings) {
-                    this.contextStrings.lineTo(...point);
+                    this.ctx.lineTo(...point);
                 }
 
                 if (showNails) {
@@ -107,8 +97,8 @@ class Spirals extends StringArt{
         }
         
         if (showStrings) {
-            this.contextStrings.strokeStyle = color;
-            this.contextStrings.stroke();
+            this.ctx.strokeStyle = color;
+            this.ctx.stroke();
         }
 
         if (showNails) {

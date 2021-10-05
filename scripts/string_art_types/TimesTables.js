@@ -95,12 +95,6 @@ export default class TimesTables extends StringArt{
     setUpDraw() {
         super.setUpDraw();
 
-        if (this.contextStrings) {
-	       this.contextStrings.clearRect(0, 0, ...this.size);
-        } else {
-            this.contextStrings = this.canvas.getContext("2d");
-        }
-
         this.center = this.size.map(v => v / 2);
         this.radius = Math.min(...this.center) - MARGIN;
 
@@ -127,8 +121,8 @@ export default class TimesTables extends StringArt{
         const {base, showStrings} = this.config;
         const n = this.realNailCount;
 
-        this.contextStrings.beginPath();
-        this.contextStrings.moveTo(...this.getPoint({ index: shift }));
+        this.ctx.beginPath();
+        this.ctx.moveTo(...this.getPoint({ index: shift }));
         for(let i=0; i < n; i++) {
             const indexPoint = this.getPoint({index: i + shift});
             if (isFirstTime && this.config.showNails) {
@@ -137,15 +131,15 @@ export default class TimesTables extends StringArt{
 
             if (this.config.showStrings && i) {
                 const toIndex = (i * base) % n;
-                this.contextStrings.lineTo(...indexPoint);
-                this.contextStrings.lineTo(...this.getPoint({index: toIndex + shift}));
-                this.contextStrings.moveTo(...indexPoint);
+                this.ctx.lineTo(...indexPoint);
+                this.ctx.lineTo(...this.getPoint({index: toIndex + shift}));
+                this.ctx.moveTo(...indexPoint);
             }
         }
       
         if (showStrings) {
-            this.contextStrings.strokeStyle = color;
-            this.contextStrings.stroke();
+            this.ctx.strokeStyle = color;
+            this.ctx.stroke();
         }
     }
 

@@ -53,12 +53,6 @@ class Eye extends StringArt{
     setUpDraw() {
         super.setUpDraw();
 
-        if (this.contextStrings) {
-	        this.contextStrings.clearRect(0, 0, ...this.size);
-        } else {
-            this.contextStrings = this.canvas.getContext("2d");
-        }
-
         this.width = this.height =  Math.min(...this.size);
         this.nailSpacing = (this.width - 2 * MARGIN) / this.config.n;
     }
@@ -80,8 +74,8 @@ class Eye extends StringArt{
     drawSide({ side, color, shift = 0, showStrings = true }) {
         const {n} = this.config;
         if (showStrings) {
-            this.contextStrings.moveTo(...this.getPoint({ side, index: 0 }));
-            this.contextStrings.beginPath();
+            this.ctx.moveTo(...this.getPoint({ side, index: 0 }));
+            this.ctx.beginPath();
         }
         
         const sideIndex = SIDES.indexOf(side);
@@ -94,13 +88,13 @@ class Eye extends StringArt{
             this.drawPoint(this.getPoint({ side, index: i + 1}));
         }
       
-        this.contextStrings.strokeStyle = color;
-        this.contextStrings.stroke();
+        this.ctx.strokeStyle = color;
+        this.ctx.stroke();
     }
 
     drawPoint(point) {
         if (this.config.showStrings) {
-            this.contextStrings.lineTo(...point);
+            this.ctx.lineTo(...point);
         }
 
         if (this.config.showNails) {

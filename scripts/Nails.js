@@ -2,7 +2,7 @@ const PI2 = Math.PI * 2;
 
 export default class Nails {
     constructor(canvas, config) {
-        this.canvas = canvas;
+        this.context = canvas.getContext("2d");
         this.setConfig(config);
         this.nails = [];
     }
@@ -10,7 +10,6 @@ export default class Nails {
     setConfig({ nailRadius, darkMode}) {
         this.nailRadius = nailRadius;
         this.nailsColor = darkMode ? '#ffffff' : '#000000';
-        this.context = this.canvas.getContext("2d");
         this.context.globalCompositeOperation = "source-over";
         this.context.beginPath();
         this.nails = [];

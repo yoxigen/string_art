@@ -75,6 +75,7 @@ class StringArt {
         this.id = id;
         this.link = link;
         this.canvas = canvas;
+        this.ctx = this.canvas.getContext("2d");
         this._defaultConfig = this.defaultConfig;
     }
 
@@ -114,16 +115,14 @@ class StringArt {
         } else {
             this.nails = new Nails(this.canvas, this.config);
         }
+
+        this.ctx.clearRect(0, 0, ...this.size);
     }
 
     afterDraw() {
-        if (!this.contextBackground) {
-            this.contextBackground = this.canvas.getContext("2d");
-        }
-
-        this.contextBackground.globalCompositeOperation = 'destination-over';
-        this.contextBackground.fillStyle = this.config.darkMode ? '#222222' : '#ffffff';
-        this.contextBackground.fillRect(0, 0, ...this.size);
+        this.ctx.globalCompositeOperation = 'destination-over';
+        this.ctx.fillStyle = this.config.darkMode ? '#222222' : '#ffffff';
+        this.ctx.fillRect(0, 0, ...this.size);
     }
 
     draw() {
