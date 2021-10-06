@@ -125,16 +125,24 @@ class StringArt {
         this.ctx.fillRect(0, 0, ...this.size);
     }
 
-    draw() {
+    /**
+     * Draws the string art on canvas
+     * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all) 
+     */
+    draw(renderConfig = {}) {
         requestAnimationFrame(() => {
             this.setUpDraw(this.config);
-            this.render(this.config);
+            this.render(renderConfig);
             this.afterDraw(this.config);
         });
     }
 
     render(config) {
         throw new Error("render method not defined!");
+    }
+
+    getStepCount(config) {
+        throw new Error(`'getStepCount' method not implemented for string art type "${this.name}"`);
     }
 }
 

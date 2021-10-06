@@ -116,14 +116,14 @@ export default class TimesTables extends StringArt{
         ];
     }
 
-    drawTimesTable({ shift = 0, color = "#f00", isFirstTime }) {
-        this.log = [];
+    drawTimesTable({ shift = 0, color = "#f00", isFirstTime, steps }) {
         const {base, showStrings} = this.config;
         const n = this.realNailCount;
+        const stepsToRender = steps ?? n
 
         this.ctx.beginPath();
         this.ctx.moveTo(...this.getPoint({ index: shift }));
-        for(let i=0; i < n; i++) {
+        for(let i=0; i < stepsToRender; i++) {
             const indexPoint = this.getPoint({index: i + shift});
             if (isFirstTime && this.config.showNails) {
                 this.nails.addNail({ point: indexPoint, number: i });
@@ -143,15 +143,19 @@ export default class TimesTables extends StringArt{
         }
     }
 
-    render({ color, multicolor, showNails, showStrings, times }) {
-        const timesToDraw = showStrings ? times : 1;
-
+    render({ step }) {
+        const {color, multicolor, showNails, showStrings, times} = this.config;
+        const isPartialRender = Number.isInteger(step) && step < this.getStepCount();
+        const stepTimes = isPartialRender ? Math.ceil(step / this.realNailCount) : times;
+        const timesToDraw = showStrings ? stepTimes : 1;
+        
         for(let time = 0; time < timesToDraw; time++) {
             const timeColor = multicolor ? this.getTimeColor(time, times) : color;
             this.drawTimesTable({ 
                 color: timeColor, 
                 isFirstTime: time === 0,
-                shift: this.timeShift * time
+                shift: this.timeShift * time,
+                steps: isPartialRender && time === timesToDraw - 1 ? step % this.realNailCount : null
             });
         }
 
@@ -164,6 +168,10 @@ export default class TimesTables extends StringArt{
         const {multicolorStart, darkMode} = this.config;
 
         return `hsl(${multicolorStart + time * this.multiColorStep}, 80%, ${darkMode ? 50 : 40}%)`;
+    }
+
+    getStepCount() {
+        return this.config.times * this.realNailCount;
     }
 }
             
