@@ -46,7 +46,7 @@ class Spiral extends StringArt{
                 {
                     key: 'rotation',
                     label: 'Rotation',
-                    defaultValue: 0.07,
+                    defaultValue: 0.49,
                     type: "range",
                     attr: {
                         min: 0,
@@ -68,7 +68,7 @@ class Spiral extends StringArt{
                 {
                     key: 'layerSpread',
                     label: 'Layer spread',
-                    defaultValue: 12,
+                    defaultValue: 13,
                     type: "range",
                     attr: {
                         min: 1,
@@ -84,7 +84,7 @@ class Spiral extends StringArt{
                         {
                             key: 'multicolorRange',
                             label: 'Multicolor range',
-                            defaultValue: 240,
+                            defaultValue: 216,
                             type: "range",
                             attr: {
                                 min: 1,
@@ -95,7 +95,7 @@ class Spiral extends StringArt{
                         {
                             key: 'multicolorStart',
                             label: 'Multicolor start',
-                            defaultValue: 200,
+                            defaultValue: 263,
                             type: "range",
                             attr: {
                                 min: 0,
@@ -106,7 +106,7 @@ class Spiral extends StringArt{
                         {
                             key: 'multicolorByLightness',
                             label: 'Multicolor by lightness',
-                            defaultValue: false,
+                            defaultValue: true,
                             type: 'checkbox'
                         }
                     ]
@@ -171,7 +171,7 @@ class Spiral extends StringArt{
         const { layers, showNails, showStrings } = this.config;
         if (showStrings) {
             for(let layer = 0; layer < layers; layer++) {
-                this.drawSpiral({ color: this.getLayerColor(layer), shift: this.layerShift * layer });
+                this.drawSpiral({ color: this.getLayerColor(layer), shift: -this.layerShift * layer });
             }
         }
         
