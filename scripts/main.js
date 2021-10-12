@@ -54,7 +54,8 @@ function initControls() {
             }
     
             player.update(currentPattern, { goToEnd: false });
-
+            currentPattern.draw();
+            
             inputTimeout = setTimeout(() => {
                 const configQuery = JSON.stringify(currentPattern.config)
                 history.replaceState({
@@ -89,10 +90,10 @@ function initRouting() {
 function updateState(state) {
     const pattern = findPatternById(state.pattern);
     patternSelector.value = pattern.id;
-    selectPattern(pattern, false);
-    if (state.config) {
-        currentPattern.config = JSON.parse(state.config);
-    }
+    selectPattern(pattern, { 
+        draw: false,
+        config: state.config ? JSON.parse(state.config) : null
+    });
     
     currentPattern.draw();
     updateInputs(currentPattern.config);
@@ -124,8 +125,12 @@ function findPatternById(patternId) {
     return pattern;
 }
 
-function selectPattern(pattern, draw = true) {
+function selectPattern(pattern, { config, draw = true} = {}) {
     currentPattern = pattern;
+    if (config) {
+        currentPattern.config = config;
+    }
+
     renderControls();
     patternLinkEl.setAttribute("href", pattern.link);
     if (draw) {

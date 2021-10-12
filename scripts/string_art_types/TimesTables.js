@@ -34,8 +34,8 @@ export default class TimesTables extends StringArt{
                     }
                 },
                 {
-                    key: 'times',
-                    label: 'Times',
+                    key: 'layers',
+                    label: 'Layers',
                     defaultValue: 7,
                     type: "range",
                     attr: {
@@ -93,9 +93,9 @@ export default class TimesTables extends StringArt{
     }
 
     getRealNailCount() {
-        const {n, times} = this.config;
-        const extraNails = n % times;
-        return n - extraNails; // The number of nails should be a multiple of the times, so the strings are exactly on the nails.
+        const {n, layers} = this.config;
+        const extraNails = n % layers;
+        return n - extraNails; // The number of nails should be a multiple of the layers, so the strings are exactly on the nails.
     }
 
     setUpDraw() {
@@ -104,12 +104,12 @@ export default class TimesTables extends StringArt{
         this.center = this.size.map(v => v / 2);
         this.radius = Math.min(...this.center) - MARGIN;
 
-        const {n, times, multicolorRange} = this.config;
+        const {n, layers, multicolorRange} = this.config;
 
         this.realNailCount = this.getRealNailCount();
         this.indexAngle = PI2 / this.realNailCount;
-        this.multiColorStep = multicolorRange / times;
-        this.timeShift = Math.floor(n / times);
+        this.multiColorStep = multicolorRange / layers;
+        this.timeShift = Math.floor(n / layers);
     }
 
     getPoint(index = 0) {
@@ -138,15 +138,15 @@ export default class TimesTables extends StringArt{
             this.ctx.strokeStyle = color;
             this.ctx.stroke();
             
-            yield time * n + i;
+            yield { instructions: `${i - 1} → ${i} → ${toIndex} → ${i}`, index: time * n + i };
         }
     }
 
     *generateStrings() {
-        const {color, multicolor, times} = this.config;
+        const {color, multicolor, layers} = this.config;
 
-        for(let time = 0; time < times; time++) {
-            const timeColor = multicolor ? this.getTimeColor(time, times) : color;
+        for(let time = 0; time < layers; time++) {
+            const timeColor = multicolor ? this.getTimeColor(time, layers) : color;
             yield* this.drawTimesTable({ 
                 time,
                 color: timeColor, 
@@ -168,7 +168,7 @@ export default class TimesTables extends StringArt{
     }
 
     getStepCount() {
-        return this.config.times * this.getRealNailCount();
+        return this.config.layers * this.getRealNailCount();
     }
 }
             

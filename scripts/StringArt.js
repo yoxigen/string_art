@@ -124,18 +124,11 @@ class StringArt {
             this.drawNails();
             this.nails.fill();
         }
-        this.positionEnd = true;
     }
 
-    /**
-     * Draws the string art on canvas
-     * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all) 
-     */
-    draw({animate = false, steps = Infinity} = {}) {
+    initDraw() {
         this.setUpDraw(this.config);
-        this.positionEnd = false;
-        
-        const { showNails, showStrings } = this.config;
+        const { showNails } = this.config;
 
         this.ctx.beginPath();
         this.ctx.globalCompositeOperation = 'destination-over';
@@ -143,56 +136,52 @@ class StringArt {
         this.ctx.fillRect(0, 0, ...this.size);
 
         this.ctx.globalCompositeOperation = 'source-over';
-        
-        if (showStrings) {
-            this.stringsIterator = this.generateStrings();
-            const self = this;
-
-            this.position = 0;
-
-            if (animate) {
-                this.play();
-            } else {
-                while(!this.drawNext().done && this.position++ < steps);
-                this.afterDraw();
-            }
-        }
-
         if (showNails) {
             this.drawNails();
             this.nails.fill();
         }
     }
 
-    drawNext() {
-        const result = this.stringsIterator.next();
-        if (result.done) {
+    /**
+     * Draws the string art on canvas
+     * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all) 
+     */
+    draw({position = Infinity} = {}) {
+        this.initDraw();
+        const { showStrings } = this.config;
+
+        if (showStrings) {
+            this.stringsIterator = this.generateStrings();
+            this.position = 0;
+
+            while(!this.drawNext().done && this.position < position);
             this.afterDraw();
         }
-        return result;
     }
 
-    play() {
-        if (this.positionEnd) {
-            this.draw({ animate: true });
+    goto(position) {
+        if (position === this.position) {
             return;
         }
 
-        const self = this;
-        cancelAnimationFrame(this.renderRafId);
-
-        step();
-            
-        function step() {
-            self.position++;
-            if (!self.drawNext().done) {
-                self.renderRafId = requestAnimationFrame(step);
-            }
+        if (this.stringsIterator && position > this.position) {
+            while(!this.drawNext().done && this.position < position);
+            this.afterDraw();
+        } else {
+            this.draw({ position });
         }
     }
 
-    pause() {
-        cancelAnimationFrame(this.renderRafId);
+    drawNext() {
+        const result = this.stringsIterator.next();
+        
+        if (result.done) {
+            this.afterDraw();
+        } else { 
+            this.position++;
+        }
+        
+        return result;
     }
 
     generateStrings(config) {
