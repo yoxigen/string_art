@@ -1,16 +1,15 @@
-import Spirals from "./string_art_types/Spirals.js";
-import Spiral from './string_art_types/Spiral.js';
-import Eye from './string_art_types/Eye.js';
-import TimesTables from './string_art_types/TimesTables.js';
+import Player from "./Player.js";
+import patternTypes from "./pattern_types.js";
 
 const canvas = document.querySelector("canvas");
 const patternSelector = document.querySelector("#pattern_select");
 const controlsEl = document.querySelector("#controls");
 const patternLinkEl = document.querySelector("#pattern_link");
-const patternTypes = [TimesTables, Spirals, Spiral, Eye];
 const patterns = patternTypes.map(Pattern => new Pattern(canvas));
+
 let currentPattern;
 let inputTimeout;
+const player = new Player(document.querySelector("#player"))
 
 main();
 
@@ -54,7 +53,7 @@ function initControls() {
                 inputValueEl.innerText = e.target.value;
             }
     
-            currentPattern.draw();
+            player.update(currentPattern, { goToEnd: false });
 
             inputTimeout = setTimeout(() => {
                 const configQuery = JSON.stringify(currentPattern.config)
@@ -132,6 +131,7 @@ function selectPattern(pattern, draw = true) {
     if (draw) {
         currentPattern.draw();
     }
+    player.update(currentPattern);
     document.title = `${pattern.name} - String Art Pattern Creator`;
 }
 
@@ -209,7 +209,10 @@ function renderControls(containerEl = controlsEl, configControls = currentPatter
             const inputValue = currentPattern.config[control.key] ?? control.defaultValue;
 
             if (control.attr) {
-                Object.entries(control.attr).forEach(([attr, value]) => inputEl.setAttribute(attr, value));
+                Object.entries(control.attr).forEach(([attr, value]) => { 
+                    const realValue = value instanceof Function ? value(currentPattern) : value;
+                    inputEl.setAttribute(attr, realValue)
+                });
             }
 
             if (control.type === "checkbox") {

@@ -62,17 +62,11 @@ class Spirals extends StringArt{
         })
     }
     
-    render() {
+    *generatePoints() {
         const {
-            n, radiusIncrease, angleStep, nSpirals, color,
-            showNails, showStrings, 
+            n, radiusIncrease, angleStep, nSpirals,
         } = this.config;
         
-        if (showStrings) {
-            this.ctx.moveTo(...this.center);
-            this.ctx.beginPath();
-        }
-
         let currentRadius = 0;
         let angle = 0;
         const [centerx, centery] = this.center;
@@ -84,27 +78,44 @@ class Spirals extends StringArt{
                     centerx + currentRadius * Math.sin(angle + rotation),
                     centery + currentRadius * Math.cos(angle + rotation)
                 ];
-
-                if (showStrings) {
-                    this.ctx.lineTo(...point);
-                }
-
-                if (showNails) {
-                    this.nails.addNail({point, number: `${s-i}`});
-                }
+                yield point;
             }
             
             angle += angleStep;
             currentRadius += radiusIncrease;
         }
-        
-        if (showStrings) {
-            this.ctx.strokeStyle = color;
-            this.ctx.stroke();
-        }
+    }
 
-        if (showNails) {
-            this.nails.fill();
+    *generateStrings() {
+        const points = this.generatePoints();
+        let index = 0;
+        this.ctx.beginPath();
+        this.ctx.moveTo(...this.center);
+        this.ctx.strokeStyle = this.config.color;
+
+        let lastPoint = this.center;
+
+        for (const point of points) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(...lastPoint);
+            lastPoint = point;
+            this.ctx.lineTo(...point);
+            this.ctx.strokeStyle = this.config.color;
+            this.ctx.stroke();
+            yield index++;
+        }
+    }
+
+    getStepCount() {
+        const { n, nSpirals } = this.config;
+        return n * nSpirals;
+    }
+
+    drawNails() {
+        const points = this.generatePoints();
+        let index = 0;
+        for (const point of points) {
+            this.nails.addNail({point, number: `${index++}`});
         }
     }
 }

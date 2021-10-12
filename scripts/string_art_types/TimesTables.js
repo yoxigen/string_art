@@ -92,6 +92,12 @@ export default class TimesTables extends StringArt{
         });
     }
 
+    getRealNailCount() {
+        const {n, times} = this.config;
+        const extraNails = n % times;
+        return n - extraNails; // The number of nails should be a multiple of the times, so the strings are exactly on the nails.
+    }
+
     setUpDraw() {
         super.setUpDraw();
 
@@ -100,14 +106,13 @@ export default class TimesTables extends StringArt{
 
         const {n, times, multicolorRange} = this.config;
 
-        const extraNails = n % times;
-        this.realNailCount = n - extraNails; // The number of nails should be a multiple of the times, so the strings are exactly on the nails.
+        this.realNailCount = this.getRealNailCount();
         this.indexAngle = PI2 / this.realNailCount;
         this.multiColorStep = multicolorRange / times;
         this.timeShift = Math.floor(n / times);
     }
 
-    getPoint({index = 0}) {
+    getPoint(index = 0) {
         const pointAngle = index * this.indexAngle;
 
         return [
@@ -116,51 +121,43 @@ export default class TimesTables extends StringArt{
         ];
     }
 
-    drawTimesTable({ shift = 0, color = "#f00", isFirstTime, steps }) {
-        const {base, showStrings} = this.config;
+    *drawTimesTable({ shift = 0, color = "#f00", steps, time }) {
+        const {base} = this.config;
         const n = this.realNailCount;
-        const stepsToRender = steps ?? n
+        const stepsToRender = steps ?? n;
 
-        this.ctx.beginPath();
-        this.ctx.moveTo(...this.getPoint({ index: shift }));
-        for(let i=0; i < stepsToRender; i++) {
-            const indexPoint = this.getPoint({index: i + shift});
-            if (isFirstTime && this.config.showNails) {
-                this.nails.addNail({ point: indexPoint, number: i });
-            }
+        let point = this.getPoint(shift);
 
-            if (this.config.showStrings && i) {
-                const toIndex = (i * base) % n;
-                this.ctx.lineTo(...indexPoint);
-                this.ctx.lineTo(...this.getPoint({index: toIndex + shift}));
-                this.ctx.moveTo(...indexPoint);
-            }
-        }
-      
-        if (showStrings) {
+        for(let i=1; i <= stepsToRender; i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(...point);
+            point = this.getPoint(i + shift);
+            this.ctx.lineTo(...point);
+            const toIndex = (i * base) % n;
+            this.ctx.lineTo(...this.getPoint(toIndex + shift));
             this.ctx.strokeStyle = color;
             this.ctx.stroke();
+            
+            yield time * n + i;
         }
     }
 
-    render({ step }) {
-        const {color, multicolor, showNails, showStrings, times} = this.config;
-        const isPartialRender = Number.isInteger(step) && step < this.getStepCount();
-        const stepTimes = isPartialRender ? Math.ceil(step / this.realNailCount) : times;
-        const timesToDraw = showStrings ? stepTimes : 1;
-        
-        for(let time = 0; time < timesToDraw; time++) {
+    *generateStrings() {
+        const {color, multicolor, times} = this.config;
+
+        for(let time = 0; time < times; time++) {
             const timeColor = multicolor ? this.getTimeColor(time, times) : color;
-            this.drawTimesTable({ 
+            yield* this.drawTimesTable({ 
+                time,
                 color: timeColor, 
-                isFirstTime: time === 0,
                 shift: this.timeShift * time,
-                steps: isPartialRender && time === timesToDraw - 1 ? step % this.realNailCount : null
             });
         }
+    }
 
-        if (showNails) {
-            this.nails.fill();
+    drawNails() {
+        for (let i=0; i < this.realNailCount; i++) {
+            this.nails.addNail({point: this.getPoint(i)});
         }
     }
 
@@ -171,7 +168,7 @@ export default class TimesTables extends StringArt{
     }
 
     getStepCount() {
-        return this.config.times * this.realNailCount;
+        return this.config.times * this.getRealNailCount();
     }
 }
             

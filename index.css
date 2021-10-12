@@ -16,8 +16,12 @@ h1 {
     flex-grow: 1;
 }
 main {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas: 
+    "controls canvas"
+    "controls player";
     height: 100%;
 }
 
@@ -28,9 +32,7 @@ form {
     box-shadow: 1px 0 0px black;
     max-height: 100%;
     overflow-y: auto;
-    width: 270px;
-    flex-shrink: 0;
-    max-width: 30%;
+    grid-area: controls;
 }
 form header {
     display: flex;
@@ -58,8 +60,61 @@ a:hover {
 #art {
     display: flex;
     justify-content: center;
-    flex-grow: 1;
+    grid-area: canvas;
 }
+#player {
+    grid-area: player;
+    font-size: 14px;
+}
+
+#player #pause_btn {
+    display: none;
+}
+#player.playing #play_btn {
+    display: none;
+}
+#player.playing #pause_btn {
+    display: inline;
+}
+
+#player_controls {
+    display: flex;
+    gap: 10px;
+    flex-direction: row;
+    padding: 0 8px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: top;
+}
+#player_position {
+    width: 100%;
+    margin: 0;
+    height: 7px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 0;
+    border-radius: 0;
+}
+  
+#player_position::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    background: #ff4500;
+    box-shadow: 0 0 2px 0 #555;
+    transition: background .3s ease-in-out;
+  }
+
+.player_btn {
+    font-size: 24px;
+    background: transparent;
+    border: none;
+    height: 26px;
+    color: White;
+    line-height: 4px;
+}
+
 @media only screen and (max-width: 600px) {
     main {
         display: block;

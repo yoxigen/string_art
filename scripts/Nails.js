@@ -10,8 +10,6 @@ export default class Nails {
     setConfig({ nailRadius, darkMode}) {
         this.nailRadius = nailRadius;
         this.nailsColor = darkMode ? '#ffffff' : '#000000';
-        this.context.globalCompositeOperation = "source-over";
-        this.context.beginPath();
         this.nails = [];
     }
 
@@ -21,6 +19,7 @@ export default class Nails {
     }
 
     fill() {
+        this.context.globalCompositeOperation = "source-over";
         this.context.beginPath();
         this.nails.forEach(({ point: [x, y] }) => {
             this.context.moveTo(x + this.nailRadius, y);

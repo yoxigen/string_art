@@ -120,25 +120,83 @@ class StringArt {
     }
 
     afterDraw() {
-        this.ctx.globalCompositeOperation = 'destination-over';
-        this.ctx.fillStyle = this.config.darkMode ? '#222222' : '#ffffff';
-        this.ctx.fillRect(0, 0, ...this.size);
+        if (this.config.showNails) {
+            this.drawNails();
+            this.nails.fill();
+        }
+        this.positionEnd = true;
     }
 
     /**
      * Draws the string art on canvas
      * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all) 
      */
-    draw(renderConfig = {}) {
-        requestAnimationFrame(() => {
-            this.setUpDraw(this.config);
-            this.render(renderConfig);
-            this.afterDraw(this.config);
-        });
+    draw({animate = false, steps = Infinity} = {}) {
+        this.setUpDraw(this.config);
+        this.positionEnd = false;
+        
+        const { showNails, showStrings } = this.config;
+
+        this.ctx.beginPath();
+        this.ctx.globalCompositeOperation = 'destination-over';
+        this.ctx.fillStyle = this.config.darkMode ? '#222222' : '#ffffff';
+        this.ctx.fillRect(0, 0, ...this.size);
+
+        this.ctx.globalCompositeOperation = 'source-over';
+        
+        if (showStrings) {
+            this.stringsIterator = this.generateStrings();
+            const self = this;
+
+            this.position = 0;
+
+            if (animate) {
+                this.play();
+            } else {
+                while(!this.drawNext().done && this.position++ < steps);
+                this.afterDraw();
+            }
+        }
+
+        if (showNails) {
+            this.drawNails();
+            this.nails.fill();
+        }
     }
 
-    render(config) {
-        throw new Error("render method not defined!");
+    drawNext() {
+        const result = this.stringsIterator.next();
+        if (result.done) {
+            this.afterDraw();
+        }
+        return result;
+    }
+
+    play() {
+        if (this.positionEnd) {
+            this.draw({ animate: true });
+            return;
+        }
+
+        const self = this;
+        cancelAnimationFrame(this.renderRafId);
+
+        step();
+            
+        function step() {
+            self.position++;
+            if (!self.drawNext().done) {
+                self.renderRafId = requestAnimationFrame(step);
+            }
+        }
+    }
+
+    pause() {
+        cancelAnimationFrame(this.renderRafId);
+    }
+
+    generateStrings(config) {
+        throw new Error("generateStrings method not defined!");
     }
 
     getStepCount(config) {

@@ -31,20 +31,21 @@
             <article id="art">
                 <canvas></canvas>
             </article>
-            <!--
-            <nav>
-                <div>
-                    <button id="play_pause_btn"></button>
-                </div>
-                <div>
-                    <span id="step"></span>
-                    <span id="step_instructions"></span>
-                </div>
-                <div>
+            <nav id="player">
+                <div id="player_track">
                     <input id="player_position" type="range" min="1" step="1" />
                 </div>
+                <div id="player_controls">
+                    <div id="player_buttons">
+                        <button id="play_btn" class="player_btn">⏵</button>
+                        <button id="pause_btn" class="player_btn">⏸</button>
+                    </div>
+                    <div>
+                        <span id="step">0/0</span>
+                        <span id="step_instructions"></span>
+                    </div>
+                </div>
             </nav>
-        -->
         </main>
     </body>
 </html>

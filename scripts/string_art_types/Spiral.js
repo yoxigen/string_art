@@ -136,28 +136,40 @@ class Spiral extends StringArt{
         ];
     }
 
-    drawSpiral({ shift = 0, color = "#f00" } = {}) {
+    *drawSpiral({ shift = 0, color = "#f00" } = {}) {
         const {repetition, innerLength} = this.config;
         
         this.ctx.moveTo(...this.getPoint(shift));
-        this.ctx.beginPath();
         
         let currentInnerLength = innerLength;
         let repetitionCount = 0;
+        this.ctx.strokeStyle = color;
         
         for(let i=0; currentInnerLength; i++) {
+            this.ctx.beginPath();
             this.ctx.lineTo(...this.getPoint(i + currentInnerLength + shift));
             this.ctx.lineTo(...this.getPoint(i + 1 + shift));
+            this.ctx.stroke();
 
             repetitionCount++;
             if (repetitionCount === repetition) {
                 currentInnerLength--;
                 repetitionCount = 0;
             }
+
+            yield i;
         }
       
-        this.ctx.strokeStyle = color;
-        this.ctx.stroke();
+    }
+
+    *generateStrings() {
+        const { layers } = this.config;
+        for(let layer = 0; layer < layers; layer++) {
+            yield* this.drawSpiral({ 
+                color: this.getLayerColor(layer), 
+                shift: -this.layerShift * layer 
+            });
+        }
     }
 
     drawNails() {
@@ -167,25 +179,16 @@ class Spiral extends StringArt{
         }
     }
 
-    render() {
-        const { layers, showNails, showStrings } = this.config;
-        if (showStrings) {
-            for(let layer = 0; layer < layers; layer++) {
-                this.drawSpiral({ color: this.getLayerColor(layer), shift: -this.layerShift * layer });
-            }
-        }
-        
-        if (showNails) {
-            this.drawNails();
-            this.nails.fill();
-        }
-    }
-
     getLayerColor(layer) {
         const {multicolorStart, darkMode, multicolorByLightness} = this.config;
         const lightness = multicolorByLightness ? this.multiColorLightnessStep * layer : darkMode ? 50 : 40;
 
         return `hsl(${multicolorStart + layer * this.multiColorStep}, 80%, ${lightness}%)`;
+    }
+
+    getStepCount() {
+        const {innerLength, repetition, layers} = this.config;
+        return layers * innerLength * repetition;
     }
 }
 

@@ -13,7 +13,7 @@ class Eye extends StringArt{
                 {
                     key: 'n',
                     label: 'Number of nails per side',
-                    defaultValue: 50,
+                    defaultValue: 75,
                     type: "range",
                     attr: {
                         min: 2,
@@ -22,29 +22,39 @@ class Eye extends StringArt{
                     }
                 },
                 {
+                    key: 'layers',
+                    label: 'Layers',
+                    defaultValue: 3,
+                    type: "range",
+                    attr: {
+                        min: 1,
+                        max: 20,
+                        step: 1
+                    }
+                },
+                {
+                    key: 'angle',
+                    label: 'Layer angle',
+                    defaultValue: 16,
+                    type: "range",
+                    attr: {
+                        min: 0,
+                        max: 45,
+                        step: 1
+                    }
+                },
+                {
                     key: 'color1',
                     label: 'String #1 color',
-                    defaultValue: "#000e75",
+                    defaultValue: "#44bbad",
                     type: "color",
                 },
                 {
                     key: 'color2',
                     label: 'String #2 color',
-                    defaultValue: "#0040ff",
+                    defaultValue: "#bc3885",
                     type: "color",
                 },
-                {
-                    key: 'shapeColor',
-                    label: 'Shape color',
-                    defaultValue: "#99000f",
-                    type: "color",
-                },
-                {
-                    key: 'showShape',
-                    label: 'Show shape',
-                    defaultValue: true,
-                    type: "checkbox",
-                }
             ],
             canvas
         })
@@ -53,69 +63,87 @@ class Eye extends StringArt{
     setUpDraw() {
         super.setUpDraw();
 
-        this.width = this.height =  Math.min(...this.size);
-        this.nailSpacing = (this.width - 2 * MARGIN) / this.config.n;
+        const { n, angle } = this.config;
+
+        this.width = this.height = Math.min(...this.size);
+        this.externalSquareSize = this.width - 2 * MARGIN;
+        this.nailSpacing = this.externalSquareSize / (n - 1);
+        this.layerAngle = angle * Math.PI / 180;
     }
 
     // Sides: top, right, bottom, left
-    getPoint({side, index}) {
+    getPoint({side, index, x, y, xSpacing, ySpacing, nLayer}) {
         switch(side) {
             case 'left':
-                return [MARGIN, MARGIN + index * this.nailSpacing];
+                return [MARGIN + ySpacing * index, MARGIN + y + xSpacing * index];
             case 'right':
-                return [this.width - MARGIN, this.height - index * this.nailSpacing - MARGIN];
+                return [MARGIN + x + y - index * ySpacing, MARGIN + (nLayer - index) * xSpacing];
             case 'bottom':
-                return [MARGIN + index * this.nailSpacing, this.height - MARGIN];
+                return [MARGIN + y + xSpacing * index, MARGIN + x + y - index * ySpacing];
             case 'top':
-                return [this.width - index * this.nailSpacing - MARGIN, MARGIN];
+                return [MARGIN + x - index * xSpacing, MARGIN + ySpacing * index];
         }
     }
 
-    drawSide({ side, color, shift = 0, showStrings = true }) {
-        const {n} = this.config;
-        if (showStrings) {
-            this.ctx.moveTo(...this.getPoint({ side, index: 0 }));
-            this.ctx.beginPath();
-        }
-        
+    *drawSide({ side, color = '#ffffff', angle }) {
         const sideIndex = SIDES.indexOf(side);
         const nextSide = SIDES[sideIndex === SIDES.length - 1 ? 0 : sideIndex + 1];
+        
+        const layerSize = this.externalSquareSize / (Math.sin(angle) + Math.cos(angle));
+        const nLayer = Math.floor(layerSize / this.nailSpacing);
+        
+        const tanAngle = Math.tan(angle);
+        const x = this.externalSquareSize / (tanAngle + 1);
+        const y = this.externalSquareSize * tanAngle / (tanAngle + 1);
+        const xSpacing = x / nLayer;
+        const ySpacing = y / nLayer;
 
-        const strings = n - shift;
-
-        for(let i=0; i < strings; i++) {
-            this.drawPoint(this.getPoint({side: nextSide, index: i + shift}));
-            this.drawPoint(this.getPoint({ side, index: i + 1}));
+        const sideProps = { x, y, xSpacing, ySpacing, nLayer };
+        
+        for(let i=0; i < nLayer; i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(...this.getPoint({ side, index: i, ...sideProps}));
+            this.ctx.lineTo(...this.getPoint({side: nextSide, index: i, ...sideProps}));
+            this.ctx.strokeStyle = color;
+            this.ctx.stroke();
+            yield i;
         }
-      
-        this.ctx.strokeStyle = color;
-        this.ctx.stroke();
     }
 
-    drawPoint(point) {
-        if (this.config.showStrings) {
-            this.ctx.lineTo(...point);
-        }
-
-        if (this.config.showNails) {
-            this.nails.addNail({point});
-        }
-    }
-
-    render() {
-        const { color1, color2, showStrings, showNails } = this.config;
+    *drawLayer(layer) {
+        const { color1, color2 } = this.config;
         const colors = [color1, color2];
+        const layerAngle = this.layerAngle * layer;
 
         for(let i=0; i < 4; i++) {
-            this.drawSide({ 
-                color: colors[i % colors.length], 
+            yield* this.drawSide({ 
+                color: colors[(i + layer) % colors.length], 
                 side: SIDES[i],
-                showStrings
+                angle: layerAngle
             });
         }
+    }
 
-        if (showNails) {
-            this.nails.fill();
+    *generateStrings() {
+        const {layers} =  this.config;
+        for(let layer=layers - 1; layer >= 0; layer--) {
+            yield* this.drawLayer(layer);
+        }
+    }
+
+    getStepCount() {
+        const { n } = this.config;
+        return n * 4 * 6;
+    }
+
+    drawNails() {
+        const {n} = this.config;
+
+        for(let i=0; i < 4; i++) {
+            const side = SIDES[i];
+            for (let nail = 0; nail < n; nail++) {
+               //this.nails.addNail({ point: this.getPoint({ side, index: nail })})
+            }
         }
     }
 }
