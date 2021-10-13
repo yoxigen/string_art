@@ -1,19 +1,27 @@
 import StringArt from "../StringArt.js";
 
-const SIDES = ['left', 'bottom', 'right', 'top'];
 const MARGIN = 20;
+const SIDES = ['left', 'bottom', 'right', 'top'];
+const SIDES_ORDER = ['left', 'bottom', 'right', 'top'];
+
+const SIDES_ROTATION = {
+    left: 0,
+    bottom: Math.PI / 2,
+    right: Math.PI,
+    top: Math.PI * 1.5
+};
 
 class Eye extends StringArt{
     constructor(canvas) {
         super({
             name: "Eye",
             id: 'eye',
-            link: "https://www.pinterest.com/pin/21181060738086735/",
+            link: "https://www.etsy.com/listing/489853161/rose-of-space-string-art-sacred-geometry?ga_order=most_relevant&ga_search_type=all&ga_view_type=gallery&ga_search_query=string+art&ref=sr_gallery_1&epik=dj0yJnU9WXNpM1BDTnNkLVBtcWdCa3AxN1J5QUZRY1FlbkJ5Z18mcD0wJm49ZXdJb2JXZmVpNVVwN1NKQ3lXMy10ZyZ0PUFBQUFBR0ZuUzZv",
             configControls: [
                 {
                     key: 'n',
                     label: 'Number of nails per side',
-                    defaultValue: 75,
+                    defaultValue: 82,
                     type: "range",
                     attr: {
                         min: 2,
@@ -24,7 +32,7 @@ class Eye extends StringArt{
                 {
                     key: 'layers',
                     label: 'Layers',
-                    defaultValue: 3,
+                    defaultValue: 12,
                     type: "range",
                     attr: {
                         min: 1,
@@ -35,7 +43,7 @@ class Eye extends StringArt{
                 {
                     key: 'angle',
                     label: 'Layer angle',
-                    defaultValue: 16,
+                    defaultValue: 45,
                     type: "range",
                     attr: {
                         min: 0,
@@ -46,13 +54,13 @@ class Eye extends StringArt{
                 {
                     key: 'color1',
                     label: 'String #1 color',
-                    defaultValue: "#44bbad",
+                    defaultValue: "#b51243",
                     type: "color",
                 },
                 {
                     key: 'color2',
                     label: 'String #2 color',
-                    defaultValue: "#bc3885",
+                    defaultValue: "#393d51",
                     type: "color",
                 },
             ],
@@ -72,38 +80,39 @@ class Eye extends StringArt{
     }
 
     // Sides: top, right, bottom, left
-    getPoint({side, index, x, y, xSpacing, ySpacing, nLayer}) {
-        switch(side) {
-            case 'left':
-                return [MARGIN + ySpacing * index, MARGIN + y + xSpacing * index];
-            case 'right':
-                return [MARGIN + x + y - index * ySpacing, MARGIN + (nLayer - index) * xSpacing];
-            case 'bottom':
-                return [MARGIN + y + xSpacing * index, MARGIN + x + y - index * ySpacing];
-            case 'top':
-                return [MARGIN + x - index * xSpacing, MARGIN + ySpacing * index];
-        }
+    getPoint({index, size, angle, layerStart, rotation}) {
+        const theta = angle + rotation;
+
+        const point = { 
+            x: layerStart.x, 
+            y: layerStart.y + this.nailSpacing * index
+        };
+
+        const pivot = { x: this.center[0], y: this.center[1] };
+
+        const cosAngle = Math.cos(theta);
+        const sinAngle = Math.sin(theta);
+
+        const position = [
+            (sinAngle * (point.x - pivot.x) + cosAngle * (point.y - pivot.y) + pivot.y),
+            (cosAngle * (point.x - pivot.x) - sinAngle * (point.y - pivot.y) + pivot.y),
+        ];
+        return position;
     }
 
-    *drawSide({ side, color = '#ffffff', angle }) {
+    *drawSide({ side, color = '#ffffff', angle, size, layerStart }) {
         const sideIndex = SIDES.indexOf(side);
         const nextSide = SIDES[sideIndex === SIDES.length - 1 ? 0 : sideIndex + 1];
+        const rotation = SIDES_ROTATION[side];
+        const nextSideRotation = SIDES_ROTATION[nextSide];
+        const nLayer = Math.floor(size / this.nailSpacing);
         
-        const layerSize = this.externalSquareSize / (Math.sin(angle) + Math.cos(angle));
-        const nLayer = Math.floor(layerSize / this.nailSpacing);
-        
-        const tanAngle = Math.tan(angle);
-        const x = this.externalSquareSize / (tanAngle + 1);
-        const y = this.externalSquareSize * tanAngle / (tanAngle + 1);
-        const xSpacing = x / nLayer;
-        const ySpacing = y / nLayer;
-
-        const sideProps = { x, y, xSpacing, ySpacing, nLayer };
+        const sideProps = { nLayer, size, layerStart, angle };
         
         for(let i=0; i < nLayer; i++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(...this.getPoint({ side, index: i, ...sideProps}));
-            this.ctx.lineTo(...this.getPoint({side: nextSide, index: i, ...sideProps}));
+            this.ctx.moveTo(...this.getPoint({ side, index: i, rotation, ...sideProps}));
+            this.ctx.lineTo(...this.getPoint({side: nextSide, index: i, rotation: nextSideRotation, ...sideProps}));
             this.ctx.strokeStyle = color;
             this.ctx.stroke();
             yield i;
@@ -112,14 +121,21 @@ class Eye extends StringArt{
 
     *drawLayer(layer) {
         const { color1, color2 } = this.config;
-        const colors = [color1, color2];
+        const colors = [color2, color1, color2, color1];
         const layerAngle = this.layerAngle * layer;
+        const layerSize = this.externalSquareSize / Math.pow(Math.cos(this.layerAngle) + Math.sin(this.layerAngle), layer);
+        const layerStart = { 
+            x: this.center[0] - layerSize / 2, 
+            y: this.center[1] - layerSize / 2
+        };
 
-        for(let i=0; i < 4; i++) {
+        for (let i = 0; i < SIDES.length; i++) {
             yield* this.drawSide({ 
-                color: colors[(i + layer) % colors.length], 
-                side: SIDES[i],
-                angle: layerAngle
+                color: colors[i], 
+                side: SIDES_ORDER[i],
+                angle: layerAngle,
+                size: layerSize,
+                layerStart,
             });
         }
     }
@@ -132,8 +148,18 @@ class Eye extends StringArt{
     }
 
     getStepCount() {
-        const { n } = this.config;
-        return n * 4 * 6;
+        let count = 0;
+        const {layers, angle, n} = this.config;
+        const layerAngle = angle * Math.PI / 180;
+        const externalSquareSize = Math.min(this.canvas.clientWidth, this.canvas.clientHeight) - 2 * MARGIN;
+        const nailSpacing = externalSquareSize / (n - 1);
+
+        for(let layer = 0; layer < layers; layer++) {
+            const layerSize = externalSquareSize / Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layer);
+            count += 4 * Math.floor(layerSize / nailSpacing)
+        }
+
+        return count;
     }
 
     drawNails() {
