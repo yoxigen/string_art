@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -19,7 +23,7 @@ main {
     display: grid;
     grid-template-columns: 270px 1fr;
     grid-template-rows: 1fr auto;
-    grid-template-areas: 
+    grid-template-areas:
     "controls canvas"
     "controls player";
     height: 100%;
@@ -82,7 +86,6 @@ a:hover {
     gap: 10px;
     flex-direction: row;
     padding: 0 8px;
-    box-sizing: border-box;
     display: flex;
     flex-direction: row;
     align-items: top;
@@ -95,7 +98,7 @@ a:hover {
     border-radius: 0;
     border-radius: 0;
 }
-  
+
 #player_position::-webkit-slider-thumb {
     -webkit-appearance: none;
     height: 10px;
