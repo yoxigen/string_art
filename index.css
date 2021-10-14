@@ -48,8 +48,6 @@ form header {
 canvas {
     height: 100%;
     width: 100%;
-    min-height: 500px;
-
 }
 
 a {
@@ -120,7 +118,12 @@ a:hover {
 
 @media only screen and (max-width: 600px) {
     main {
-        display: block;
+        grid-template-columns: 1fr;
+        grid-template-rows: 30vh 1fr auto;
+        grid-template-areas:
+            "controls"
+            "canvas"
+            "player";
     }
 
     form {

@@ -95,10 +95,6 @@ class StringArt {
         this._config = Object.assign({}, this.defaultConfig, value);
     }
 
-    getSize(size) {
-        return size;
-    }
-
     setUpDraw() {
         this.canvas.removeAttribute('width');
         this.canvas.removeAttribute('height');

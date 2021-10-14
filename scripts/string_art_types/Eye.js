@@ -60,7 +60,7 @@ class Eye extends StringArt{
                 {
                     key: 'color2',
                     label: 'String #2 color',
-                    defaultValue: "#393d51",
+                    defaultValue: "#402060",
                     type: "color",
                 },
             ],
@@ -73,9 +73,8 @@ class Eye extends StringArt{
 
         const { n, angle } = this.config;
 
-        this.width = this.height = Math.min(...this.size);
-        this.externalSquareSize = this.width - 2 * MARGIN;
-        this.nailSpacing = this.externalSquareSize / (n - 1);
+        this.maxSize = Math.min(...this.size) - 2 * MARGIN;
+        this.nailSpacing = this.maxSize / (n - 1);
         this.layerAngle = angle * Math.PI / 180;
     }
 
@@ -94,8 +93,8 @@ class Eye extends StringArt{
         const sinAngle = Math.sin(theta);
 
         const position = [
+            (cosAngle * (point.x - pivot.x) - sinAngle * (point.y - pivot.y) + pivot.x),
             (sinAngle * (point.x - pivot.x) + cosAngle * (point.y - pivot.y) + pivot.y),
-            (cosAngle * (point.x - pivot.x) - sinAngle * (point.y - pivot.y) + pivot.y),
         ];
         return position;
     }
@@ -123,7 +122,7 @@ class Eye extends StringArt{
         const { color1, color2 } = this.config;
         const colors = [color2, color1, color2, color1];
         const layerAngle = this.layerAngle * layer;
-        const layerSize = this.externalSquareSize / Math.pow(Math.cos(this.layerAngle) + Math.sin(this.layerAngle), layer);
+        const layerSize = this.maxSize / Math.pow(Math.cos(this.layerAngle) + Math.sin(this.layerAngle), layer);
         const layerStart = { 
             x: this.center[0] - layerSize / 2, 
             y: this.center[1] - layerSize / 2
@@ -151,11 +150,11 @@ class Eye extends StringArt{
         let count = 0;
         const {layers, angle, n} = this.config;
         const layerAngle = angle * Math.PI / 180;
-        const externalSquareSize = Math.min(this.canvas.clientWidth, this.canvas.clientHeight) - 2 * MARGIN;
-        const nailSpacing = externalSquareSize / (n - 1);
+        const maxSize = Math.min(this.canvas.clientWidth, this.canvas.clientHeight) - 2 * MARGIN;
+        const nailSpacing = maxSize / (n - 1);
 
         for(let layer = 0; layer < layers; layer++) {
-            const layerSize = externalSquareSize / Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layer);
+            const layerSize = maxSize / Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layer);
             count += 4 * Math.floor(layerSize / nailSpacing)
         }
 
