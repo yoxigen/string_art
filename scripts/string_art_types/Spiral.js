@@ -4,117 +4,112 @@ const MARGIN = 20;
 const PI2 = Math.PI * 2;
 
 class Spiral extends StringArt{
-    constructor(canvas) {
-        super({
-            name: "Spiral",
-            id: 'spiral',
-            link: "https://www.etsy.com/il-en/listing/943140543/personalized-gift-string-art-mandala?ref=sim_rv-5&pro=1",
-            configControls: [
+    id = "spiral";
+    name = "Spiral";
+    link = "https://www.etsy.com/il-en/listing/943140543/personalized-gift-string-art-mandala?ref=sim_rv-5&pro=1";
+    controls = [
+        {
+            key: 'n',
+            label: 'Number of nails',
+            defaultValue: 144,
+            type: "range",
+            attr: {
+                min: 3,
+                max: 200,
+                step: 1
+            }
+        },
+        {
+            key: 'repetition',
+            label: 'Repetition',
+            defaultValue: 2,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 60,
+                step: 1
+            }
+        },
+        {
+            key: 'innerLength',
+            label: 'Spiral thickness',
+            defaultValue: 72,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 144,
+                step: 1,
+            }
+        },
+        {
+            key: 'rotation',
+            label: 'Rotation',
+            defaultValue: 0.49,
+            type: "range",
+            attr: {
+                min: 0,
+                max: 1,
+                step: 0.01,
+            }
+        },
+        {
+            key: 'layers',
+            label: 'Layers',
+            defaultValue: 9,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 20,
+                step: 1
+            }
+        },
+        {
+            key: 'layerSpread',
+            label: 'Layer spread',
+            defaultValue: 13,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 200,
+                step: 1
+            }
+        },
+        {
+            key: 'colorGroup',
+            label: 'Color',
+            type: 'group',
+            children: [
                 {
-                    key: 'n',
-                    label: 'Number of nails',
-                    defaultValue: 144,
-                    type: "range",
-                    attr: {
-                        min: 3,
-                        max: 200,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'repetition',
-                    label: 'Repetition',
-                    defaultValue: 2,
+                    key: 'multicolorRange',
+                    label: 'Multicolor range',
+                    defaultValue: 216,
                     type: "range",
                     attr: {
                         min: 1,
-                        max: 60,
+                        max: 360,
                         step: 1
-                    }
+                    },
                 },
                 {
-                    key: 'innerLength',
-                    label: 'Spiral thickness',
-                    defaultValue: 72,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 144,
-                        step: 1,
-                    }
-                },
-                {
-                    key: 'rotation',
-                    label: 'Rotation',
-                    defaultValue: 0.49,
+                    key: 'multicolorStart',
+                    label: 'Multicolor start',
+                    defaultValue: 263,
                     type: "range",
                     attr: {
                         min: 0,
-                        max: 1,
-                        step: 0.01,
-                    }
-                },
-                {
-                    key: 'layers',
-                    label: 'Layers',
-                    defaultValue: 9,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 20,
+                        max: 360,
                         step: 1
-                    }
+                    },
                 },
                 {
-                    key: 'layerSpread',
-                    label: 'Layer spread',
-                    defaultValue: 13,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 200,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'colorGroup',
-                    label: 'Color',
-                    type: 'group',
-                    children: [
-                        {
-                            key: 'multicolorRange',
-                            label: 'Multicolor range',
-                            defaultValue: 216,
-                            type: "range",
-                            attr: {
-                                min: 1,
-                                max: 360,
-                                step: 1
-                            },
-                        },
-                        {
-                            key: 'multicolorStart',
-                            label: 'Multicolor start',
-                            defaultValue: 263,
-                            type: "range",
-                            attr: {
-                                min: 0,
-                                max: 360,
-                                step: 1
-                            },
-                        },
-                        {
-                            key: 'multicolorByLightness',
-                            label: 'Multicolor by lightness',
-                            defaultValue: true,
-                            type: 'checkbox'
-                        }
-                    ]
+                    key: 'multicolorByLightness',
+                    label: 'Multicolor by lightness',
+                    defaultValue: true,
+                    type: 'checkbox'
                 }
-            ],
-            canvas
-        })
-    }
+            ]
+        }
+    ];
 
     setUpDraw() {
         super.setUpDraw();

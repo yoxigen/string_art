@@ -38,45 +38,22 @@ const COMMON_CONFIG_CONTROLS = [
                 },
                 show: ({showNails}) => showNails
             },
-            // {
-            //     key: 'width',
-            //     label: 'Width (cm)',
-            //     defaultValue: '',
-            //     type: 'number',
-            //     attr: {
-            //         min: 1,
-            //         max: 200,
-            //         step: 1
-            //     }
-            // },
-            // {
-            //     key: 'height',
-            //     label: 'Height (cm)',
-            //     defaultValue: '',
-            //     type: 'number',
-            //     attr: {
-            //         min: 1,
-            //         max: 200,
-            //         step: 1
-            //     }
-            // }
         ]
     },
 ];
 
 class StringArt {
-    constructor({ configControls, id, name, link, canvas }) {
+    constructor(canvas) {
         if (!canvas) {
             throw new Error("Canvas not specified!");
         }
 
-        this.configControls = configControls.concat(COMMON_CONFIG_CONTROLS);
-        this.name = name;
-        this.id = id;
-        this.link = link;
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
-        this._defaultConfig = this.defaultConfig;
+    }
+
+    get configControls() {
+        return (this.controls ?? []).concat(COMMON_CONFIG_CONTROLS);
     }
 
     get defaultConfig() {

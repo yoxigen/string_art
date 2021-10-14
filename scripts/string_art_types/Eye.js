@@ -12,61 +12,56 @@ const SIDES_ROTATION = {
 };
 
 class Eye extends StringArt{
-    constructor(canvas) {
-        super({
-            name: "Eye",
-            id: 'eye',
-            link: "https://www.etsy.com/listing/489853161/rose-of-space-string-art-sacred-geometry?ga_order=most_relevant&ga_search_type=all&ga_view_type=gallery&ga_search_query=string+art&ref=sr_gallery_1&epik=dj0yJnU9WXNpM1BDTnNkLVBtcWdCa3AxN1J5QUZRY1FlbkJ5Z18mcD0wJm49ZXdJb2JXZmVpNVVwN1NKQ3lXMy10ZyZ0PUFBQUFBR0ZuUzZv",
-            configControls: [
-                {
-                    key: 'n',
-                    label: 'Number of nails per side',
-                    defaultValue: 82,
-                    type: "range",
-                    attr: {
-                        min: 2,
-                        max: 200,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'layers',
-                    label: 'Layers',
-                    defaultValue: 12,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 20,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'angle',
-                    label: 'Layer angle',
-                    defaultValue: 45,
-                    type: "range",
-                    attr: {
-                        min: 0,
-                        max: 45,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'color1',
-                    label: 'String #1 color',
-                    defaultValue: "#b51243",
-                    type: "color",
-                },
-                {
-                    key: 'color2',
-                    label: 'String #2 color',
-                    defaultValue: "#402060",
-                    type: "color",
-                },
-            ],
-            canvas
-        })
-    }
+    name = "Eye"
+    id = "eye"
+    link = "https://www.etsy.com/listing/489853161/rose-of-space-string-art-sacred-geometry?ga_order=most_relevant&ga_search_type=all&ga_view_type=gallery&ga_search_query=string+art&ref=sr_gallery_1&epik=dj0yJnU9WXNpM1BDTnNkLVBtcWdCa3AxN1J5QUZRY1FlbkJ5Z18mcD0wJm49ZXdJb2JXZmVpNVVwN1NKQ3lXMy10ZyZ0PUFBQUFBR0ZuUzZv";
+    controls = [
+        {
+            key: 'n',
+            label: 'Number of nails per side',
+            defaultValue: 82,
+            type: "range",
+            attr: {
+                min: 2,
+                max: 200,
+                step: 1
+            }
+        },
+        {
+            key: 'layers',
+            label: 'Layers',
+            defaultValue: 13,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 20,
+                step: 1
+            }
+        },
+        {
+            key: 'angle',
+            label: 'Layer angle',
+            defaultValue: 30,
+            type: "range",
+            attr: {
+                min: 0,
+                max: 45,
+                step: 1
+            }
+        },
+        {
+            key: 'color1',
+            label: 'String #1 color',
+            defaultValue: "#11e8bd",
+            type: "color",
+        },
+        {
+            key: 'color2',
+            label: 'String #2 color',
+            defaultValue: "#6fff52",
+            type: "color",
+        },
+    ];
 
     setUpDraw() {
         super.setUpDraw();
@@ -79,7 +74,7 @@ class Eye extends StringArt{
     }
 
     // Sides: top, right, bottom, left
-    getPoint({index, size, angle, layerStart, rotation}) {
+    getPoint({index, angle, layerStart, rotation}) {
         const theta = angle + rotation;
 
         const point = { 
@@ -108,7 +103,7 @@ class Eye extends StringArt{
         
         const sideProps = { nLayer, size, layerStart, angle };
         
-        for(let i=0; i < nLayer; i++) {
+        for(let i=0; i <= nLayer; i++) {
             this.ctx.beginPath();
             this.ctx.moveTo(...this.getPoint({ side, index: i, rotation, ...sideProps}));
             this.ctx.lineTo(...this.getPoint({side: nextSide, index: i, rotation: nextSideRotation, ...sideProps}));
@@ -155,7 +150,7 @@ class Eye extends StringArt{
 
         for(let layer = 0; layer < layers; layer++) {
             const layerSize = maxSize / Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layer);
-            count += 4 * Math.floor(layerSize / nailSpacing)
+            count += 4 * (Math.floor(layerSize / nailSpacing) + 1)
         }
 
         return count;

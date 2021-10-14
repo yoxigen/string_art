@@ -4,93 +4,88 @@ const MARGIN = 20;
 const PI2 = Math.PI * 2;
 
 export default class TimesTables extends StringArt{
-    constructor(canvas) {
-        super({
-            canvas,
-            name: "Times Tables",
-            id: 'times_tables',
-            link: "https://www.youtube.com/watch?v=LWin7w9hF-E&ab_channel=Jorgedelatierra",
-            configControls: [
+    name = "Times Tables";
+    id = "times_tables";
+    link = "https://www.youtube.com/watch?v=LWin7w9hF-E&ab_channel=Jorgedelatierra";
+    controls = [
+        {
+            key: 'n',
+            label: 'Number of nails',
+            defaultValue: 180,
+            type: "range",
+            attr: {
+                min: 3,
+                max: 240,
+                step: 1
+            }
+        },
+        {
+            key: 'base',
+            label: 'Multiplication',
+            defaultValue: 2,
+            type: "range",
+            attr: {
+                min: 2,
+                max: 99,
+                step: 1
+            }
+        },
+        {
+            key: 'layers',
+            label: 'Layers',
+            defaultValue: 7,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 20,
+                step: 1
+            }
+        },
+        {
+            key: 'colorGroup',
+            label: 'Color',
+            type: 'group',
+            children: [
                 {
-                    key: 'n',
-                    label: 'Number of nails',
+                    key: 'multicolor',
+                    label: 'Use multiple colors',
+                    defaultValue: true,
+                    type: "checkbox",
+                },
+                {
+                    key: 'multicolorRange',
+                    label: 'Multicolor range',
                     defaultValue: 180,
                     type: "range",
                     attr: {
-                        min: 3,
-                        max: 240,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'base',
-                    label: 'Multiplication',
-                    defaultValue: 2,
-                    type: "range",
-                    attr: {
-                        min: 2,
-                        max: 99,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'layers',
-                    label: 'Layers',
-                    defaultValue: 7,
-                    type: "range",
-                    attr: {
                         min: 1,
-                        max: 20,
+                        max: 360,
                         step: 1
-                    }
+                    },
+                    show: ({multicolor}) => multicolor,
                 },
                 {
-                    key: 'colorGroup',
-                    label: 'Color',
-                    type: 'group',
-                    children: [
-                        {
-                            key: 'multicolor',
-                            label: 'Use multiple colors',
-                            defaultValue: true,
-                            type: "checkbox",
-                        },
-                        {
-                            key: 'multicolorRange',
-                            label: 'Multicolor range',
-                            defaultValue: 180,
-                            type: "range",
-                            attr: {
-                                min: 1,
-                                max: 360,
-                                step: 1
-                            },
-                            show: ({multicolor}) => multicolor,
-                        },
-                        {
-                            key: 'multicolorStart',
-                            label: 'Multicolor start',
-                            defaultValue: 256,
-                            type: "range",
-                            attr: {
-                                min: 0,
-                                max: 360,
-                                step: 1
-                            },
-                            show: ({multicolor}) => multicolor,
-                        },
-                        {
-                            key: 'color',
-                            label: 'String color',
-                            defaultValue: "#ff4d00",
-                            type: "color",
-                            show: ({multicolor}) => !multicolor
-                        },
-                    ]
+                    key: 'multicolorStart',
+                    label: 'Multicolor start',
+                    defaultValue: 256,
+                    type: "range",
+                    attr: {
+                        min: 0,
+                        max: 360,
+                        step: 1
+                    },
+                    show: ({multicolor}) => multicolor,
                 },
-            ],
-        });
-    }
+                {
+                    key: 'color',
+                    label: 'String color',
+                    defaultValue: "#ff4d00",
+                    type: "color",
+                    show: ({multicolor}) => !multicolor
+                },
+            ]
+        },
+    ];
 
     getRealNailCount() {
         const {n, layers} = this.config;

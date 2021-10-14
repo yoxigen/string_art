@@ -1,66 +1,61 @@
 import StringArt from "../StringArt.js";
 
 class Spirals extends StringArt{
-    constructor(canvas) {
-        super({
-            name: "Spirals",
-            id: 'spirals',
-            link: "https://www.etsy.com/il-en/listing/974865185/3d-string-art-spiral-mandala-wall?ref=shop_home_active_10&frs=1",
-            configControls: [
-                {
-                    key: 'n',
-                    label: 'Number of nails',
-                    defaultValue: 92,
-                    type: "range",
-                    attr: {
-                        min: 3,
-                        max: 200,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'radiusIncrease',
-                    label: 'Size',
-                    defaultValue: 3,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 20,
-                        step: 0.2
-                    }
-                },
-                {
-                    key: 'angleStep',
-                    label: 'Angle step',
-                    defaultValue: 0.05,
-                    type: "range",
-                    attr: {
-                        min: 0.01,
-                        max: 1,
-                        step: 0.01,
-                    }
-                },
-                {
-                    key: 'nSpirals',
-                    label: 'Number of spirals',
-                    defaultValue: 3,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 20,
-                        step: 1
-                    }
-                },
-                {
-                    key: 'color',
-                    label: 'String color',
-                    defaultValue: "#00ddff",
-                    type: "color",
-                }
-            ],
-            canvas
-        })
-    }
+    name = "Spirals";
+    id = "spirals";
+    link = "https://www.etsy.com/il-en/listing/974865185/3d-string-art-spiral-mandala-wall?ref=shop_home_active_10&frs=1";
+    controls = [
+        {
+            key: 'n',
+            label: 'Number of nails',
+            defaultValue: 92,
+            type: "range",
+            attr: {
+                min: 3,
+                max: 200,
+                step: 1
+            }
+        },
+        {
+            key: 'radiusIncrease',
+            label: 'Size',
+            defaultValue: 3,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 20,
+                step: 0.2
+            }
+        },
+        {
+            key: 'angleStep',
+            label: 'Angle step',
+            defaultValue: 0.05,
+            type: "range",
+            attr: {
+                min: 0.01,
+                max: 1,
+                step: 0.01,
+            }
+        },
+        {
+            key: 'nSpirals',
+            label: 'Number of spirals',
+            defaultValue: 3,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 20,
+                step: 1
+            }
+        },
+        {
+            key: 'color',
+            label: 'String color',
+            defaultValue: "#00ddff",
+            type: "color",
+        }
+    ];
     
     *generatePoints() {
         const {
