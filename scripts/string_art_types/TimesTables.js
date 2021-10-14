@@ -1,9 +1,8 @@
-import StringArt from "../StringArt.js";
+import CircleBase from "./CircleBase.js";
 
-const MARGIN = 20;
 const PI2 = Math.PI * 2;
 
-export default class TimesTables extends StringArt{
+export default class TimesTables extends CircleBase{
     name = "Times Tables";
     id = "times_tables";
     link = "https://www.youtube.com/watch?v=LWin7w9hF-E&ab_channel=Jorgedelatierra";
@@ -96,24 +95,12 @@ export default class TimesTables extends StringArt{
     setUpDraw() {
         super.setUpDraw();
 
-        this.center = this.size.map(v => v / 2);
-        this.radius = Math.min(...this.center) - MARGIN;
-
-        const {n, layers, multicolorRange} = this.config;
+        const {layers, multicolorRange} = this.config;
 
         this.realNailCount = this.getRealNailCount();
         this.indexAngle = PI2 / this.realNailCount;
         this.multiColorStep = multicolorRange / layers;
-        this.timeShift = Math.floor(n / layers);
-    }
-
-    getPoint(index = 0) {
-        const pointAngle = index * this.indexAngle;
-
-        return [
-            this.center[0] + Math.cos(pointAngle) * this.radius,
-            this.center[1] + Math.sin(pointAngle) * this.radius,
-        ];
+        this.layerShift = Math.floor(this.realNailCount / layers);
     }
 
     *drawTimesTable({ shift = 0, color = "#f00", steps, time }) {
@@ -121,15 +108,15 @@ export default class TimesTables extends StringArt{
         const n = this.realNailCount;
         const stepsToRender = steps ?? n;
 
-        let point = this.getPoint(shift);
+        let point = this.getCirclePoint(shift);
 
         for(let i=1; i <= stepsToRender; i++) {
             this.ctx.beginPath();
             this.ctx.moveTo(...point);
-            point = this.getPoint(i + shift);
+            point = this.getCirclePoint(i + shift);
             this.ctx.lineTo(...point);
             const toIndex = (i * base) % n;
-            this.ctx.lineTo(...this.getPoint(toIndex + shift));
+            this.ctx.lineTo(...this.getCirclePoint(toIndex + shift));
             this.ctx.strokeStyle = color;
             this.ctx.stroke();
             
@@ -145,14 +132,8 @@ export default class TimesTables extends StringArt{
             yield* this.drawTimesTable({ 
                 time,
                 color: timeColor, 
-                shift: this.timeShift * time,
+                shift: this.layerShift * time,
             });
-        }
-    }
-
-    drawNails() {
-        for (let i=0; i < this.realNailCount; i++) {
-            this.nails.addNail({point: this.getPoint(i)});
         }
     }
 

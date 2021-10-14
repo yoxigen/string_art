@@ -1,9 +1,6 @@
-import StringArt from "../StringArt.js";
+import CircleBase from "./CircleBase.js";
 
-const MARGIN = 20;
-const PI2 = Math.PI * 2;
-
-class Spiral extends StringArt{
+class Spiral extends CircleBase{
     id = "spiral";
     name = "Spiral";
     link = "https://www.etsy.com/il-en/listing/943140543/personalized-gift-string-art-mandala?ref=sim_rv-5&pro=1";
@@ -113,28 +110,16 @@ class Spiral extends StringArt{
 
     setUpDraw() {
         super.setUpDraw();
-        this.center = this.size.map(v => v / 2);
-        this.radius = Math.min(...this.center) - MARGIN;
-
-        const {n, layers, multicolorRange, multicolorByLightness, layerSpread, rotation} = this.config;
+        const {layers, multicolorRange, multicolorByLightness, layerSpread} = this.config;
         this.multiColorStep = multicolorRange / layers;
         this.multiColorLightnessStep = multicolorByLightness ? 100 / layers : 1;
         this.layerShift = layerSpread;
-        this.indexAngle = PI2 / n;
-        this.rotationAngle = PI2 * rotation;
-    }
-
-    getPoint(index = 0) {
-        return [
-            this.center[0] + Math.sin(index * this.indexAngle + this.rotationAngle) * this.radius,
-            this.center[1] + Math.cos(index * this.indexAngle + this.rotationAngle) * this.radius
-        ];
     }
 
     *drawSpiral({ shift = 0, color = "#f00" } = {}) {
         const {repetition, innerLength} = this.config;
         
-        this.ctx.moveTo(...this.getPoint(shift));
+        this.ctx.moveTo(...this.getCirclePoint(shift));
         
         let currentInnerLength = innerLength;
         let repetitionCount = 0;
@@ -142,8 +127,8 @@ class Spiral extends StringArt{
         
         for(let i=0; currentInnerLength; i++) {
             this.ctx.beginPath();
-            this.ctx.lineTo(...this.getPoint(i + currentInnerLength + shift));
-            this.ctx.lineTo(...this.getPoint(i + 1 + shift));
+            this.ctx.lineTo(...this.getCirclePoint(i + currentInnerLength + shift));
+            this.ctx.lineTo(...this.getCirclePoint(i + 1 + shift));
             this.ctx.stroke();
 
             repetitionCount++;
@@ -164,13 +149,6 @@ class Spiral extends StringArt{
                 color: this.getLayerColor(layer), 
                 shift: -this.layerShift * layer 
             });
-        }
-    }
-
-    drawNails() {
-        const {n} = this.config;
-        for (let i=0; i < n; i++) {
-            this.nails.addNail({point: this.getPoint(i)});
         }
     }
 
