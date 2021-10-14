@@ -38,6 +38,17 @@ const COMMON_CONFIG_CONTROLS = [
                 },
                 show: ({showNails}) => showNails
             },
+            {
+                key: 'stringWidth',
+                label: 'String width',
+                defaultValue: 1,
+                type: "range",
+                attr: {
+                    min: 1,
+                    max: 4,
+                    step: 0.2
+                }
+            }
         ]
     },
 ];
@@ -97,6 +108,7 @@ class StringArt {
         }
 
         this.ctx.clearRect(0, 0, ...this.size);
+        this.ctx.lineWidth = this.config.stringWidth;
     }
 
     afterDraw() {
