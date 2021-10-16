@@ -53,10 +53,10 @@ function initControls() {
                 inputValueEl.innerText = e.target.value;
             }
     
-            player.update(currentPattern, { goToEnd: false });
             currentPattern.draw();
             
             inputTimeout = setTimeout(() => {
+                player.update(currentPattern, { goToEnd: false });
                 const configQuery = JSON.stringify(currentPattern.config)
                 history.replaceState({
                     pattern: currentPattern.id,

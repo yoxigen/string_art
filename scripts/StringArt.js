@@ -61,6 +61,13 @@ class StringArt {
 
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
+        const bsr = this.ctx.webkitBackingStorePixelRatio ||
+            this.ctx.mozBackingStorePixelRatio ||
+            this.ctx.msBackingStorePixelRatio ||
+            this.ctx.oBackingStorePixelRatio ||
+            this.ctx.backingStorePixelRatio || 1;
+        this.pixelRatio = dpr / bsr;
     }
 
     get configControls() {
@@ -87,15 +94,8 @@ class StringArt {
         this.canvas.removeAttribute('width');
         this.canvas.removeAttribute('height');
 
-        const dpr = window.devicePixelRatio || 1;
-        const bsr = this.ctx.webkitBackingStorePixelRatio ||
-            this.ctx.mozBackingStorePixelRatio ||
-            this.ctx.msBackingStorePixelRatio ||
-            this.ctx.oBackingStorePixelRatio ||
-            this.ctx.backingStorePixelRatio || 1;
-        const pixelRatio = dpr / bsr;
         const canvasScreenSize = [this.canvas.clientWidth, this.canvas.clientHeight];
-        const [width, height] = this.size = canvasScreenSize.map(v => v * pixelRatio);
+        const [width, height] = this.size = canvasScreenSize.map(v => v * this.pixelRatio);
         Object.assign(this, this.size);
         this.canvas.setAttribute('width', width);
         this.canvas.setAttribute('height', height);

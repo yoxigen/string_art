@@ -1,6 +1,7 @@
-import CircleBase from "./CircleBase.js";
+import StringArt from "../StringArt.js";
+import Circle from "./Circle.js";
 
-class Spiral extends CircleBase{
+export default class Spiral extends StringArt{
     id = "spiral";
     name = "Spiral";
     link = "https://www.etsy.com/il-en/listing/943140543/personalized-gift-string-art-mandala?ref=sim_rv-5&pro=1";
@@ -110,6 +111,14 @@ class Spiral extends CircleBase{
 
     setUpDraw() {
         super.setUpDraw();
+        const { n, rotation } = this.config;
+
+        this.circle = new Circle({
+            size: this.size,
+            n,
+            rotation,
+            margin: 20,
+        });
         const {layers, multicolorRange, multicolorByLightness, layerSpread} = this.config;
         this.multiColorStep = multicolorRange / layers;
         this.multiColorLightnessStep = multicolorByLightness ? 100 / layers : 1;
@@ -119,7 +128,7 @@ class Spiral extends CircleBase{
     *drawSpiral({ shift = 0, color = "#f00" } = {}) {
         const {repetition, innerLength} = this.config;
         
-        this.ctx.moveTo(...this.getCirclePoint(shift));
+        this.ctx.moveTo(...this.circle.getPoint(shift));
         
         let currentInnerLength = innerLength;
         let repetitionCount = 0;
@@ -127,8 +136,8 @@ class Spiral extends CircleBase{
         
         for(let i=0; currentInnerLength; i++) {
             this.ctx.beginPath();
-            this.ctx.lineTo(...this.getCirclePoint(i + currentInnerLength + shift));
-            this.ctx.lineTo(...this.getCirclePoint(i + 1 + shift));
+            this.ctx.lineTo(...this.circle.getPoint(i + currentInnerLength + shift));
+            this.ctx.lineTo(...this.circle.getPoint(i + 1 + shift));
             this.ctx.stroke();
 
             repetitionCount++;
@@ -163,6 +172,8 @@ class Spiral extends CircleBase{
         const {innerLength, repetition, layers} = this.config;
         return layers * innerLength * repetition;
     }
-}
 
-export default Spiral;
+    drawNails() {
+        this.circle.drawNails(this.nails);
+    }
+}

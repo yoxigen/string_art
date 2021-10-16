@@ -1,8 +1,9 @@
-import CircleBase from "./CircleBase.js";
+import StringArt from "../StringArt.js";
+import Circle from "./Circle.js";
 
-const PI2 = Math.PI * 2;
+const MARGIN = 20;
 
-export default class TimesTables extends CircleBase{
+export default class TimesTables extends StringArt{
     name = "Times Tables";
     id = "times_tables";
     link = "https://www.youtube.com/watch?v=LWin7w9hF-E&ab_channel=Jorgedelatierra";
@@ -86,37 +87,44 @@ export default class TimesTables extends CircleBase{
         },
     ];
 
-    getRealNailCount() {
-        const {n, layers} = this.config;
-        const extraNails = n % layers;
-        return n - extraNails; // The number of nails should be a multiple of the layers, so the strings are exactly on the nails.
+    get n() {
+        if (!this._n) {
+            const {n, layers} = this.config;
+            const extraNails = n % layers;
+            this._n = n - extraNails; // The number of nails should be a multiple of the layers, so the strings are exactly on the nails.
+        }
+
+        return this._n;
     }
 
     setUpDraw() {
+        this._n = null;
         super.setUpDraw();
 
         const {layers, multicolorRange} = this.config;
-
-        this.realNailCount = this.getRealNailCount();
-        this.indexAngle = PI2 / this.realNailCount;
+        this.circle = new Circle({
+            size: this.size,
+            n: this.n,
+            margin: MARGIN
+        });
         this.multiColorStep = multicolorRange / layers;
-        this.layerShift = Math.floor(this.realNailCount / layers);
+        this.layerShift = Math.floor(this.n / layers);
     }
 
     *drawTimesTable({ shift = 0, color = "#f00", steps, time }) {
         const {base} = this.config;
-        const n = this.realNailCount;
+        const n = this.n;
         const stepsToRender = steps ?? n;
 
-        let point = this.getCirclePoint(shift);
+        let point = this.circle.getPoint(shift);
 
         for(let i=1; i <= stepsToRender; i++) {
             this.ctx.beginPath();
             this.ctx.moveTo(...point);
-            point = this.getCirclePoint(i + shift);
+            point = this.circle.getPoint(i + shift);
             this.ctx.lineTo(...point);
             const toIndex = (i * base) % n;
-            this.ctx.lineTo(...this.getCirclePoint(toIndex + shift));
+            this.ctx.lineTo(...this.circle.getPoint(toIndex + shift));
             this.ctx.strokeStyle = color;
             this.ctx.stroke();
             
@@ -137,6 +145,10 @@ export default class TimesTables extends CircleBase{
         }
     }
 
+    drawNails() {
+        this.circle.drawNails(this.nails);
+    }
+
     getTimeColor(time) {
         const {multicolorStart, darkMode} = this.config;
 
@@ -144,7 +156,7 @@ export default class TimesTables extends CircleBase{
     }
 
     getStepCount() {
-        return this.config.layers * this.getRealNailCount();
+        return this.config.layers * this.n;
     }
 }
             
