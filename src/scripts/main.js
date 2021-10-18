@@ -1,11 +1,20 @@
 import Player from "./Player.js";
 import patternTypes from "./pattern_types.js";
 
-const canvas = document.querySelector("canvas");
-const patternSelector = document.querySelector("#pattern_select");
-const controlsEl = document.querySelector("#controls");
-const patternLinkEl = document.querySelector("#pattern_link");
-const patterns = patternTypes.map(Pattern => new Pattern(canvas));
+const elements = {
+    canvas: document.querySelector("canvas"),
+    patternSelector: document.querySelector("#pattern_select"),
+    controls: document.querySelector("#controls"),
+    patternLink: document.querySelector("#pattern_link"),
+    size: {
+        printSize: document.querySelector("#print_size"),
+        sizeCustom: document.querySelector("#size_custom"),
+        width: document.querySelector("#size_custom_width"),
+        height: document.querySelector("#size_custom_height"),
+    }
+};
+
+const patterns = patternTypes.map(Pattern => new Pattern(elements.canvas));
 
 let currentPattern;
 let inputTimeout;
@@ -34,10 +43,14 @@ function main() {
     window.addEventListener("resize", () =>
         currentPattern.draw()
     );
+
+    elements.canvas.addEventListener('click', () => {
+        player.toggle();        
+    });
 }
 
 function initControls() {
-    controlsEl.addEventListener("input", (e) => {
+    elements.controls.addEventListener("input", (e) => {
         requestAnimationFrame(() => {
             clearTimeout(inputTimeout);
 
@@ -71,10 +84,10 @@ function initControls() {
         const option = document.createElement('option');
         option.innerText = pattern.name;
         option.value = pattern.id;
-        patternSelector.appendChild(option);
+        elements.patternSelector.appendChild(option);
     });
     
-    patternSelector.addEventListener('change', e => {
+    elements.patternSelector.addEventListener('change', e => {
         const patternId = e.target.value;
         selectPattern(findPatternById(patternId));
         history.pushState({ pattern: patternId }, patternId, "?pattern=" + patternId)
@@ -89,7 +102,7 @@ function initRouting() {
 
 function updateState(state) {
     const pattern = findPatternById(state.pattern);
-    patternSelector.value = pattern.id;
+    elements.patternSelector.value = pattern.id;
     selectPattern(pattern, { 
         draw: false,
         config: state.config ? JSON.parse(state.config) : null
@@ -132,7 +145,7 @@ function selectPattern(pattern, { config, draw = true} = {}) {
     }
 
     renderControls();
-    patternLinkEl.setAttribute("href", pattern.link);
+    elements.patternLink.setAttribute("href", pattern.link);
     if (draw) {
         currentPattern.draw();
     }
@@ -183,7 +196,7 @@ function updateControlsVisibility(configControls = currentPattern.configControls
     });
 }
 
-function renderControls(containerEl = controlsEl, configControls = currentPattern.configControls) {
+function renderControls(containerEl = elements.controls, configControls = currentPattern.configControls) {
     containerEl.innerHTML = "";
 
     configControls.forEach(control => {

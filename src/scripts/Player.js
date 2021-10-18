@@ -27,6 +27,7 @@ export default class Player {
 
     togglePlaying() {
         this.elements.player.classList.toggle('playing');
+        this._isPlaying = !this._isPlaying;
     }
 
     update(stringArt) {
@@ -50,6 +51,7 @@ export default class Player {
     }
 
     play() {
+        this._isPlaying = true;
         cancelAnimationFrame(this.renderRafId);
 
         if (this.stringArt.position === this.stepCount) {
@@ -72,5 +74,14 @@ export default class Player {
 
     pause() {
         cancelAnimationFrame(this.renderRafId);
+        this._isPlaying = false;
+    }
+
+    toggle() {
+        if (this._isPlaying) {
+            this.pause();
+        } else {
+            this.play();
+        }
     }
 }
