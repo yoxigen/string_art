@@ -11,7 +11,7 @@ export default class Star extends StringArt{
         {
             key: 'n',
             label: 'Circle of nails',
-            defaultValue: 210,
+            defaultValue: 120,
             type: "range",
             attr: {
                 min: 3,
@@ -22,7 +22,7 @@ export default class Star extends StringArt{
         {
             key: 'sides',
             label: 'Sides',
-            defaultValue: 5,
+            defaultValue: 3,
             type: 'range',
             attr: {
                 min: 3,
@@ -49,13 +49,13 @@ export default class Star extends StringArt{
                 {
                     key: 'innerColor',
                     label: 'Star color',
-                    defaultValue: "#413ef9",
+                    defaultValue: "#2ec0ff",
                     type: "color",
                 },
                 {
                     key: 'outterColor',
                     label: 'Outter color',
-                    defaultValue: "#422b97",
+                    defaultValue: "#2a82c6",
                     type: "color",
                 },
             ]

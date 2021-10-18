@@ -1,0 +1,37 @@
+{
+  "name": "string_art",
+  "version": "1.0.0",
+  "description": "String Art Studio",
+  "source": "./src/index.html",
+  "scripts": {
+    "build": "parcel build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yoxigen/string_art.git"
+  },
+  "keywords": [
+    "javascript",
+    "canvas",
+    "art",
+    "string",
+    "art",
+    "craft",
+    "strings",
+    "visualization"
+  ],
+  "author": "Yossi Kolesnicov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yoxigen/string_art/issues"
+  },
+  "homepage": "https://github.com/yoxigen/string_art#readme",
+  "devDependencies": {
+    "parcel": "^2.0.0"
+  },
+  "targets": {
+    "default": {
+      "distDir": "./dist"
+    }
+  }
+}

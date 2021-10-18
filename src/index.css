@@ -140,6 +140,10 @@ a:hover {
     border-top: solid 1px rgba(255,255,255,.1);
 }
 
+#size_controls {
+    margin-top: 16px;
+}
+
 label {
     font-size: 14px;
     font-weight: 500;
@@ -149,11 +153,11 @@ label {
     margin-top: 16px;
 }
 
-#controls label{
+form label{
     display: block;
 }
 
-#controls input[type="checkbox"] + label {
+input[type="checkbox"] + label {
     display: inline-block;
     margin-top: 0;
     position: relative;
@@ -161,7 +165,7 @@ label {
     margin-left: 4px;
 }
 
-#controls fieldset {
+fieldset {
    border: solid 1px rgba(255,255,255,.1);
 }
 
@@ -169,7 +173,11 @@ input[type="range"] {
     width: calc(100% - 50px)
 }
 
-#pattern_select {
+input[type="number"], input[type="text"] {
+    padding: 4px;
+}
+
+select {
     width: 100%;
     padding: 4px;
     margin-bottom: 8px;
@@ -190,4 +198,19 @@ input[type='color'] {
     background: none;
     position: relative;
     top: 2px;
+}
+
+#size_custom {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    max-width: 270px;
+}
+
+#size_custom > div {
+    flex: 1;
+}
+#size_custom input {
+    width: 100%;
 }
