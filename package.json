@@ -31,7 +31,8 @@
   },
   "targets": {
     "default": {
-      "distDir": "./dist"
+      "distDir": "./dist",
+      "publicUrl": "./"
     }
   }
 }
