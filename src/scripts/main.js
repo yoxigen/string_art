@@ -137,7 +137,7 @@ function selectPattern(pattern, { config, draw = true} = {}) {
         currentPattern.draw();
     }
     player.update(currentPattern);
-    document.title = `${pattern.name} - String Art Pattern Creator`;
+    document.title = `${pattern.name} - String Art Studio`;
 }
 
 function getInputValue(type, inputElement) {

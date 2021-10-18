@@ -9,17 +9,6 @@ export default class Star extends StringArt{
     link = "https://www.etsy.com/listing/557818258/string-art-meditation-geometric-yoga?epik=dj0yJnU9Mm1hYmZKdks1eTc3bVY2TkVhS2p2Qlg0N2dyVWJxaTEmcD0wJm49MGlWSXE1SVJ2Vm0xZ0xtaGhITDBWQSZ0PUFBQUFBR0Zwd2lj";
     controls = [
         {
-            key: 'n',
-            label: 'Circle of nails',
-            defaultValue: 120,
-            type: "range",
-            attr: {
-                min: 3,
-                max: 300,
-                step: 1
-            }
-        },
-        {
             key: 'sides',
             label: 'Sides',
             defaultValue: 3,
@@ -27,6 +16,17 @@ export default class Star extends StringArt{
             attr: {
                 min: 3,
                 max: 20,
+                step: 1
+            }
+        },
+        {
+            key: 'sideNails',
+            label: 'Nails per side',
+            defaultValue: 40,
+            type: "range",
+            attr: {
+                min: 1,
+                max: 200,
                 step: 1
             }
         },
@@ -76,31 +76,27 @@ export default class Star extends StringArt{
         this._n = null;
         super.setUpDraw();
 
-        const { sides, rotation } = this.config;
+        const { sides, rotation, sideNails } = this.config;
         this.circle = new Circle({
             size: this.size,
-            n: this.n,
+            n: sideNails * sides,
             margin: MARGIN,
             rotation,
         });
 
         this.sideAngle = Math.PI * 2 / sides;
-        let sideNails = Math.floor(this.n / sides);
         this.nailSpacing = this.circle.radius / sideNails;
-        this.starCenterStart = (sideNails % 1) * this.nailSpacing;
-        this.sideNails = sideNails;
-        
-        const circleNailsPerSide = this.n / sides;
+        this.starCenterStart = (sideNails % 1) * this.nailSpacing;     
 
         this.sides = new Array(sides).fill(null).map((_, side) => {
             const sideAngle = side * this.sideAngle + this.circle.rotationAngle;
-            const circlePointsStart = side * circleNailsPerSide;
+            const circlePointsStart = side * sideNails;
 
             return {
                 sinSideAngle: Math.sin(sideAngle),
                 cosSideAngle: Math.cos(sideAngle),
                 circlePointsStart,
-                circlePointsEnd: circlePointsStart + circleNailsPerSide
+                circlePointsEnd: circlePointsStart + sideNails
             };
         });
     }
@@ -117,17 +113,19 @@ export default class Star extends StringArt{
     }
 
     *generateStarPoints({ reverseOrder  = false} = {}) {
-        for (let side = 0; side < this.config.sides; side++) {
-            const prevSide = side === 0 ? this.config.sides - 1 : side - 1;
-            for (let i=0; i < this.sideNails; i++) {
-                const sideIndex = reverseOrder ? this.sideNails - i : i;
+        const {sides, sideNails} = this.config;
+
+        for (let side = 0; side < sides; side++) {
+            const prevSide = side === 0 ? sides - 1 : side - 1;
+            for (let i=0; i < sideNails; i++) {
+                const sideIndex = reverseOrder ? sideNails - i : i;
                 yield { side, prevSide, sideIndex, point: this.getStarPoint({ side, sideIndex }) };
             }
         }
     }
 
     *drawStar() {
-        const {innerColor} = this.config;
+        const {innerColor, sideNails} = this.config;
 
         this.ctx.strokeStyle = innerColor;
         let prevPoint;
@@ -142,7 +140,7 @@ export default class Star extends StringArt{
                 this.ctx.moveTo(...point);
             }
 
-            const prevSideIndex = this.sideNails - sideIndex;
+            const prevSideIndex = sideNails - sideIndex;
             this.ctx.lineTo(...this.getStarPoint({ side: prevSide, sideIndex: prevSideIndex}))
             prevPoint = point;
             this.ctx.stroke();
@@ -206,9 +204,8 @@ export default class Star extends StringArt{
     }
 
     getStepCount() {
-        const {sides} = this.config;
-        const sideNails = Math.floor(this.n / sides);
+        const {sides, sideNails} = this.config;
         const starCount = sideNails * sides;
-        return starCount * 3;
+        return starCount * 3; // Once for each side + two more times for the side's circle
     }
 }

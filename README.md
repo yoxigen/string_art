@@ -1,6 +1,6 @@
-# String Art Pattern Creator
+# String Art Studio
 
-An app to design [string art](https://en.wikipedia.org/wiki/String_art) projects.
+A webapp to design and help produce [string art](https://en.wikipedia.org/wiki/String_art) projects.
 
 [Open app](http://yoxigen.github.io/string_art)
 
