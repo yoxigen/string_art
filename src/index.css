@@ -2,10 +2,15 @@
     box-sizing: border-box;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
+    overflow: hidden;
 }
 
 body {
@@ -22,7 +27,7 @@ h1 {
 main {
     display: grid;
     grid-template-columns: 270px 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: 1fr 40px;
     grid-template-areas:
     "controls canvas"
     "controls player";
@@ -63,6 +68,7 @@ a:hover {
     display: flex;
     justify-content: center;
     grid-area: canvas;
+    overflow: auto;
 }
 #player {
     grid-area: player;
@@ -119,7 +125,7 @@ a:hover {
 @media only screen and (max-width: 600px) {
     main {
         grid-template-columns: 1fr;
-        grid-template-rows: 30vh 1fr auto;
+        grid-template-rows: 30vh 1fr 40px;
         grid-template-areas:
             "controls"
             "canvas"
@@ -206,7 +212,6 @@ input[type='color'] {
     gap: 8px;
     align-items: center;
     max-width: 270px;
-    display: none;
 }
 
 #size_custom > div {
