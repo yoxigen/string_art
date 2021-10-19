@@ -51,7 +51,7 @@ form header {
 }
 
 canvas {
-    height: 100%;
+    height: calc(100% - 5px);
     width: 100%;
 }
 
@@ -65,10 +65,9 @@ a:hover {
     text-decoration: underline;
 }
 #art {
-    display: flex;
-    justify-content: center;
     grid-area: canvas;
     overflow: auto;
+    text-align: center;
 }
 #player {
     grid-area: player;

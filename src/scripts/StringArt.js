@@ -7,12 +7,6 @@ const COMMON_CONFIG_CONTROLS = [
         type: 'group',
         children: [
             {
-                key: 'darkMode',
-                label: 'Dark mode',
-                defaultValue: true,
-                type: 'checkbox'
-            },
-            {
                 key: 'showStrings',
                 label: 'Show strings',
                 defaultValue: true,
@@ -51,6 +45,32 @@ const COMMON_CONFIG_CONTROLS = [
             }
         ]
     },
+    {
+        key: 'theme',
+        label: 'Theme',
+        type: 'group',
+        children: [
+            {
+                key: 'darkMode',
+                label: 'Dark mode',
+                defaultValue: true,
+                type: 'checkbox'
+            },
+            {
+                key: 'customBackgroundColor',
+                label: 'Custom background color',
+                defaultValue: false,
+                type: 'checkbox',
+            },
+            {
+                key: 'backgroundColor',
+                label: 'Background color',
+                defaultValue: '#222222',
+                type: 'color',
+                show: ({customBackgroundColor}) => customBackgroundColor
+            },
+        ]
+    }
 ];
 
 class StringArt {
@@ -120,11 +140,11 @@ class StringArt {
 
     initDraw() {
         this.setUpDraw(this.config);
-        const { showNails } = this.config;
+        const { showNails, darkMode, backgroundColor, customBackgroundColor } = this.config;
 
         this.ctx.beginPath();
         this.ctx.globalCompositeOperation = 'destination-over';
-        this.ctx.fillStyle = this.config.darkMode ? '#222222' : '#ffffff';
+        this.ctx.fillStyle = customBackgroundColor ? backgroundColor : this.config.darkMode ? '#222222' : '#ffffff';
         this.ctx.fillRect(0, 0, ...this.size);
 
         this.ctx.globalCompositeOperation = 'source-over';
