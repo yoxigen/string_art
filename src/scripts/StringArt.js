@@ -19,7 +19,7 @@ const COMMON_CONFIG_CONTROLS = [
                 defaultValue: 1,
                 type: "range",
                 attr: {
-                    min: 1,
+                    min: 0.2,
                     max: 4,
                     step: 0.2
                 },
@@ -38,12 +38,23 @@ const COMMON_CONFIG_CONTROLS = [
                 defaultValue: 1,
                 type: "range",
                 attr: {
-                    min: 1,
+                    min: 0.5,
                     max: 5,
-                    step: 1
+                    step: 0.25
                 },
                 show: ({showNails}) => showNails
             },
+            {
+                key: 'margin',
+                label: 'Margin',
+                defaultValue: 20,
+                type: "number",
+                attr: {
+                    min: 0,
+                    max: 500,
+                    step: 1
+                }
+            }
         ]
     },
     {

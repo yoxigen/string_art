@@ -6,7 +6,7 @@ const EVENTS = new Set(['input', 'change']);
 let inputTimeout;
 
 export default class EditorControls {
-    constructor({pattern, config}) {
+    constructor({pattern}) {
         this.pattern = pattern;
         this.eventHandlers = {
             input: new Set(),
@@ -16,6 +16,7 @@ export default class EditorControls {
         this._wrappedOnInput = e => this._onInput(e);
 
         elements.controls.addEventListener("input", this._wrappedOnInput);
+        this.controlElements = {};
         this.renderControls();
     }
 
@@ -54,7 +55,7 @@ export default class EditorControls {
                 [controlKey]: inputValue
             });
             
-            const inputValueEl = document.querySelector("#" + e.target.id + "_value");
+            const inputValueEl = this.controlElements[controlKey].value;
             if (inputValueEl) {
                 inputValueEl.innerText = e.target.value;
             }
@@ -79,7 +80,7 @@ export default class EditorControls {
         configControls.forEach(control => {
             if (control.show) {
                 const shouldShowControl = control.show(this.pattern.config);
-                const controlEl = document.querySelector(`#control_${control.key}`);
+                const controlEl = this.controlElements[control.key].control;
                 if (controlEl) {
                     if (shouldShowControl) {
                         controlEl.removeAttribute('hidden');
@@ -91,7 +92,7 @@ export default class EditorControls {
     
             if (control.isDisabled) {
                 const shouldDisableControl = control.isDisabled(this.pattern.config);
-                const inputEl = document.querySelector(`#config_${control.key}`);
+                const inputEl = this.controlElements[control.key].input;
                 if (inputEl) {
                     if (shouldDisableControl) {
                         inputEl.setAttribute('disabled', 'disabled');
@@ -109,17 +110,15 @@ export default class EditorControls {
 
     updateInputs(config) {
         Object.entries(config).forEach(([key, value]) => {
-            const inputEl = document.querySelector(`#config_${key}`);
-            if (inputEl) {
-                const inputValueEl = document.querySelector(`#config_${key}_value`);
-    
-                if (inputEl.type === "checkbox") {
-                    inputEl.checked = value;
+            const {input, value: valueEl} = this.controlElements[key];
+            if (input) {
+                if (input.type === "checkbox") {
+                    input.checked = value;
                 } else {
-                    inputEl.value = value;
+                    input.value = value;
                 }
-                if (inputValueEl) {
-                    inputValueEl.innerText = value;
+                if (valueEl) {
+                    valueEl.innerText = value;
                 }
             }
         });
@@ -129,11 +128,14 @@ export default class EditorControls {
         const configControls = _configControls ?? this.pattern.configControls;
         containerEl.innerHTML = "";
         const controlsFragment = document.createDocumentFragment();
-    
+        
+
         configControls.forEach(control => {
             const controlId = `config_${control.key}`;
+            const controlElements = this.controlElements[control.key] = {};
+
             let controlEl;
-    
+            
             if (control.type === "group") {
                 controlEl = document.createElement("fieldset");
                 const groupTitleEl = document.createElement("legend");
@@ -152,8 +154,7 @@ export default class EditorControls {
                 label.innerHTML = control.label;
                 label.setAttribute("for", controlId);
     
-                const inputEl = document.createElement("input");
-    
+                const inputEl = controlElements.input = document.createElement("input");
                 inputEl.setAttribute("type", control.type);
                 const inputValue = this.pattern.config[control.key] ?? control.defaultValue;
     
@@ -172,7 +173,7 @@ export default class EditorControls {
                     controlEl.appendChild(label);
                     controlEl.appendChild(inputEl);
                     inputEl.value = inputValue;
-                    const inputValueEl = document.createElement('span');
+                    const inputValueEl = controlElements.value = document.createElement('span');
                     inputValueEl.id = `config_${control.key}_value`;
                     inputValueEl.innerText = inputValue;
                     inputValueEl.className = "control_input_value";
@@ -181,6 +182,7 @@ export default class EditorControls {
                 inputEl.id = controlId;
             }
     
+            this.controlElements[control.key].control = controlEl;
             controlEl.id = `control_${control.key}`;
             controlsFragment.appendChild(controlEl);
         });

@@ -1,8 +1,6 @@
 import StringArt from "../StringArt.js";
 import Circle from "./Circle.js";
 
-const MARGIN = 20;
-
 export default class Star extends StringArt{
     name = "Star";
     id = "star";
@@ -76,11 +74,11 @@ export default class Star extends StringArt{
         this._n = null;
         super.setUpDraw();
 
-        const { sides, rotation, sideNails } = this.config;
+        const { sides, rotation, sideNails, margin = 0 } = this.config;
         this.circle = new Circle({
             size: this.size,
             n: sideNails * sides,
-            margin: MARGIN,
+            margin,
             rotation,
         });
 
