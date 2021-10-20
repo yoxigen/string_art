@@ -1,0 +1,204 @@
+const elements = {
+    controls: document.querySelector("#controls"),
+};
+
+const EVENTS = new Set(['input', 'change']);
+let inputTimeout;
+
+export default class EditorControls {
+    constructor({pattern, config}) {
+        this.pattern = pattern;
+        this.eventHandlers = {
+            input: new Set(),
+            change: new Set()
+        }
+
+        this._wrappedOnInput = e => this._onInput(e);
+
+        elements.controls.addEventListener("input", this._wrappedOnInput);
+        this.renderControls();
+    }
+
+    destroy() {
+        elements.controls.removeEventListener("input", this._wrappedOnInput);
+        elements.controls.innerHTML = "";
+    }
+
+    addEventListener(event, eventHandler) {
+        if (!EVENTS.has(event)) {
+            throw new Error(`Unsupported event for EditorControls, "${event}"!`);
+        }
+
+        if (!(eventHandler instanceof Function)) {
+            throw new Error('Invalid event handler.');
+        }
+
+        this.eventHandlers[event].add(eventHandler);
+    }
+
+    _triggerEvent(event, eventData) {
+        for(const eventHandler of this.eventHandlers[event]) {
+            eventHandler(eventData);
+        }
+    }
+
+    _onInput(e) {
+        requestAnimationFrame(() => {
+            clearTimeout(inputTimeout);
+
+            const inputValue = getInputValue(e.target.type, e.target);
+            const controlKey = e.target.id.replace(/^config_/, '');
+
+            this.pattern.config = Object.freeze({
+                ...this.pattern.config,
+                [controlKey]: inputValue
+            });
+            
+            const inputValueEl = document.querySelector("#" + e.target.id + "_value");
+            if (inputValueEl) {
+                inputValueEl.innerText = e.target.value;
+            }
+
+            const eventData = Object.freeze({
+                control: controlKey, 
+                value: inputValue, 
+                originalEvent: e,
+                pattern: this.pattern,
+            });
+
+            this._triggerEvent('input', eventData);
+
+            inputTimeout = setTimeout(() => {
+                this._triggerEvent('change', eventData);
+                this.updateControlsVisibility();
+            }, 100);
+        });
+    }
+
+    updateControlsVisibility(configControls = this.pattern.configControls) {
+        configControls.forEach(control => {
+            if (control.show) {
+                const shouldShowControl = control.show(this.pattern.config);
+                const controlEl = document.querySelector(`#control_${control.key}`);
+                if (controlEl) {
+                    if (shouldShowControl) {
+                        controlEl.removeAttribute('hidden');
+                    } else {
+                        controlEl.setAttribute('hidden', 'hidden');
+                    }
+                }
+            }
+    
+            if (control.isDisabled) {
+                const shouldDisableControl = control.isDisabled(this.pattern.config);
+                const inputEl = document.querySelector(`#config_${control.key}`);
+                if (inputEl) {
+                    if (shouldDisableControl) {
+                        inputEl.setAttribute('disabled', 'disabled');
+                    } else {
+                        inputEl.removeAttribute('disabled');
+                    }
+                }
+            }
+    
+            if (control.children) {
+                this.updateControlsVisibility(control.children);
+            }
+        });
+    }
+
+    updateInputs(config) {
+        Object.entries(config).forEach(([key, value]) => {
+            const inputEl = document.querySelector(`#config_${key}`);
+            if (inputEl) {
+                const inputValueEl = document.querySelector(`#config_${key}_value`);
+    
+                if (inputEl.type === "checkbox") {
+                    inputEl.checked = value;
+                } else {
+                    inputEl.value = value;
+                }
+                if (inputValueEl) {
+                    inputValueEl.innerText = value;
+                }
+            }
+        });
+    }
+
+    renderControls(containerEl = elements.controls, _configControls) {
+        const configControls = _configControls ?? this.pattern.configControls;
+        containerEl.innerHTML = "";
+        const controlsFragment = document.createDocumentFragment();
+    
+        configControls.forEach(control => {
+            const controlId = `config_${control.key}`;
+            let controlEl;
+    
+            if (control.type === "group") {
+                controlEl = document.createElement("fieldset");
+                const groupTitleEl = document.createElement("legend");
+                groupTitleEl.innerText = control.label;
+                controlEl.appendChild(groupTitleEl);
+                controlEl.className = "control control_group";
+                const childrenContainer = document.createElement('div');
+                controlEl.appendChild(childrenContainer);
+                this.renderControls(childrenContainer, control.children);
+            }
+            else {
+                controlEl = document.createElement("div");
+                controlEl.className = "control";
+    
+                const label = document.createElement("label");
+                label.innerHTML = control.label;
+                label.setAttribute("for", controlId);
+    
+                const inputEl = document.createElement("input");
+    
+                inputEl.setAttribute("type", control.type);
+                const inputValue = this.pattern.config[control.key] ?? control.defaultValue;
+    
+                if (control.attr) {
+                    Object.entries(control.attr).forEach(([attr, value]) => {
+                        const realValue = value instanceof Function ? value(this.pattern) : value;
+                        inputEl.setAttribute(attr, realValue)
+                    });
+                }
+    
+                if (control.type === "checkbox") {
+                    inputEl.checked = inputValue;
+                    controlEl.appendChild(inputEl);
+                    controlEl.appendChild(label);
+                } else {
+                    controlEl.appendChild(label);
+                    controlEl.appendChild(inputEl);
+                    inputEl.value = inputValue;
+                    const inputValueEl = document.createElement('span');
+                    inputValueEl.id = `config_${control.key}_value`;
+                    inputValueEl.innerText = inputValue;
+                    inputValueEl.className = "control_input_value";
+                    controlEl.appendChild(inputValueEl);
+                }
+                inputEl.id = controlId;
+            }
+    
+            controlEl.id = `control_${control.key}`;
+            controlsFragment.appendChild(controlEl);
+        });
+    
+        containerEl.appendChild(controlsFragment);
+        requestAnimationFrame(() => this.updateControlsVisibility())
+    }
+    
+}
+
+
+function getInputValue(type, inputElement) {
+    switch(type) {
+        case 'range':
+            return parseFloat(inputElement.value);
+        case 'checkbox':
+            return inputElement.checked;
+        default:
+            return inputElement.value;
+    }
+}
