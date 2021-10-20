@@ -1,40 +1,25 @@
-import Player from "./Player.js";
+import Player from "./editor/Player.js";
 import patternTypes from "./pattern_types.js";
 import EditorControls from "./editor/EditorControls.js";
+import EditorSizeControls from "./editor/EditorSizeControls.js";
 
 const elements = {
     canvas: document.querySelector("canvas"),
     patternSelector: document.querySelector("#pattern_select"),
     patternLink: document.querySelector("#pattern_link"),
-    size: {
-        sizeSelect: document.querySelector("#size_select"),
-        sizeCustom: document.querySelector("#size_custom"),
-        width: document.querySelector("#size_custom_width"),
-        height: document.querySelector("#size_custom_height"),
-    }
 };
-
-function cmToPixels(cm, dpi = 300) {
-    return Math.floor(cm / 2.54 * dpi);
-}
-
-const SCREEN_SIZE = [
-    window.screen.width * window.devicePixelRatio,
-    window.screen.height * window.devicePixelRatio,
-];
-
-const SIZES = [
-    { id: 'fit', name: 'Fit to screen' },
-    { id: 'A4', value: [20, 28].map(v => cmToPixels(v)) },
-    { id: 'A3', value: [28, 40].map(v => cmToPixels(v)) },
-    { id: 'screen', name: `Screen size (${SCREEN_SIZE.join('x')})`, value: SCREEN_SIZE},
-    { id: 'custom', name: 'Custom...' }
-];
 
 const patterns = patternTypes.map(Pattern => new Pattern(elements.canvas));
 
 let currentPattern;
-const player = new Player(document.querySelector("#player"))
+const player = new Player(document.querySelector("#player"));
+const sizeControls = new EditorSizeControls({
+    getCurrentSize: () => [
+        elements.canvas.clientWidth,
+        elements.canvas.clientHeight
+    ]
+});
+
 let controls;
 
 main();
@@ -67,9 +52,9 @@ function main() {
     });
 }
 
-function onInputsChange({pattern}) {
+function onInputsChange() {
     player.update(currentPattern, { goToEnd: false });
-    const configQuery = JSON.stringify(pattern.config);
+    const configQuery = JSON.stringify(currentPattern.config);
     history.replaceState({
         pattern: currentPattern.id,
         config: configQuery
@@ -92,54 +77,19 @@ function initControls() {
 }
 
 function initSize() {
-    const sizeOptionsFragment = document.createDocumentFragment();
-    SIZES.forEach(size => {
-        const sizeListItem = document.createElement('option');
-        sizeListItem.setAttribute('value', size.id);
-        sizeListItem.innerText = size.name ?? size.id;
-        sizeOptionsFragment.appendChild(sizeListItem);
-    });
-    elements.size.sizeSelect.appendChild(sizeOptionsFragment);
+    sizeControls.element.addEventListener('sizechange', ({ detail: {width, height}}) => {
+        elements.canvas.removeAttribute('width');
+        elements.canvas.removeAttribute('height');
 
-    elements.size.sizeSelect.addEventListener("change", e => {
-        const selectedSizeId = e.target.value;
-        const size = SIZES.find(({id}) => id === selectedSizeId);
-
-        if (size.id === "custom") {
-            elements.size.sizeCustom.removeAttribute('hidden');
-            elements.size.width.value = elements.canvas.clientWidth;
-            elements.size.height.value = elements.canvas.clientHeight;
+        if (width && height) {
+            elements.canvas.style.width = `${width}px`;
+            elements.canvas.style.height = `${height}px`;
         } else {
-            elements.size.sizeCustom.setAttribute('hidden', 'hidden');
-            elements.canvas.removeAttribute('width');
-            elements.canvas.removeAttribute('height');
             elements.canvas.removeAttribute('style');
-            const value = size.value instanceof Function ? size.value() : size.value;
-            if (value) {
-                const [width, height] = value;
-                setSize(width, height);
-            } else {
-                currentPattern.draw();
-            }
         }
-    });
 
-    elements.size.sizeCustom.addEventListener("focusin", e => {
-        e.target.select();
-    });
-
-    elements.size.sizeCustom.addEventListener('input', e => {
-        setSize(
-            parseInt(elements.size.width.value),
-            parseInt(elements.size.height.value)
-        )
-    });
-
-    function setSize(width, height) {
-        elements.canvas.style.width = `${width}px`;
-        elements.canvas.style.height = `${height}px`;
         currentPattern.draw();
-    }
+    });
 }
 
 function initRouting() {
@@ -186,4 +136,3 @@ function selectPattern(pattern, { config, draw = true} = {}) {
     player.update(currentPattern);
     document.title = `${pattern.name} - String Art Studio`;
 }
-

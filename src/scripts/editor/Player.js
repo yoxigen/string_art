@@ -16,18 +16,18 @@ export default class Player {
 
         this.elements.playBtn.addEventListener('click', () => {
             this.play();
-            this.togglePlaying();
         });
 
         this.elements.pauseBtn.addEventListener('click', () => {
             this.pause();
-            this.togglePlaying();
         });
     }
 
-    togglePlaying() {
-        this.elements.player.classList.toggle('playing');
-        this._isPlaying = !this._isPlaying;
+    updateStatus(isPlaying) {
+        if (this._isPlaying !== isPlaying) {
+            this.elements.player.classList.toggle('playing');
+            this._isPlaying = isPlaying;
+        }
     }
 
     update(stringArt) {
@@ -51,7 +51,7 @@ export default class Player {
     }
 
     play() {
-        this._isPlaying = true;
+        this.updateStatus(true);
         cancelAnimationFrame(this.renderRafId);
 
         if (this.stringArt.position === this.stepCount) {
@@ -61,12 +61,12 @@ export default class Player {
         const self = this;
 
         step();
-            
+
         function step() {
             if (!self.stringArt.drawNext().done) {
                 self.renderRafId = requestAnimationFrame(step);
             } else {
-                self.togglePlaying();
+                this.updateStatus(false);
             }
             self.updatePosition(self.stringArt.position);
         }
@@ -74,7 +74,7 @@ export default class Player {
 
     pause() {
         cancelAnimationFrame(this.renderRafId);
-        this._isPlaying = false;
+        this.updateStatus(false);
     }
 
     toggle() {
