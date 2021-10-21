@@ -9,9 +9,10 @@ export default class Player {
             pauseBtn: parentEl.querySelector('#pause_btn')
         };
         this.stepCount = 0;
-
+        this._isPlaying = false;
+        
         this.elements.playerPosition.addEventListener('input', ({ target }) => {
-            this.setPosition(+target.value)
+            this.goto(+target.value)
         });
 
         this.elements.playBtn.addEventListener('click', () => {
@@ -34,14 +35,15 @@ export default class Player {
         this.stringArt = stringArt;
         this.stepCount = stringArt.getStepCount();
         this.elements.playerPosition.setAttribute('max', this.stepCount);
-        this.setPosition(this.stepCount);
+        this.goto(this.stepCount);
     }
 
     updatePosition(position) {
         this.elements.step.innerText = `${position}/${this.stepCount}`;
         this.elements.playerPosition.value = position;
     }
-    setPosition(position) {
+    goto(position) {
+        this.pause();
         this.updatePosition(position);
         this.stringArt.goto(position);
     }
@@ -66,7 +68,7 @@ export default class Player {
             if (!self.stringArt.drawNext().done) {
                 self.renderRafId = requestAnimationFrame(step);
             } else {
-                this.updateStatus(false);
+                self.updateStatus(false);
             }
             self.updatePosition(self.stringArt.position);
         }

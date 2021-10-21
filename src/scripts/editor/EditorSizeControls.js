@@ -10,8 +10,8 @@ function cmToPixels(cm, dpi = 300) {
 }
 
 const SCREEN_SIZE = [
-    window.screen.width * window.devicePixelRatio,
-    window.screen.height * window.devicePixelRatio,
+    Math.floor(window.screen.width * window.devicePixelRatio),
+    Math.floor(window.screen.height * window.devicePixelRatio),
 ];
 
 const SIZES = [
