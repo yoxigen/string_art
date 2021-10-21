@@ -1,5 +1,10 @@
 import Nails from "./Nails.js";
 
+const COLORS = {
+    dark: "#171717",
+    light: "#ffffff"
+};
+
 const COMMON_CONFIG_CONTROLS = [
     {
         key: 'general',
@@ -77,7 +82,7 @@ const COMMON_CONFIG_CONTROLS = [
             {
                 key: 'backgroundColor',
                 label: 'Background color',
-                defaultValue: '#222222',
+                defaultValue: COLORS.dark,
                 type: 'color',
                 show: ({customBackgroundColor}) => customBackgroundColor
             },
@@ -156,7 +161,7 @@ class StringArt {
 
         this.ctx.beginPath();
         this.ctx.globalCompositeOperation = 'destination-over';
-        this.ctx.fillStyle = customBackgroundColor ? backgroundColor : this.config.darkMode ? '#222222' : '#ffffff';
+        this.ctx.fillStyle = customBackgroundColor ? backgroundColor : darkMode ? COLORS.dark : COLORS.light;
         this.ctx.fillRect(0, 0, ...this.size);
 
         this.ctx.globalCompositeOperation = 'source-over';
@@ -208,11 +213,11 @@ class StringArt {
         return result;
     }
 
-    generateStrings(config) {
+    generateStrings() {
         throw new Error("generateStrings method not defined!");
     }
 
-    getStepCount(config) {
+    getStepCount() {
         throw new Error(`'getStepCount' method not implemented for string art type "${this.name}"`);
     }
 }
