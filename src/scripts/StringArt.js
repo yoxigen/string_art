@@ -127,12 +127,15 @@ class StringArt {
         this._config = Object.assign({}, this.defaultConfig, value);
     }
 
+    getSize() {
+        const canvasScreenSize = [this.canvas.clientWidth, this.canvas.clientHeight];
+        return canvasScreenSize.map(v => v * this.pixelRatio);
+    }
+
     setUpDraw() {
         this.canvas.removeAttribute('width');
         this.canvas.removeAttribute('height');
-
-        const canvasScreenSize = [this.canvas.clientWidth, this.canvas.clientHeight];
-        const [width, height] = this.size = canvasScreenSize.map(v => v * this.pixelRatio);
+        const [width, height] = this.size = this.getSize();
         Object.assign(this, this.size);
         this.canvas.setAttribute('width', width);
         this.canvas.setAttribute('height', height);

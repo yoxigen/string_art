@@ -84,7 +84,7 @@ export default class Star extends StringArt{
 
         this.sideAngle = Math.PI * 2 / sides;
         this.nailSpacing = this.circle.radius / sideNails;
-        this.starCenterStart = (sideNails % 1) * this.nailSpacing;     
+        this.starCenterStart = (sideNails % 1) * this.nailSpacing;
 
         this.sides = new Array(sides).fill(null).map((_, side) => {
             const sideAngle = side * this.sideAngle + this.circle.rotationAngle;
@@ -147,7 +147,7 @@ export default class Star extends StringArt{
     }
 
     *drawCircle() {
-        const {outterColor, sides} = this.config;
+        const {outterColor} = this.config;
 
         let prevCirclePoint;
         let isPrevSide = false;
@@ -157,7 +157,7 @@ export default class Star extends StringArt{
             if (!prevCirclePoint) {
                 prevCirclePoint = this.circle.getPoint(this.sides[prevSide].circlePointsStart);
             }
-           
+
             this.ctx.moveTo(...prevCirclePoint);
 
             this.ctx.lineTo(...point);
@@ -167,14 +167,14 @@ export default class Star extends StringArt{
 
             this.ctx.beginPath();
             this.ctx.moveTo(...point);
-            const nextPointIndex = isPrevSide 
-                ? this.sides[prevSide].circlePointsEnd - sideIndex 
+            const nextPointIndex = isPrevSide
+                ? this.sides[prevSide].circlePointsEnd - sideIndex
                 : this.sides[side].circlePointsStart + sideIndex;
 
             const nextPoint = this.circle.getPoint(nextPointIndex);
             this.ctx.lineTo(...nextPoint);
 
-            prevCirclePoint = this.circle.getPoint(isPrevSide 
+            prevCirclePoint = this.circle.getPoint(isPrevSide
                 ? this.sides[prevSide].circlePointsEnd - sideIndex + 1
                 : this.sides[side].circlePointsStart + sideIndex - 1);
 
