@@ -4,7 +4,7 @@ import Circle from "./Circle.js";
 export default class Assymetry extends StringArt{
     name = "Assymetry";
     id = "assymetry";
-    link = "https://www.etsy.com/listing/557818258/string-art-meditation-geometric-yoga?epik=dj0yJnU9Mm1hYmZKdks1eTc3bVY2TkVhS2p2Qlg0N2dyVWJxaTEmcD0wJm49MGlWSXE1SVJ2Vm0xZ0xtaGhITDBWQSZ0PUFBQUFBR0Zwd2lj";
+    link = "https://www.etsy.com/il-en/listing/1018950430/calming-wall-art-in-light-blue-for";
     controls = [
         {
             key: 'n',
@@ -18,26 +18,61 @@ export default class Assymetry extends StringArt{
             }
         },
         {
-            key: 'start',
-            label: 'Start Position',
-            defaultValue: 0.25,
-            type: 'range',
-            attr: {
-                min: 0,
-                max: 0.5,
-                step: 0.01
-            }
-        },
-        {
-            key: 'start2',
-            label: 'Start Position 2',
-            defaultValue: 0,
-            type: 'range',
-            attr: {
-                min: 0,
-                max: 0.5,
-                step: 0.01
-            }
+            key: 'layers',
+            label: 'Layers',
+            type: 'group',
+            children: [
+                {
+                    key: 'layer1',
+                    label: 'Layer 1',
+                    type: 'group',
+                    children: [
+                        {
+                            key: 'start1',
+                            label: 'Start Position',
+                            defaultValue: 0.25,
+                            type: 'range',
+                            attr: {
+                                min: 0,
+                                max: 0.5,
+                                step: 0.01
+                            },
+                            displayValue: ({start1, n}) => Math.round(n * start1)
+                        },
+                        {
+                            key: 'color1',
+                            label: 'Color layer 1',
+                            defaultValue: "#6aee68",
+                            type: "color",
+                        }
+                    ]
+                },
+                {
+                    key: 'layer2',
+                    label: 'Layer 2',
+                    type: 'group',
+                    children: [
+                        {
+                            key: 'start2',
+                            label: 'Start Position 2',
+                            defaultValue: 0,
+                            type: 'range',
+                            attr: {
+                                min: 0,
+                                max: 0.5,
+                                step: 0.01
+                            },
+                            displayValue: ({start2, n}) => Math.round(n * start2)
+                        },
+                        {
+                            key: 'color2',
+                            label: 'Color layer 2',
+                            defaultValue: "#ffffff",
+                            type: "color",
+                        },
+                    ]
+                }
+            ]
         },
         {
             key: 'rotation',
@@ -50,25 +85,6 @@ export default class Assymetry extends StringArt{
                 step: 0.01,
             }
         },
-        {
-            key: 'colorGroup',
-            label: 'Color',
-            type: 'group',
-            children: [
-                {
-                    key: 'color1',
-                    label: 'Color layer 1',
-                    defaultValue: "#6aee68",
-                    type: "color",
-                },
-                {
-                    key: 'color2',
-                    label: 'Color layer 2',
-                    defaultValue: "#ffffff",
-                    type: "color",
-                },
-            ]
-        }
     ];
 
     setUpDraw() {
@@ -77,7 +93,7 @@ export default class Assymetry extends StringArt{
     }
 
     getSetUp() {
-        const { rotation, n, start, start2, margin = 0 } = this.config;
+        const { rotation, n, start1, start2, margin = 0 } = this.config;
         const circle = new Circle({
             size: this.getSize(),
             n,
@@ -89,7 +105,7 @@ export default class Assymetry extends StringArt{
         const lineNailCount = Math.floor(circle.radius / lineSpacing) - 1;
         lineSpacing += (circle.radius - lineSpacing * lineNailCount) / lineNailCount;
         const firstCirclePoint = circle.getPoint(0);
-        const startingIndex = Math.round(n * start) + lineNailCount;
+        const startingIndex1 = Math.round(n * start1) + lineNailCount;
         const startingIndex2 = Math.round(n * start2) + lineNailCount;
         const totalNailCount = lineNailCount + n;
 
@@ -98,7 +114,7 @@ export default class Assymetry extends StringArt{
             lineSpacing,
             lineNailCount,
             firstCirclePoint,
-            startingIndex,
+            startingIndex1,
             startingIndex2,
             totalNailCount,
         };
@@ -130,7 +146,7 @@ export default class Assymetry extends StringArt{
         }
     }
 
-    *drawInnerCircle({startIndex, color}) {
+    *drawCircle({startIndex, color}) {
         let prevPoint;
         let prevPointIndex;
         let isPrevSide = false;
@@ -158,17 +174,19 @@ export default class Assymetry extends StringArt{
         }
     }
 
-    *generateStrings() {
+    get layers() {
         const {color1, color2} = this.config;
-        yield* this.drawInnerCircle({
-            startIndex: this.startingIndex,
-            color: color1
-        });
 
-        yield* this.drawInnerCircle({
-            startIndex: this.startingIndex2,
-            color: color2
-        });
+        return [
+            { startIndex: this.startingIndex1, color: color1 },
+            { startIndex: this.startingIndex2, color: color2 }
+        ];
+    }
+
+    *generateStrings() {
+        for (const layer of this.layers) {
+            yield* this.drawCircle(layer);
+        }
     }
 
     drawNails() {
@@ -180,8 +198,8 @@ export default class Assymetry extends StringArt{
     }
 
     getStepCount() {
-        const {totalNailCount, lineNailCount, startingIndex, startingIndex2} = this.getSetUp();
-        const layer1Count = totalNailCount + lineNailCount - startingIndex + 1;
+        const {totalNailCount, lineNailCount, startingIndex1, startingIndex2} = this.getSetUp();
+        const layer1Count = totalNailCount + lineNailCount - startingIndex1 + 1;
         const layer2Count = totalNailCount + lineNailCount - startingIndex2 + 1;
         return layer1Count + layer2Count;
     }

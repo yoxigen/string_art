@@ -54,15 +54,16 @@ export default class EditorControls {
                 ...this.pattern.config,
                 [controlKey]: inputValue
             });
-            
-            const inputValueEl = this.controlElements[controlKey].value;
-            if (inputValueEl) {
-                inputValueEl.innerText = e.target.value;
+
+            const {config, displayValue} = this.controlElements[controlKey];
+            if (displayValue) {
+                const formattedValue = config.displayValue ? config.displayValue(this.pattern.config) : e.target.value;
+                displayValue.innerText = formattedValue;
             }
 
             const eventData = Object.freeze({
-                control: controlKey, 
-                value: inputValue, 
+                control: controlKey,
+                value: inputValue,
                 originalEvent: e,
                 pattern: this.pattern,
             });
@@ -89,7 +90,7 @@ export default class EditorControls {
                     }
                 }
             }
-    
+
             if (control.isDisabled) {
                 const shouldDisableControl = control.isDisabled(this.pattern.config);
                 const inputEl = this.controlElements[control.key].input;
@@ -101,7 +102,7 @@ export default class EditorControls {
                     }
                 }
             }
-    
+
             if (control.children) {
                 this.updateControlsVisibility(control.children);
             }
@@ -128,14 +129,14 @@ export default class EditorControls {
         const configControls = _configControls ?? this.pattern.configControls;
         containerEl.innerHTML = "";
         const controlsFragment = document.createDocumentFragment();
-        
+
 
         configControls.forEach(control => {
             const controlId = `config_${control.key}`;
-            const controlElements = this.controlElements[control.key] = {};
+            const controlElements = this.controlElements[control.key] = { config: control };
 
             let controlEl;
-            
+
             if (control.type === "group") {
                 controlEl = document.createElement("fieldset");
                 const groupTitleEl = document.createElement("legend");
@@ -149,22 +150,22 @@ export default class EditorControls {
             else {
                 controlEl = document.createElement("div");
                 controlEl.className = "control";
-    
+
                 const label = document.createElement("label");
                 label.innerHTML = control.label;
                 label.setAttribute("for", controlId);
-    
+
                 const inputEl = controlElements.input = document.createElement("input");
                 inputEl.setAttribute("type", control.type);
                 const inputValue = this.pattern.config[control.key] ?? control.defaultValue;
-    
+
                 if (control.attr) {
                     Object.entries(control.attr).forEach(([attr, value]) => {
                         const realValue = value instanceof Function ? value(this.pattern) : value;
                         inputEl.setAttribute(attr, realValue)
                     });
                 }
-    
+
                 if (control.type === "checkbox") {
                     inputEl.checked = inputValue;
                     controlEl.appendChild(inputEl);
@@ -173,24 +174,24 @@ export default class EditorControls {
                     controlEl.appendChild(label);
                     controlEl.appendChild(inputEl);
                     inputEl.value = inputValue;
-                    const inputValueEl = controlElements.value = document.createElement('span');
+                    const inputValueEl = controlElements.displayValue = document.createElement('span');
                     inputValueEl.id = `config_${control.key}_value`;
-                    inputValueEl.innerText = inputValue;
+                    inputValueEl.innerText = control.displayValue ? control.displayValue(this.pattern.config) : inputValue;
                     inputValueEl.className = "control_input_value";
                     controlEl.appendChild(inputValueEl);
                 }
                 inputEl.id = controlId;
             }
-    
+
             this.controlElements[control.key].control = controlEl;
             controlEl.id = `control_${control.key}`;
             controlsFragment.appendChild(controlEl);
         });
-    
+
         containerEl.appendChild(controlsFragment);
         requestAnimationFrame(() => this.updateControlsVisibility())
     }
-    
+
 }
 
 

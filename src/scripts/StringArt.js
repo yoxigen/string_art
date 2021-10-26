@@ -58,7 +58,8 @@ const COMMON_CONFIG_CONTROLS = [
                     min: 0,
                     max: 500,
                     step: 1
-                }
+                },
+                displayValue: ({margin}) => `${margin}px`
             }
         ]
     },
