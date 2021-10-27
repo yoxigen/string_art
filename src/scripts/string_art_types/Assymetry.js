@@ -34,8 +34,8 @@ export default class Assymetry extends StringArt{
                             type: 'checkbox'
                         },
                         {
-                            key: 'start1',
-                            label: 'Start Position',
+                            key: 'size1',
+                            label: 'Size',
                             defaultValue: 0.25,
                             type: 'range',
                             attr: {
@@ -43,7 +43,7 @@ export default class Assymetry extends StringArt{
                                 max: 0.5,
                                 step: ({config: {n}}) => 1 / n
                             },
-                            displayValue: ({start1, n}) => Math.round(n * start1),
+                            displayValue: ({size1, n}) => Math.round(n * size1),
                             show: ({show1}) => show1,
                         },
                         {
@@ -61,11 +61,18 @@ export default class Assymetry extends StringArt{
                         },
                         {
                             key: 'color1',
-                            label: 'Color layer 1',
-                            defaultValue: "#6aee68",
+                            label: 'Color',
+                            defaultValue: "#a94fb0",
                             type: "color",
                             show: ({show1}) => show1,
-                        }
+                        },
+                        {
+                            key: 'reverse1',
+                            label: 'Reverse',
+                            defaultValue: false,
+                            type: 'checkbox',
+                            show: ({show1}) => show1
+                        },
                     ]
                 },
                 {
@@ -80,8 +87,8 @@ export default class Assymetry extends StringArt{
                             type: 'checkbox'
                         },
                         {
-                            key: 'start2',
-                            label: 'Start Position 2',
+                            key: 'size2',
+                            label: 'Size',
                             defaultValue: 0.125,
                             type: 'range',
                             attr: {
@@ -89,7 +96,7 @@ export default class Assymetry extends StringArt{
                                 max: 0.5,
                                 step: ({config: {n}}) => 1 / n
                             },
-                            displayValue: ({start2, n}) => Math.round(n * start2),
+                            displayValue: ({size2, n}) => Math.round(n * size2),
                             show: ({show2}) => show2,
                         },
                         {
@@ -107,10 +114,70 @@ export default class Assymetry extends StringArt{
                         },
                         {
                             key: 'color2',
-                            label: 'Color layer 2',
-                            defaultValue: "#ffffff",
+                            label: 'Color',
+                            defaultValue: "#ec6ad0",
                             type: "color",
                             show: ({show2}) => show2,
+                        },
+                        {
+                            key: 'reverse2',
+                            label: 'Reverse',
+                            defaultValue: false,
+                            type: 'checkbox',
+                            show: ({show2}) => show2
+                        },
+                    ]
+                },
+                {
+                    key: 'layer3',
+                    label: 'Layer 3',
+                    type: 'group',
+                    children: [
+                        {
+                            key: 'show3',
+                            label: 'Enable',
+                            defaultValue: true,
+                            type: 'checkbox'
+                        },
+                        {
+                            key: 'size3',
+                            label: 'Size',
+                            defaultValue: 0,
+                            type: 'range',
+                            attr: {
+                                min: 0,
+                                max: 0.5,
+                                step: ({config: {n}}) => 1 / n
+                            },
+                            displayValue: ({size3, n}) => Math.round(n * size3),
+                            show: ({show3}) => show3,
+                        },
+                        {
+                            key: 'end3',
+                            label: 'End Position',
+                            defaultValue: 0.888,
+                            type: 'range',
+                            attr: {
+                                min: 0,
+                                max: 1,
+                                step: ({config: {n}}) => 1 / n
+                            },
+                            displayValue: ({end2, n}) => Math.round(n * end2),
+                            show: ({show3}) => show3,
+                        },
+                        {
+                            key: 'color3',
+                            label: 'Color',
+                            defaultValue: "#f08ad5",
+                            type: "color",
+                            show: ({show3}) => show3,
+                        },
+                        {
+                            key: 'reverse3',
+                            label: 'Reverse',
+                            defaultValue: true,
+                            type: 'checkbox',
+                            show: ({show3}) => show3
                         },
                     ]
                 }
@@ -140,7 +207,7 @@ export default class Assymetry extends StringArt{
             size: this.getSize(),
             n,
             margin,
-            rotation,
+            rotation: rotation - 0.25,
         });
 
         let lineSpacing = circle.indexAngle * circle.radius;
@@ -148,7 +215,8 @@ export default class Assymetry extends StringArt{
         lineSpacing += (circle.radius - lineSpacing * lineNailCount) / lineNailCount;
         const firstCirclePoint = circle.getPoint(0);
         const totalNailCount = lineNailCount + n;
-        const layers = new Array(2).fill(null)
+        const totalIndexCount = totalNailCount + lineNailCount;
+        const layers = new Array(3).fill(null)
             .map((_, i) => getLayer.call(this, i + 1))
             .filter(({enable}) => enable)
 
@@ -159,14 +227,17 @@ export default class Assymetry extends StringArt{
             firstCirclePoint,
             layers,
             totalNailCount,
+            totalIndexCount,
         };
 
         function getLayer(layerIndex) {
+            const size = Math.round(n * this.config['size' + layerIndex]) + lineNailCount
             return {
-                startIndex: Math.round(n * this.config['start' + layerIndex]) + lineNailCount,
-                endIndex: Math.round(this.config['end' + layerIndex] * (totalNailCount + lineNailCount)),
+                size,
+                endIndex: Math.round(this.config['end' + layerIndex] * (totalNailCount + lineNailCount)) - size,
                 color: this.config['color' + layerIndex],
                 enable: this.config['show' + layerIndex],
+                isReverse: this.config['reverse' + layerIndex],
             };
         }
     }
@@ -190,30 +261,25 @@ export default class Assymetry extends StringArt{
         }
     }
 
-    *generateCircleIndexes(start, end) {
-        for(let i=start; i <= end; i++) {
-            yield i;
-        }
-    }
-
-    *drawCircle({startIndex, endIndex, color}) {
+    *drawCircle({endIndex, color, isReverse, size}) {
         let prevPoint;
         let prevPointIndex;
         let isPrevSide = false;
         this.ctx.strokeStyle = color;
+        const self = this;
+        const advance = isReverse ? -1 : 1;
 
-        for (const index of this.generateCircleIndexes(startIndex, endIndex)) {
+        for(let index = 0; index <= endIndex; index++) {
             this.ctx.beginPath();
 
             if (prevPoint) {
                 this.ctx.moveTo(...prevPoint);
-                this.ctx.lineTo(...this.getPoint(prevPointIndex + 1));
+                this.ctx.lineTo(...this.getPoint(prevPointIndex + advance));
             } else {
-                prevPoint = this.getPoint(startIndex)
-                this.ctx.moveTo(...prevPoint);
+                this.ctx.moveTo(...this.getPoint(getPointIndex(index)));
             }
 
-            prevPointIndex = isPrevSide ? index : index - startIndex;
+            prevPointIndex = getPointIndex(isPrevSide ? index : index + size);
             prevPoint = this.getPoint(prevPointIndex);
             this.ctx.lineTo(...prevPoint);
             this.ctx.stroke();
@@ -221,6 +287,10 @@ export default class Assymetry extends StringArt{
             yield;
 
             isPrevSide = !isPrevSide;
+        }
+
+        function getPointIndex(index) {
+            return isReverse ? self.totalIndexCount - index : index;
         }
     }
 
@@ -241,7 +311,7 @@ export default class Assymetry extends StringArt{
     getStepCount() {
         const {layers} = this.getSetUp();
         return layers.reduce((stepCount, layer) =>
-            stepCount + layer.endIndex - layer.startIndex + 1, 0
+            stepCount + layer.endIndex + 1, 0
         );
     }
 }
