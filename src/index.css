@@ -74,6 +74,10 @@ a:hover {
     font-size: 14px;
 }
 
+#player_text {
+    line-height: 22px;
+}
+
 #player #pause_btn {
     display: none;
 }
@@ -119,6 +123,19 @@ a:hover {
     height: 26px;
     color: White;
     line-height: 4px;
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+.player_btn:hover {
+    opacity: 1;
+}
+
+.player_btn img {
+    width: 14px;
+    height: 14px;
+    position: relative;
+    top: -2px;
 }
 
 @media only screen and (max-width: 600px) {
