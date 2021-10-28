@@ -28,18 +28,7 @@ export default class Star extends StringArt{
                 step: 1
             }
         },
-        {
-            key: 'rotation',
-            label: 'Rotation',
-            defaultValue: 0,
-            type: "range",
-            attr: {
-                min: 0,
-                max: 1,
-                step: 0.01,
-            },
-            displayValue: ({rotation}) => `${Math.round(rotation * 360)}°`,
-        },
+        Circle.rotationConfig,
         {
             key: 'colorGroup',
             label: 'Color',

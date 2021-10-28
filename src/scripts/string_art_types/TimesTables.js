@@ -41,6 +41,7 @@ export default class TimesTables extends StringArt{
                 step: 1
             }
         },
+        Circle.rotationConfig,
         {
             key: 'colorGroup',
             label: 'Color',
@@ -101,11 +102,12 @@ export default class TimesTables extends StringArt{
         this._n = null;
         super.setUpDraw();
 
-        const {layers, multicolorRange} = this.config;
+        const {layers, multicolorRange, rotation} = this.config;
         this.circle = new Circle({
             size: this.size,
             n: this.n,
-            margin: MARGIN
+            margin: MARGIN,
+            rotation,
         });
         this.multiColorStep = multicolorRange / layers;
         this.layerShift = Math.floor(this.n / layers);

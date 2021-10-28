@@ -23,4 +23,17 @@ export default class Circle {
             nails.addNail({point: this.getPoint(i)});
         }
     }
+
+    static rotationConfig = {
+        key: 'rotation',
+        label: 'Rotation',
+        defaultValue: 0,
+        type: "range",
+        attr: {
+            min: 0,
+            max: 1,
+            step: 0.01,
+        },
+        displayValue: ({rotation}) => `${Math.round(rotation * 360)}°`
+    };
 }
