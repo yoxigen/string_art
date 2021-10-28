@@ -25,6 +25,9 @@ h1 {
     flex-grow: 1;
 }
 main {
+    height: 100%;
+}
+#editor {
     display: grid;
     grid-template-columns: 270px 1fr;
     grid-template-rows: 1fr 40px;
@@ -171,7 +174,7 @@ a:hover {
 }
 
 @media only screen and (max-width: 600px) {
-    main {
+    #editor {
         grid-template-columns: 1fr;
         grid-template-rows: 30vh 1fr 40px;
         grid-template-areas:
@@ -340,4 +343,35 @@ input[type='color'] {
 }
 #size_custom input {
     width: 100%;
+}
+
+
+#home {
+    width: 100%;
+    max-width: 942px;
+    margin: 0 auto;
+    padding: 24px;
+    height: 100%;
+    overflow: auto;
+}
+#pattern_gallery {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#pattern_gallery li {
+    display: inline-block;
+    margin: 6px;
+    border: solid 1px #333;
+    padding: 0;
+}
+
+#pattern_gallery a {
+    width: 250px;
+    height: 250px;
+    display: block;
+}
+#pattern_gallery li:hover {
+    border-color: #999;
 }

@@ -3,7 +3,11 @@ import patternTypes from "./pattern_types.js";
 import EditorControls from "./editor/EditorControls.js";
 import EditorSizeControls from "./editor/EditorSizeControls.js";
 
+import {renderGallery} from './gallery/Gallery.js';
+
 const elements = {
+    home: document.querySelector("#home"),
+    editor: document.querySelector("#editor"),
     canvas: document.querySelector("canvas"),
     patternSelector: document.querySelector("#pattern_select"),
     patternLink: document.querySelector("#pattern_link"),
@@ -28,6 +32,8 @@ let controls;
 window.addEventListener('load', main);
 
 function main() {
+    renderGallery();
+
     initRouting();
     initSize();
     initControls();
@@ -134,7 +140,9 @@ function setSize({width, height}) {
 
 function initRouting() {
     window.addEventListener('popstate', ({state}) => {
-        updateState(state);
+        if (state) {
+            updateState(state);
+        }
     });
 }
 

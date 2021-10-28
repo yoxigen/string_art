@@ -39,7 +39,30 @@
                 <div id="size_controls">
                     <fieldset class="minimized" data-group="size">
                         <legend tabindex="0">Size & Download</legend>
+            <article id="home">
+                <h1>String Art Studio</h1>
+                <p>This app allows you to design and create <a href="https://en.wikipedia.org/wiki/String_art" target="_blank">string art</a>.</p>
+                <h2>Available patterns:</h2>
+                <ul id="pattern_gallery"></ul>
+            </article>
+            <article id="editor" hidden>
+                <form id="sidebar_form">
+                    <header>
+                        <h1>String Art Studio</h1>
                         <div>
+                            <a href="https://github.com/yoxigen/string_art" target="_blank" title="View code on GitHub">
+                                <img src="GitHub-Mark-Light-120px-plus.png" alt="Github" style="width: 20px; height: 20px" />
+                            </a>
+                        </div>
+                    </header>
+                    <label for="pattern_select">Pattern</label>
+                    <select id="pattern_select"></select>
+                    <a id="pattern_link" target="_blank" title="View original which inspired this pattern">🔗 View example</a>
+                    <div id="controls">
+                    </div>
+                    <div id="size_controls">
+                        <fieldset>
+                            <legend>Size</legend>
                             <select id="size_select"></select>
                             <select id="size_orientation_select" hidden>
                                 <option value="vertical">Vertical</option>
@@ -78,13 +101,33 @@
                         <button id="pause_btn" class="player_btn">
                             <img src="images/pause.svg" alt="Play" />
                         </button>
+                        </fieldset>
                     </div>
-                    <div id="player_text">
-                        <span id="step">0/0</span>
-                        <span id="step_instructions"></span>
+                </form>
+                <article id="art">
+                    <canvas></canvas>
+                </article>
+                <nav id="player">
+                    <div id="player_track">
+                        <input id="player_position" type="range" min="1" step="1" />
                     </div>
-                </div>
-            </nav>
+                    <div id="player_controls">
+                        <div id="player_buttons">
+                            <button id="play_btn" class="player_btn">
+                                <img src="images/play.svg" alt="Play" />
+                            </button>
+                            <button id="pause_btn" class="player_btn">
+                                <img src="images/pause.svg" alt="Play" />
+                            </button>
+                        </div>
+                        <div id="player_text">
+                            <span id="step">0/0</span>
+                            <span id="step_instructions"></span>
+                            </fieldset>
+                        </div>
+                    </div>
+                </nav>
+            </article>
         </main>
     </body>
 </html>
