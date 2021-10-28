@@ -88,21 +88,24 @@ a:hover {
     display: inline;
 }
 
+#player_track {
+    position: relative;
+    top: -14px;
+}
+
 #player_controls {
-    display: flex;
     gap: 10px;
-    flex-direction: row;
     padding: 0 8px;
     display: flex;
     flex-direction: row;
-    align-items: top;
+    position: relative;
+    top: -7px;
 }
 #player_position {
     width: 100%;
     margin: 0;
     height: 7px;
     background: rgba(255, 255, 255, 0.6);
-    border-radius: 0;
     border-radius: 0;
 }
 
@@ -209,6 +212,10 @@ fieldset > legend:hover {
     opacity: 1;
 }
 
+fieldset .control:first-child {
+    margin-top: 8px;
+}
+
 fieldset.minimized {
     border: none;
     padding: 0;
@@ -228,11 +235,12 @@ legend::before {
     content: '\25B6';
     display: inline-block;
     margin-inline-end: 4px;
-    transform: scale(0.5) rotateZ(90deg)
+    transform: scale(0.7) rotateZ(90deg);
+    font-size: 14px;
 }
 
 fieldset.minimized > legend::before {
-    transform: scale(0.5) rotateZ(0)
+    transform: scale(0.7) rotateZ(0)
 }
 
 input[type="range"] {

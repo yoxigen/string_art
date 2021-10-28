@@ -4,11 +4,15 @@ const elements = {
 };
 
 const EVENTS = new Set(['input', 'change']);
+const STATE_LOCAL_STORAGE_KEY = 'controls_state';
+
 let inputTimeout;
 
 export default class EditorControls {
     constructor({pattern}) {
         this.pattern = pattern;
+        this.state = this._getState() ?? { groups: {}};
+
         this.eventHandlers = {
             input: new Set(),
             change: new Set()
@@ -18,11 +22,21 @@ export default class EditorControls {
         this._toggleFieldset = e => {
             if (e.target.nodeName === "LEGEND" ) {
                 e.target.parentElement.classList.toggle("minimized");
+                const groupId = e.target.parentElement.dataset.group;
+                this.state = { ...this.state, groups: { ...this.state.groups, [groupId]: !e.target.parentElement.classList.contains("minimized")}};
+                this._updateState(this.state);
             }
         };
 
+        this._toggleFieldSetOnEnter = e => {
+            if (e.target.nodeName === "LEGEND" && e.key === "Enter") {
+                this._toggleFieldset(e);
+            }
+        }
+
         elements.controls.addEventListener("input", this._wrappedOnInput);
         elements.sidebarForm.addEventListener("click", this._toggleFieldset);
+        elements.sidebarForm.addEventListener("keydown", this._toggleFieldSetOnEnter);
         this.controlElements = {};
         this.renderControls();
     }
@@ -30,6 +44,7 @@ export default class EditorControls {
     destroy() {
         elements.controls.removeEventListener("input", this._wrappedOnInput);
         elements.sidebarForm.removeEventListener("click", this._toggleFieldset);
+        elements.sidebarForm.removeEventListener("keydown", this._toggleFieldSetOnEnter);
         elements.controls.innerHTML = "";
     }
 
@@ -83,6 +98,27 @@ export default class EditorControls {
                 this.updateControlsVisibility();
             }, 100);
         });
+    }
+
+    _getState() {
+        const state = localStorage.getItem(STATE_LOCAL_STORAGE_KEY);
+        if (state) {
+            try {
+                return JSON.parse(state);
+            } catch(e) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    _updateState(newState) {
+        if (newState) {
+            localStorage.setItem(STATE_LOCAL_STORAGE_KEY, JSON.stringify(newState));
+        } else {
+            localStorage.removeItem(STATE_LOCAL_STORAGE_KEY);
+        }
     }
 
     updateControlsVisibility(configControls = this.pattern.configControls) {
@@ -147,11 +183,14 @@ export default class EditorControls {
 
             if (control.type === "group") {
                 controlEl = document.createElement("fieldset");
+                controlEl.setAttribute('data-group', control.key);
                 const groupTitleEl = document.createElement("legend");
+                groupTitleEl.setAttribute("tabindex", "0");
                 groupTitleEl.innerText = control.label;
                 controlEl.appendChild(groupTitleEl);
                 controlEl.className = "control control_group";
-                if (control.defaultValue === "minimized") {
+                const groupStateOpen = this.state.groups[control.key] ?? control.defaultValue !== "minimized";
+                if (!groupStateOpen) {
                     controlEl.classList.add('minimized');
                 }
                 const childrenContainer = document.createElement('div');

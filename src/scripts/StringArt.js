@@ -65,8 +65,8 @@ const COMMON_CONFIG_CONTROLS = [
         ]
     },
     {
-        key: 'theme',
-        label: 'Theme',
+        key: 'background',
+        label: 'Background',
         type: 'group',
         defaultValue: 'minimized',
         children: [

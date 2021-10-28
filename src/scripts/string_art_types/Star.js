@@ -37,7 +37,8 @@ export default class Star extends StringArt{
                 min: 0,
                 max: 1,
                 step: 0.01,
-            }
+            },
+            displayValue: ({rotation}) => `${Math.round(rotation * 360)}°`,
         },
         {
             key: 'colorGroup',
