@@ -170,8 +170,52 @@ input[type="checkbox"] + label {
     margin-left: 4px;
 }
 
+input[type="number"], input[type="text"] {
+    vertical-align: bottom;
+    height: 24px;
+    margin-right: 4px;
+    margin-top: 2px;
+}
+
 fieldset {
    border: solid 1px rgba(255,255,255,.1);
+   background: rgba(255,255,255,.03);
+    border-radius: 9px;
+}
+
+fieldset > legend {
+    cursor: pointer;
+    opacity: .8;
+}
+
+fieldset > legend:hover {
+    opacity: 1;
+}
+
+fieldset.minimized {
+    border: none;
+    padding: 0;
+    background: none;
+}
+
+fieldset.minimized > legend {
+    padding: 0;
+
+}
+
+fieldset.minimized > div {
+    display: none;
+}
+
+legend::before {
+    content: '\25B6';
+    display: inline-block;
+    margin-inline-end: 4px;
+    transform: scale(0.5) rotateZ(90deg)
+}
+
+fieldset.minimized > legend::before {
+    transform: scale(0.5) rotateZ(0)
 }
 
 input[type="range"] {

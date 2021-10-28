@@ -13,7 +13,7 @@
     </head>
     <body>
         <main>
-            <form>
+            <form id="sidebar_form">
                 <header>
                     <h1>String Art Studio</h1>
                     <div>
@@ -28,16 +28,18 @@
                 <div id="controls">
                 </div>
                 <div id="size_controls">
-                    <fieldset>
+                    <fieldset class="minimized">
                         <legend>Size</legend>
-                        <select id="size_select"></select>
-                        <div id="size_custom" hidden>
-                            <div>
-                                <input type="number" min="0" placeholder="Width" id="size_custom_width" />
-                            </div>
-                            <span>x</span>
-                            <div>
-                                <input type="number" min="0" placeholder="Height" id="size_custom_height" />
+                        <div>
+                            <select id="size_select"></select>
+                            <div id="size_custom" hidden>
+                                <div>
+                                    <input type="number" min="0" placeholder="Width" id="size_custom_width" />
+                                </div>
+                                <span>x</span>
+                                <div>
+                                    <input type="number" min="0" placeholder="Height" id="size_custom_height" />
+                                </div>
                             </div>
                         </div>
                     </fieldset>

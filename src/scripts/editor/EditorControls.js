@@ -1,5 +1,6 @@
 const elements = {
     controls: document.querySelector("#controls"),
+    sidebarForm: document.querySelector("#sidebar_form"),
 };
 
 const EVENTS = new Set(['input', 'change']);
@@ -14,14 +15,21 @@ export default class EditorControls {
         }
 
         this._wrappedOnInput = e => this._onInput(e);
+        this._toggleFieldset = e => {
+            if (e.target.nodeName === "LEGEND" ) {
+                e.target.parentElement.classList.toggle("minimized");
+            }
+        };
 
         elements.controls.addEventListener("input", this._wrappedOnInput);
+        elements.sidebarForm.addEventListener("click", this._toggleFieldset);
         this.controlElements = {};
         this.renderControls();
     }
 
     destroy() {
         elements.controls.removeEventListener("input", this._wrappedOnInput);
+        elements.sidebarForm.removeEventListener("click", this._toggleFieldset);
         elements.controls.innerHTML = "";
     }
 
@@ -143,6 +151,9 @@ export default class EditorControls {
                 groupTitleEl.innerText = control.label;
                 controlEl.appendChild(groupTitleEl);
                 controlEl.className = "control control_group";
+                if (control.defaultValue === "minimized") {
+                    controlEl.classList.add('minimized');
+                }
                 const childrenContainer = document.createElement('div');
                 controlEl.appendChild(childrenContainer);
                 this.renderControls(childrenContainer, control.children);

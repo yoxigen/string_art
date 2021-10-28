@@ -10,6 +10,7 @@ const COMMON_CONFIG_CONTROLS = [
         key: 'general',
         label: 'General',
         type: 'group',
+        defaultValue: 'minimized',
         children: [
             {
                 key: 'showStrings',
@@ -67,6 +68,7 @@ const COMMON_CONFIG_CONTROLS = [
         key: 'theme',
         label: 'Theme',
         type: 'group',
+        defaultValue: 'minimized',
         children: [
             {
                 key: 'darkMode',

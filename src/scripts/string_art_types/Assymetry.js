@@ -18,6 +18,18 @@ export default class Assymetry extends StringArt{
             }
         },
         {
+            key: 'rotation',
+            label: 'Rotation',
+            defaultValue: 0,
+            type: "range",
+            attr: {
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
+            displayValue: ({rotation}) => `${Math.round(rotation * 360)}°`
+        },
+        {
             key: 'layers',
             label: 'Layers',
             type: 'group',
@@ -155,7 +167,7 @@ export default class Assymetry extends StringArt{
                         {
                             key: 'end3',
                             label: 'End Position',
-                            defaultValue: 0.888,
+                            defaultValue: 0.826,
                             type: 'range',
                             attr: {
                                 min: 0,
@@ -182,17 +194,6 @@ export default class Assymetry extends StringArt{
                     ]
                 }
             ]
-        },
-        {
-            key: 'rotation',
-            label: 'Rotation',
-            defaultValue: 0,
-            type: "range",
-            attr: {
-                min: 0,
-                max: 1,
-                step: 0.01,
-            }
         },
     ];
 
