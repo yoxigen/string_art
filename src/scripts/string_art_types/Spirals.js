@@ -73,7 +73,7 @@ class Spirals extends StringArt{
                     centerx + currentRadius * Math.sin(angle + rotation),
                     centery + currentRadius * Math.cos(angle + rotation)
                 ];
-                yield point;
+                yield {point, nailNumber: `${s + 1}_${i + 1}`};
             }
             
             angle += angleStep;
@@ -90,7 +90,7 @@ class Spirals extends StringArt{
 
         let lastPoint = this.center;
 
-        for (const point of points) {
+        for (const {point} of points) {
             this.ctx.beginPath();
             this.ctx.moveTo(...lastPoint);
             lastPoint = point;
@@ -108,9 +108,8 @@ class Spirals extends StringArt{
 
     drawNails() {
         const points = this.generatePoints();
-        let index = 0;
-        for (const point of points) {
-            this.nails.addNail({point, number: `${index++}`});
+        for (const {point, nailNumber} of points) {
+            this.nails.addNail({point, number: nailNumber});
         }
     }
 }

@@ -10,7 +10,7 @@ export default class Player {
         };
         this.stepCount = 0;
         this._isPlaying = false;
-        
+
         this.elements.playerPosition.addEventListener('input', ({ target }) => {
             this.goto(+target.value)
         });
@@ -31,21 +31,24 @@ export default class Player {
         }
     }
 
-    update(stringArt) {
+    update(stringArt, { draw = true} = {}) {
         this.stringArt = stringArt;
         this.stepCount = stringArt.getStepCount();
         this.elements.playerPosition.setAttribute('max', this.stepCount);
-        this.goto(this.stepCount);
+        this.goto(this.stepCount, { updateStringArt: draw });
     }
 
     updatePosition(position) {
         this.elements.step.innerText = `${position}/${this.stepCount}`;
         this.elements.playerPosition.value = position;
     }
-    goto(position) {
+
+    goto(position, { updateStringArt = true} = {}) {
         this.pause();
         this.updatePosition(position);
-        this.stringArt.goto(position);
+        if (updateStringArt) {
+            this.stringArt.goto(position);
+        }
     }
 
     setInstructions(instructions) {

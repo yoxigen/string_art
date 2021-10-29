@@ -8,7 +8,7 @@ export default class Assymetry extends StringArt{
     controls = [
         {
             key: 'n',
-            label: 'Nails',
+            label: 'Circle nails',
             defaultValue: 144,
             type: 'range',
             attr: {
@@ -291,10 +291,10 @@ export default class Assymetry extends StringArt{
     }
 
     drawNails() {
-        this.circle.drawNails(this.nails);
+        this.circle.drawNails(this.nails, { nailsNumberStart: this.lineNailCount });
 
         for (let i=0; i < this.lineNailCount; i++) {
-            this.nails.addNail({ point: this.getPoint(i) });
+            this.nails.addNail({ point: this.getPoint(i), number: i + 1 });
         }
     }
 

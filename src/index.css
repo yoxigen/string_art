@@ -90,7 +90,7 @@ a:hover {
 
 #player_track {
     position: relative;
-    top: -14px;
+    top: -6px;
 }
 
 #player_controls {
@@ -99,7 +99,7 @@ a:hover {
     display: flex;
     flex-direction: row;
     position: relative;
-    top: -7px;
+    top: -3px;
 }
 #player_position {
     width: 100%;

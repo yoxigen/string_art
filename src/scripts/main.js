@@ -53,7 +53,7 @@ function main() {
 }
 
 function onInputsChange() {
-    player.update(currentPattern, { goToEnd: false });
+    player.update(currentPattern);
     const configQuery = JSON.stringify(currentPattern.config);
     history.replaceState({
         pattern: currentPattern.id,
@@ -133,6 +133,6 @@ function selectPattern(pattern, { config, draw = true} = {}) {
     if (draw) {
         currentPattern.draw();
     }
-    player.update(currentPattern);
+    player.update(currentPattern, { draw: false });
     document.title = `${pattern.name} - String Art Studio`;
 }

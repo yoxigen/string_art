@@ -32,25 +32,6 @@ const COMMON_CONFIG_CONTROLS = [
                 show: ({showStrings}) => showStrings
             },
             {
-                key: 'showNails',
-                label: 'Show nails',
-                defaultValue: true,
-                type: "checkbox",
-                isDisabled: ({showStrings}) => !showStrings
-            },
-            {
-                key: 'nailRadius',
-                label: 'Nail size',
-                defaultValue: 1,
-                type: "range",
-                attr: {
-                    min: 0.5,
-                    max: 5,
-                    step: 0.25
-                },
-                show: ({showNails}) => showNails
-            },
-            {
                 key: 'margin',
                 label: 'Margin',
                 defaultValue: 20,
@@ -62,6 +43,53 @@ const COMMON_CONFIG_CONTROLS = [
                 },
                 displayValue: ({margin}) => `${margin}px`
             }
+        ]
+    },
+    {
+        key: 'nails',
+        label: 'Nails',
+        type: 'group',
+        defaultValue: 'minimized',
+        children: [
+            {
+                key: 'showNails',
+                label: 'Show nails',
+                defaultValue: true,
+                type: "checkbox",
+                isDisabled: ({showStrings}) => !showStrings
+            },
+            {
+                key: 'nailRadius',
+                label: 'Nail size',
+                defaultValue: 1.5,
+                type: "range",
+                attr: {
+                    min: 0.5,
+                    max: 5,
+                    step: 0.25
+                },
+                show: ({showNails}) => showNails
+            },
+            {
+                key: 'showNailNumbers',
+                label: 'Show nail numbers',
+                defaultValue: false,
+                type: "checkbox",
+                show: ({showNails}) => showNails
+            },
+            {
+                key: 'nailNumbersFontSize',
+                label: 'Nail numbers font size',
+                defaultValue: 10,
+                type: "range",
+                attr: {
+                    min: 6,
+                    max: 24,
+                    step: 0.5
+                },
+                displayValue: ({nailNumbersFontSize}) => `${nailNumbersFontSize}px`,
+                show: ({showNails, showNailNumbers}) => showNails && showNailNumbers
+            },
         ]
     },
     {
@@ -155,15 +183,16 @@ class StringArt {
     }
 
     afterDraw() {
-        if (this.config.showNails) {
+        const {showNails, showNailNumbers} = this.config;
+        if (showNails) {
             this.drawNails();
-            this.nails.fill();
+            this.nails.fill({ drawNumbers: showNailNumbers });
         }
     }
 
     initDraw() {
         this.setUpDraw(this.config);
-        const { showNails, darkMode, backgroundColor, customBackgroundColor } = this.config;
+        const { showNails, showNailNumbers, darkMode, backgroundColor, customBackgroundColor } = this.config;
 
         this.ctx.beginPath();
         this.ctx.globalCompositeOperation = 'destination-over';
@@ -173,7 +202,7 @@ class StringArt {
         this.ctx.globalCompositeOperation = 'source-over';
         if (showNails) {
             this.drawNails();
-            this.nails.fill();
+            this.nails.fill({ drawNumbers: showNailNumbers });
         }
     }
 
@@ -201,7 +230,6 @@ class StringArt {
 
         if (this.stringsIterator && position > this.position) {
             while(!this.drawNext().done && this.position < position);
-            this.afterDraw();
         } else {
             this.draw({ position });
         }
@@ -212,7 +240,8 @@ class StringArt {
 
         if (result.done) {
             this.afterDraw();
-        } else {
+        }
+        else {
             this.position++;
         }
 

@@ -18,9 +18,9 @@ export default class Circle {
         ];
     }
 
-    drawNails(nails) {
+    drawNails(nails, {nailsNumberStart = 0} = {}) {
         for (let i=0; i < this.config.n; i++) {
-            nails.addNail({point: this.getPoint(i)});
+            nails.addNail({point: this.getPoint(i), number: i + 1 + nailsNumberStart});
         }
     }
 
@@ -31,8 +31,8 @@ export default class Circle {
         type: "range",
         attr: {
             min: 0,
-            max: 1,
-            step: 0.01,
+            max: 1 + 1/360,
+            step: 1 / 360,
         },
         displayValue: ({rotation}) => `${Math.round(rotation * 360)}°`
     };
