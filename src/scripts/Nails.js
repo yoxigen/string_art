@@ -5,7 +5,7 @@ export default class Nails {
     constructor(canvas, config) {
         this.context = canvas.getContext("2d");
         this.setConfig(config);
-        this.centerX = canvas.clientWidth / 2;
+        this.centerX = canvas.width / 2;
         this.nails = [];
     }
 
