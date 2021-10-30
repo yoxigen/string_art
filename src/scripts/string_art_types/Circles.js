@@ -255,7 +255,7 @@ export default class Circles extends StringArt {
                 isReverse: prop('reverse'),
                 position: [prop('x'), prop('y')],
                 radius: maxRadius * prop('radius'),
-                rotation: prop('rotation')
+                rotation: prop('rotation'),
             };
 
             const circumsference = Math.PI * 2 * props.radius;
@@ -276,8 +276,9 @@ export default class Circles extends StringArt {
         }
     }
 
-    getPoint(circle, index) {
-        const circleIndex = Math.round(index * circle.config.n / this.maxShapeNailsCount);
+    getPoint(layer, index) {
+        const {circle} = layer;
+        let circleIndex = Math.round(index * circle.config.n / this.maxShapeNailsCount);
         return circle.getPoint(circleIndex);
     }
 
@@ -289,12 +290,12 @@ export default class Circles extends StringArt {
 
         for (let i = 0; i < this.maxShapeNailsCount; i++) {
             for(let layerIndex = 0; layerIndex < this.layers.length; layerIndex++) {
-                const {circle} = this.layers[layerIndex];
+                const layer = this.layers[layerIndex];
                 this.ctx.beginPath();
-                this.ctx.moveTo(...(prevCirclePoint ?? this.getPoint(circle, i)));
+                this.ctx.moveTo(...(prevCirclePoint ?? this.getPoint(layer, i)));
 
                 if (layerIndex === 0 && i) {
-                    this.ctx.lineTo(...this.getPoint(circle, i));
+                    this.ctx.lineTo(...this.getPoint(layer, i));
                 }
 
                 let nextLayerIndex = layerIndex + 1;
@@ -302,7 +303,7 @@ export default class Circles extends StringArt {
                     nextLayerIndex = 0;
                 }
 
-                prevCirclePoint = this.getPoint(this.layers[nextLayerIndex].circle, i);
+                prevCirclePoint = this.getPoint(this.layers[nextLayerIndex], i);
                 this.ctx.lineTo(...prevCirclePoint)
                 this.ctx.stroke();
                 yield;
