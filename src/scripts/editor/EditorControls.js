@@ -80,7 +80,7 @@ export default class EditorControls {
 
             const {config, displayValue} = this.controlElements[controlKey];
             if (displayValue) {
-                const formattedValue = config.displayValue ? config.displayValue(this.pattern.config) : e.target.value;
+                const formattedValue = config.displayValue ? config.displayValue(this.pattern.config, config) : e.target.value;
                 displayValue.innerText = formattedValue;
             }
 
@@ -226,7 +226,7 @@ export default class EditorControls {
                     inputEl.value = inputValue;
                     const inputValueEl = controlElements.displayValue = document.createElement('span');
                     inputValueEl.id = `config_${control.key}_value`;
-                    inputValueEl.innerText = control.displayValue ? control.displayValue(this.pattern.config) : inputValue;
+                    inputValueEl.innerText = control.displayValue ? control.displayValue(this.pattern.config, control) : inputValue;
                     inputValueEl.className = "control_input_value";
                     controlEl.appendChild(inputValueEl);
                 }
@@ -251,6 +251,8 @@ function getInputValue(type, inputElement) {
             return parseFloat(inputElement.value);
         case 'checkbox':
             return inputElement.checked;
+        case 'number':
+            return parseFloat(inputElement.value);
         default:
             return inputElement.value;
     }
