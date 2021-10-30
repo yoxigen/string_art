@@ -18,6 +18,23 @@ export default class Circles extends StringArt {
             }
         },
         {
+            key: 'minNailDistance',
+            label: 'Min nail distance',
+            defaultValue: 20,
+            type: 'range',
+            attr: {
+                min: 1,
+                max: 300,
+                step: 1
+            }
+        },
+        {
+            key: 'color',
+            label: 'Color',
+            defaultValue: "#ec6ad0",
+            type: "color",
+        },
+        {
             key: 'layers',
             label: 'Layers',
             type: 'group',
@@ -72,13 +89,6 @@ export default class Circles extends StringArt {
                         {
                             ...Circle.rotationConfig,
                             key: 'rotation1',
-                            show: ({show1}) => show1,
-                        },
-                        {
-                            key: 'color1',
-                            label: 'Color',
-                            defaultValue: "#a94fb0",
-                            type: "color",
                             show: ({show1}) => show1,
                         },
                         {
@@ -143,13 +153,6 @@ export default class Circles extends StringArt {
                             show: ({show2}) => show2,
                         },
                         {
-                            key: 'color2',
-                            label: 'Color',
-                            defaultValue: "#ec6ad0",
-                            type: "color",
-                            show: ({show2}) => show2,
-                        },
-                        {
                             key: 'reverse2',
                             label: 'Reverse',
                             defaultValue: false,
@@ -211,13 +214,6 @@ export default class Circles extends StringArt {
                             show: ({show3}) => show3,
                         },
                         {
-                            key: 'color3',
-                            label: 'Color',
-                            defaultValue: "#ec6ad0",
-                            type: "color",
-                            show: ({show3}) => show3,
-                        },
-                        {
                             key: 'reverse3',
                             label: 'Reverse',
                             defaultValue: false,
@@ -236,7 +232,7 @@ export default class Circles extends StringArt {
     }
 
     getSetUp() {
-        const { n, margin = 0 } = this.config;
+        const { n, margin = 0, minNailDistance } = this.config;
         const size = this.getSize();
 
         const maxRadius = Math.min(...size.map(v => v - 2 * margin)) / 2;
@@ -244,15 +240,17 @@ export default class Circles extends StringArt {
             .map((_, i) => getLayer.call(this, i + 1))
             .filter(({enable}) => enable)
 
+        const maxShapeNailsCount = Math.max(...layers.map(({circle}) => circle.config.n));
+
         return {
             layers,
+            maxShapeNailsCount,
         };
 
         function getLayer(layerIndex) {
             const prop = prop => this.config[prop + layerIndex];
             
             const props = {
-                color: prop('color'),
                 enable: prop('show'),
                 isReverse: prop('reverse'),
                 position: [prop('x'), prop('y')],
@@ -260,11 +258,13 @@ export default class Circles extends StringArt {
                 rotation: prop('rotation')
             };
 
+            const circumsference = Math.PI * 2 * props.radius;
+            const circleNails = Math.min(n, Math.floor(circumsference / minNailDistance));
 
             const circle = new Circle({
                 radius: props.radius,
                 center: props.position.map((v, i) => props.radius + margin + (size[i] - (props.radius + margin) * 2) * v),
-                n,
+                n: circleNails,
                 rotation: props.rotation,
                 reverse: props.isReverse,
             });
@@ -276,20 +276,25 @@ export default class Circles extends StringArt {
         }
     }
 
-    *generateStrings() {
-        const {n, color1} = this.config;
+    getPoint(circle, index) {
+        const circleIndex = Math.round(index * circle.config.n / this.maxShapeNailsCount);
+        return circle.getPoint(circleIndex);
+    }
 
-        this.ctx.strokeStyle = color1;
+    *generateStrings() {
+        const {n, color} = this.config;
+
+        this.ctx.strokeStyle = color;
         let prevCirclePoint;
 
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < this.maxShapeNailsCount; i++) {
             for(let layerIndex = 0; layerIndex < this.layers.length; layerIndex++) {
                 const {circle} = this.layers[layerIndex];
                 this.ctx.beginPath();
-                this.ctx.moveTo(...(prevCirclePoint ?? circle.getPoint(i)));
+                this.ctx.moveTo(...(prevCirclePoint ?? this.getPoint(circle, i)));
 
                 if (layerIndex === 0 && i) {
-                    this.ctx.lineTo(...circle.getPoint(i));
+                    this.ctx.lineTo(...this.getPoint(circle, i));
                 }
 
                 let nextLayerIndex = layerIndex + 1;
@@ -297,7 +302,7 @@ export default class Circles extends StringArt {
                     nextLayerIndex = 0;
                 }
 
-                prevCirclePoint = this.layers[nextLayerIndex].circle.getPoint(i);
+                prevCirclePoint = this.getPoint(this.layers[nextLayerIndex].circle, i);
                 this.ctx.lineTo(...prevCirclePoint)
                 this.ctx.stroke();
                 yield;
@@ -314,8 +319,7 @@ export default class Circles extends StringArt {
     }
 
     getStepCount() {
-        const {n} = this.config;
-        const {layers} = this.getSetUp();
-        return layers.length * n - 1;
+        const {layers, maxShapeNailsCount} = this.getSetUp();
+        return layers.length * maxShapeNailsCount - 1;
     }
 }
