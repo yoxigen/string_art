@@ -141,6 +141,21 @@ a:hover {
     top: -2px;
 }
 
+.btn {
+    height: 30px;
+    width: 100%;
+    border-radius: 15px;
+    border: none;
+    background: #0375fb;
+    color: white;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.btn:hover {
+    background: #3592ff;
+}
+
 @media only screen and (max-width: 600px) {
     main {
         grid-template-columns: 1fr;
@@ -157,6 +172,22 @@ a:hover {
         box-shadow: 0 1px 0px black;
         width: 100%;
         max-width: 100%;
+    }
+}
+
+@media only print {
+    .noprint {
+        display: none;
+    }
+
+    main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+        grid-template-areas: "canvas";
+    }
+
+    canvas {
+        height: 100%;
     }
 }
 
@@ -280,6 +311,7 @@ input[type='color'] {
     gap: 8px;
     align-items: center;
     max-width: 270px;
+    margin-bottom: 16px;
 }
 
 #size_custom > div {

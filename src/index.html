@@ -13,7 +13,7 @@
     </head>
     <body>
         <main>
-            <form id="sidebar_form">
+            <form id="sidebar_form" class="noprint">
                 <header>
                     <h1>String Art Studio</h1>
                     <div>
@@ -28,8 +28,8 @@
                 <div id="controls">
                 </div>
                 <div id="size_controls">
-                    <fieldset class="minimized">
-                        <legend tabindex="0">Size</legend>
+                    <fieldset class="minimized" data-group="size">
+                        <legend tabindex="0">Size & Download</legend>
                         <div>
                             <select id="size_select"></select>
                             <div id="size_custom" hidden>
@@ -41,6 +41,8 @@
                                     <input type="number" min="0" placeholder="Height" id="size_custom_height" />
                                 </div>
                             </div>
+                            <button id="download_btn" class="btn">💾 Download image</button>
+                            <button id="download_nails_btn" class="btn">🔨 Download nails map</button>
                         </div>
                     </fieldset>
                 </div>
@@ -48,7 +50,7 @@
             <article id="art">
                 <canvas></canvas>
             </article>
-            <nav id="player">
+            <nav id="player" class="noprint">
                 <div id="player_track">
                     <input id="player_position" type="range" min="1" step="1" />
                 </div>

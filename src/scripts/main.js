@@ -7,6 +7,8 @@ const elements = {
     canvas: document.querySelector("canvas"),
     patternSelector: document.querySelector("#pattern_select"),
     patternLink: document.querySelector("#pattern_link"),
+    downloadBtn: document.querySelector("#download_btn"),
+    downloadNailsBtn: document.querySelector("#download_nails_btn"),
 };
 
 const patterns = patternTypes.map(Pattern => new Pattern(elements.canvas));
@@ -50,6 +52,29 @@ function main() {
     elements.canvas.addEventListener('click', () => {
         player.toggle();
     });
+
+    elements.downloadBtn.addEventListener('click', downloadCanvas);
+    elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
+}
+
+function downloadCanvas() {
+    const downloadLink = document.createElement('a');
+    downloadLink.download = currentPattern.name + '.png';
+    downloadLink.href = elements.canvas.toDataURL("image/png");
+    downloadLink.setAttribute('target', 'download')
+    downloadLink.click();
+}
+
+function downloadNailsImage() {
+    const currentConfig = currentPattern.config;
+    currentPattern.config = {
+        darkMode: false,
+        showNails: true,
+        showNailNumbers: true,
+        showStrings: false,
+    };
+    currentPattern.draw();
+    downloadCanvas();
 }
 
 function onInputsChange() {
@@ -77,19 +102,23 @@ function initControls() {
 }
 
 function initSize() {
-    sizeControls.element.addEventListener('sizechange', ({ detail: {width, height}}) => {
-        elements.canvas.removeAttribute('width');
-        elements.canvas.removeAttribute('height');
-
-        if (width && height) {
-            elements.canvas.style.width = `${width}px`;
-            elements.canvas.style.height = `${height}px`;
-        } else {
-            elements.canvas.removeAttribute('style');
-        }
-
-        currentPattern.draw();
+    sizeControls.element.addEventListener('sizechange', ({ detail }) => {
+        setSize(detail);
     });
+}
+
+function setSize({width, height}) {
+    elements.canvas.removeAttribute('width');
+    elements.canvas.removeAttribute('height');
+
+    if (width && height) {
+        elements.canvas.style.width = `${width}px`;
+        elements.canvas.style.height = `${height}px`;
+    } else {
+        elements.canvas.removeAttribute('style');
+    }
+
+    currentPattern.draw();
 }
 
 function initRouting() {

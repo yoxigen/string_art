@@ -189,10 +189,6 @@ export default class EditorControls {
                 groupTitleEl.innerText = control.label;
                 controlEl.appendChild(groupTitleEl);
                 controlEl.className = "control control_group";
-                const groupStateOpen = this.state.groups[control.key] ?? control.defaultValue !== "minimized";
-                if (!groupStateOpen) {
-                    controlEl.classList.add('minimized');
-                }
                 const childrenContainer = document.createElement('div');
                 controlEl.appendChild(childrenContainer);
                 this.renderControls(childrenContainer, control.children);
@@ -239,9 +235,24 @@ export default class EditorControls {
         });
 
         containerEl.appendChild(controlsFragment);
+        this.updateGroupsState();
         requestAnimationFrame(() => this.updateControlsVisibility())
     }
 
+    updateGroupsState() {
+        const groups = elements.sidebarForm.querySelectorAll('[data-group]');
+        groups.forEach(groupEl => {
+            const groupId = groupEl.dataset.group;
+            const groupState = this.state.groups[groupId];
+            if (typeof groupState === 'boolean') {
+                if (groupState) {
+                    groupEl.classList.remove('minimized');
+                } else {
+                    groupEl.classList.add('minimized');
+                }
+            }
+        });
+    }
 }
 
 
