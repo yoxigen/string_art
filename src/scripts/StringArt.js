@@ -71,6 +71,12 @@ const COMMON_CONFIG_CONTROLS = [
                 show: ({showNails}) => showNails
             },
             {
+                key: 'nailsColor',
+                label: 'Nails color',
+                defaultValue: "#ffffff",
+                type: "color",
+            },
+            {
                 key: 'showNailNumbers',
                 label: 'Show nail numbers',
                 defaultValue: false,

@@ -9,9 +9,9 @@ export default class Nails {
         this.nails = [];
     }
 
-    setConfig({ nailRadius, darkMode, nailNumbersFontSize}) {
+    setConfig({ nailRadius, nailsColor, nailNumbersFontSize}) {
         this.nailRadius = nailRadius;
-        this.nailsColor = darkMode ? '#ffffff' : '#000000';
+        this.nailsColor = nailsColor;
         this.nailNumbersFontSize = nailNumbersFontSize;
         this.nails = [];
     }
