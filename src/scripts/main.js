@@ -72,6 +72,7 @@ function downloadNailsImage() {
         showNails: true,
         showNailNumbers: true,
         showStrings: false,
+        nailsColor: "#000000",
     };
     currentPattern.draw();
     downloadCanvas();
