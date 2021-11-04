@@ -234,7 +234,7 @@ fieldset {
     border-radius: 9px;
 }
 
-fieldset > legend {
+fieldset > legend { 
     cursor: pointer;
     opacity: .8;
 }
