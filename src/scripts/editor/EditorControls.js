@@ -80,7 +80,13 @@ export default class EditorControls {
 
             const {config, displayValue} = this.controlElements[controlKey];
             if (displayValue) {
-                const formattedValue = config.displayValue ? config.displayValue(this.pattern.config, config) : e.target.value;
+                const value = e.target.value;
+                const formattedValue = config.displayValue 
+                    ? config.displayValue({ 
+                        value, 
+                        config: this.pattern.config, 
+                        control: config
+                    }) : value;
                 displayValue.innerText = formattedValue;
             }
 
@@ -191,7 +197,23 @@ export default class EditorControls {
                 controlEl.className = "control control_group";
                 const childrenContainer = document.createElement('div');
                 controlEl.appendChild(childrenContainer);
-                this.renderControls(childrenContainer, control.children);
+
+                if (control.addChild) {
+                    const children = (control.defaultValue ?? [])
+                        .map((defaultValue, childIndex) => Object.assign(
+                            control.addChild.getNewChild({ childIndex, defaultValue }),
+                            { key: `${control.key}__${childIndex}`}
+                        ));
+
+                    this.renderControls(childrenContainer, children);
+
+                    const addChildBtn = document.createElement('button');
+                    addChildBtn.className = 'btn';
+                    addChildBtn.innerText = control.addChild.btnText ?? 'Add new';
+                    controlEl.appendChild(addChildBtn);
+                } else {
+                    this.renderControls(childrenContainer, control.children);
+                }
             }
             else {
                 controlEl = document.createElement("div");
@@ -222,7 +244,13 @@ export default class EditorControls {
                     inputEl.value = inputValue;
                     const inputValueEl = controlElements.displayValue = document.createElement('span');
                     inputValueEl.id = `config_${control.key}_value`;
-                    inputValueEl.innerText = control.displayValue ? control.displayValue(this.pattern.config, control) : inputValue;
+                    inputValueEl.innerText = control.displayValue 
+                        ? control.displayValue({ 
+                            value: inputValue, 
+                            config: this.pattern.config, 
+                            control 
+                        }) 
+                        : inputValue;
                     inputValueEl.className = "control_input_value";
                     controlEl.appendChild(inputValueEl);
                 }

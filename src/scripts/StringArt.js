@@ -41,7 +41,7 @@ const COMMON_CONFIG_CONTROLS = [
                     max: 500,
                     step: 1
                 },
-                displayValue: ({margin}) => `${margin}px`
+                displayValue: ({value}) => `${value}px`
             }
         ]
     },
@@ -93,7 +93,7 @@ const COMMON_CONFIG_CONTROLS = [
                     max: 24,
                     step: 0.5
                 },
-                displayValue: ({nailNumbersFontSize}) => `${nailNumbersFontSize}px`,
+                displayValue: ({value}) => `${value}px`,
                 show: ({showNails, showNailNumbers}) => showNails && showNailNumbers
             },
         ]
@@ -264,15 +264,23 @@ class StringArt {
 }
 
 function flattenConfig(configControls) {
-    return configControls.reduce((config, {key, defaultValue, children}) =>
-        children ? {
+    return configControls.reduce((config, {key, defaultValue, children, addChild}) => {
+        if (addChild) {
+            const defaultChildrenConfig = defaultValue ?? [];
+            return {
+                ...config,
+                [key]: defaultChildrenConfig.map((defaultValue, childIndex) => flattenConfig([addChild.getNewChild({ defaultValue, childIndex })]))
+            };
+        }
+
+        return children ? {
             ...config,
             ...flattenConfig(children)
         } : {
             ...config,
             [key]: defaultValue
-        },
-    {});
+        };
+    }, {});
 }
 
 export default StringArt;

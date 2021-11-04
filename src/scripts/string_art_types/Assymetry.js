@@ -22,167 +22,83 @@ export default class Assymetry extends StringArt{
             key: 'layers',
             label: 'Layers',
             type: 'group',
-            children: [
+            defaultValue: [
                 {
-                    key: 'layer1',
-                    label: 'Layer 1',
-                    type: 'group',
-                    children: [
-                        {
-                            key: 'show1',
-                            label: 'Enable',
-                            defaultValue: true,
-                            type: 'checkbox'
-                        },
-                        {
-                            key: 'size1',
-                            label: 'Size',
-                            defaultValue: 0.25,
-                            type: 'range',
-                            attr: {
-                                min: 0,
-                                max: 0.5,
-                                step: ({config: {n}}) => 1 / n
-                            },
-                            displayValue: ({size1, n}) => Math.round(n * size1),
-                            show: ({show1}) => show1,
-                        },
-                        {
-                            key: 'end1',
-                            label: 'End Position',
-                            defaultValue: 1,
-                            type: 'range',
-                            attr: {
-                                min: 0,
-                                max: 1,
-                                step: ({config: {n}}) => 1 / n,
-                            },
-                            displayValue: ({end1, n}) => Math.round(n * end1),
-                            show: ({show1}) => show1,
-                        },
-                        {
-                            key: 'color1',
-                            label: 'Color',
-                            defaultValue: "#a94fb0",
-                            type: "color",
-                            show: ({show1}) => show1,
-                        },
-                        {
-                            key: 'reverse1',
-                            label: 'Reverse',
-                            defaultValue: false,
-                            type: 'checkbox',
-                            show: ({show1}) => show1
-                        },
-                    ]
+                    size: 0.25,
+                    end: 1,
+                    color: "#a94fb0",
                 },
                 {
-                    key: 'layer2',
-                    label: 'Layer 2',
-                    type: 'group',
-                    children: [
-                        {
-                            key: 'show2',
-                            label: 'Enable',
-                            defaultValue: true,
-                            type: 'checkbox'
-                        },
-                        {
-                            key: 'size2',
-                            label: 'Size',
-                            defaultValue: 0.125,
-                            type: 'range',
-                            attr: {
-                                min: 0,
-                                max: 0.5,
-                                step: ({config: {n}}) => 1 / n
-                            },
-                            displayValue: ({size2, n}) => Math.round(n * size2),
-                            show: ({show2}) => show2,
-                        },
-                        {
-                            key: 'end2',
-                            label: 'End Position',
-                            defaultValue: 0.888,
-                            type: 'range',
-                            attr: {
-                                min: 0,
-                                max: 1,
-                                step: ({config: {n}}) => 1 / n
-                            },
-                            displayValue: ({end2, n}) => Math.round(n * end2),
-                            show: ({show2}) => show2,
-                        },
-                        {
-                            key: 'color2',
-                            label: 'Color',
-                            defaultValue: "#ec6ad0",
-                            type: "color",
-                            show: ({show2}) => show2,
-                        },
-                        {
-                            key: 'reverse2',
-                            label: 'Reverse',
-                            defaultValue: false,
-                            type: 'checkbox',
-                            show: ({show2}) => show2
-                        },
-                    ]
+                    size: 0.125,
+                    end: 0.888,
+                    color: "#ec6ad0"
                 },
                 {
-                    key: 'layer3',
-                    label: 'Layer 3',
-                    type: 'group',
-                    children: [
-                        {
-                            key: 'show3',
-                            label: 'Enable',
-                            defaultValue: true,
-                            type: 'checkbox'
-                        },
-                        {
-                            key: 'size3',
-                            label: 'Size',
-                            defaultValue: 0,
-                            type: 'range',
-                            attr: {
-                                min: 0,
-                                max: 0.5,
-                                step: ({config: {n}}) => 1 / n
-                            },
-                            displayValue: ({size3, n}) => Math.round(n * size3),
-                            show: ({show3}) => show3,
-                        },
-                        {
-                            key: 'end3',
-                            label: 'End Position',
-                            defaultValue: 0.826,
-                            type: 'range',
-                            attr: {
-                                min: 0,
-                                max: 1,
-                                step: ({config: {n}}) => 1 / n
-                            },
-                            displayValue: ({end2, n}) => Math.round(n * end2),
-                            show: ({show3}) => show3,
-                        },
-                        {
-                            key: 'color3',
-                            label: 'Color',
-                            defaultValue: "#f08ad5",
-                            type: "color",
-                            show: ({show3}) => show3,
-                        },
-                        {
-                            key: 'reverse3',
-                            label: 'Reverse',
-                            defaultValue: true,
-                            type: 'checkbox',
-                            show: ({show3}) => show3
-                        },
-                    ]
+                    size: 0,
+                    end: 0.826,
+                    color: "#f08ad5",
+                    reverse: true
                 }
-            ]
+            ],
+            addChild: {
+                btnText: 'Add layer',
+                getNewChild: ({childIndex, defaultValue}) => {
+                    const show = config => config.layers[childIndex].show;
+    
+                    return {
+                        label: `Layer ${childIndex + 1}`,
+                        type: 'group',
+                        children: [
+                            {
+                                key: 'show',
+                                label: 'Enable',
+                                defaultValue: defaultValue.show ?? true,
+                                type: 'checkbox'
+                            },
+                            {
+                                key: 'size',
+                                label: 'Size',
+                                defaultValue: defaultValue.size ?? 0.25,
+                                type: 'range',
+                                attr: {
+                                    min: 0,
+                                    max: 0.5,
+                                    step: ({config: {n}}) => 1 / n
+                                },
+                                displayValue: ({value, config: {n}}) => Math.round(n * value),
+                                show,
+                            },
+                            {
+                                key: 'end',
+                                label: 'End Position',
+                                defaultValue: defaultValue.end ?? 1,
+                                type: 'range',
+                                attr: {
+                                    min: 0,
+                                    max: 1,
+                                    step: ({config: {n}}) => 1 / n,
+                                },
+                                displayValue: ({value, config: {n}}) => Math.round(n * value),
+                                show,
+                            },
+                            {
+                                key: 'color',
+                                label: 'Color',
+                                defaultValue: defaultValue.color ?? "#a94fb0",
+                                type: "color",
+                                show,
+                            },
+                            {
+                                key: 'reverse',
+                                label: 'Reverse',
+                                defaultValue: defaultValue.reverse ?? false,
+                                type: 'checkbox',
+                                show,
+                            },
+                        ]
+                    };
+                }
+            },
         },
     ];
 
@@ -192,7 +108,7 @@ export default class Assymetry extends StringArt{
     }
 
     getSetUp() {
-        const { rotation, n, margin = 0 } = this.config;
+        const { rotation, n, margin = 0, layers: layersConfig } = this.config;
         const circle = new Circle({
             size: this.getSize(),
             n,
@@ -206,9 +122,9 @@ export default class Assymetry extends StringArt{
         const firstCirclePoint = circle.getPoint(0);
         const totalNailCount = lineNailCount + n;
         const totalIndexCount = totalNailCount + lineNailCount;
-        const layers = new Array(3).fill(null)
-            .map((_, i) => getLayer.call(this, i + 1))
-            .filter(({enable}) => enable)
+        const layers = layersConfig
+            .filter(({show}) => show)
+            .map(getLayer);
 
         return {
             circle,
@@ -220,14 +136,13 @@ export default class Assymetry extends StringArt{
             totalIndexCount,
         };
 
-        function getLayer(layerIndex) {
-            const size = Math.round(n * this.config['size' + layerIndex]) + lineNailCount
+        function getLayer({ size: sizeConfig, end, color, reverse: isReverse}) {
+            const size = Math.round(n * sizeConfig) + lineNailCount
             return {
                 size,
-                endIndex: Math.round(this.config['end' + layerIndex] * (totalNailCount + lineNailCount)) - size,
-                color: this.config['color' + layerIndex],
-                enable: this.config['show' + layerIndex],
-                isReverse: this.config['reverse' + layerIndex],
+                endIndex: Math.round(end * (totalNailCount + lineNailCount)) - size,
+                color,
+                isReverse,
             };
         }
     }

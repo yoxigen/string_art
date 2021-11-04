@@ -37,6 +37,6 @@ export default class Circle {
             max: 1 + 1/360,
             step: 1 / 360,
         },
-        displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`
+        displayValue: ({value}) => `${Math.round(value * 360)}°`
     };
 }
