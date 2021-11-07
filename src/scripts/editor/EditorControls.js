@@ -38,7 +38,8 @@ export default class EditorControls {
         elements.sidebarForm.addEventListener("click", this._toggleFieldset);
         elements.sidebarForm.addEventListener("keydown", this._toggleFieldSetOnEnter);
         this.controlElements = {};
-        this.renderControls();
+        this.controlElementsMap = new Map;
+        this.renderControls({ configControls: this.pattern.configControls });
     }
 
     destroy() {
@@ -73,19 +74,25 @@ export default class EditorControls {
             const inputValue = getInputValue(e.target.type, e.target);
             const controlKey = e.target.id.replace(/^config_/, '');
 
-            this.pattern.config = Object.freeze({
-                ...this.pattern.config,
-                [controlKey]: inputValue
-            });
+            const {control, displayValue, configPath} = this.controlElementsMap.get(e.target);
+            
+            const newConfig = {...this.pattern.config};
+            let configPathValue = newConfig;
 
-            const {config, displayValue} = this.controlElements[controlKey];
+            for (let i=0; i < configPath.length - 1; i++) {
+                configPathValue = configPathValue[configPath[i]];
+            }
+            configPathValue[configPath.slice(-1)] = inputValue;
+
+            this.pattern.config = Object.freeze(newConfig);
+
             if (displayValue) {
                 const value = e.target.value;
-                const formattedValue = config.displayValue 
-                    ? config.displayValue({ 
+                const formattedValue = control.displayValue 
+                    ? control.displayValue({ 
                         value, 
                         config: this.pattern.config, 
-                        control: config
+                        control
                     }) : value;
                 displayValue.innerText = formattedValue;
             }
@@ -127,36 +134,33 @@ export default class EditorControls {
         }
     }
 
-    updateControlsVisibility(configControls = this.pattern.configControls) {
-        configControls.forEach(control => {
+    updateControlsVisibility() {
+        this.controlElementsMap.forEach(({control, input, controlEl, configPath}) => {
+            const controlConfigValue = this.getConfigValueAtPath(configPath);
             if (control.show) {
-                const shouldShowControl = control.show(this.pattern.config);
-                const controlEl = this.controlElements[control.key].control;
-                if (controlEl) {
-                    if (shouldShowControl) {
-                        controlEl.removeAttribute('hidden');
-                    } else {
-                        controlEl.setAttribute('hidden', 'hidden');
-                    }
+                const shouldShowControl = control.show(this.pattern.config, controlConfigValue);
+                if (shouldShowControl) {
+                    controlEl.removeAttribute('hidden');
+                } else {
+                    controlEl.setAttribute('hidden', 'hidden');
                 }
             }
 
             if (control.isDisabled) {
-                const shouldDisableControl = control.isDisabled(this.pattern.config);
-                const inputEl = this.controlElements[control.key].input;
-                if (inputEl) {
+                const shouldDisableControl = control.isDisabled(this.pattern.config, controlConfigValue);
+                if (input) {
                     if (shouldDisableControl) {
-                        inputEl.setAttribute('disabled', 'disabled');
+                        input.setAttribute('disabled', 'disabled');
                     } else {
-                        inputEl.removeAttribute('disabled');
+                        input.removeAttribute('disabled');
                     }
                 }
             }
-
-            if (control.children) {
-                this.updateControlsVisibility(control.children);
-            }
         });
+    }
+
+    getConfigValueAtPath(path) {
+        return path.reduce((value, configPath) => value[configPath], this.pattern.config);
     }
 
     updateInputs(config) {
@@ -175,45 +179,20 @@ export default class EditorControls {
         });
     }
 
-    renderControls(containerEl = elements.controls, _configControls) {
-        const configControls = _configControls ?? this.pattern.configControls;
+    renderControls({containerEl = elements.controls, configControls, parentControl, parentKey, useControlIndexForPath, addControlToPath = true, configPath = []}) {
         containerEl.innerHTML = "";
         const controlsFragment = document.createDocumentFragment();
 
-
-        configControls.forEach(control => {
-            const controlId = `config_${control.key}`;
+        configControls.forEach((control, controlIndex) => {
+            const controlId = `config_${parentKey ? parentKey + '_' : ''}${control.key}`;
             const controlElements = this.controlElements[control.key] = { config: control };
-
             let controlEl;
+            let inputEl;
+            let displayValueEl;
+            const controlConfigPath = control.type !== "group" || useControlIndexForPath || control.addChild ? [...configPath, useControlIndexForPath ? controlIndex : control.key] : configPath;
 
             if (control.type === "group") {
-                controlEl = document.createElement("fieldset");
-                controlEl.setAttribute('data-group', control.key);
-                const groupTitleEl = document.createElement("legend");
-                groupTitleEl.setAttribute("tabindex", "0");
-                groupTitleEl.innerText = control.label;
-                controlEl.appendChild(groupTitleEl);
-                controlEl.className = "control control_group";
-                const childrenContainer = document.createElement('div');
-                controlEl.appendChild(childrenContainer);
-
-                if (control.addChild) {
-                    const children = (control.defaultValue ?? [])
-                        .map((defaultValue, childIndex) => Object.assign(
-                            control.addChild.getNewChild({ childIndex, defaultValue }),
-                            { key: `${control.key}__${childIndex}`}
-                        ));
-
-                    this.renderControls(childrenContainer, children);
-
-                    const addChildBtn = document.createElement('button');
-                    addChildBtn.className = 'btn';
-                    addChildBtn.innerText = control.addChild.btnText ?? 'Add new';
-                    controlEl.appendChild(addChildBtn);
-                } else {
-                    this.renderControls(childrenContainer, control.children);
-                }
+                controlEl = this._createGroupControl({ control, parentKey, configPath: controlConfigPath });
             }
             else {
                 controlEl = document.createElement("div");
@@ -223,7 +202,7 @@ export default class EditorControls {
                 label.innerHTML = control.label;
                 label.setAttribute("for", controlId);
 
-                const inputEl = controlElements.input = document.createElement("input");
+                inputEl = controlElements.input = document.createElement("input");
                 inputEl.setAttribute("type", control.type);
                 const inputValue = this.pattern.config[control.key] ?? control.defaultValue;
 
@@ -242,29 +221,90 @@ export default class EditorControls {
                     controlEl.appendChild(label);
                     controlEl.appendChild(inputEl);
                     inputEl.value = inputValue;
-                    const inputValueEl = controlElements.displayValue = document.createElement('span');
-                    inputValueEl.id = `config_${control.key}_value`;
-                    inputValueEl.innerText = control.displayValue 
+                    displayValueEl = controlElements.displayValue = document.createElement('span');
+                    displayValueEl.id = `config_${control.key}_value`;
+                    displayValueEl.innerText = control.displayValue 
                         ? control.displayValue({ 
                             value: inputValue, 
                             config: this.pattern.config, 
                             control 
                         }) 
                         : inputValue;
-                    inputValueEl.className = "control_input_value";
-                    controlEl.appendChild(inputValueEl);
+                        displayValueEl.className = "control_input_value";
+                    controlEl.appendChild(displayValueEl);
                 }
                 inputEl.id = controlId;
             }
 
             this.controlElements[control.key].control = controlEl;
-            controlEl.id = `control_${control.key}`;
+            controlEl.id = `control_${parentKey ? parentKey + '_' : ''}${control.key}`;
+            this.controlElementsMap.set(inputEl ?? controlEl, { 
+                control, 
+                parent: parentControl, 
+                input: inputEl, 
+                controlEl,
+                displayValue: displayValueEl,
+                configPath: controlConfigPath
+            });
+
+            if (parentKey) {
+                controlEl.setAttribute('data-parent', parentKey);
+            }
             controlsFragment.appendChild(controlEl);
         });
 
         containerEl.appendChild(controlsFragment);
         this.updateGroupsState();
         requestAnimationFrame(() => this.updateControlsVisibility())
+    }
+
+    _createGroupControl({control, configPath}) {
+        const controlEl = document.createElement("fieldset");
+        controlEl.setAttribute('data-group', control.key);
+        const groupTitleEl = document.createElement("legend");
+        groupTitleEl.setAttribute("tabindex", "0");
+        groupTitleEl.innerText = control.label;
+        controlEl.appendChild(groupTitleEl);
+        controlEl.className = "control control_group";
+        const childrenContainer = document.createElement('div');
+        controlEl.appendChild(childrenContainer);
+
+        if (control.addChild) {
+            const children = (control.defaultValue ?? [])
+                .map((defaultValue, childIndex) => Object.assign(
+                    control.addChild.getNewChild({ childIndex, defaultValue }),
+                    { key: `${control.key}__${childIndex}`}
+                ));
+
+            this.renderControls({ 
+                containerEl: childrenContainer, 
+                configControls: children, 
+                parentKey: control.key, 
+                parentControl: control,
+                useControlIndexForPath: true,
+                configPath
+            });
+
+            const addChildBtn = document.createElement('button');
+            addChildBtn.className = 'btn add_btn';
+            addChildBtn.innerText = control.addChild.btnText ?? 'Add new';
+            addChildBtn.setAttribute('type', 'button');
+            addChildBtn.addEventListener('click', () => {
+                control.addChild.getNewChild({ childIndex: children.length + 1 })
+            });
+
+            controlEl.appendChild(addChildBtn);
+        } else {
+            this.renderControls({ 
+                containerEl: childrenContainer, 
+                configControls: control.children, 
+                parentKey: control.key, 
+                parentControl: control,
+                configPath,
+            });
+        }
+
+        return controlEl;
     }
 
     updateGroupsState() {
