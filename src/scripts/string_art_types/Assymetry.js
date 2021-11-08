@@ -41,8 +41,15 @@ export default class Assymetry extends StringArt{
                 }
             ],
             addChild: {
-                btnText: 'Add layer',
-                getNewChild: ({childIndex, defaultValue}) => {
+                btnText: '+ Add layer',
+                newChildDefaultValue: {
+                    show: true,
+                    size: 0.25,
+                    end: 1,
+                    color: "#a94fb0",
+                    reverse: false
+                },
+                getNewChild: ({childIndex, defaultValue = {}}) => {
                     const show = config => config.layers[childIndex].show;
     
                     return {
