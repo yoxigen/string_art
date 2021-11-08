@@ -37,7 +37,6 @@ export default class EditorControls {
         elements.controls.addEventListener("input", this._wrappedOnInput);
         elements.sidebarForm.addEventListener("click", this._toggleFieldset);
         elements.sidebarForm.addEventListener("keydown", this._toggleFieldSetOnEnter);
-        this.controlElements = {};
         this.controlElementsMap = new Map;
         this.renderControls({ configControls: this.pattern.configControls });
     }
@@ -163,29 +162,12 @@ export default class EditorControls {
         return path.reduce((value, configPath) => value[configPath], this.pattern.config);
     }
 
-    updateInputs(config) {
-        Object.entries(config).forEach(([key, value]) => {
-            const {input, value: valueEl} = this.controlElements[key];
-            if (input) {
-                if (input.type === "checkbox") {
-                    input.checked = value;
-                } else {
-                    input.value = value;
-                }
-                if (valueEl) {
-                    valueEl.innerText = value;
-                }
-            }
-        });
-    }
-
     renderControls({containerEl = elements.controls, configControls, parentControl, parentKey, useControlIndexForPath, addControlToPath = true, configPath = []}) {
         containerEl.innerHTML = "";
         const controlsFragment = document.createDocumentFragment();
 
         configControls.forEach((control, controlIndex) => {
             const controlId = `config_${parentKey ? parentKey + '_' : ''}${control.key}`;
-            const controlElements = this.controlElements[control.key] = { config: control };
             let controlEl;
             let inputEl;
             let displayValueEl;
@@ -202,7 +184,7 @@ export default class EditorControls {
                 label.innerHTML = control.label;
                 label.setAttribute("for", controlId);
 
-                inputEl = controlElements.input = document.createElement("input");
+                inputEl = document.createElement("input");
                 inputEl.setAttribute("type", control.type);
                 const inputValue = this.pattern.config[control.key] ?? control.defaultValue;
 
@@ -221,7 +203,7 @@ export default class EditorControls {
                     controlEl.appendChild(label);
                     controlEl.appendChild(inputEl);
                     inputEl.value = inputValue;
-                    displayValueEl = controlElements.displayValue = document.createElement('span');
+                    displayValueEl = document.createElement('span');
                     displayValueEl.id = `config_${control.key}_value`;
                     displayValueEl.innerText = control.displayValue 
                         ? control.displayValue({ 
@@ -236,7 +218,6 @@ export default class EditorControls {
                 inputEl.id = controlId;
             }
 
-            this.controlElements[control.key].control = controlEl;
             controlEl.id = `control_${parentKey ? parentKey + '_' : ''}${control.key}`;
             this.controlElementsMap.set(inputEl ?? controlEl, { 
                 control, 
@@ -290,7 +271,39 @@ export default class EditorControls {
             addChildBtn.innerText = control.addChild.btnText ?? 'Add new';
             addChildBtn.setAttribute('type', 'button');
             addChildBtn.addEventListener('click', () => {
-                control.addChild.getNewChild({ childIndex: children.length + 1 })
+                const newChildIndex = children.length;
+                const newChildValue = {...control.addChild.newChildDefaultValue};
+                const newChildControl = control.addChild.getNewChild({ 
+                    childIndex: newChildIndex, 
+                    defaultValue: newChildValue 
+                });
+                const groupConfig = this.getConfigValueAtPath(configPath);
+                groupConfig.push(newChildValue);
+
+                newChildControl.key = `${control.key}__${newChildIndex}`;
+                children.push(newChildControl);
+
+                this.renderControls({ 
+                    containerEl: childrenContainer, 
+                    configControls: children, 
+                    parentKey: control.key, 
+                    parentControl: control,
+                    useControlIndexForPath: true,
+                    configPath
+                });
+
+                const eventData = Object.freeze({
+                    control: newChildControl.key,
+                    value: newChildValue,
+                    pattern: this.pattern,
+                });
+
+                this._triggerEvent('input', eventData);
+
+                inputTimeout = setTimeout(() => {
+                    this._triggerEvent('change', eventData);
+                    this.updateControlsVisibility();
+                }, 100);
             });
 
             controlEl.appendChild(addChildBtn);
