@@ -185,7 +185,7 @@ export default class Star extends StringArt{
         this.circle.drawNails(this.nails);
 
         for (const {point, side, sideIndex} of this.generateStarPoints()) {
-            this.nails.addNail({ point, number: sideIndex ? `${side + 1}_${sideIndex + 1}` : 0 });
+            this.nails.addNail({ point, number: sideIndex ? `${side}_${sideIndex}` : 0 });
         }
 
         this.circle.drawNails(this.nails);

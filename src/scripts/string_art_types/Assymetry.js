@@ -294,7 +294,7 @@ export default class Assymetry extends StringArt{
         this.circle.drawNails(this.nails, { nailsNumberStart: this.lineNailCount });
 
         for (let i=0; i < this.lineNailCount; i++) {
-            this.nails.addNail({ point: this.getPoint(i), number: i + 1 });
+            this.nails.addNail({ point: this.getPoint(i), number: i });
         }
     }
 

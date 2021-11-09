@@ -23,7 +23,7 @@ export default class Circle {
 
     drawNails(nails, {nailsNumberStart = 0, getNumber} = {}) {
         for (let i=0; i < this.config.n; i++) {
-            nails.addNail({point: this.getPoint(i), number: getNumber ? getNumber(i) : i + 1 + nailsNumberStart});
+            nails.addNail({point: this.getPoint(i), number: getNumber ? getNumber(i) : i + nailsNumberStart});
         }
     }
 

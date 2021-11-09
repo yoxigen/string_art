@@ -73,7 +73,7 @@ class Spirals extends StringArt{
                     centerx + currentRadius * Math.sin(angle + rotation),
                     centery + currentRadius * Math.cos(angle + rotation)
                 ];
-                yield {point, nailNumber: `${s + 1}_${i + 1}`};
+                yield {point, nailNumber: `${s}_${i}`};
             }
             
             angle += angleStep;

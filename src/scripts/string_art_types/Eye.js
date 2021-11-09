@@ -206,7 +206,7 @@ class Eye extends StringArt{
                     const sideProps = { layerStringCount, size, layerStart, angle };
                     this.nails.addNail({
                         point: this.getPoint({ sideOrder, index: i, rotation, ...sideProps}),
-                        number: `${layer + 1}_${s + 1}_${i + 1}`
+                        number: `${layer}_${s}_${i}`
                     });
                 }
             }
