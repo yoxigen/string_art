@@ -9,18 +9,18 @@ export default class Spiral extends StringArt{
         {
             key: 'n',
             label: 'Number of nails',
-            defaultValue: 144,
+            defaultValue: 200,
             type: "range",
             attr: {
                 min: 3,
-                max: 200,
+                max: 300,
                 step: 1
             }
         },
         {
             key: 'repetition',
             label: 'Repetition',
-            defaultValue: 2,
+            defaultValue: 1,
             type: "range",
             attr: {
                 min: 1,
@@ -31,22 +31,23 @@ export default class Spiral extends StringArt{
         {
             key: 'innerLength',
             label: 'Spiral thickness',
-            defaultValue: 72,
+            defaultValue: 0.5,
             type: "range",
             attr: {
-                min: 1,
-                max: 144,
-                step: 1,
-            }
+                min: ({config: {n}}) => 1 / n,
+                max: 1,
+                step: ({config: {n}}) => 1 / n,
+            },
+            displayValue: ({n, innerLength}) => Math.round(n * innerLength)
         },
         {
             ...Circle.rotationConfig,
-            defaultValue: 0.49,
+            defaultValue: 0.5,
         },
         {
             key: 'layers',
             label: 'Layers',
-            defaultValue: 9,
+            defaultValue: 11,
             type: "range",
             attr: {
                 min: 1,
@@ -57,13 +58,14 @@ export default class Spiral extends StringArt{
         {
             key: 'layerSpread',
             label: 'Layer spread',
-            defaultValue: 13,
+            defaultValue: 0.075,
             type: "range",
             attr: {
-                min: 1,
-                max: 200,
-                step: 1
-            }
+                min: 0,
+                max: 1,
+                step: ({config: {n}}) => 1 / n
+            },
+            displayValue: ({layerSpread, n}) => Math.round(layerSpread * n)
         },
         {
             key: 'colorGroup',
@@ -104,7 +106,7 @@ export default class Spiral extends StringArt{
 
     setUpDraw() {
         super.setUpDraw();
-        const { n, rotation } = this.config;
+        const { n, rotation, layers, multicolorRange, multicolorByLightness, layerSpread } = this.config;
 
         this.circle = new Circle({
             size: this.size,
@@ -112,34 +114,42 @@ export default class Spiral extends StringArt{
             rotation,
             margin: 20,
         });
-        const {layers, multicolorRange, multicolorByLightness, layerSpread} = this.config;
         this.multiColorStep = multicolorRange / layers;
         this.multiColorLightnessStep = multicolorByLightness ? 100 / layers : 1;
-        this.layerShift = layerSpread;
+        this.layerShift = Math.round(n * layerSpread);
     }
 
     *drawSpiral({ shift = 0, color = "#f00" } = {}) {
-        const {repetition, innerLength} = this.config;
-        
-        this.ctx.moveTo(...this.circle.getPoint(shift));
-        
-        let currentInnerLength = innerLength;
+        const {repetition, innerLength, n} = this.config;
+
+        let currentInnerLength = Math.round(innerLength * n);
         let repetitionCount = 0;
         this.ctx.strokeStyle = color;
-        
-        for(let i=0; currentInnerLength; i++) {
-            this.ctx.beginPath();
-            this.ctx.lineTo(...this.circle.getPoint(i + currentInnerLength + shift));
-            this.ctx.lineTo(...this.circle.getPoint(i + 1 + shift));
-            this.ctx.stroke();
+        let prevPoint = this.circle.getPoint(shift);
+        let isPrevPoint = false;
 
+        for(let i=0; currentInnerLength > 0; i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(...prevPoint);
+            const nextPointIndex = isPrevPoint ? i + shift : i + currentInnerLength + shift;
+
+            this.ctx.lineTo(...this.circle.getPoint(nextPointIndex));
             repetitionCount++;
             if (repetitionCount === repetition) {
                 currentInnerLength--;
                 repetitionCount = 0;
+                i++;
+                this.ctx.lineTo(...this.circle.getPoint(nextPointIndex + 1));
+                prevPoint = this.circle.getPoint(nextPointIndex + 2);
+            } else {
+                prevPoint = this.circle.getPoint(nextPointIndex + 1);
             }
 
+            this.ctx.lineTo(...prevPoint);
+            this.ctx.stroke();
+
             yield i;
+            isPrevPoint = !isPrevPoint;
         }
       
     }
@@ -162,8 +172,8 @@ export default class Spiral extends StringArt{
     }
 
     getStepCount() {
-        const {innerLength, repetition, layers} = this.config;
-        return layers * innerLength * repetition;
+        const {innerLength, repetition, layers, n} = this.config;
+        return layers * Math.round(innerLength * n) * repetition;
     }
 
     drawNails() {
