@@ -1,3 +1,4 @@
+import Color from "../helpers/Color.js";
 import StringArt from "../StringArt.js";
 import Circle from "./Circle.js";
 
@@ -42,50 +43,12 @@ export default class TimesTables extends StringArt{
             }
         },
         Circle.rotationConfig,
-        {
-            key: 'colorGroup',
-            label: 'Color',
-            type: 'group',
-            children: [
-                {
-                    key: 'multicolor',
-                    label: 'Use multiple colors',
-                    defaultValue: true,
-                    type: "checkbox",
-                },
-                {
-                    key: 'multicolorRange',
-                    label: 'Multicolor range',
-                    defaultValue: 180,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 360,
-                        step: 1
-                    },
-                    show: ({multicolor}) => multicolor,
-                },
-                {
-                    key: 'multicolorStart',
-                    label: 'Multicolor start',
-                    defaultValue: 256,
-                    type: "range",
-                    attr: {
-                        min: 0,
-                        max: 360,
-                        step: 1
-                    },
-                    show: ({multicolor}) => multicolor,
-                },
-                {
-                    key: 'color',
-                    label: 'String color',
-                    defaultValue: "#ff4d00",
-                    type: "color",
-                    show: ({multicolor}) => !multicolor
-                },
-            ]
-        },
+        Color.getConfig({ defaults: {
+            isMultiColor: true,
+            multicolorRange: 180,
+            multicolorStart: 256,
+            color: "#ff4d00"
+        }}),
     ];
 
     get n() {
@@ -102,14 +65,19 @@ export default class TimesTables extends StringArt{
         this._n = null;
         super.setUpDraw();
 
-        const {layers, multicolorRange, rotation} = this.config;
+        const {layers, rotation} = this.config;
         this.circle = new Circle({
             size: this.size,
             n: this.n,
             margin: MARGIN,
             rotation,
         });
-        this.multiColorStep = multicolorRange / layers;
+        
+        this.color = new Color({
+            ...this.config,
+            colorCount: layers,
+        });
+
         this.layerShift = Math.floor(this.n / layers);
     }
 
@@ -135,13 +103,13 @@ export default class TimesTables extends StringArt{
     }
 
     *generateStrings() {
-        const {color, multicolor, layers} = this.config;
+        const {layers} = this.config;
 
         for(let time = 0; time < layers; time++) {
-            const timeColor = multicolor ? this.getTimeColor(time, layers) : color;
+            const color = this.color.getColor(time);
             yield* this.drawTimesTable({ 
                 time,
-                color: timeColor, 
+                color, 
                 shift: this.layerShift * time,
             });
         }
@@ -149,12 +117,6 @@ export default class TimesTables extends StringArt{
 
     drawNails() {
         this.circle.drawNails(this.nails);
-    }
-
-    getTimeColor(time) {
-        const {multicolorStart, darkMode} = this.config;
-
-        return `hsl(${multicolorStart + time * this.multiColorStep}, 80%, ${darkMode ? 50 : 40}%)`;
     }
 
     getStepCount() {

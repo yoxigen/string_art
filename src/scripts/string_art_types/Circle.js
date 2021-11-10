@@ -1,3 +1,5 @@
+import Nails from "../Nails.js";
+
 const PI2 = Math.PI * 2;
 
 export default class Circle {
@@ -21,6 +23,11 @@ export default class Circle {
         ];
     }
 
+    /**
+     * Given a Nails instance, uses it to draw the nails of this Circle
+     * @param {Nails} nails 
+     * @param {{nailsNumberStart?: number, getNumber?: Function}} param1 
+     */
     drawNails(nails, {nailsNumberStart = 0, getNumber} = {}) {
         for (let i=0; i < this.config.n; i++) {
             nails.addNail({point: this.getPoint(i), number: getNumber ? getNumber(i) : i + nailsNumberStart});

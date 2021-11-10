@@ -1,3 +1,4 @@
+import Color from "../helpers/Color.js";
 import StringArt from "../StringArt.js";
 import Circle from "./Circle.js";
 
@@ -67,46 +68,20 @@ export default class Spiral extends StringArt{
             },
             displayValue: ({layerSpread, n}) => Math.round(layerSpread * n)
         },
-        {
-            key: 'colorGroup',
-            label: 'Color',
-            type: 'group',
-            children: [
-                {
-                    key: 'multicolorRange',
-                    label: 'Multicolor range',
-                    defaultValue: 216,
-                    type: "range",
-                    attr: {
-                        min: 1,
-                        max: 360,
-                        step: 1
-                    },
-                },
-                {
-                    key: 'multicolorStart',
-                    label: 'Multicolor start',
-                    defaultValue: 263,
-                    type: "range",
-                    attr: {
-                        min: 0,
-                        max: 360,
-                        step: 1
-                    },
-                },
-                {
-                    key: 'multicolorByLightness',
-                    label: 'Multicolor by lightness',
-                    defaultValue: true,
-                    type: 'checkbox'
-                }
-            ]
-        }
+        Color.getConfig({ defaults: {
+            isMultiColor: true,
+            multicolorRange: 216,
+            multicolorStart: 263,
+            color: "#ffffff",
+            multicolorByLightness: true,
+            minLightness: 10,
+            maxLightness: 90
+        }}),
     ];
 
     setUpDraw() {
         super.setUpDraw();
-        const { n, rotation, layers, multicolorRange, multicolorByLightness, layerSpread } = this.config;
+        const { n, rotation, layers, layerSpread } = this.config;
 
         this.circle = new Circle({
             size: this.size,
@@ -114,8 +89,12 @@ export default class Spiral extends StringArt{
             rotation,
             margin: 20,
         });
-        this.multiColorStep = multicolorRange / layers;
-        this.multiColorLightnessStep = multicolorByLightness ? 100 / layers : 1;
+
+        this.color = new Color({
+            ...this.config,
+            colorCount: layers
+        });
+
         this.layerShift = Math.round(n * layerSpread);
     }
 
@@ -158,17 +137,10 @@ export default class Spiral extends StringArt{
         const { layers } = this.config;
         for(let layer = 0; layer < layers; layer++) {
             yield* this.drawSpiral({ 
-                color: this.getLayerColor(layer), 
+                color: this.color.getColor(layer), 
                 shift: -this.layerShift * layer 
             });
         }
-    }
-
-    getLayerColor(layer) {
-        const {multicolorStart, darkMode, multicolorByLightness} = this.config;
-        const lightness = multicolorByLightness ? this.multiColorLightnessStep * layer : darkMode ? 50 : 40;
-
-        return `hsl(${multicolorStart + layer * this.multiColorStep}, 80%, ${lightness}%)`;
     }
 
     getStepCount() {
