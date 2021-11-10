@@ -24,7 +24,7 @@ const sizeControls = new EditorSizeControls({
 
 let controls;
 
-main();
+window.addEventListener('load', main);
 
 function main() {
     initRouting();
