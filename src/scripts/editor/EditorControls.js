@@ -247,8 +247,10 @@ export default class EditorControls {
         groupTitleEl.innerText = control.label;
         controlEl.appendChild(groupTitleEl);
         controlEl.className = "control control_group";
+        const groupContentsEl = document.createElement('div');
         const childrenContainer = document.createElement('div');
-        controlEl.appendChild(childrenContainer);
+        groupContentsEl.appendChild(childrenContainer);
+        controlEl.appendChild(groupContentsEl);
 
         if (control.defaultValue === "minimized") {
             controlEl.classList.add('minimized');
@@ -313,7 +315,7 @@ export default class EditorControls {
                 }, 100);
             });
 
-            controlEl.appendChild(addChildBtn);
+            groupContentsEl.appendChild(addChildBtn);
         } else {
             this.renderControls({ 
                 containerEl: childrenContainer, 
