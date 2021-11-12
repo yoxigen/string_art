@@ -189,6 +189,10 @@ export default class EditorControls {
                 groupTitleEl.innerText = control.label;
                 controlEl.appendChild(groupTitleEl);
                 controlEl.className = "control control_group";
+                if (control.defaultValue === "minimized") {
+                    controlEl.classList.add('minimized');
+                    this.state.groups[control.key] = false;
+                }
                 const childrenContainer = document.createElement('div');
                 controlEl.appendChild(childrenContainer);
                 this.renderControls(childrenContainer, control.children);

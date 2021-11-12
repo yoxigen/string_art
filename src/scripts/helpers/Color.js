@@ -152,12 +152,7 @@ export default class Color {
     }
    
     static getConfig({ include, exclude, defaults = {}}) {
-        const controls = COLOR_CONTROLS
-            .filter(({key}) => (!exclude || !exclude.includes(key)) && (!include || include.includes(key)))
-            .map(control => ({
-                ...control,
-                defaultValue: defaults[control.key] ?? control.defaultValue,
-            }));
+        const controls = getControls();
 
         return {
             key: 'colorGroup',
@@ -165,5 +160,21 @@ export default class Color {
             type: 'group',
             children: controls
         };
+
+        function getControls(controlsConfig = COLOR_CONTROLS) {
+            return controlsConfig
+                .filter(({key}) => (!exclude || !exclude.includes(key)) && (!include || include.includes(key)))
+                .map(control => {
+                    const finalControl = {
+                        ...control,
+                        defaultValue: defaults[control.key] ?? control.defaultValue
+                    };
+
+                    if (control.type === "group") {
+                        finalControl.children = getControls(control.children);
+                    } 
+                    return Object.freeze(finalControl);
+                });
+        }
     }
 }
