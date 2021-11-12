@@ -250,6 +250,11 @@ export default class EditorControls {
         const childrenContainer = document.createElement('div');
         controlEl.appendChild(childrenContainer);
 
+        if (control.defaultValue === "minimized") {
+            controlEl.classList.add('minimized');
+            this.state.groups[control.key] = false;
+        }
+        
         if (control.addChild) {
             const children = (control.defaultValue ?? [])
                 .map((defaultValue, childIndex) => Object.assign(
