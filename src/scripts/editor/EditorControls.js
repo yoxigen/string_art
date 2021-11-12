@@ -256,7 +256,9 @@ export default class EditorControls {
         }
         
         if (control.addChild) {
-            const children = (control.defaultValue ?? [])
+            const childrenConfig = this.getConfigValueAtPath(configPath) ?? control.defaultValue ?? [];
+
+            const children = childrenConfig
                 .map((defaultValue, childIndex) => Object.assign(
                     control.addChild.getNewChild({ childIndex, defaultValue }),
                     { key: `${control.key}__${childIndex}`}
