@@ -6,17 +6,7 @@ export default class Assymetry extends StringArt{
     id = "assymetry";
     link = "https://www.etsy.com/il-en/listing/1018950430/calming-wall-art-in-light-blue-for";
     controls = [
-        {
-            key: 'n',
-            label: 'Circle nails',
-            defaultValue: 144,
-            type: 'range',
-            attr: {
-                min: 3,
-                max: 300,
-                step: 1
-            }
-        },
+        Circle.nailsConfig,
         Circle.rotationConfig,
         {
             key: 'layers',

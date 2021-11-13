@@ -5,23 +5,16 @@ import Circle from "./Circle.js";
 export default class Spiral extends StringArt{
     id = "spiral";
     name = "Spiral";
-    link = "https://www.etsy.com/il-en/listing/943140543/personalized-gift-string-art-mandala?ref=sim_rv-5&pro=1";
+    link = "https://www.etsy.com/il-en/listing/840974781/boho-wall-decor-artwork-spiral-round";
     controls = [
         {
-            key: 'n',
-            label: 'Number of nails',
-            defaultValue: 200,
-            type: "range",
-            attr: {
-                min: 3,
-                max: 300,
-                step: 1
-            }
+            ...Circle.nailsConfig,
+            defaultValue: 200
         },
         {
             key: 'repetition',
             label: 'Repetition',
-            defaultValue: 1,
+            defaultValue: 5,
             type: "range",
             attr: {
                 min: 1,
@@ -43,62 +36,36 @@ export default class Spiral extends StringArt{
         },
         {
             ...Circle.rotationConfig,
-            defaultValue: 0.5,
+            defaultValue: 0.75,
         },
-        {
-            key: 'layers',
-            label: 'Layers',
-            defaultValue: 11,
-            type: "range",
-            attr: {
-                min: 1,
-                max: 20,
-                step: 1
-            }
-        },
-        {
-            key: 'layerSpread',
-            label: 'Layer spread',
-            defaultValue: 0.075,
-            type: "range",
-            attr: {
-                min: 0,
-                max: 1,
-                step: ({config: {n}}) => 1 / n
+        Color.getConfig({ 
+            defaults: {
+                isMultiColor: false,
+                color: "#00ff7b",
             },
-            displayValue: ({layerSpread, n}) => Math.round(layerSpread * n)
-        },
-        Color.getConfig({ defaults: {
-            isMultiColor: true,
-            multicolorRange: 216,
-            multicolorStart: 263,
-            color: "#ffffff",
-            multicolorByLightness: true,
-            minLightness: 10,
-            maxLightness: 90
-        }}),
+            include: ["color"]
+        }),
     ];
 
     setUpDraw() {
         super.setUpDraw();
-        const { n, rotation, layers, layerSpread } = this.config;
+        const { n, rotation, layers, margin } = this.config;
+        this.layersCount = layers ?? 1;
 
         this.circle = new Circle({
             size: this.size,
             n,
             rotation,
-            margin: 20,
+            margin,
         });
 
         this.color = new Color({
             ...this.config,
-            colorCount: layers
+            colorCount: this.layersCount
         });
-
-        this.layerShift = Math.round(n * layerSpread);
     }
 
-    *drawSpiral({ shift = 0, color = "#f00" } = {}) {
+    *drawSpiral({ shift = 0, color = "#ffffff" } = {}) {
         const {repetition, innerLength, n} = this.config;
 
         let currentInnerLength = Math.round(innerLength * n);
@@ -134,18 +101,14 @@ export default class Spiral extends StringArt{
     }
 
     *generateStrings() {
-        const { layers } = this.config;
-        for(let layer = 0; layer < layers; layer++) {
-            yield* this.drawSpiral({ 
-                color: this.color.getColor(layer), 
-                shift: -this.layerShift * layer 
-            });
-        }
+        yield* this.drawSpiral({ 
+            color: this.color.getColor(0), 
+        });
     }
 
     getStepCount() {
-        const {innerLength, repetition, layers, n} = this.config;
-        return layers * Math.round(innerLength * n) * repetition;
+        const {innerLength, repetition, n} = this.config;
+        return this.layersCount * Math.round(innerLength * n) * repetition;
     }
 
     drawNails() {

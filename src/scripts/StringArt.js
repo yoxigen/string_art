@@ -7,8 +7,8 @@ const COLORS = {
 
 const COMMON_CONFIG_CONTROLS = [
     {
-        key: 'general',
-        label: 'General',
+        key: 'strings',
+        label: 'Strings',
         type: 'group',
         defaultValue: 'minimized',
         children: [
@@ -31,18 +31,6 @@ const COMMON_CONFIG_CONTROLS = [
                 },
                 show: ({showStrings}) => showStrings
             },
-            {
-                key: 'margin',
-                label: 'Margin',
-                defaultValue: 20,
-                type: "number",
-                attr: {
-                    min: 0,
-                    max: 500,
-                    step: 1
-                },
-                displayValue: ({margin}) => `${margin}px`
-            }
         ]
     },
     {
@@ -57,6 +45,18 @@ const COMMON_CONFIG_CONTROLS = [
                 defaultValue: true,
                 type: "checkbox",
                 isDisabled: ({showStrings}) => !showStrings
+            },
+            {
+                key: 'margin',
+                label: 'Margin',
+                defaultValue: 20,
+                type: "number",
+                attr: {
+                    min: 0,
+                    max: 500,
+                    step: 1
+                },
+                displayValue: ({margin}) => `${margin}px`
             },
             {
                 key: 'nailRadius',

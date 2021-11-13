@@ -34,7 +34,7 @@ export default class Circle {
         }
     }
 
-    static rotationConfig = {
+    static rotationConfig = Object.freeze({
         key: 'rotation',
         label: 'Rotation',
         defaultValue: 0,
@@ -45,5 +45,17 @@ export default class Circle {
             step: 1 / 360,
         },
         displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`
-    };
+    });
+
+    static nailsConfig = Object.freeze({
+        key: 'n',
+        label: 'Number of nails',
+        defaultValue: 144,
+        type: "range",
+        attr: {
+            min: 3,
+            max: 300,
+            step: 1
+        }
+    });
 }
