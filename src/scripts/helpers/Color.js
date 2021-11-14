@@ -151,6 +151,15 @@ export default class Color {
         return this.colors[colorIndex];
     }
    
+    getColorMap({ stepCount, colorCount}) {
+        const stepsPerColor = Math.floor(stepCount / colorCount);
+        const colorMap = new Map();
+        for (let i = 0; i < colorCount; i++) {
+            colorMap.set(i * stepsPerColor, this.getColor(i))
+        }
+        return colorMap;
+    }
+
     static getConfig({ include, exclude, defaults = {}}) {
         const controls = getControls();
 

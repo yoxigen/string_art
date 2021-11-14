@@ -84,12 +84,7 @@ export default class Spiral extends StringArt{
         });
 
         if (colorCount) {
-            const stepCount = this.getStepCount();
-            const stepsPerColor = Math.floor(stepCount / colorCount);
-            this.colorsMap = new Map();
-            for (let i = 0; i < colorCount; i++) {
-                this.colorsMap.set(i * stepsPerColor, this.color.getColor(i))
-            }
+            this.colorsMap = this.color.getColorMap({ stepCount: this.getStepCount(), colorCount });
         }
     }
 
