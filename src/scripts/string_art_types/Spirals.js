@@ -112,8 +112,8 @@ class Spirals extends StringArt{
     }
 
     getStepCount() {
-        const { nSpirals, radiusIncrease } = this.config;
-        const maxRadius = Math.min(...this.getSize());
+        const { nSpirals, radiusIncrease, margin } = this.config;
+        const maxRadius = Math.min(...this.getSize()) / 2 - margin;
         const n = Math.floor(maxRadius / radiusIncrease);
         return n * nSpirals;
     }
