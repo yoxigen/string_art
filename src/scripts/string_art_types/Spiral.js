@@ -2,9 +2,10 @@ import Color from "../helpers/Color.js";
 import StringArt from "../StringArt.js";
 import Circle from "./Circle.js";
 
-const COLOR_CONFIG = Color.getConfig({ 
+const COLOR_CONFIG = Color.getConfig({
     defaults: {
         isMultiColor: true,
+        colorCount: 7,
         color: "#ffbb29",
         multicolorRange: "21",
         multicolorStart: 32,
@@ -12,19 +13,6 @@ const COLOR_CONFIG = Color.getConfig({
         minLightness: 36,
         maxLightness: 98
     },
-});
-
-COLOR_CONFIG.children.splice(COLOR_CONFIG.children.findIndex(({key}) => key === 'isMultiColor'), 0, {
-    key: 'colorCount',
-    label: 'Colors count',
-    defaultValue: 7,
-    type: "range",
-    attr: {
-        min: 1,
-        max: 20,
-        step: 1,
-    },
-    show: ({isMultiColor}) => isMultiColor
 });
 
 export default class Spiral extends StringArt{
@@ -84,12 +72,12 @@ export default class Spiral extends StringArt{
         });
 
         if (colorCount) {
-            this.colorsMap = this.color.getColorMap({ stepCount: this.getStepCount(), colorCount });
+            this.colorMap = this.color.getColorMap({ stepCount: this.getStepCount(), colorCount });
         }
     }
 
     *drawSpiral({ shift = 0, color = "#ffffff" } = {}) {
-        const {repetition, innerLength, n, colorCount} = this.config;
+        const {repetition, innerLength, n} = this.config;
 
         let currentInnerLength = Math.round(innerLength * n);
         let repetitionCount = 0;
@@ -98,13 +86,13 @@ export default class Spiral extends StringArt{
         let isPrevPoint = false;
 
         for(let i=0; currentInnerLength > 0; i++) {
-            if (this.colorsMap) {
-                const stepColor = this.colorsMap.get(i);
+            if (this.colorMap) {
+                const stepColor = this.colorMap.get(i);
                 if (stepColor) {
                     this.ctx.strokeStyle = stepColor;
                 }
             }
-            
+
             this.ctx.beginPath();
             this.ctx.moveTo(...prevPoint);
             const nextPointIndex = isPrevPoint ? i + shift : i + currentInnerLength + shift;
@@ -127,12 +115,12 @@ export default class Spiral extends StringArt{
             yield i;
             isPrevPoint = !isPrevPoint;
         }
-      
+
     }
 
     *generateStrings() {
-        yield* this.drawSpiral({ 
-            color: this.color.getColor(0), 
+        yield* this.drawSpiral({
+            color: this.color.getColor(0),
         });
     }
 

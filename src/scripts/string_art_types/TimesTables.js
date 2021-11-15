@@ -43,12 +43,15 @@ export default class TimesTables extends StringArt{
             }
         },
         Circle.rotationConfig,
-        Color.getConfig({ defaults: {
-            isMultiColor: true,
-            multicolorRange: 180,
-            multicolorStart: 256,
-            color: "#ff4d00"
-        }}),
+        Color.getConfig({
+            defaults: {
+                isMultiColor: true,
+                multicolorRange: 180,
+                multicolorStart: 256,
+                color: "#ff4d00"
+            },
+            exclude: ["colorCount"]
+        }),
     ];
 
     get n() {
@@ -72,7 +75,7 @@ export default class TimesTables extends StringArt{
             margin: MARGIN,
             rotation,
         });
-        
+
         this.color = new Color({
             ...this.config,
             colorCount: layers,
@@ -97,7 +100,7 @@ export default class TimesTables extends StringArt{
             this.ctx.lineTo(...this.circle.getPoint(toIndex + shift));
             this.ctx.strokeStyle = color;
             this.ctx.stroke();
-            
+
             yield { instructions: `${i - 1} → ${i} → ${toIndex} → ${i}`, index: time * n + i };
         }
     }
@@ -107,9 +110,9 @@ export default class TimesTables extends StringArt{
 
         for(let time = 0; time < layers; time++) {
             const color = this.color.getColor(time);
-            yield* this.drawTimesTable({ 
+            yield* this.drawTimesTable({
                 time,
-                color, 
+                color,
                 shift: this.layerShift * time,
             });
         }
@@ -123,4 +126,3 @@ export default class TimesTables extends StringArt{
         return this.config.layers * this.n;
     }
 }
-            

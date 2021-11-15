@@ -62,15 +62,18 @@ export default class Wave extends Spiral{
             },
             displayValue: ({layerSpread, n}) => Math.round(layerSpread * n)
         },
-        Color.getConfig({ defaults: {
-            isMultiColor: true,
-            multicolorRange: 216,
-            multicolorStart: 263,
-            color: "#ffffff",
-            multicolorByLightness: true,
-            minLightness: 10,
-            maxLightness: 90
-        }}),
+        Color.getConfig({
+            defaults: {
+                isMultiColor: true,
+                multicolorRange: 216,
+                multicolorStart: 263,
+                color: "#ffffff",
+                multicolorByLightness: true,
+                minLightness: 10,
+                maxLightness: 90
+            },
+            exclude: ["colorCount"]
+        }),
     ];
 
     setUpDraw() {
@@ -81,9 +84,9 @@ export default class Wave extends Spiral{
 
     *generateStrings() {
         for(let layer = 0; layer < this.layersCount; layer++) {
-            yield* this.drawSpiral({ 
-                color: this.color.getColor(layer), 
-                shift: -this.layerShift * layer 
+            yield* this.drawSpiral({
+                color: this.color.getColor(layer),
+                shift: -this.layerShift * layer
             });
         }
     }

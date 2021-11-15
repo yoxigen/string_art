@@ -1,5 +1,11 @@
 const COLOR_CONTROLS = [
     {
+        key: 'isMultiColor',
+        label: 'Use multiple colors',
+        defaultValue: false,
+        type: "checkbox",
+    },
+    {
         key: 'color',
         label: 'String color',
         defaultValue: "#ff4d00",
@@ -7,10 +13,16 @@ const COLOR_CONTROLS = [
         show: ({isMultiColor}) => !isMultiColor
     },
     {
-        key: 'isMultiColor',
-        label: 'Use multiple colors',
-        defaultValue: false,
-        type: "checkbox",
+        key: 'colorCount',
+        label: 'Colors count',
+        defaultValue: 7,
+        type: "range",
+        attr: {
+            min: 1,
+            max: 20,
+            step: 1,
+        },
+        show: ({isMultiColor}) => isMultiColor
     },
     {
         key: 'multicolorRange',
@@ -112,7 +124,7 @@ export default class Color {
             reverseColors,
             isMultiColor,
         } = config;
-        
+
         if (isMultiColor) {
             this.multiColorStep = multicolorRange / colorCount;
             this.multiColorLightnessStep = multicolorByLightness ? (maxLightness - minLightness) / colorCount : 1;
@@ -129,8 +141,8 @@ export default class Color {
     }
 
     /**
-     * Returns the color to be used in the provided layer index. If no multiColor is used, will use the 'color' config property. 
-     * @param {number} colorIndex 
+     * Returns the color to be used in the provided layer index. If no multiColor is used, will use the 'color' config property.
+     * @param {number} colorIndex
      * @returns string
      */
     getColor(colorIndex) {
@@ -139,7 +151,7 @@ export default class Color {
             colorCount,
             color,
         } = this.config;
-    
+
         if (!isMultiColor) {
             return color;
         }
@@ -150,7 +162,7 @@ export default class Color {
 
         return this.colors[colorIndex];
     }
-   
+
     getColorMap({ stepCount, colorCount}) {
         const stepsPerColor = Math.floor(stepCount / colorCount);
         const colorMap = new Map();
@@ -181,7 +193,7 @@ export default class Color {
 
                     if (control.type === "group") {
                         finalControl.children = getControls(control.children);
-                    } 
+                    }
                     return Object.freeze(finalControl);
                 });
         }

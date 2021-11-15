@@ -1,5 +1,6 @@
 import StringArt from "../StringArt.js";
 import Circle from './Circle.js';
+import Color from '../helpers/Color.js';
 
 class Spirals extends StringArt{
     name = "Spirals";
@@ -9,7 +10,7 @@ class Spirals extends StringArt{
         {
             key: 'radiusIncrease',
             label: 'Radius change',
-            defaultValue: 3.2,
+            defaultValue: 5.7,
             type: "range",
             attr: {
                 min: 1,
@@ -20,7 +21,7 @@ class Spirals extends StringArt{
         {
             key: 'angleStep',
             label: 'Angle step',
-            defaultValue: 0.27,
+            defaultValue: 0.45,
             type: "range",
             attr: {
                 min: 0,
@@ -43,18 +44,25 @@ class Spirals extends StringArt{
             ...Circle.rotationConfig,
             defaultValue: 330/360
         },
-        {
-            key: 'color',
-            label: 'String color',
-            defaultValue: "#00ddff",
-            type: "color",
-        }
+        Color.getConfig({
+            defaults: {
+                isMultiColor: true,
+                colorCount: 4,
+                color: "#00d5ff",
+                multicolorRange: 1,
+                multicolorStart: 190,
+                multicolorByLightness: true,
+                minLightness: 50,
+                maxLightness: 88,
+                reverseColors: true,
+            },
+        })
     ];
-    
+
     setUpDraw() {
         super.setUpDraw();
 
-        const {nSpirals, rotation, margin, radiusIncrease, angleStep} = this.config;
+        const {nSpirals, rotation, margin, radiusIncrease, angleStep, colorCount} = this.config;
         const PI2 = Math.PI * 2;
 
         this.spiralRotations = new Array(nSpirals).fill(null).map((_, i) => i * PI2 / nSpirals);
@@ -62,13 +70,15 @@ class Spirals extends StringArt{
         const maxRadius = Math.min(...this.size) / 2 - margin;
         this.nailsPerSpiral = Math.floor(maxRadius / radiusIncrease);
         this.angleIncrease = angleStep / (maxRadius / 50);
+        this.color = new Color(this.config);
+        this.colorMap = this.color.getColorMap({ stepCount: this.getStepCount(), colorCount });
     }
 
     *generatePoints() {
         const {
             nSpirals
         } = this.config;
-      
+
         for (let i = 0; i < this.nailsPerSpiral; i++) {
             for (let s = 0; s < nSpirals; s++) {
                 const point = this.getPoint(s, i);
@@ -95,11 +105,18 @@ class Spirals extends StringArt{
         let index = 0;
         this.ctx.beginPath();
         this.ctx.moveTo(...this.center);
-        this.ctx.strokeStyle = this.config.color;
+        this.ctx.strokeStyle = this.color.getColor(0);
 
         let lastPoint;
 
         for (const {point} of points) {
+            if (this.colorMap) {
+                const stepColor = this.colorMap.get(index);
+                if (stepColor) {
+                    this.ctx.strokeStyle = stepColor;
+                }
+            }
+
             this.ctx.beginPath();
             if (lastPoint) {
                 this.ctx.moveTo(...lastPoint);
