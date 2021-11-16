@@ -9,6 +9,7 @@ const elements = {
     patternLink: document.querySelector("#pattern_link"),
     downloadBtn: document.querySelector("#download_btn"),
     downloadNailsBtn: document.querySelector("#download_nails_btn"),
+    resetBtn: document.querySelector("#reset_btn"),
 };
 
 const patterns = patternTypes.map(Pattern => new Pattern(elements.canvas));
@@ -55,6 +56,7 @@ function main() {
 
     elements.downloadBtn.addEventListener('click', downloadCanvas);
     elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
+    elements.resetBtn.addEventListener('click', reset);
 }
 
 function downloadCanvas() {
@@ -78,13 +80,17 @@ function downloadNailsImage() {
     downloadCanvas();
 }
 
-function onInputsChange() {
+function reset() {
+    setCurrentPattern(currentPattern, { config: {}});
+}
+
+function onInputsChange({ withConfig = true} = {}) {
     player.update(currentPattern);
-    const configQuery = JSON.stringify(currentPattern.config);
+    const configQuery = withConfig ? JSON.stringify(currentPattern.config) : null;
     history.replaceState({
         pattern: currentPattern.id,
         config: configQuery
-    }, currentPattern.name, `?pattern=${currentPattern.id}&config=${encodeURIComponent(configQuery)}`);
+    }, currentPattern.name, `?pattern=${currentPattern.id}${withConfig ? `config=${encodeURIComponent(configQuery)}` : ''}`);
 }
 
 function initControls() {
@@ -97,9 +103,13 @@ function initControls() {
 
     elements.patternSelector.addEventListener('change', e => {
         const patternId = e.target.value;
-        selectPattern(findPatternById(patternId));
-        history.pushState({ pattern: patternId }, patternId, "?pattern=" + patternId)
+        setCurrentPattern(findPatternById(patternId));
     });
+}
+
+function setCurrentPattern(pattern, setPatternOptions) {
+    selectPattern(pattern, setPatternOptions);
+    history.pushState({ pattern: pattern.id }, pattern.name, "?pattern=" + pattern.id)
 }
 
 function initSize() {
@@ -133,7 +143,7 @@ function updateState(state) {
     elements.patternSelector.value = pattern.id;
     selectPattern(pattern, {
         draw: false,
-        config: state.config ? JSON.parse(state.config) : null
+        config: state.config ? JSON.parse(state.config) : {}
     });
 
     currentPattern.draw();
