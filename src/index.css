@@ -36,7 +36,7 @@ main {
 
 form {
     padding: 16px;
-    background: #2a2a2a;
+    background: #212124;
     border-right: solid 1px #3a3a3a;
     box-shadow: 1px 0 0px black;
     max-height: 100%;
@@ -207,6 +207,7 @@ label {
 
 .control {
     margin-top: 16px;
+    position: relative;
 }
 
 form label{
@@ -275,7 +276,13 @@ fieldset.minimized > legend::before {
 }
 
 input[type="range"] {
-    width: calc(100% - 50px)
+    width: 100%;
+}
+
+input[type="range"] + .control_input_value {
+    position: absolute;
+    right: 0;
+    top: 2px;
 }
 
 input[type="number"], input[type="text"] {

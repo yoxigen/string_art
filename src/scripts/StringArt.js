@@ -1,7 +1,7 @@
 import Nails from "./Nails.js";
 
 const COLORS = {
-    dark: "#171717",
+    dark: "#0e0e0e",
     light: "#ffffff"
 };
 
