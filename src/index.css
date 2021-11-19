@@ -156,6 +156,20 @@ a:hover {
     background: #3592ff;
 }
 
+.btn_subdued {
+    background: #c5c5c5;
+    color: Black;
+}
+
+.btn_subdued:hover {
+    background: #efefef;
+    color: Black;
+}
+
+.margin-top {
+    margin-top: 16px;
+}
+
 @media only screen and (max-width: 600px) {
     main {
         grid-template-columns: 1fr;
