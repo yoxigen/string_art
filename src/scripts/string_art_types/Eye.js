@@ -22,22 +22,14 @@ class Eye extends StringArt {
       label: 'Number of nails per side',
       defaultValue: 82,
       type: 'range',
-      attr: {
-        min: 2,
-        max: 200,
-        step: 1,
-      },
+      attr: { min: 2, max: 200, step: 1 },
     },
     {
       key: 'layers',
       label: 'Layers',
       defaultValue: 13,
       type: 'range',
-      attr: {
-        min: 1,
-        max: 20,
-        step: 1,
-      },
+      attr: { min: 1, max: 20, step: 1 },
     },
     {
       key: 'angle',
@@ -45,11 +37,7 @@ class Eye extends StringArt {
       defaultValue: 30,
       displayValue: ({ angle }) => `${angle}°`,
       type: 'range',
-      attr: {
-        min: 0,
-        max: 45,
-        step: 1,
-      },
+      attr: { min: 0, max: 45, step: 1 },
     },
     {
       key: 'color',

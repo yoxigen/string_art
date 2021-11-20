@@ -15,33 +15,21 @@ export default class TimesTables extends StringArt {
       label: 'Number of nails',
       defaultValue: 180,
       type: 'range',
-      attr: {
-        min: 3,
-        max: 240,
-        step: 1,
-      },
+      attr: { min: 3, max: 240, step: 1 },
     },
     {
       key: 'base',
       label: 'Multiplication',
       defaultValue: 2,
       type: 'range',
-      attr: {
-        min: 2,
-        max: 99,
-        step: 1,
-      },
+      attr: { min: 2, max: 99, step: 1 },
     },
     {
       key: 'layers',
       label: 'Layers',
       defaultValue: 7,
       type: 'range',
-      attr: {
-        min: 1,
-        max: 20,
-        step: 1,
-      },
+      attr: { min: 1, max: 20, step: 1 },
     },
     Circle.rotationConfig,
     Color.getConfig({

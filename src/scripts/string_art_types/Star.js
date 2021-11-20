@@ -12,22 +12,14 @@ export default class Star extends StringArt {
       label: 'Sides',
       defaultValue: 3,
       type: 'range',
-      attr: {
-        min: 3,
-        max: 20,
-        step: 1,
-      },
+      attr: { min: 3, max: 20, step: 1 },
     },
     {
       key: 'sideNails',
       label: 'Nails per side',
       defaultValue: 40,
       type: 'range',
-      attr: {
-        min: 1,
-        max: 200,
-        step: 1,
-      },
+      attr: { min: 1, max: 200, step: 1 },
     },
     Circle.rotationConfig,
     {

@@ -12,22 +12,14 @@ export default class Circles extends StringArt {
       label: 'Circle nails',
       defaultValue: 80,
       type: 'range',
-      attr: {
-        min: 1,
-        max: 300,
-        step: 1,
-      },
+      attr: { min: 1, max: 300, step: 1 },
     },
     {
       key: 'minNailDistance',
       label: 'Min nail distance',
       defaultValue: 20,
       type: 'range',
-      attr: {
-        min: 1,
-        max: 300,
-        step: 1,
-      },
+      attr: { min: 1, max: 300, step: 1 },
     },
     {
       key: 'color',
@@ -56,11 +48,7 @@ export default class Circles extends StringArt {
               label: 'Radius',
               defaultValue: 0.5,
               type: 'range',
-              attr: {
-                min: 0.01,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0.01, max: 1, step: 0.01 },
               show: ({ show1 }) => show1,
             },
             {
@@ -68,11 +56,7 @@ export default class Circles extends StringArt {
               label: 'Position X',
               defaultValue: 0.5,
               type: 'range',
-              attr: {
-                min: 0,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show1 }) => show1,
             },
             {
@@ -80,11 +64,7 @@ export default class Circles extends StringArt {
               label: 'Position Y',
               defaultValue: 0,
               type: 'range',
-              attr: {
-                min: 0,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show1 }) => show1,
             },
             {
@@ -117,11 +97,7 @@ export default class Circles extends StringArt {
               label: 'Radius',
               defaultValue: 0.5,
               type: 'range',
-              attr: {
-                min: 0.01,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0.01, max: 1, step: 0.01 },
               show: ({ show2 }) => show2,
             },
             {
@@ -129,11 +105,7 @@ export default class Circles extends StringArt {
               label: 'Position X',
               defaultValue: 0,
               type: 'range',
-              attr: {
-                min: 0,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show2 }) => show2,
             },
             {
@@ -141,11 +113,7 @@ export default class Circles extends StringArt {
               label: 'Position Y',
               defaultValue: 1,
               type: 'range',
-              attr: {
-                min: 0,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show2 }) => show2,
             },
             {
@@ -178,11 +146,7 @@ export default class Circles extends StringArt {
               label: 'Radius',
               defaultValue: 0.5,
               type: 'range',
-              attr: {
-                min: 0.01,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0.01, max: 1, step: 0.01 },
               show: ({ show3 }) => show3,
             },
             {
@@ -190,11 +154,7 @@ export default class Circles extends StringArt {
               label: 'Position X',
               defaultValue: 1,
               type: 'range',
-              attr: {
-                min: 0,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show3 }) => show3,
             },
             {
@@ -202,11 +162,7 @@ export default class Circles extends StringArt {
               label: 'Position Y',
               defaultValue: 1,
               type: 'range',
-              attr: {
-                min: 0,
-                max: 1,
-                step: 0.01,
-              },
+              attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show3 }) => show3,
             },
             {

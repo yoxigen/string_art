@@ -13,33 +13,21 @@ class Spirals extends StringArt {
       label: 'Radius change',
       defaultValue: 5.7,
       type: 'range',
-      attr: {
-        min: 1,
-        max: 20,
-        step: 0.1,
-      },
+      attr: { min: 1, max: 20, step: 0.1 },
     },
     {
       key: 'angleStep',
       label: 'Angle step',
       defaultValue: 0.45,
       type: 'range',
-      attr: {
-        min: 0,
-        max: 1,
-        step: 0.01,
-      },
+      attr: { min: 0, max: 1, step: 0.01 },
     },
     {
       key: 'nSpirals',
       label: 'Number of spirals',
       defaultValue: 3,
       type: 'range',
-      attr: {
-        min: 1,
-        max: 20,
-        step: 1,
-      },
+      attr: { min: 1, max: 20, step: 1 },
     },
     {
       ...Circle.rotationConfig,

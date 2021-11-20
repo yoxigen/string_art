@@ -24,11 +24,7 @@ const COMMON_CONFIG_CONTROLS = [
         label: 'String width',
         defaultValue: 1,
         type: 'range',
-        attr: {
-          min: 0.2,
-          max: 4,
-          step: 0.2,
-        },
+        attr: { min: 0.2, max: 4, step: 0.2 },
         show: ({ showStrings }) => showStrings,
       },
     ],
@@ -51,11 +47,7 @@ const COMMON_CONFIG_CONTROLS = [
         label: 'Margin',
         defaultValue: 20,
         type: 'number',
-        attr: {
-          min: 0,
-          max: 500,
-          step: 1,
-        },
+        attr: { min: 0, max: 500, step: 1 },
         displayValue: ({ margin }) => `${margin}px`,
       },
       {
@@ -63,11 +55,7 @@ const COMMON_CONFIG_CONTROLS = [
         label: 'Nail size',
         defaultValue: 1.5,
         type: 'range',
-        attr: {
-          min: 0.5,
-          max: 5,
-          step: 0.25,
-        },
+        attr: { min: 0.5, max: 5, step: 0.25 },
         show: ({ showNails }) => showNails,
       },
       {
@@ -88,11 +76,7 @@ const COMMON_CONFIG_CONTROLS = [
         label: 'Nail numbers font size',
         defaultValue: 10,
         type: 'range',
-        attr: {
-          min: 6,
-          max: 24,
-          step: 0.5,
-        },
+        attr: { min: 6, max: 24, step: 0.5 },
         displayValue: ({ nailNumbersFontSize }) => `${nailNumbersFontSize}px`,
         show: ({ showNails, showNailNumbers }) => showNails && showNailNumbers,
       },
