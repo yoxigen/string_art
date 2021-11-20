@@ -80,11 +80,13 @@ class Eye extends StringArt{
     setUpDraw() {
         super.setUpDraw();
 
-        const { n, angle } = this.config;
+        const { n, angle, layers } = this.config;
 
         this.maxSize = Math.min(...this.size) - 2 * MARGIN;
         this.nailSpacing = this.maxSize / (n - 1);
         this.layerAngle = angle * Math.PI / 180;
+
+        this.layers = new Array(layers).fill(null).map((_, layerIndex) => this._getLayerProps(layerIndex));
     }
 
     // Sides: top, right, bottom, left
@@ -155,7 +157,7 @@ class Eye extends StringArt{
     *drawLayer(layerIndex) {
         const {
             colors, layerAngle, layerSize, layerStart, layerStringCount
-        } = this._getLayerProps(layerIndex);
+        } = this.layers[layerIndex];
 
         for (let i = 0; i < SIDES.length; i++) {
             yield* this.drawSide({ 
@@ -196,7 +198,7 @@ class Eye extends StringArt{
         for(let layer = layers - 1; layer >= 0; layer--) {
             const {
                 layerAngle: angle, layerSize: size, layerStart, layerStringCount
-            } = this._getLayerProps(layer);
+            } = this.layers[layer];
 
             for (let s = 0; s < SIDES.length; s++) {
                 const sideOrder = SIDES_ORDER[s];
