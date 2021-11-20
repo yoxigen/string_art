@@ -1,90 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>String Art Studio</title>
-        <link type="text/css" rel="stylesheet" href="index.css" />
-        <script type="module" src="scripts/main.js"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="favicon/favicon-16.png" sizes="16x16">
-        <link rel="icon" type="image/png" href="favicon/favicon-32.png" sizes="32x32">
-        <link rel="icon" type="image/png" href="favicon/favicon-96.png" sizes="96x96">
-        <link rel="apple-touch-icon-precomposed" type="image/png" href="favicon/favicon-152.png" sizes="152x152">
-        <link rel="icon" type="image/png" href="favicon/favicon-196.png" sizes="196x196">
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"></script>
-        <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
+  <head>
+    <title>String Art Studio</title>
+    <link type="text/css" rel="stylesheet" href="index.css" />
+    <script type="module" src="scripts/main.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="favicon/favicon-16.png"
+      sizes="16x16"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="favicon/favicon-32.png"
+      sizes="32x32"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="favicon/favicon-96.png"
+      sizes="96x96"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      type="image/png"
+      href="favicon/favicon-152.png"
+      sizes="152x152"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="favicon/favicon-196.png"
+      sizes="196x196"
+    />
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
 
-        gtag('config', 'G-1QTWZCWLPY');
-        </script>
-    </head>
-    <body>
-        <main>
-            <form id="sidebar_form" class="noprint">
-                <header>
-                    <h1>String Art Studio</h1>
-                    <div>
-                        <a href="https://github.com/yoxigen/string_art" target="_blank" title="View code on GitHub">
-                            <img src="GitHub-Mark-Light-120px-plus.png" alt="Github" style="width: 20px; height: 20px" />
-                        </a>
-                    </div>
-                </header>
-                <label for="pattern_select">Pattern</label>
-                <select id="pattern_select"></select>
-                <a id="pattern_link" target="_blank" title="View original which inspired this pattern">🔗 View example</a>
-                <div id="controls">
+      gtag('config', 'G-1QTWZCWLPY');
+    </script>
+  </head>
+  <body>
+    <main>
+      <form id="sidebar_form" class="noprint">
+        <header>
+          <h1>String Art Studio</h1>
+          <div>
+            <a
+              href="https://github.com/yoxigen/string_art"
+              target="_blank"
+              title="View code on GitHub"
+            >
+              <img
+                src="GitHub-Mark-Light-120px-plus.png"
+                alt="Github"
+                style="width: 20px; height: 20px"
+              />
+            </a>
+          </div>
+        </header>
+        <label for="pattern_select">Pattern</label>
+        <select id="pattern_select"></select>
+        <a
+          id="pattern_link"
+          target="_blank"
+          title="View original which inspired this pattern"
+          >🔗 View example</a
+        >
+        <div id="controls"></div>
+        <div id="size_controls">
+          <fieldset class="minimized" data-group="size">
+            <legend tabindex="0">Size & Download</legend>
+            <div>
+              <select id="size_select"></select>
+              <select id="size_orientation_select" hidden>
+                <option value="vertical">Vertical</option>
+                <option value="horizontal">Horizontal</option>
+              </select>
+              <div id="size_custom" hidden>
+                <div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Width"
+                    id="size_custom_width"
+                  />
                 </div>
-                <div id="size_controls">
-                    <fieldset class="minimized" data-group="size">
-                        <legend tabindex="0">Size & Download</legend>
-                        <div>
-                            <select id="size_select"></select>
-                            <select id="size_orientation_select" hidden>
-                                <option value="vertical">Vertical</option>
-                                <option value="horizontal">Horizontal</option>
-                            </select>
-                            <div id="size_custom" hidden>
-                                <div>
-                                    <input type="number" min="0" placeholder="Width" id="size_custom_width" />
-                                </div>
-                                <span>x</span>
-                                <div>
-                                    <input type="number" min="0" placeholder="Height" id="size_custom_height" />
-                                </div>
-                            </div>
-                            <button id="download_btn" class="btn">💾 Download image</button>
-                            <button id="download_nails_btn" class="btn">🔨 Download nails map</button>
-                        </div>
-                    </fieldset>
+                <span>x</span>
+                <div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Height"
+                    id="size_custom_height"
+                  />
                 </div>
-                <div class="margin-top">
-                    <button type="button" id="reset_btn" class="btn btn_subdued" title="Reset config to default">↻ Reset to defaults</button>
-                </div>
-            </form>
-            <article id="art">
-                <canvas></canvas>
-            </article>
-            <nav id="player" class="noprint">
-                <div id="player_track">
-                    <input id="player_position" type="range" min="1" step="1" />
-                </div>
-                <div id="player_controls">
-                    <div id="player_buttons">
-                        <button id="play_btn" class="player_btn">
-                            <img src="images/play.svg" alt="Play" />
-                        </button>
-                        <button id="pause_btn" class="player_btn">
-                            <img src="images/pause.svg" alt="Play" />
-                        </button>
-                    </div>
-                    <div id="player_text">
-                        <span id="step">0/0</span>
-                        <span id="step_instructions"></span>
-                    </div>
-                </div>
-            </nav>
-        </main>
-    </body>
+              </div>
+              <button id="download_btn" class="btn">💾 Download image</button>
+              <button id="download_nails_btn" class="btn">
+                🔨 Download nails map
+              </button>
+            </div>
+          </fieldset>
+        </div>
+        <div class="margin-top">
+          <button
+            type="button"
+            id="reset_btn"
+            class="btn btn_subdued"
+            title="Reset config to default"
+          >
+            ↻ Reset to defaults
+          </button>
+        </div>
+      </form>
+      <article id="art">
+        <canvas></canvas>
+      </article>
+      <nav id="player" class="noprint">
+        <div id="player_track">
+          <input id="player_position" type="range" min="1" step="1" />
+        </div>
+        <div id="player_controls">
+          <div id="player_buttons">
+            <button id="play_btn" class="player_btn">
+              <img src="images/play.svg" alt="Play" />
+            </button>
+            <button id="pause_btn" class="player_btn">
+              <img src="images/pause.svg" alt="Play" />
+            </button>
+          </div>
+          <div id="player_text">
+            <span id="step">0/0</span>
+            <span id="step_instructions"></span>
+          </div>
+        </div>
+      </nav>
+    </main>
+  </body>
 </html>

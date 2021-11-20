@@ -27,7 +27,8 @@
   },
   "homepage": "https://github.com/yoxigen/string_art#readme",
   "devDependencies": {
-    "parcel": "^2.0.0"
+    "parcel": "^2.0.0",
+    "prettier": "2.4.1"
   },
   "targets": {
     "default": {

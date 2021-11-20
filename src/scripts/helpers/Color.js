@@ -1,201 +1,211 @@
 const COLOR_CONTROLS = [
-    {
-        key: 'isMultiColor',
-        label: 'Use multiple colors',
+  {
+    key: 'isMultiColor',
+    label: 'Use multiple colors',
+    defaultValue: false,
+    type: 'checkbox',
+  },
+  {
+    key: 'color',
+    label: 'String color',
+    defaultValue: '#ff4d00',
+    type: 'color',
+    show: ({ isMultiColor }) => !isMultiColor,
+  },
+  {
+    key: 'colorCount',
+    label: 'Colors count',
+    defaultValue: 7,
+    type: 'range',
+    attr: {
+      min: 1,
+      max: 20,
+      step: 1,
+    },
+    show: ({ isMultiColor }) => isMultiColor,
+  },
+  {
+    key: 'multicolorRange',
+    label: 'Multicolor range',
+    defaultValue: 360,
+    type: 'range',
+    attr: {
+      min: 1,
+      max: 360,
+      step: 1,
+    },
+    show: ({ isMultiColor }) => isMultiColor,
+  },
+  {
+    key: 'multicolorStart',
+    label: 'Multicolor start',
+    defaultValue: 0,
+    type: 'range',
+    attr: {
+      min: 0,
+      max: 360,
+      step: 1,
+    },
+    show: ({ isMultiColor }) => isMultiColor,
+  },
+  {
+    key: 'reverseColors',
+    label: 'Reverse colors order',
+    defaultValue: false,
+    type: 'checkbox',
+    show: ({ isMultiColor }) => isMultiColor,
+  },
+  {
+    key: 'saturation',
+    label: 'Saturation',
+    defaultValue: 100,
+    type: 'range',
+    attr: {
+      min: 0,
+      max: 100,
+      step: 1,
+    },
+    show: ({ isMultiColor }) => isMultiColor,
+  },
+  {
+    key: 'lightness',
+    label: 'Lightness',
+    type: 'group',
+    defaultValue: 'minimized',
+    show: ({ isMultiColor }) => isMultiColor,
+    children: [
+      {
+        key: 'multicolorByLightness',
+        label: 'Multi lightness',
         defaultValue: false,
-        type: "checkbox",
-    },
-    {
-        key: 'color',
-        label: 'String color',
-        defaultValue: "#ff4d00",
-        type: "color",
-        show: ({isMultiColor}) => !isMultiColor
-    },
-    {
-        key: 'colorCount',
-        label: 'Colors count',
-        defaultValue: 7,
-        type: "range",
+        type: 'checkbox',
+        show: ({ isMultiColor }) => isMultiColor,
+      },
+      {
+        key: 'minLightness',
+        label: 'Minimum lightness',
+        defaultValue: 0,
+        type: 'range',
         attr: {
-            min: 1,
-            max: 20,
-            step: 1,
+          min: 0,
+          max: 100,
+          step: 1,
         },
-        show: ({isMultiColor}) => isMultiColor
-    },
-    {
-        key: 'multicolorRange',
-        label: 'Multicolor range',
-        defaultValue: 360,
-        type: "range",
-        attr: {
-            min: 1,
-            max: 360,
-            step: 1
-        },
-        show: ({isMultiColor}) => isMultiColor
-    },
-    {
-        key: 'multicolorStart',
-        label: 'Multicolor start',
-        defaultValue:0,
-        type: "range",
-        attr: {
-            min: 0,
-            max: 360,
-            step: 1
-        },
-        show: ({isMultiColor}) => isMultiColor
-    },
-    {
-        key: 'reverseColors',
-        label: 'Reverse colors order',
-        defaultValue: false,
-        type: "checkbox",
-        show: ({isMultiColor}) => isMultiColor
-    },
-    {
-        key: 'saturation',
-        label: 'Saturation',
+        show: ({ multicolorByLightness, isMultiColor }) =>
+          multicolorByLightness && isMultiColor,
+      },
+      {
+        key: 'maxLightness',
+        label: 'Maximum lightness',
         defaultValue: 100,
-        type: "range",
+        type: 'range',
         attr: {
-            min: 0,
-            max: 100,
-            step: 1
+          min: 0,
+          max: 100,
+          step: 1,
         },
-        show: ({isMultiColor}) => isMultiColor
-    },
-    {
-        key: 'lightness',
-        label: 'Lightness',
-        type: 'group',
-        defaultValue: 'minimized',
-        show: ({isMultiColor}) => isMultiColor,
-        children: [
-            {
-                key: 'multicolorByLightness',
-                label: 'Multi lightness',
-                defaultValue: false,
-                type: 'checkbox',
-                show: ({isMultiColor}) => isMultiColor
-            },
-            {
-                key: 'minLightness',
-                label: 'Minimum lightness',
-                defaultValue:0,
-                type: "range",
-                attr: {
-                    min: 0,
-                    max: 100,
-                    step: 1
-                },
-                show: ({multicolorByLightness, isMultiColor}) => multicolorByLightness && isMultiColor
-            },
-            {
-                key: 'maxLightness',
-                label: 'Maximum lightness',
-                defaultValue:100,
-                type: "range",
-                attr: {
-                    min: 0,
-                    max: 100,
-                    step: 1
-                },
-                show: ({multicolorByLightness, isMultiColor}) => multicolorByLightness && isMultiColor
-            },
-        ]
-    },
+        show: ({ multicolorByLightness, isMultiColor }) =>
+          multicolorByLightness && isMultiColor,
+      },
+    ],
+  },
 ];
 
 export default class Color {
-    constructor(config) {
-        this.config = config;
-        const {
-            multicolorRange,
-            colorCount,
-            multicolorByLightness,
-            minLightness = 0,
-            maxLightness = 100,
-            multicolorStart,
-            darkMode,
-            saturation,
-            reverseColors,
-            isMultiColor,
-        } = config;
+  constructor(config) {
+    this.config = config;
+    const {
+      multicolorRange,
+      colorCount,
+      multicolorByLightness,
+      minLightness = 0,
+      maxLightness = 100,
+      multicolorStart,
+      darkMode,
+      saturation,
+      reverseColors,
+      isMultiColor,
+    } = config;
 
-        if (isMultiColor) {
-            this.multiColorStep = multicolorRange / colorCount;
-            this.multiColorLightnessStep = multicolorByLightness ? (maxLightness - minLightness) / colorCount : 1;
+    if (isMultiColor) {
+      this.multiColorStep = multicolorRange / colorCount;
+      this.multiColorLightnessStep = multicolorByLightness
+        ? (maxLightness - minLightness) / colorCount
+        : 1;
 
-            this.colors = new Array(colorCount).fill(null).map((_, colorIndex) => {
-                const lightness = multicolorByLightness ? minLightness + this.multiColorLightnessStep * colorIndex : darkMode ? 50 : 40;
-                return `hsl(${multicolorStart + colorIndex * this.multiColorStep}, ${saturation}%, ${lightness}%)`;
-            });
+      this.colors = new Array(colorCount).fill(null).map((_, colorIndex) => {
+        const lightness = multicolorByLightness
+          ? minLightness + this.multiColorLightnessStep * colorIndex
+          : darkMode
+          ? 50
+          : 40;
+        return `hsl(${
+          multicolorStart + colorIndex * this.multiColorStep
+        }, ${saturation}%, ${lightness}%)`;
+      });
 
-            if (reverseColors) {
-                this.colors.reverse();
-            }
-        }
+      if (reverseColors) {
+        this.colors.reverse();
+      }
+    }
+  }
+
+  /**
+   * Returns the color to be used in the provided layer index. If no multiColor is used, will use the 'color' config property.
+   * @param {number} colorIndex
+   * @returns string
+   */
+  getColor(colorIndex) {
+    const { isMultiColor, colorCount, color } = this.config;
+
+    if (!isMultiColor) {
+      return color;
     }
 
-    /**
-     * Returns the color to be used in the provided layer index. If no multiColor is used, will use the 'color' config property.
-     * @param {number} colorIndex
-     * @returns string
-     */
-    getColor(colorIndex) {
-        const {
-            isMultiColor,
-            colorCount,
-            color,
-        } = this.config;
-
-        if (!isMultiColor) {
-            return color;
-        }
-
-        if (colorIndex >= colorCount) {
-            colorIndex = colorCount - 1;
-        }
-
-        return this.colors[colorIndex];
+    if (colorIndex >= colorCount) {
+      colorIndex = colorCount - 1;
     }
 
-    getColorMap({ stepCount, colorCount}) {
-        const stepsPerColor = Math.floor(stepCount / colorCount);
-        const colorMap = new Map();
-        for (let i = 0; i < colorCount; i++) {
-            colorMap.set(i * stepsPerColor, this.getColor(i))
-        }
-        return colorMap;
+    return this.colors[colorIndex];
+  }
+
+  getColorMap({ stepCount, colorCount }) {
+    const stepsPerColor = Math.floor(stepCount / colorCount);
+    const colorMap = new Map();
+    for (let i = 0; i < colorCount; i++) {
+      colorMap.set(i * stepsPerColor, this.getColor(i));
     }
+    return colorMap;
+  }
 
-    static getConfig({ include, exclude, defaults = {}}) {
-        const controls = getControls();
+  static getConfig({ include, exclude, defaults = {} }) {
+    const controls = getControls();
 
-        return {
-            key: 'colorGroup',
-            label: 'Color',
-            type: 'group',
-            children: controls
-        };
+    return {
+      key: 'colorGroup',
+      label: 'Color',
+      type: 'group',
+      children: controls,
+    };
 
-        function getControls(controlsConfig = COLOR_CONTROLS) {
-            return controlsConfig
-                .filter(({key}) => (!exclude || !exclude.includes(key)) && (!include || include.includes(key)))
-                .map(control => {
-                    const finalControl = {
-                        ...control,
-                        defaultValue: defaults[control.key] ?? control.defaultValue
-                    };
+    function getControls(controlsConfig = COLOR_CONTROLS) {
+      return controlsConfig
+        .filter(
+          ({ key }) =>
+            (!exclude || !exclude.includes(key)) &&
+            (!include || include.includes(key))
+        )
+        .map(control => {
+          const finalControl = {
+            ...control,
+            defaultValue: defaults[control.key] ?? control.defaultValue,
+          };
 
-                    if (control.type === "group") {
-                        finalControl.children = getControls(control.children);
-                    }
-                    return Object.freeze(finalControl);
-                });
-        }
+          if (control.type === 'group') {
+            finalControl.children = getControls(control.children);
+          }
+          return Object.freeze(finalControl);
+        });
     }
+  }
 }

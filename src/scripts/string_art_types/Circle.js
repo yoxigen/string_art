@@ -1,61 +1,76 @@
-import Nails from "../Nails.js";
+import Nails from '../Nails.js';
 
 const PI2 = Math.PI * 2;
 
 export default class Circle {
-    constructor(config) {
-        const { n, size, margin = 0, rotation = 0, center, radius, reverse = false } = this.config = config;
-        
-        this.center = center ?? size.map(v => v / 2);
-        this.radius = radius ?? Math.min(...this.center) - margin;
+  constructor(config) {
+    const {
+      n,
+      size,
+      margin = 0,
+      rotation = 0,
+      center,
+      radius,
+      reverse = false,
+    } = (this.config = config);
 
-        this.indexAngle = PI2 / n;
-        this.rotationAngle = -PI2 * rotation;
-        this.isReverse = reverse;
+    this.center = center ?? size.map(v => v / 2);
+    this.radius = radius ?? Math.min(...this.center) - margin;
+
+    this.indexAngle = PI2 / n;
+    this.rotationAngle = -PI2 * rotation;
+    this.isReverse = reverse;
+  }
+
+  getPoint(index = 0) {
+    const realIndex = this.isReverse ? this.config.n - 1 - index : index;
+
+    return [
+      this.center[0] +
+        Math.sin(realIndex * this.indexAngle + this.rotationAngle) *
+          this.radius,
+      this.center[1] +
+        Math.cos(realIndex * this.indexAngle + this.rotationAngle) *
+          this.radius,
+    ];
+  }
+
+  /**
+   * Given a Nails instance, uses it to draw the nails of this Circle
+   * @param {Nails} nails
+   * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
+   */
+  drawNails(nails, { nailsNumberStart = 0, getNumber } = {}) {
+    for (let i = 0; i < this.config.n; i++) {
+      nails.addNail({
+        point: this.getPoint(i),
+        number: getNumber ? getNumber(i) : i + nailsNumberStart,
+      });
     }
+  }
 
-    getPoint(index = 0) {
-        const realIndex = this.isReverse ? this.config.n - 1 - index : index;
+  static rotationConfig = Object.freeze({
+    key: 'rotation',
+    label: 'Rotation',
+    defaultValue: 0,
+    type: 'range',
+    attr: {
+      min: 0,
+      max: 1 + 1 / 360,
+      step: 1 / 360,
+    },
+    displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`,
+  });
 
-        return [
-            this.center[0] + Math.sin(realIndex * this.indexAngle + this.rotationAngle) * this.radius,
-            this.center[1] + Math.cos(realIndex * this.indexAngle + this.rotationAngle) * this.radius
-        ];
-    }
-
-    /**
-     * Given a Nails instance, uses it to draw the nails of this Circle
-     * @param {Nails} nails 
-     * @param {{nailsNumberStart?: number, getNumber?: Function}} param1 
-     */
-    drawNails(nails, {nailsNumberStart = 0, getNumber} = {}) {
-        for (let i=0; i < this.config.n; i++) {
-            nails.addNail({point: this.getPoint(i), number: getNumber ? getNumber(i) : i + nailsNumberStart});
-        }
-    }
-
-    static rotationConfig = Object.freeze({
-        key: 'rotation',
-        label: 'Rotation',
-        defaultValue: 0,
-        type: "range",
-        attr: {
-            min: 0,
-            max: 1 + 1/360,
-            step: 1 / 360,
-        },
-        displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`
-    });
-
-    static nailsConfig = Object.freeze({
-        key: 'n',
-        label: 'Number of nails',
-        defaultValue: 144,
-        type: "range",
-        attr: {
-            min: 3,
-            max: 300,
-            step: 1
-        }
-    });
+  static nailsConfig = Object.freeze({
+    key: 'n',
+    label: 'Number of nails',
+    defaultValue: 144,
+    type: 'range',
+    attr: {
+      min: 3,
+      max: 300,
+      step: 1,
+    },
+  });
 }
