@@ -1,6 +1,5 @@
 import StringArt from '../StringArt.js';
 
-const MARGIN = 20;
 const SIDES = ['left', 'bottom', 'right', 'top'];
 const SIDES_ORDER = ['left', 'bottom', 'right', 'top'];
 
@@ -69,9 +68,9 @@ class Eye extends StringArt {
   setUpDraw() {
     super.setUpDraw();
 
-    const { n, angle, layers } = this.config;
+    const { n, angle, layers, margin } = this.config;
 
-    this.maxSize = Math.min(...this.size) - 2 * MARGIN;
+    this.maxSize = Math.min(...this.size) - 2 * margin;
     this.nailSpacing = this.maxSize / (n - 1);
     this.layerAngle = (angle * Math.PI) / 180;
 

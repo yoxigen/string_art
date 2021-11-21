@@ -2,8 +2,6 @@ import Color from '../helpers/Color.js';
 import StringArt from '../StringArt.js';
 import Circle from './Circle.js';
 
-const MARGIN = 20;
-
 export default class TimesTables extends StringArt {
   name = 'Times Tables';
   id = 'times_tables';
@@ -57,11 +55,11 @@ export default class TimesTables extends StringArt {
     this._n = null;
     super.setUpDraw();
 
-    const { layers, rotation } = this.config;
+    const { layers, rotation, margin } = this.config;
     this.circle = new Circle({
       size: this.size,
       n: this.n,
-      margin: MARGIN,
+      margin,
       rotation,
     });
 

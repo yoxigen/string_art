@@ -1,3 +1,9 @@
+:root {
+  --color-gray3: #262629;
+
+  --border-light: solid 1px rgba(255, 255, 255, 0.1);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -36,7 +42,8 @@ main {
 }
 
 form {
-  padding: 16px;
+  --horizontal-padding: 16px;
+  --vertical-padding: 12px;
   background: #212124;
   border-right: solid 1px #3a3a3a;
   box-shadow: 1px 0 0px black;
@@ -49,6 +56,7 @@ form header {
   flex-direction: row;
   gap: 16px;
   width: 100%;
+  padding: 0 var(--horizontal-padding);
 }
 
 canvas {
@@ -206,6 +214,10 @@ a:hover {
   }
 }
 
+#controls_panel {
+  padding: 0 var(--horizontal-padding);
+}
+
 #controls {
   margin-top: 16px;
   border-top: solid 1px rgba(255, 255, 255, 0.1);
@@ -246,7 +258,7 @@ input[type='text'] {
 }
 
 fieldset {
-  border: solid 1px rgba(255, 255, 255, 0.1);
+  border: var(--border-light);
   background: rgba(255, 255, 255, 0.03);
   border-radius: 9px;
 }
@@ -342,4 +354,46 @@ input[type='color'] {
 }
 #size_custom input {
   width: 100%;
+}
+
+#pattern_select_panel {
+  position: relative;
+  padding: var(--vertical-padding) var(--horizontal-padding);
+  background: var(--color-gray3);
+  border-bottom: var(--border-light);
+}
+
+#pattern_select_dropdown {
+  position: absolute;
+  width: 100%;
+  background: var(--color-gray3);
+  z-index: 1;
+  padding: 16px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+  max-height: 75vh;
+  overflow: auto;
+  left: 0;
+  top: 100%;
+}
+
+#pattern_select_thumbnails {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  column-width: 100px;
+}
+
+#pattern_select_thumbnails li {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+#pattern_select_thumbnails a {
+  display: inline-block;
+  cursor: pointer;
+  transition: transform 200ms ease-out;
+}
+
+#pattern_select_thumbnails a:hover {
+  transform: scale(1.1);
 }

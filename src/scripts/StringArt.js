@@ -93,12 +93,14 @@ const COMMON_CONFIG_CONTROLS = [
         label: 'Dark mode',
         defaultValue: true,
         type: 'checkbox',
+        isDisabled: ({ enableBackground }) => !enableBackground,
       },
       {
         key: 'customBackgroundColor',
         label: 'Custom background color',
         defaultValue: false,
         type: 'checkbox',
+        isDisabled: ({ enableBackground }) => !enableBackground,
       },
       {
         key: 'backgroundColor',
@@ -106,6 +108,13 @@ const COMMON_CONFIG_CONTROLS = [
         defaultValue: COLORS.dark,
         type: 'color',
         show: ({ customBackgroundColor }) => customBackgroundColor,
+        isDisabled: ({ enableBackground }) => !enableBackground,
+      },
+      {
+        key: 'enableBackground',
+        label: 'Enable background',
+        defaultValue: true,
+        type: 'checkbox',
       },
     ],
   },
@@ -193,16 +202,19 @@ class StringArt {
       darkMode,
       backgroundColor,
       customBackgroundColor,
+      enableBackground,
     } = this.config;
 
     this.ctx.beginPath();
-    this.ctx.globalCompositeOperation = 'destination-over';
-    this.ctx.fillStyle = customBackgroundColor
-      ? backgroundColor
-      : darkMode
-      ? COLORS.dark
-      : COLORS.light;
-    this.ctx.fillRect(0, 0, ...this.size);
+    if (enableBackground) {
+      this.ctx.globalCompositeOperation = 'destination-over';
+      this.ctx.fillStyle = customBackgroundColor
+        ? backgroundColor
+        : darkMode
+        ? COLORS.dark
+        : COLORS.light;
+      this.ctx.fillRect(0, 0, ...this.size);
+    }
 
     this.ctx.globalCompositeOperation = 'source-over';
     if (showNails) {

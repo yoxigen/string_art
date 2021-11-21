@@ -2,10 +2,10 @@ import Player from './editor/Player.js';
 import patternTypes from './pattern_types.js';
 import EditorControls from './editor/EditorControls.js';
 import EditorSizeControls from './editor/EditorSizeControls.js';
+import { Gallery } from './gallery/Gallery.js';
 
 const elements = {
   canvas: document.querySelector('canvas'),
-  patternSelector: document.querySelector('#pattern_select'),
   patternLink: document.querySelector('#pattern_link'),
   downloadBtn: document.querySelector('#download_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
@@ -23,6 +23,8 @@ const sizeControls = new EditorSizeControls({
   ],
 });
 
+const gallery = new Gallery();
+
 let controls;
 
 window.addEventListener('load', main);
@@ -30,7 +32,6 @@ window.addEventListener('load', main);
 function main() {
   initRouting();
   initSize();
-  initControls();
 
   if (history.state?.pattern) {
     updateState(history.state);
@@ -97,20 +98,6 @@ function onInputsChange({ withConfig = true } = {}) {
   );
 }
 
-function initControls() {
-  patterns.forEach(pattern => {
-    const option = document.createElement('option');
-    option.innerText = pattern.name;
-    option.value = pattern.id;
-    elements.patternSelector.appendChild(option);
-  });
-
-  elements.patternSelector.addEventListener('change', e => {
-    const patternId = e.target.value;
-    setCurrentPattern(findPatternById(patternId));
-  });
-}
-
 function setCurrentPattern(pattern, setPatternOptions) {
   selectPattern(pattern, setPatternOptions);
   history.pushState(
@@ -148,7 +135,6 @@ function initRouting() {
 
 function updateState(state) {
   const pattern = findPatternById(state.pattern);
-  elements.patternSelector.value = pattern.id;
   selectPattern(pattern, {
     draw: false,
     config: state.config ? JSON.parse(state.config) : {},
@@ -182,5 +168,6 @@ function selectPattern(pattern, { config, draw = true } = {}) {
     currentPattern.draw();
   }
   player.update(currentPattern, { draw: false });
+  gallery.setCurrentPattern(pattern);
   document.title = `${pattern.name} - String Art Studio`;
 }
