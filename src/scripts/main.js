@@ -2,7 +2,7 @@ import Player from './editor/Player.js';
 import patternTypes from './pattern_types.js';
 import EditorControls from './editor/EditorControls.js';
 import EditorSizeControls from './editor/EditorSizeControls.js';
-import { Gallery } from './gallery/Gallery.js';
+import { Thumbnails } from './thumbnails/Thumbnails.js';
 
 const elements = {
   canvas: document.querySelector('canvas'),
@@ -23,7 +23,7 @@ const sizeControls = new EditorSizeControls({
   ],
 });
 
-const gallery = new Gallery();
+const thumbnails = new Thumbnails();
 
 let controls;
 
@@ -168,6 +168,6 @@ function selectPattern(pattern, { config, draw = true } = {}) {
     currentPattern.draw();
   }
   player.update(currentPattern, { draw: false });
-  gallery.setCurrentPattern(pattern);
+  thumbnails.setCurrentPattern(pattern);
   document.title = `${pattern.name} - String Art Studio`;
 }

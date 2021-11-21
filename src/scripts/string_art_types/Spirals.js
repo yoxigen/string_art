@@ -143,6 +143,11 @@ class Spirals extends StringArt {
       this.nails.addNail({ point, number: nailNumber });
     }
   }
+
+  static thumbnailConfig = {
+    radiusIncrease: 1.4,
+    angleStep: 0.11,
+  };
 }
 
 export default Spirals;

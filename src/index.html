@@ -52,36 +52,26 @@
   </head>
   <body>
     <main>
-      <form id="sidebar_form" class="noprint">
-        <header>
-          <h1>String Art Studio</h1>
-          <div>
-            <a
-              href="https://github.com/yoxigen/string_art"
-              target="_blank"
-              title="View code on GitHub"
-            >
-              <img
-                src="GitHub-Mark-Light-120px-plus.png"
-                alt="Github"
-                style="width: 20px; height: 20px"
-              />
-            </a>
-          </div>
-        </header>
-        <div id="pattern_select_panel">
-          <button type="button" id="pattern_select_btn"></button>
-          <div id="pattern_select_dropdown" hidden>
-            <a
-              id="pattern_link"
-              target="_blank"
-              title="View original which inspired this pattern"
-              >🔗 View example</a
-            >
-            <h3>Available patterns</h3>
-            <ul id="pattern_select_thumbnails"></ul>
-          </div>
+      <header id="main_header">
+        <h1>
+          <span class="logo1">String Art</span>
+          <span class="logo2">Studio</span>
+        </h1>
+      </header>
+      <div id="pattern_select_panel">
+        <button type="button" id="pattern_select_btn"></button>
+        <div id="pattern_select_dropdown" hidden>
+          <a
+            id="pattern_link"
+            target="_blank"
+            title="View original which inspired this pattern"
+            >🔗 View example</a
+          >
+          <h3 id="pattern_select_thumbnails_title">Available patterns</h3>
+          <ul id="pattern_select_thumbnails"></ul>
         </div>
+      </div>
+      <form id="sidebar_form" class="noprint">
         <div id="controls_panel">
           <div id="controls"></div>
           <div id="size_controls">
@@ -153,6 +143,9 @@
           </div>
         </div>
       </nav>
+      <footer id="buttons">
+
+      </footer>
     </main>
   </body>
 </html>

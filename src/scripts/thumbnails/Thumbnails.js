@@ -2,7 +2,7 @@ import patternTypes from '../pattern_types.js';
 
 const THUMBNAIL_WIDTH = 100;
 
-export class Gallery {
+export class Thumbnails {
   elements = {
     thumbnails: document.querySelector('#pattern_select_thumbnails'),
     toggleBtn: document.querySelector('#pattern_select_btn'),
@@ -37,11 +37,14 @@ export class Gallery {
       canvas.style.width = canvas.style.height = `${THUMBNAIL_WIDTH}px`;
 
       const pattern = new PatternType(canvas);
-      pattern.config = {
-        margin: 1,
-        enableBackground: false,
-        nailRadius: 0.5,
-      };
+      pattern.config = Object.assign(
+        {
+          margin: 1,
+          enableBackground: false,
+          nailRadius: 0.5,
+        },
+        PatternType.thumbnailConfig
+      );
 
       patterns.push(pattern);
 
