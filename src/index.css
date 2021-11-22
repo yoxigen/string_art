@@ -39,7 +39,9 @@ body {
 main {
   display: grid;
   grid-template-columns: 270px 1fr;
-  grid-template-rows: var(--header-height) var(--select-height) 1fr var(--controls-height);
+  grid-template-rows: var(--header-height) var(--select-height) 1fr var(
+      --controls-height
+    );
   grid-template-areas:
     'header canvas'
     'pattern_select canvas'
@@ -91,9 +93,8 @@ canvas {
 }
 
 a {
-  color: #00ddff;
+  color: var(--logo1);
   font-size: 14px;
-  text-decoration: none;
 }
 
 a:hover {
@@ -235,6 +236,10 @@ a:hover {
   #sidebar_form.minimized {
     transform: translateY(100%);
   }
+
+  #canvas {
+    height: calc(50vh - var(--select-height));
+  }
 }
 
 @media only print {
@@ -264,6 +269,14 @@ a:hover {
   box-shadow: 0 -2px 6px rgb(0 0 0 / 30%);
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--horizontal-padding);
+}
+
+#buttons .btn {
+  margin: 0;
 }
 
 #size_controls {
@@ -399,19 +412,25 @@ input[type='color'] {
   width: 100%;
 }
 
+#pattern_link {
+  flex: 0;
+  white-space: nowrap;
+}
+
 #pattern_select_panel {
   grid-area: 'pattern_select';
   position: relative;
   padding: var(--vertical-padding) var(--horizontal-padding);
   background: var(--color-gray3);
   border-bottom: var(--border-light);
+  border-right: var(--border-light);
   flex: 1;
   display: flex;
   align-items: center;
 }
 
 #pattern_select_panel.minimized #pattern_select_btn::after {
-  transform: rotateZ(0);
+  transform: rotateZ(0) translateX(1px);
 }
 
 #pattern_select_panel.minimized #pattern_select_dropdown {
@@ -426,6 +445,8 @@ input[type='color'] {
   color: White;
   padding: 0;
   cursor: pointer;
+  flex: 1;
+  text-align: left;
 }
 
 #pattern_select_btn:hover {
@@ -435,21 +456,25 @@ input[type='color'] {
 #pattern_select_btn::after {
   content: '\25B6';
   display: inline-block;
-  margin-inline-start: 16px;
-  font-size: 8px;
+  margin-inline-start: 10px;
+  font-size: 10px;
   position: relative;
   top: -2px;
   transform: rotateZ(90deg);
+  transition: transform 200ms ease-out;
+  opacity: 0.3;
 }
 
 #pattern_select_dropdown {
   position: absolute;
   width: 100%;
   background: var(--color-gray3);
-  z-index: 1;
-  padding: 16px;
+  z-index: 2;
+  padding: 0 16px 16px;
   box-shadow: 0 9px 8px rgb(0 0 0 / 50%);
-  max-height: calc(100vh - var(--select-height) - var(--header-height) - var(--controls-height));
+  max-height: calc(
+    100vh - var(--select-height) - var(--header-height) - var(--controls-height)
+  );
   overflow: auto;
   left: 0;
   top: 100%;
@@ -464,6 +489,7 @@ input[type='color'] {
   font-size: 12px;
   padding: 8px 0;
   font-weight: 400;
+  margin-top: 0;
 }
 
 #pattern_select_thumbnails {
@@ -476,6 +502,9 @@ input[type='color'] {
 #pattern_select_thumbnails li {
   display: inline-block;
   margin-bottom: 8px;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 #pattern_select_thumbnails a {

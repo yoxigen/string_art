@@ -133,4 +133,8 @@ export default class Spiral extends StringArt {
   drawNails() {
     this.circle.drawNails(this.nails);
   }
+
+  static thumbnailConfig = {
+    n: 60,
+  };
 }

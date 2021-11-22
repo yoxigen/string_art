@@ -12,17 +12,29 @@ export class Thumbnails {
   };
 
   constructor() {
-    this.elements.toggleBtn.addEventListener('mousedown', () => {
-      if (this.elements.root.classList.contains(MINIMIZED_CLASS)) {
-        this.elements.root.classList.remove(MINIMIZED_CLASS);
-        if (!this.thumbnailsRendered) {
-          this.createThumbnails();
-          this.thumbnailsRendered = true;
-        }
-      } else {
-        this.elements.root.classList.add(MINIMIZED_CLASS);
+    this.elements.toggleBtn.addEventListener('click', () => this.toggle());
+  }
+
+  toggle() {
+    if (this.elements.root.classList.contains(MINIMIZED_CLASS)) {
+      this.elements.root.classList.remove(MINIMIZED_CLASS);
+      if (!this.thumbnailsRendered) {
+        this.createThumbnails();
+        this.thumbnailsRendered = true;
       }
-    });
+
+      this._onClickOutside = e => {
+        if (!e.target.closest('#pattern_select_panel')) {
+          this.toggle();
+        }
+      };
+
+      document.body.addEventListener('mousedown', this._onClickOutside);
+    } else {
+      this.elements.root.classList.add(MINIMIZED_CLASS);
+      document.body.removeEventListener('mousedown', this._onClickOutside);
+      this._onClickOutside = null;
+    }
   }
 
   setCurrentPattern(pattern) {
@@ -67,12 +79,26 @@ export class Thumbnails {
       e.preventDefault();
       e.stopPropagation();
 
-      this.elements.root.dispatchEvent(
-        new CustomEvent('change', { detail: { pattern: e.target.dataset.pattern } })
-      );
-    });
+      const link = e.target.closest('[data-pattern]');
 
-    addOnChangeListener(listener => this.elements.root.addEventListener('change', listener));
-    removeOnChangeListener(listener => this.elements.root.removeEventListener('change', listener));
+      if (!link) {
+        return false;
+      }
+
+      this.elements.root.dispatchEvent(
+        new CustomEvent('change', {
+          detail: { pattern: link.dataset.pattern },
+        })
+      );
+      this.toggle();
+    });
+  }
+
+  addOnChangeListener(listener) {
+    this.elements.root.addEventListener('change', listener);
+  }
+
+  removeOnChangeListener(listener) {
+    this.elements.root.removeEventListener('change', listener);
   }
 }

@@ -57,7 +57,10 @@ function main() {
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
   elements.resetBtn.addEventListener('click', reset);
 
-  thumbnails.addOnChangeListener(e => console.log("change", e))
+  thumbnails.addOnChangeListener(({ detail }) => {
+    const pattern = findPatternById(detail.pattern);
+    setCurrentPattern(pattern);
+  });
 }
 
 function downloadCanvas() {
@@ -82,7 +85,9 @@ function downloadNailsImage() {
 }
 
 function reset() {
-  setCurrentPattern(currentPattern, { config: {} });
+  if (confirm('Are you sure you wish to reset to defaults?')) {
+    setCurrentPattern(currentPattern, { config: {} });
+  }
 }
 
 function onInputsChange({ withConfig = true } = {}) {

@@ -202,4 +202,8 @@ export default class Star extends StringArt {
     const starCount = sideNails * sides;
     return starCount * 3; // Once for each side + two more times for the side's circle
   }
+
+  static thumbnailConfig = {
+    sideNails: 18,
+  };
 }

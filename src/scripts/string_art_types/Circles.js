@@ -292,4 +292,8 @@ export default class Circles extends StringArt {
     const { layers, maxShapeNailsCount } = this.getSetUp();
     return layers.length * maxShapeNailsCount - 1;
   }
+
+  static thumbnailConfig = {
+    minNailDistance: 3,
+  };
 }

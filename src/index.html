@@ -60,13 +60,13 @@
       </header>
       <div id="pattern_select_panel" class="minimized">
         <button type="button" id="pattern_select_btn"></button>
-        <div id="pattern_select_dropdown">
-          <a
+        <a
             id="pattern_link"
             target="_blank"
             title="View original which inspired this pattern"
-            >🔗 View example</a
+            >Example</a
           >
+        <div id="pattern_select_dropdown">
           <h3 id="pattern_select_thumbnails_title">Available patterns</h3>
           <ul id="pattern_select_thumbnails"></ul>
         </div>
@@ -109,20 +109,10 @@
               </div>
             </fieldset>
           </div>
-          <div class="margin-top">
-            <button
-              type="button"
-              id="reset_btn"
-              class="btn btn_subdued"
-              title="Reset config to default"
-            >
-              ↻ Reset to defaults
-            </button>
-          </div>
         </div>
       </form>
       <article id="art">
-        <canvas></canvas>
+        <canvas id="canvas"></canvas>
       </article>
       <nav id="player" class="noprint">
         <div id="player_track">
@@ -144,7 +134,14 @@
         </div>
       </nav>
       <footer id="buttons">
-
+        <button
+          type="button"
+          id="reset_btn"
+          class="btn btn_subdued"
+          title="Reset config to default"
+        >
+          ↻ Reset to defaults
+        </button>
       </footer>
     </main>
   </body>

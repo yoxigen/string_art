@@ -307,4 +307,8 @@ export default class Assymetry extends StringArt {
       0
     );
   }
+
+  static thumbnailConfig = {
+    n: 50,
+  };
 }

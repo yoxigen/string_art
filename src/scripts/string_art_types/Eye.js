@@ -193,10 +193,10 @@ class Eye extends StringArt {
 
   getStepCount() {
     let count = 0;
-    const { layers, angle, n } = this.config;
+    const { layers, angle, n, margin } = this.config;
     const layerAngle = (angle * Math.PI) / 180;
     const maxSize =
-      Math.min(this.canvas.clientWidth, this.canvas.clientHeight) - 2 * MARGIN;
+      Math.min(this.canvas.clientWidth, this.canvas.clientHeight) - 2 * margin;
     const nailSpacing = maxSize / (n - 1);
 
     for (let layer = 0; layer < layers; layer++) {
@@ -237,6 +237,11 @@ class Eye extends StringArt {
       }
     }
   }
+
+  static thumbnailConfig = {
+    n: 25,
+    layers: 7,
+  };
 }
 
 export default Eye;

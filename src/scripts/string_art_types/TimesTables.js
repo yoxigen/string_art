@@ -115,4 +115,8 @@ export default class TimesTables extends StringArt {
   getStepCount() {
     return this.config.layers * this.n;
   }
+
+  static thumbnailConfig = {
+    n: 70,
+  };
 }
