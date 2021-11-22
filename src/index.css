@@ -8,6 +8,10 @@
 
   --logo1: #3cc0f1;
   --logo2: #ffcf83;
+
+  --header-height: 45px;
+  --select-height: 49px;
+  --controls-height: 50px;
 }
 
 * {
@@ -35,7 +39,7 @@ body {
 main {
   display: grid;
   grid-template-columns: 270px 1fr;
-  grid-template-rows: 46px 49px 1fr 50px;
+  grid-template-rows: var(--header-height) var(--select-height) 1fr var(--controls-height);
   grid-template-areas:
     'header canvas'
     'pattern_select canvas'
@@ -54,22 +58,21 @@ form {
 }
 #main_header {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
   background: var(--color-header);
   border-right: var(--border-light);
-}
-
-h1 {
-  height: 49px;
-  margin: 0;
-  flex-grow: 0;
-  padding: 0 var(--horizontal-padding);
-  display: flex;
   align-items: center;
   box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
   position: relative;
   z-index: 2;
+}
+
+h1 {
+  margin: 0;
+  flex-grow: 0;
+  padding: 0 var(--horizontal-padding);
+  display: flex;
   gap: 0.5em;
   font-size: 16px;
   text-transform: uppercase;
@@ -205,7 +208,7 @@ a:hover {
 @media only screen and (max-width: 600px) {
   main {
     grid-template-columns: 1fr;
-    grid-template-rows: 46px 1fr 30px 50px;
+    grid-template-rows: var(--select-height) 1fr 30px var(--controls-height);
     grid-template-areas:
       'pattern_select'
       'canvas'
@@ -407,6 +410,38 @@ input[type='color'] {
   align-items: center;
 }
 
+#pattern_select_panel.minimized #pattern_select_btn::after {
+  transform: rotateZ(0);
+}
+
+#pattern_select_panel.minimized #pattern_select_dropdown {
+  display: none;
+}
+
+#pattern_select_btn {
+  border: none;
+  background: none;
+  font-size: 20px;
+  font-weight: 300;
+  color: White;
+  padding: 0;
+  cursor: pointer;
+}
+
+#pattern_select_btn:hover {
+  color: var(--logo2);
+}
+
+#pattern_select_btn::after {
+  content: '\25B6';
+  display: inline-block;
+  margin-inline-start: 16px;
+  font-size: 8px;
+  position: relative;
+  top: -2px;
+  transform: rotateZ(90deg);
+}
+
 #pattern_select_dropdown {
   position: absolute;
   width: 100%;
@@ -414,7 +449,7 @@ input[type='color'] {
   z-index: 1;
   padding: 16px;
   box-shadow: 0 9px 8px rgb(0 0 0 / 50%);
-  max-height: 75vh;
+  max-height: calc(100vh - var(--select-height) - var(--header-height) - var(--controls-height));
   overflow: auto;
   left: 0;
   top: 100%;

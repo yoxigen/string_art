@@ -56,6 +56,8 @@ function main() {
   elements.downloadBtn.addEventListener('click', downloadCanvas);
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
   elements.resetBtn.addEventListener('click', reset);
+
+  thumbnails.addOnChangeListener(e => console.log("change", e))
 }
 
 function downloadCanvas() {
