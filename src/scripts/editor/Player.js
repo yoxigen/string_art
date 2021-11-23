@@ -3,7 +3,7 @@ export default class Player {
     this.elements = {
       player: parentEl,
       step: parentEl.querySelector('#step'),
-      stepInstructions: parentEl.querySelector('#step_instructions'),
+      //stepInstructions: parentEl.querySelector('#step_instructions'),
       playerPosition: parentEl.querySelector('#player_position'),
       playBtn: parentEl.querySelector('#play_btn'),
       pauseBtn: parentEl.querySelector('#pause_btn'),
@@ -52,7 +52,7 @@ export default class Player {
   }
 
   setInstructions(instructions) {
-    this.elements.stepInstructions.innerText = instructions;
+    // this.elements.stepInstructions.innerText = instructions;
   }
 
   play() {

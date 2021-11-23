@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <title>String Art Studio</title>
-    <link type="text/css" rel="stylesheet" href="index.css" />
+    <link type="text/css" rel="stylesheet" href="styles/index.css" />
     <script type="module" src="scripts/main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
@@ -115,21 +115,20 @@
         <canvas id="canvas"></canvas>
       </article>
       <nav id="player" class="noprint">
-        <div id="player_track">
-          <input id="player_position" type="range" min="1" step="1" />
-        </div>
         <div id="player_controls">
           <div id="player_buttons">
-            <button id="play_btn" class="player_btn">
+            <button id="play_btn" class="circular_btn">
               <img src="images/play.svg" alt="Play" />
             </button>
-            <button id="pause_btn" class="player_btn">
+            <button id="pause_btn" class="circular_btn">
               <img src="images/pause.svg" alt="Play" />
             </button>
           </div>
+          <div id="player_track">
+            <input id="player_position" type="range" min="1" step="1" />
+          </div>
           <div id="player_text">
             <span id="step">0/0</span>
-            <span id="step_instructions"></span>
           </div>
         </div>
       </nav>

@@ -1,0 +1,167 @@
+@import 'vars.css';
+
+.btn {
+  height: 30px;
+  width: 100%;
+  border-radius: 15px;
+  border: none;
+  background: #0375fb;
+  color: white;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.btn:hover {
+  background: #3592ff;
+}
+
+.btn_subdued {
+  background: #c5c5c5;
+  color: Black;
+}
+
+.btn_subdued:hover {
+  background: #efefef;
+  color: Black;
+}
+
+.margin-top {
+  margin-top: 16px;
+}
+
+#controls_panel {
+  padding: 0 var(--horizontal-padding);
+}
+
+#size_controls {
+  margin-top: 16px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.control {
+  margin-top: 16px;
+  position: relative;
+}
+
+form label {
+  display: block;
+}
+
+input[type='checkbox'] + label {
+  display: inline-block;
+  margin-top: 0;
+  position: relative;
+  top: -1px;
+  margin-left: 4px;
+}
+
+input[type='number'],
+input[type='text'] {
+  vertical-align: bottom;
+  height: 24px;
+  margin-right: 4px;
+  margin-top: 2px;
+}
+
+fieldset {
+  border: var(--border-light);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 9px;
+}
+
+fieldset > legend {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+fieldset > legend:hover {
+  opacity: 1;
+}
+
+fieldset .control:first-child {
+  margin-top: 8px;
+}
+
+fieldset.minimized {
+  border: none;
+  padding: 0;
+  background: none;
+}
+
+fieldset.minimized > legend {
+  padding: 0;
+}
+
+fieldset.minimized > div {
+  display: none;
+}
+
+legend::before {
+  content: '\25B6';
+  display: inline-block;
+  margin-inline-end: 4px;
+  transform: scale(0.7) rotateZ(90deg);
+  font-size: 14px;
+}
+
+fieldset.minimized > legend::before {
+  transform: scale(0.7) rotateZ(0);
+}
+
+input[type='range'] {
+  width: 100%;
+}
+
+input[type='range'] + .control_input_value {
+  position: absolute;
+  right: 0;
+  top: 2px;
+}
+
+input[type='number'],
+input[type='text'] {
+  padding: 4px;
+}
+
+select {
+  width: 100%;
+  padding: 4px;
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+
+.control_input_value {
+  display: inline-block;
+  position: relative;
+  top: -3px;
+  margin-inline-start: 2px;
+  font-size: 12px;
+}
+
+input[type='color'] {
+  padding: 0;
+  border: none;
+  background: none;
+  position: relative;
+  top: 2px;
+}
+
+#size_custom {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  max-width: 270px;
+  margin-bottom: 16px;
+}
+
+#size_custom > div {
+  flex: 1;
+}
+#size_custom input {
+  width: 100%;
+}

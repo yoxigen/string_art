@@ -126,8 +126,8 @@ export default class Spiral extends StringArt {
   }
 
   getStepCount() {
-    const { innerLength, repetition, n } = this.config;
-    return this.layersCount * Math.round(innerLength * n) * repetition;
+    const { innerLength, repetition, n, layers = 1 } = this.config;
+    return layers * Math.round(innerLength * n) * repetition;
   }
 
   drawNails() {

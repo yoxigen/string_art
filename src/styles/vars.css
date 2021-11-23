@@ -1,0 +1,18 @@
+:root {
+  --color-header: #2b2b31;
+  --color-config: #212124;
+  --color-player: #222226;
+  --color-gray3: #262629;
+  --border-light: solid 1px #3a3a3a;
+  --horizontal-padding: 16px;
+  --vertical-padding: 12px;
+
+  --logo1: #3cc0f1;
+  --logo2: #ffcf83;
+
+  --header-height: 45px;
+  --select-height: 49px;
+  --controls-height: 50px;
+
+  --circular_button_width: 38px;
+}

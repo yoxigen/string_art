@@ -1,0 +1,15 @@
+@media only print {
+  .noprint {
+    display: none;
+  }
+
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: 'canvas';
+  }
+
+  canvas {
+    height: 100%;
+  }
+}

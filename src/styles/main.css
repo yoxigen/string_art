@@ -1,0 +1,151 @@
+@import 'vars.css';
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: #0e0e0e;
+  color: white;
+  font-family: Roboto, Verdana, Tahoma, sans-serif;
+}
+
+main {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  grid-template-rows: var(--header-height) var(--select-height) 1fr var(
+      --controls-height
+    );
+  grid-template-areas:
+    'header canvas'
+    'pattern_select canvas'
+    'sidebar canvas'
+    'controls player';
+  height: 100%;
+}
+
+#sidebar_form {
+  background: var(--color-config);
+  border-right: var(--border-light);
+  box-shadow: 1px 0 0px black;
+  max-height: 100%;
+  grid-area: sidebar;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+#main_header {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  background: var(--color-header);
+  border-right: var(--border-light);
+  align-items: center;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
+  position: relative;
+  z-index: 2;
+}
+
+h1 {
+  margin: 0;
+  flex-grow: 0;
+  padding: 0 var(--horizontal-padding);
+  display: flex;
+  gap: 0.5em;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.logo1 {
+  color: var(--logo1);
+}
+.logo2 {
+  color: var(--logo2);
+}
+
+canvas {
+  height: calc(100% - 5px);
+  width: 100%;
+}
+
+a {
+  color: var(--logo1);
+  font-size: 14px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+#art {
+  grid-area: canvas;
+  overflow: auto;
+  text-align: center;
+}
+
+.circular_btn {
+  width: var(--circular_button_width);
+  height: var(--circular_button_width);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255 255 255 / 10%);
+  border: none;
+  cursor: pointer;
+}
+
+.circular_btn:hover {
+  background: rgba(255 255 255 / 20%);
+}
+
+.circular_btn img {
+  width: 18px;
+  height: 18px;
+}
+
+@media only screen and (max-width: 600px) {
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--select-height) 1fr 40px var(--controls-height);
+    grid-template-areas:
+      'pattern_select'
+      'canvas'
+      'player'
+      'controls';
+  }
+
+  #main_header {
+    display: none;
+  }
+
+  #sidebar_form {
+    max-height: calc(100vh - 100vw - 100px);
+    position: absolute;
+    bottom: 50px;
+    z-index: 1;
+    width: 100%;
+    padding-top: 16px;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -5px 8px rgb(0 0 0 / 40%);
+    transition: transform 300ms ease-out;
+  }
+
+  #sidebar_form.minimized {
+    transform: translateY(100%);
+  }
+
+  #canvas {
+    height: 100vw;
+  }
+}

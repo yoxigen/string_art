@@ -1,0 +1,106 @@
+@import 'vars.css';
+
+#pattern_link {
+  flex: 0;
+  white-space: nowrap;
+}
+
+#pattern_select_panel {
+  grid-area: 'pattern_select';
+  position: relative;
+  padding: var(--vertical-padding) var(--horizontal-padding);
+  background: var(--color-gray3);
+  border-bottom: var(--border-light);
+  border-right: var(--border-light);
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+#pattern_select_panel.minimized #pattern_select_btn::after {
+  transform: rotateZ(0) translateX(1px);
+}
+
+#pattern_select_panel.minimized #pattern_select_dropdown {
+  display: none;
+}
+
+#pattern_select_btn {
+  border: none;
+  background: none;
+  font-size: 20px;
+  font-weight: 300;
+  color: White;
+  padding: 0;
+  cursor: pointer;
+  flex: 1;
+  text-align: left;
+}
+
+#pattern_select_btn:hover {
+  color: var(--logo2);
+}
+
+#pattern_select_btn::after {
+  content: '\25B6';
+  display: inline-block;
+  margin-inline-start: 10px;
+  font-size: 10px;
+  position: relative;
+  top: -2px;
+  transform: rotateZ(90deg);
+  transition: transform 200ms ease-out;
+  opacity: 0.3;
+}
+
+#pattern_select_dropdown {
+  position: absolute;
+  width: 100%;
+  background: var(--color-gray3);
+  z-index: 2;
+  padding: 0 16px 16px;
+  box-shadow: 0 9px 8px rgb(0 0 0 / 50%);
+  max-height: calc(
+    100vh - var(--select-height) - var(--header-height) - var(--controls-height)
+  );
+  overflow: auto;
+  left: 0;
+  top: 100%;
+}
+
+#pattern_select_thumbnails_title {
+  text-align: center;
+  border-top: var(--border-light);
+  border-bottom: var(--border-light);
+  color: rgb(255 255 255 / 30%);
+  text-transform: uppercase;
+  font-size: 12px;
+  padding: 8px 0;
+  font-weight: 400;
+  margin-top: 0;
+}
+
+#pattern_select_thumbnails {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  column-width: 100px;
+}
+
+#pattern_select_thumbnails li {
+  display: inline-block;
+  margin-bottom: 8px;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+#pattern_select_thumbnails a {
+  display: inline-block;
+  cursor: pointer;
+  transition: transform 200ms ease-out;
+}
+
+#pattern_select_thumbnails a:hover {
+  transform: scale(1.1);
+}
