@@ -1,7 +1,5 @@
 @import 'vars.css';
 
-
-
 .margin-top {
   margin-top: 16px;
 }
@@ -89,19 +87,10 @@ fieldset.minimized > legend::before {
   transform: scale(0.7) rotateZ(0);
 }
 
-input[type='range'] {
-  width: 100%;
-}
-
 input[type='range'] + .control_input_value {
   position: absolute;
   right: 0;
   top: 2px;
-}
-
-input[type='number'],
-input[type='text'] {
-  padding: 4px;
 }
 
 select {
@@ -117,14 +106,6 @@ select {
   top: -3px;
   margin-inline-start: 2px;
   font-size: 12px;
-}
-
-input[type='color'] {
-  padding: 0;
-  border: none;
-  background: none;
-  position: relative;
-  top: 2px;
 }
 
 #size_custom {

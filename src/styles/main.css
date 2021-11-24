@@ -19,7 +19,7 @@ body {
 body {
   background: #0e0e0e;
   color: white;
-  font-family: Roboto, Verdana, Tahoma, sans-serif;
+  font-family: Roboto, sans-serif;
 }
 
 main {
@@ -36,6 +36,9 @@ main {
   height: 100%;
 }
 
+button {
+  font-family: Roboto;
+}
 #sidebar_form {
   background: var(--color-config);
   border-right: var(--border-light);
@@ -100,7 +103,9 @@ a:hover {
 @media only screen and (max-width: 600px) {
   main {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--select-height) 1fr var(--controls-height) var(--controls-height);
+    grid-template-rows: var(--select-height) 1fr var(--controls-height) var(
+        --controls-height
+      );
     grid-template-areas:
       'pattern_select'
       'canvas'

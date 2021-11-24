@@ -52,12 +52,13 @@
   background: rgba(255 255 255 / 10%);
   border: none;
   cursor: pointer;
-  color: White;
-  font-size: 24px;
+  color: RGBA(255 255 255 / 80%);
+  font-size: 23.3px;
 }
 
 .circular_btn:hover {
   background: rgba(255 255 255 / 20%);
+  color: White;
 }
 
 .circular_btn img {
@@ -81,8 +82,8 @@
   padding: var(--vertical-padding) var(--horizontal-padding);
   padding-top: calc(2 * var(--buttons-dialog-border-radius));
   box-shadow: 0 -2px 6px rgb(0 0 0 / 30%);
-  border-radius: var(--buttons-dialog-border-radius) var(--buttons-dialog-border-radius) 0 0;
-
+  border-radius: var(--buttons-dialog-border-radius)
+    var(--buttons-dialog-border-radius) 0 0;
 }
 
 .buttons_dialog.open {

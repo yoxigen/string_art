@@ -37,6 +37,7 @@ export default class Player {
     this.stepCount = stringArt.getStepCount();
     this.elements.playerPosition.setAttribute('max', this.stepCount);
     this.elements.step.innerText = `${this.stepCount}/${this.stepCount}`;
+    this.elements.text.style.removeProperty('width');
     this.elements.text.style.width = this.elements.text.clientWidth + 'px';
     this.goto(this.stepCount, { updateStringArt: draw });
   }

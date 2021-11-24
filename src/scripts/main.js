@@ -68,7 +68,9 @@ function main() {
     const toggleBtn = e.target.closest('[data-toggle-for]');
     if (toggleBtn) {
       toggleBtn.classList.toggle('active');
-      const toggledElement = document.querySelector('#' + toggleBtn.dataset.toggleFor);
+      const toggledElement = document.querySelector(
+        '#' + toggleBtn.dataset.toggleFor
+      );
       toggledElement.classList.toggle('open');
     }
   });
@@ -93,6 +95,10 @@ function downloadNailsImage() {
   };
   currentPattern.draw();
   downloadCanvas();
+
+  // Reset to the config before the download:
+  currentPattern.config = currentConfig;
+  currentPattern.draw();
 }
 
 function reset() {

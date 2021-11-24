@@ -4,3 +4,6 @@
 @import 'editor.css';
 @import 'buttons.css';
 @import 'thumbnails.css';
+@import 'icons.css';
+@import 'inputs.css';
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
