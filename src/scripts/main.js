@@ -27,6 +27,7 @@ const sizeControls = new EditorSizeControls({
 const thumbnails = new Thumbnails();
 
 let controls;
+let activeDialog;
 
 window.addEventListener('load', main);
 
@@ -66,6 +67,7 @@ function main() {
   elements.buttons.addEventListener('click', e => {
     const toggleBtn = e.target.closest('[data-toggle-for]');
     if (toggleBtn) {
+      toggleBtn.classList.toggle('active');
       const toggledElement = document.querySelector('#' + toggleBtn.dataset.toggleFor);
       toggledElement.classList.toggle('open');
     }

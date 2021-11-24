@@ -75,7 +75,7 @@ h1 {
 }
 
 canvas {
-  height: calc(100% - 5px);
+  height: 100%;
   width: 100%;
 }
 
@@ -93,10 +93,14 @@ a:hover {
   text-align: center;
 }
 
+.small_only {
+  display: none !important;
+}
+
 @media only screen and (max-width: 600px) {
   main {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--select-height) 1fr 40px var(--controls-height);
+    grid-template-rows: var(--select-height) 1fr var(--controls-height) var(--controls-height);
     grid-template-areas:
       'pattern_select'
       'canvas'
@@ -130,5 +134,9 @@ a:hover {
 
   .buttons_dialog {
     width: 100vw !important;
+  }
+
+  .small_only {
+    display: inherit !important;
   }
 }

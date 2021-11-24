@@ -7,6 +7,7 @@ export default class Player {
       playerPosition: parentEl.querySelector('#player_position'),
       playBtn: parentEl.querySelector('#play_btn'),
       pauseBtn: parentEl.querySelector('#pause_btn'),
+      text: parentEl.querySelector('#player_text'),
     };
     this.stepCount = 0;
     this._isPlaying = false;
@@ -35,6 +36,8 @@ export default class Player {
     this.stringArt = stringArt;
     this.stepCount = stringArt.getStepCount();
     this.elements.playerPosition.setAttribute('max', this.stepCount);
+    this.elements.step.innerText = `${this.stepCount}/${this.stepCount}`;
+    this.elements.text.style.width = this.elements.text.clientWidth + 'px';
     this.goto(this.stepCount, { updateStringArt: draw });
   }
 

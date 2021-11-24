@@ -65,6 +65,10 @@
   height: 18px;
 }
 
+.circular_btn.active {
+  background: var(--logo1);
+}
+
 .buttons_dialog {
   --buttons-dialog-border-radius: 10px;
 
