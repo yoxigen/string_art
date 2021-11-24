@@ -1,10 +1,12 @@
+@import 'vars.css';
+
 #buttons {
   grid-area: 'controls';
   border-right: var(--border-light);
   background: var(--color-header);
   box-shadow: 0 -2px 6px rgb(0 0 0 / 30%);
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -13,4 +15,72 @@
 
 #buttons .btn {
   margin: 0;
+}
+
+.btn {
+  height: 30px;
+  width: 100%;
+  border-radius: 15px;
+  border: none;
+  background: #0375fb;
+  color: white;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.btn:hover {
+  background: #3592ff;
+}
+
+.btn_subdued {
+  background: #c5c5c5;
+  color: Black;
+}
+
+.btn_subdued:hover {
+  background: #efefef;
+  color: Black;
+}
+
+.circular_btn {
+  width: var(--circular_button_width);
+  height: var(--circular_button_width);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255 255 255 / 10%);
+  border: none;
+  cursor: pointer;
+  color: White;
+  font-size: 24px;
+}
+
+.circular_btn:hover {
+  background: rgba(255 255 255 / 20%);
+}
+
+.circular_btn img {
+  width: 18px;
+  height: 18px;
+}
+
+.buttons_dialog {
+  --buttons-dialog-border-radius: 10px;
+
+  position: absolute;
+  top: calc(100vh - var(--controls-height));
+  z-index: 2;
+  background: var(--color_buttons_dialog);
+  transition: transform 200ms ease-out;
+  width: var(--sidebar-width);
+  padding: var(--vertical-padding) var(--horizontal-padding);
+  padding-top: calc(2 * var(--buttons-dialog-border-radius));
+  box-shadow: 0 -2px 6px rgb(0 0 0 / 30%);
+  border-radius: var(--buttons-dialog-border-radius) var(--buttons-dialog-border-radius) 0 0;
+
+}
+
+.buttons_dialog.open {
+  transform: translateY(-100%);
 }

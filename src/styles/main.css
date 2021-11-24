@@ -24,7 +24,7 @@ body {
 
 main {
   display: grid;
-  grid-template-columns: 270px 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: var(--header-height) var(--select-height) 1fr var(
       --controls-height
     );
@@ -93,27 +93,6 @@ a:hover {
   text-align: center;
 }
 
-.circular_btn {
-  width: var(--circular_button_width);
-  height: var(--circular_button_width);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255 255 255 / 10%);
-  border: none;
-  cursor: pointer;
-}
-
-.circular_btn:hover {
-  background: rgba(255 255 255 / 20%);
-}
-
-.circular_btn img {
-  width: 18px;
-  height: 18px;
-}
-
 @media only screen and (max-width: 600px) {
   main {
     grid-template-columns: 1fr;
@@ -141,11 +120,15 @@ a:hover {
     transition: transform 300ms ease-out;
   }
 
-  #sidebar_form.minimized {
+  #sidebar_form:not(.open) {
     transform: translateY(100%);
   }
 
   #canvas {
     height: 100vw;
+  }
+
+  .buttons_dialog {
+    width: 100vw !important;
   }
 }

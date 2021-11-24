@@ -10,6 +10,7 @@ const elements = {
   downloadBtn: document.querySelector('#download_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
   resetBtn: document.querySelector('#reset_btn'),
+  buttons: document.querySelector('#buttons'),
 };
 
 const patterns = patternTypes.map(Pattern => new Pattern(elements.canvas));
@@ -60,6 +61,14 @@ function main() {
   thumbnails.addOnChangeListener(({ detail }) => {
     const pattern = findPatternById(detail.pattern);
     setCurrentPattern(pattern);
+  });
+
+  elements.buttons.addEventListener('click', e => {
+    const toggleBtn = e.target.closest('[data-toggle-for]');
+    if (toggleBtn) {
+      const toggledElement = document.querySelector('#' + toggleBtn.dataset.toggleFor);
+      toggledElement.classList.toggle('open');
+    }
   });
 }
 

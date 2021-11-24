@@ -3,6 +3,7 @@
   --color-config: #212124;
   --color-player: #222226;
   --color-gray3: #262629;
+  --color_buttons_dialog: #3f3f4b;
   --border-light: solid 1px #3a3a3a;
   --horizontal-padding: 16px;
   --vertical-padding: 12px;
@@ -13,6 +14,6 @@
   --header-height: 45px;
   --select-height: 49px;
   --controls-height: 50px;
-
+  --sidebar-width: 270px;
   --circular_button_width: 38px;
 }

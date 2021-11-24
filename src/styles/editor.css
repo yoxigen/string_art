@@ -1,29 +1,6 @@
 @import 'vars.css';
 
-.btn {
-  height: 30px;
-  width: 100%;
-  border-radius: 15px;
-  border: none;
-  background: #0375fb;
-  color: white;
-  cursor: pointer;
-  margin-bottom: 8px;
-}
 
-.btn:hover {
-  background: #3592ff;
-}
-
-.btn_subdued {
-  background: #c5c5c5;
-  color: Black;
-}
-
-.btn_subdued:hover {
-  background: #efefef;
-  color: Black;
-}
 
 .margin-top {
   margin-top: 16px;

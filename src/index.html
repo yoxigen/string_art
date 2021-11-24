@@ -102,10 +102,7 @@
                     />
                   </div>
                 </div>
-                <button id="download_btn" class="btn">💾 Download image</button>
-                <button id="download_nails_btn" class="btn">
-                  🔨 Download nails map
-                </button>
+
               </div>
             </fieldset>
           </div>
@@ -135,13 +132,29 @@
       <footer id="buttons">
         <button
           type="button"
+          class="circular_btn"
+          data-toggle-for="download"
+          title="Download image"
+        >💾</button>
+        <button
+          type="button"
+          class="circular_btn"
+          data-toggle-for="sidebar_form"
+          title="Config"
+        >💾</button>
+        <button
+          type="button"
           id="reset_btn"
-          class="btn btn_subdued"
+          class="circular_btn"
           title="Reset config to default"
-        >
-          ↻ Reset to defaults
-        </button>
+        >↻</button>
       </footer>
+      <div role="dialog" id="download" class="buttons_dialog">
+        <button id="download_btn" class="btn">💾 Download image</button>
+        <button id="download_nails_btn" class="btn">
+          🔨 Download nails map
+        </button>
+      </div>
     </main>
   </body>
 </html>
