@@ -1,5 +1,3 @@
-@import 'vars.css';
-
 * {
   box-sizing: border-box;
 }
@@ -90,10 +88,13 @@ a {
 a:hover {
   text-decoration: underline;
 }
-#art {
+#canvas_panel {
   grid-area: canvas;
-  overflow: auto;
   text-align: center;
+  overflow: hidden;
+}
+#canvas_panel.overflow {
+  overflow: auto;
 }
 
 .small_only {
@@ -133,7 +134,7 @@ a:hover {
     transform: translateY(100%);
   }
 
-  #canvas {
+  .dialog_sidebar_form #canvas_panel {
     height: 100vw;
   }
 

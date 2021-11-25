@@ -67,11 +67,13 @@ function main() {
   elements.buttons.addEventListener('click', e => {
     const toggleBtn = e.target.closest('[data-toggle-for]');
     if (toggleBtn) {
+      const dialogId = toggleBtn.dataset.toggleFor;
+
       toggleBtn.classList.toggle('active');
-      const toggledElement = document.querySelector(
-        '#' + toggleBtn.dataset.toggleFor
-      );
+      const toggledElement = document.querySelector('#' + dialogId);
       toggledElement.classList.toggle('open');
+      document.body.classList.toggle('dialog_' + dialogId);
+      currentPattern.draw({ position: currentPattern.position });
     }
   });
 }
@@ -144,7 +146,11 @@ function setSize({ width, height }) {
   if (width && height) {
     elements.canvas.style.width = `${width}px`;
     elements.canvas.style.height = `${height}px`;
+    if (!elements.canvas.parentElement.classList.contains('overflow')) {
+      elements.canvas.parentElement.classList.add('overflow');
+    }
   } else {
+    elements.canvas.parentElement.classList.remove('overflow');
     elements.canvas.removeAttribute('style');
   }
 

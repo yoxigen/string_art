@@ -1,5 +1,3 @@
-@import 'vars.css';
-
 #player {
   grid-area: player;
   font-size: 14px;
