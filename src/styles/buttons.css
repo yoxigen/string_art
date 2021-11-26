@@ -1,4 +1,5 @@
 #buttons {
+  position: relative;
   grid-area: 'controls';
   border-right: var(--border-light);
   background: var(--color-header);
@@ -69,14 +70,23 @@
   color: White;
 }
 
+#buttons_dialogs {
+  position: absolute;
+  z-index: 2;
+  bottom: 100%;
+  height: calc(100vh - var(--controls-height) - var(--select-height));
+  width: 100%;
+  overflow: hidden;
+}
+
 .buttons_dialog {
   --buttons-dialog-border-radius: 10px;
-
-  position: absolute;
-  top: calc(100vh - var(--controls-height));
-  z-index: 2;
+  position: fixed;
+  bottom: var(--controls-height);
+  z-index: 1;
   background: var(--color_buttons_dialog);
   transition: transform 200ms ease-out;
+  transform: translateY(100%);
   width: var(--sidebar-width);
   padding: var(--vertical-padding) var(--horizontal-padding);
   padding-top: calc(2 * var(--buttons-dialog-border-radius));
@@ -86,5 +96,5 @@
 }
 
 .buttons_dialog.open {
-  transform: translateY(-100%);
+  transform: translateY(0);
 }

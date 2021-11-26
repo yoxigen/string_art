@@ -29,7 +29,7 @@ main {
   grid-template-areas:
     'header canvas'
     'pattern_select canvas'
-    'sidebar canvas'
+    'config canvas'
     'controls player';
   height: 100%;
 }
@@ -38,14 +38,14 @@ button {
   font-family: Roboto;
 }
 #sidebar_form {
-  background: var(--color-config);
   border-right: var(--border-light);
-  box-shadow: 1px 0 0px black;
   max-height: 100%;
-  grid-area: sidebar;
-  overflow-y: auto;
-  padding-bottom: 16px;
+  grid-area: config;
+  overflow: hidden;
+  background: var(--color-config);
+  box-shadow: 1px 0 0px black;
 }
+
 #main_header {
   display: flex;
   flex-direction: row;
@@ -114,28 +114,37 @@ a:hover {
       'controls';
   }
 
+  .dialog_sidebar_form main {
+    grid-template-rows: var(--select-height) 100vw 1fr var(--controls-height);
+    grid-template-areas:
+      'pattern_select'
+      'canvas'
+      'config'
+      'controls';
+  }
+
   #main_header {
     display: none;
   }
 
   #sidebar_form {
-    max-height: calc(100vh - 100vw - 100px);
-    position: absolute;
-    bottom: 50px;
-    z-index: 1;
-    width: 100%;
-    padding-top: 16px;
+    border-right: none;
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -5px 8px rgb(0 0 0 / 40%);
-    transition: transform 300ms ease-out;
+    padding-top: var(--sidebar-form-padding-top);
+    display: none;
   }
 
-  #sidebar_form:not(.open) {
-    transform: translateY(100%);
+  #controls_panel {
+    height: calc(100% - var(--sidebar-form-padding-top));
   }
 
-  .dialog_sidebar_form #canvas_panel {
-    height: 100vw;
+  .dialog_sidebar_form #sidebar_form {
+    display: block;
+  }
+
+  .dialog_sidebar_form #player {
+    display: none !important;
   }
 
   .buttons_dialog {

@@ -17,4 +17,7 @@
   --controls-height: 50px;
   --sidebar-width: 270px;
   --circular_button_width: 38px;
+  --sidebar-form-padding-top: 16px;
+
+  --responsive-width: 600px;
 }

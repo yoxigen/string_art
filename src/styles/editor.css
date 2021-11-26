@@ -3,7 +3,9 @@
 }
 
 #controls_panel {
-  padding: 0 var(--horizontal-padding);
+  padding: 16px var(--horizontal-padding);
+  overflow-y: auto;
+  height: 100%;
 }
 
 #size_controls {
@@ -18,6 +20,10 @@ label {
 .control {
   margin-top: 16px;
   position: relative;
+}
+
+#controls > .control:first-child {
+  margin-top: 0;
 }
 
 form label {
