@@ -57,3 +57,7 @@
   box-shadow: 0 0 2px 0 #555;
   transition: background 0.3s ease-in-out;
 }
+
+#player_buttons .circular_btn {
+  background: none;
+}

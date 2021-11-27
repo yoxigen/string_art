@@ -104,7 +104,7 @@ a:hover {
 @media only screen and (max-width: 600px) {
   main {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--select-height) 1fr var(--controls-height) var(
+    grid-template-rows: var(--select-height) 1fr var(--player-mobile-height) var(
         --controls-height
       );
     grid-template-areas:
@@ -129,9 +129,8 @@ a:hover {
 
   #sidebar_form {
     border-right: none;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -5px 8px rgb(0 0 0 / 40%);
-    padding-top: var(--sidebar-form-padding-top);
+    border-top: var(--border-light);
+    box-shadow: 0 -5px 8px rgb(0 0 0 / 40%), 0 -1px 0 black;
     display: none;
   }
 
