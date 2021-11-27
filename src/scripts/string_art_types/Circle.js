@@ -4,28 +4,17 @@ const PI2 = Math.PI * 2;
 
 export default class Circle {
   constructor(config) {
-    const {
-      n,
-      size,
-      margin = 0,
-      rotation = 0,
-      center,
-      radius,
-      reverse = false,
-    } = (this.config = config);
-
-    this.center = center ?? size.map(v => v / 2);
-    this.radius = radius ?? Math.min(...this.center) - margin;
-
-    this.indexAngle = PI2 / n;
-    this.rotationAngle = -PI2 * rotation;
-    this.isReverse = reverse;
+    this.setConfig(config);
   }
 
   getPoint(index = 0) {
+    if (this.points.has(index)) {
+      return this.points.get(index);
+    }
+
     const realIndex = this.isReverse ? this.config.n - 1 - index : index;
 
-    return [
+    const point = [
       this.center[0] +
         Math.sin(realIndex * this.indexAngle + this.rotationAngle) *
           this.radius,
@@ -33,6 +22,60 @@ export default class Circle {
         Math.cos(realIndex * this.indexAngle + this.rotationAngle) *
           this.radius,
     ];
+
+    this.points.set(index, point);
+    return point;
+  }
+
+  setConfig(config) {
+    const serializedConfig = this._serializeConfig(config);
+    if (serializedConfig !== this.serializedConfig) {
+      const {
+        n,
+        size,
+        margin = 0,
+        rotation = 0,
+        center: configCenter,
+        radius,
+        reverse = false,
+      } = config;
+      const center = configCenter ?? size.map(v => v / 2);
+      const props = {
+        center,
+        radius: radius ?? Math.min(...center) - margin,
+        indexAngle: PI2 / n,
+        rotationAngle: -PI2 * rotation,
+        isReverse: reverse,
+      };
+      this.config = config;
+      this.serializedConfig = serializedConfig;
+      Object.assign(this, props);
+      if (this.points) {
+        this.points.clear();
+      } else {
+        this.points = new Map();
+      }
+    }
+  }
+
+  _serializeConfig({
+    n,
+    size,
+    margin = 0,
+    rotation = 0,
+    center,
+    radius,
+    reverse = false,
+  }) {
+    return [
+      size?.join(','),
+      center?.join(','),
+      radius,
+      margin,
+      n,
+      rotation,
+      reverse,
+    ].join('_');
   }
 
   /**

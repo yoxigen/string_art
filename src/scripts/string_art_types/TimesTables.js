@@ -56,12 +56,18 @@ export default class TimesTables extends StringArt {
     super.setUpDraw();
 
     const { layers, rotation, margin } = this.config;
-    this.circle = new Circle({
+    const circleConfig = {
       size: this.size,
       n: this.n,
       margin,
       rotation,
-    });
+    };
+
+    if (this.circle) {
+      this.circle.setConfig(circleConfig);
+    } else {
+      this.circle = new Circle(circleConfig);
+    }
 
     this.color = new Color({
       ...this.config,

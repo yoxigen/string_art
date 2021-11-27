@@ -184,12 +184,22 @@ export default class Assymetry extends StringArt {
 
   getSetUp() {
     const { rotation, n, margin = 0 } = this.config;
-    const circle = new Circle({
-      size: this.getSize(),
+    const size = this.getSize();
+
+    const circleConfig = {
+      size,
       n,
       margin,
       rotation: rotation - 0.25,
-    });
+    };
+
+    let circle;
+    if (this.circle) {
+      circle = this.circle;
+      this.circle.setConfig(circleConfig);
+    } else {
+      circle = new Circle(circleConfig);
+    }
 
     let lineSpacing = circle.indexAngle * circle.radius;
     const lineNailCount = Math.floor(circle.radius / lineSpacing) - 1;

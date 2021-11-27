@@ -56,12 +56,18 @@ export default class Spiral extends StringArt {
     const { n, rotation, layers, margin, colorCount } = this.config;
     this.layersCount = layers ?? 1;
 
-    this.circle = new Circle({
+    const circleConfig = {
       size: this.size,
       n,
-      rotation,
       margin,
-    });
+      rotation,
+    };
+
+    if (this.circle) {
+      this.circle.setConfig(circleConfig);
+    } else {
+      this.circle = new Circle(circleConfig);
+    }
 
     this.color = new Color({
       ...this.config,

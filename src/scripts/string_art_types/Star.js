@@ -58,12 +58,18 @@ export default class Star extends StringArt {
     super.setUpDraw();
 
     const { sides, rotation, sideNails, margin = 0 } = this.config;
-    this.circle = new Circle({
+    const circleConfig = {
       size: this.size,
       n: sideNails * sides,
       margin,
       rotation,
-    });
+    };
+
+    if (this.circle) {
+      this.circle.setConfig(circleConfig);
+    } else {
+      this.circle = new Circle(circleConfig);
+    }
 
     this.sideAngle = (Math.PI * 2) / sides;
     this.nailSpacing = this.circle.radius / sideNails;
