@@ -11,12 +11,12 @@ export default class Wave extends Spiral {
   controls = [
     {
       ...Circle.nailsConfig,
-      defaultValue: 200,
+      defaultValue: 144,
     },
     {
       key: 'repetition',
       label: 'Repetition',
-      defaultValue: 1,
+      defaultValue: 2,
       type: 'range',
       attr: { min: 1, max: 60, step: 1 },
     },
@@ -34,7 +34,7 @@ export default class Wave extends Spiral {
     },
     {
       ...Circle.rotationConfig,
-      defaultValue: 0.5,
+      defaultValue: 176 / 360,
     },
     {
       key: 'layers',
@@ -83,4 +83,8 @@ export default class Wave extends Spiral {
       });
     }
   }
+
+  static thumbnailConfig = {
+    n: 40,
+  };
 }

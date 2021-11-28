@@ -28,9 +28,9 @@ export default class Spiral extends StringArt {
     {
       key: 'repetition',
       label: 'Repetition',
-      defaultValue: 5,
+      defaultValue: 6,
       type: 'range',
-      attr: { min: 1, max: 60, step: 1 },
+      attr: { min: 1, max: 20, step: 1 },
     },
     {
       key: 'innerLength',
@@ -88,8 +88,10 @@ export default class Spiral extends StringArt {
     let currentInnerLength = Math.round(innerLength * n);
     let repetitionCount = 0;
     this.ctx.strokeStyle = color;
-    let prevPoint = this.circle.getPoint(shift);
+    let prevPointIndex = shift;
+    let prevPoint = this.circle.getPoint(prevPointIndex);
     let isPrevPoint = false;
+    console.clear();
 
     for (let i = 0; currentInnerLength > 0; i++) {
       if (this.colorMap) {
@@ -102,22 +104,20 @@ export default class Spiral extends StringArt {
       this.ctx.beginPath();
       this.ctx.moveTo(...prevPoint);
       const nextPointIndex = isPrevPoint
-        ? i + shift
-        : i + currentInnerLength + shift;
+        ? prevPointIndex - currentInnerLength
+        : prevPointIndex + currentInnerLength;
 
       this.ctx.lineTo(...this.circle.getPoint(nextPointIndex));
       repetitionCount++;
       if (repetitionCount === repetition) {
         currentInnerLength--;
         repetitionCount = 0;
-        i++;
-        this.ctx.lineTo(...this.circle.getPoint(nextPointIndex + 1));
-        prevPoint = this.circle.getPoint(nextPointIndex + 2);
-      } else {
-        prevPoint = this.circle.getPoint(nextPointIndex + 1);
       }
 
+      prevPointIndex = nextPointIndex + 1;
+      prevPoint = this.circle.getPoint(prevPointIndex);
       this.ctx.lineTo(...prevPoint);
+
       this.ctx.stroke();
 
       yield i;
