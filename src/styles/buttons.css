@@ -98,3 +98,10 @@
 .buttons_dialog.open {
   transform: translateY(0);
 }
+
+.btn-icon {
+  border: none;
+  background: none;
+  color: White;
+  font-size: 22px;
+}

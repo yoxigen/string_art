@@ -64,7 +64,7 @@ function main() {
     setCurrentPattern(pattern);
   });
 
-  elements.buttons.addEventListener('click', e => {
+  document.body.addEventListener('click', e => {
     const toggleBtn = e.target.closest('[data-toggle-for]');
     if (toggleBtn) {
       const dialogId = toggleBtn.dataset.toggleFor;

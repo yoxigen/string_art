@@ -59,6 +59,9 @@
         </h1>
       </header>
       <div id="pattern_select_panel" class="minimized">
+        <button id="menu_btn" class="btn-icon small_only" title="Open menu" data-toggle-for="mobile_menu">
+          <i class="icon-hamburger"></i>
+        </button>
         <button type="button" id="pattern_select_btn"></button>
         <a
             id="pattern_link"
@@ -161,5 +164,51 @@
         </button>
       </div>
     </main>
+    <article id="mobile_menu" class="small_only">
+      <header id="mobile_menu_header">
+        <h1>
+          <span class="logo1">String Art</span>
+          <span class="logo2">Studio</span>
+        </h1>
+        <div>
+          <button id="mobile_menu_close_btn" type="button" class="btn-icon small_only" title="Close menu" data-toggle-for="mobile_menu">
+            <i class="icon-hamburger"></i>
+          </button>
+        </div>
+      </header>
+      <section>
+        <p>
+          Welcome to String Art Studio! With this app you can design and produce your own
+          beautiful string art projects.
+        </p>
+      </section>
+      <section>
+      <h2>How-to</h2>
+      <ol>
+        <li>Choose a pattern</li>
+        <li>Change options (like number of nails, shapes and colors)</li>
+        <li>Download and print a map of nail positions</li>
+        <li>Drive nails into a wood panel through the nails map</li>
+        <li>
+          Put strings to the nails as shown in the app's player.
+          You play this process in the app's player and pause, to make things clear.
+        </li>
+        <li>You're done!</li>
+      </ol>
+    </section>
+    <section>
+      <h2>More info</h2>
+        <ul id="menu_links">
+          <li>
+            <a href="https://github.com/yoxigen/string_art" target="_blank">
+              String Art Studio on GitHub
+            </a>
+          </li>
+          <li>
+            <a href="https://en.wikipedia.org/wiki/String_art" target="_blank">String Art on Wikipedia</a>
+          </li>
+        </ul>
+    </section>
+    </article>
   </body>
 </html>
