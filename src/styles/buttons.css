@@ -48,16 +48,16 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(255 255 255 / 10%);
+  background: none;
   border: none;
   cursor: pointer;
-  color: RGBA(255 255 255 / 80%);
-  font-size: 23.3px;
+  color: White;
+  font-size: 28px;
+  transition: transform 200ms ease-out;
 }
 
 .circular_btn:hover {
-  background: rgba(255 255 255 / 20%);
-  color: White;
+  transform: scale(1.1);
 }
 
 .circular_btn img {
@@ -66,8 +66,7 @@
 }
 
 .circular_btn.active {
-  background: var(--logo1-active);
-  color: White;
+  color: var(--logo2);
 }
 
 #buttons_dialogs {

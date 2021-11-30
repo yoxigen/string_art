@@ -1,8 +1,8 @@
 @font-face {
   font-family: 'string_art_studio';
-  src: url('fonts/string_art_studio.ttf?ajkt5j') format('truetype'),
-    url('fonts/string_art_studio.woff?ajkt5j') format('woff'),
-    url('fonts/string_art_studio.svg?ajkt5j#string_art_studio') format('svg');
+  src: url('fonts/string_art_studio.ttf?o9tofh') format('truetype'),
+    url('fonts/string_art_studio.woff?o9tofh') format('woff'),
+    url('fonts/string_art_studio.svg?o9tofh#string_art_studio') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -10,7 +10,7 @@
 
 [class^='icon-'],
 [class*=' icon-'],
-i {
+.icon {
   /* use !important to prevent issues with browser extensions that change fonts */
   font-family: 'string_art_studio' !important;
   speak: never;
@@ -20,21 +20,20 @@ i {
   text-transform: none;
   line-height: 1;
 
-  /* Enable Ligatures ================ */
-  letter-spacing: 0;
-  -webkit-font-feature-settings: 'liga';
-  -moz-font-feature-settings: 'liga=1';
-  -moz-font-feature-settings: 'liga';
-  -ms-font-feature-settings: 'liga' 1;
-  font-feature-settings: 'liga';
-  -webkit-font-variant-ligatures: discretionary-ligatures;
-  font-variant-ligatures: discretionary-ligatures;
-
   /* Better Font Rendering =========== */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-arrow_left:before {
+  content: '\e908';
+}
+.icon-arrow_right:before {
+  content: '\e909';
+}
+.icon-caret_down:before {
+  content: '\e90a';
+}
 .icon-fullscreen:before {
   content: '\e900';
 }
