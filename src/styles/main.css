@@ -15,8 +15,8 @@ body {
 }
 
 body {
-  background: #0e0e0e;
-  color: white;
+  background: var(--color-canvas-background);
+  color: var(--color-text);
   font-family: Roboto, sans-serif;
 }
 

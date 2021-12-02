@@ -91,7 +91,6 @@ export default class Spiral extends StringArt {
     let prevPointIndex = shift;
     let prevPoint = this.circle.getPoint(prevPointIndex);
     let isPrevPoint = false;
-    console.clear();
 
     for (let i = 0; currentInnerLength > 0; i++) {
       if (this.colorMap) {

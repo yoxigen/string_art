@@ -39,7 +39,7 @@ export default class Player {
     this.elements.step.innerText = `${this.stepCount}/${this.stepCount}`;
     this.elements.text.style.removeProperty('width');
     this.elements.text.style.width =
-      (this.elements.text.clientWidth || 50) + 'px';
+      (this.elements.text.clientWidth || 70) + 'px';
     this.goto(this.stepCount, { updateStringArt: draw });
   }
 

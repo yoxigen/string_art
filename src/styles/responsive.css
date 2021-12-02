@@ -1,57 +1,53 @@
 @media only screen and (max-width: 600px) {
-    main {
-      grid-template-columns: 1fr;
-      grid-template-rows: var(--select-height) 1fr var(--player-mobile-height) var(
-          --controls-height
-        );
-      grid-template-areas:
-        'pattern_select'
-        'canvas'
-        'player'
-        'controls';
-    }
-
-    .dialog_sidebar_form main {
-      grid-template-rows: var(--select-height) 100vw 1fr var(--controls-height);
-      grid-template-areas:
-        'pattern_select'
-        'canvas'
-        'config'
-        'controls';
-    }
-
-    #main_header {
-      display: none;
-    }
-
-    #sidebar_form {
-      border-right: none;
-      border-top: var(--border-light);
-      box-shadow: 0 -5px 8px rgb(0 0 0 / 40%), 0 -1px 0 black;
-      display: none;
-    }
-
-    #pattern_select_panel {
-      padding-inline-start: 8px;
-    }
-
-    #controls_panel {
-      height: calc(100% - var(--sidebar-form-padding-top));
-    }
-
-    .dialog_sidebar_form #sidebar_form {
-      display: block;
-    }
-
-    .dialog_sidebar_form #player {
-      display: none !important;
-    }
-
-    .buttons_dialog {
-      width: 100vw;
-    }
-
-    .small_only {
-      display: inherit !important;
-    }
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--select-height) 1fr var(--player-mobile-height) var(
+        --controls-height
+      );
+    grid-template-areas:
+      'pattern_select'
+      'canvas'
+      'player'
+      'controls';
   }
+
+  .dialog_sidebar_form main {
+    grid-template-rows: var(--select-height) 100vw 1fr var(--controls-height);
+    grid-template-areas:
+      'pattern_select'
+      'canvas'
+      'config'
+      'controls';
+  }
+
+  #main_header {
+    display: none;
+  }
+
+  #sidebar_form {
+    border-right: none;
+    border-top: var(--border-light);
+    box-shadow: 0 -5px 8px rgb(0 0 0 / 40%), 0 -1px 0 black;
+    display: none;
+  }
+
+  #pattern_select_panel {
+    padding-inline-start: 8px;
+  }
+
+  .dialog_sidebar_form #sidebar_form {
+    display: block;
+  }
+
+  .dialog_sidebar_form #player {
+    display: none !important;
+  }
+
+  .buttons_dialog {
+    width: 100vw;
+  }
+
+  .small_only {
+    display: inherit !important;
+  }
+}

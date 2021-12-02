@@ -1,10 +1,12 @@
 const elements = {
   controls: document.querySelector('#controls'),
+  controlsPanel: document.querySelector('#controls_panel'),
   sidebarForm: document.querySelector('#sidebar_form'),
 };
 
 const EVENTS = new Set(['input', 'change']);
 const STATE_LOCAL_STORAGE_KEY = 'controls_state';
+const RANGE_SCROLL_LOCK_TIMEOUT = 120;
 
 let inputTimeout;
 
@@ -18,7 +20,6 @@ export default class EditorControls {
       change: new Set(),
     };
 
-    this._wrappedOnInput = e => this._onInput(e);
     this._toggleFieldset = e => {
       if (e.target.nodeName === 'LEGEND') {
         e.target.parentElement.classList.toggle('minimized');
@@ -40,7 +41,11 @@ export default class EditorControls {
       }
     };
 
+    this._wrappedOnInput = e => this._onInput(e);
     elements.controls.addEventListener('input', this._wrappedOnInput);
+
+    this._wrappedOnTouchStart = e => this._onTouchStart(e);
+    elements.controls.addEventListener('touchstart', this._wrappedOnTouchStart);
     elements.sidebarForm.addEventListener('click', this._toggleFieldset);
     elements.sidebarForm.addEventListener(
       'keydown',
@@ -78,40 +83,107 @@ export default class EditorControls {
     }
   }
 
+  /**
+   * Needed for range inputs, to avoid changing the value when the user drags to
+   * scroll and accidentally touches a range input when intending to scroll.
+   * @param {Event} e
+   */
+  _onTouchStart(e) {
+    if (e.target.getAttribute('type') === 'range') {
+      this._postponeRangeInput = true;
+      this.currentInputRange = e.target;
+      this.currentInputRangeValue = e.target.value;
+      this._rangeLockTimeout = setTimeout(() => {
+        this._postponeRangeInput = false;
+      }, RANGE_SCROLL_LOCK_TIMEOUT);
+      this._wrappedOnTouchEnd = e => this._onTouchEnd(e);
+      document.body.addEventListener('touchend', this._wrappedOnTouchEnd);
+      this._wrappedOnRangeScroll = e => this._onRangeScroll(e);
+      elements.controlsPanel.addEventListener(
+        'scroll',
+        this._wrappedOnRangeScroll
+      );
+    }
+  }
+
+  _onTouchEnd(e) {
+    document.body.removeEventListener('touchend', this._wrappedOnTouchEnd);
+    elements.controlsPanel.removeEventListener(
+      'scroll',
+      this._wrappedOnRangeScroll
+    );
+
+    if (this._lockRange) {
+      this._lockRange = false;
+      this.currentInputRange.value = this.currentInputRangeValue;
+    }
+
+    this.currentInputRange = this.currentInputRangeValue = null;
+  }
+
+  _onRangeScroll(e) {
+    this._lockRange = true;
+  }
+
   _onInput(e) {
-    requestAnimationFrame(() => {
-      clearTimeout(inputTimeout);
+    clearTimeout(inputTimeout);
+    clearTimeout(this._postponeRangeInputTimeout);
 
-      const inputValue = getInputValue(e.target.type, e.target);
-      const controlKey = e.target.id.replace(/^config_/, '');
+    if (this._postponeRangeInput && e.target.getAttribute('type') === 'range') {
+      e.preventDefault();
+      this._postponeRangeInputTimeout = setTimeout(() => {
+        this._onInput(e);
+      }, RANGE_SCROLL_LOCK_TIMEOUT);
+      return false;
+    }
+    if (this._lockRange) {
+      e.preventDefault();
+      return false;
+    }
 
-      this.pattern.config = Object.freeze({
-        ...this.pattern.config,
-        [controlKey]: inputValue,
-      });
-
-      const { config, displayValue } = this.controlElements[controlKey];
-      if (displayValue) {
-        const formattedValue = config.displayValue
-          ? config.displayValue(this.pattern.config, config)
-          : e.target.value;
-        displayValue.innerText = formattedValue;
-      }
-
-      const eventData = Object.freeze({
-        control: controlKey,
-        value: inputValue,
-        originalEvent: e,
-        pattern: this.pattern,
-      });
-
-      this._triggerEvent('input', eventData);
-
-      inputTimeout = setTimeout(() => {
-        this._triggerEvent('change', eventData);
-        this.updateControlsVisibility();
-      }, 100);
+    this.updateInput({
+      inputElement: e.target,
+      originalEvent: e,
+      deferChange: true,
     });
+  }
+
+  updateInput({ inputElement, originalEvent, deferChange = true }) {
+    const inputValue = getInputValue(inputElement.type, inputElement);
+    const controlKey = inputElement.id.replace(/^config_/, '');
+
+    this.pattern.config = Object.freeze({
+      ...this.pattern.config,
+      [controlKey]: inputValue,
+    });
+
+    const { config, displayValue } = this.controlElements[controlKey];
+    if (displayValue) {
+      const formattedValue = config.displayValue
+        ? config.displayValue(this.pattern.config, config)
+        : inputElement.value;
+      displayValue.innerText = formattedValue;
+    }
+
+    const eventData = Object.freeze({
+      control: controlKey,
+      value: inputValue,
+      originalEvent,
+      pattern: this.pattern,
+    });
+
+    this._triggerEvent('input', eventData);
+
+    const triggerChange = () => {
+      this._triggerEvent('change', eventData);
+      this.updateControlsVisibility();
+    };
+
+    if (deferChange) {
+      inputTimeout = setTimeout(triggerChange, 100);
+    } else {
+      triggerChange();
+    }
   }
 
   _getState() {

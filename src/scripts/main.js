@@ -104,7 +104,7 @@ function downloadNailsImage() {
 }
 
 function reset() {
-  if (confirm('Are you sure you wish to reset to defaults?')) {
+  if (confirm('Are you sure you wish to reset options to defaults?')) {
     setCurrentPattern(currentPattern, { config: {} });
   }
 }

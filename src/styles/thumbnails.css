@@ -28,7 +28,7 @@
   background: none;
   font-size: 24px;
   font-weight: 300;
-  color: White;
+  color: var(----color-text);
   padding: 0;
   cursor: pointer;
   flex: 1;
