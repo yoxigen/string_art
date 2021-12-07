@@ -170,6 +170,9 @@ export default class Color {
   }
 
   getColorMap({ stepCount, colorCount }) {
+    if (!colorCount) {
+      throw new Error("Can't get color map, no colorCount provided!");
+    }
     const stepsPerColor = Math.floor(stepCount / colorCount);
     const colorMap = new Map();
     for (let i = 0; i < colorCount; i++) {

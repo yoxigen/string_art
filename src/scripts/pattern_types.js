@@ -6,6 +6,7 @@ import TimesTables from './string_art_types/TimesTables.js';
 import Star from './string_art_types/Star.js';
 import Assymetry from './string_art_types/Assymetry.js';
 import Circles from './string_art_types/Circles.js';
+import PolygonPattern from './string_art_types/PolygonPattern.js';
 
 const patternTypes = [
   Star,
@@ -16,6 +17,7 @@ const patternTypes = [
   Wave,
   Eye,
   Circles,
+  PolygonPattern,
 ];
 
 export default patternTypes;

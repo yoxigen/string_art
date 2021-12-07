@@ -1,6 +1,6 @@
 import Color from '../helpers/Color.js';
 import StringArt from '../StringArt.js';
-import Circle from './Circle.js';
+import Circle from '../helpers/Circle.js';
 
 export default class TimesTables extends StringArt {
   name = 'Times Tables';

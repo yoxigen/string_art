@@ -193,7 +193,13 @@ function selectPattern(pattern, { config, draw = true } = {}) {
   controls.addEventListener('input', () => currentPattern.draw());
   controls.addEventListener('change', onInputsChange);
 
-  elements.patternLink.setAttribute('href', pattern.link);
+  if (pattern.link) {
+    elements.patternLink.setAttribute('href', pattern.link);
+    elements.patternLink.removeAttribute('hidden');
+  } else {
+    elements.patternLink.setAttribute('hidden', 'hidden');
+  }
+
   if (draw) {
     currentPattern.draw();
   }

@@ -1,6 +1,5 @@
 import Color from '../helpers/Color.js';
-import StringArt from '../StringArt.js';
-import Circle from './Circle.js';
+import Circle from '../helpers/Circle.js';
 import Spiral from './Spiral.js';
 
 export default class Wave extends Spiral {

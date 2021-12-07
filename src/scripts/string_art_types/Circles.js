@@ -1,5 +1,5 @@
 import StringArt from '../StringArt.js';
-import Circle from './Circle.js';
+import Circle from '../helpers/Circle.js';
 
 export default class Circles extends StringArt {
   name = 'Circles';
