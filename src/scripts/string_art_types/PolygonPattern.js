@@ -58,6 +58,11 @@ export default class PolygonPattern extends StringArt {
     COLOR_CONFIG,
   ];
 
+  defaultValues = {
+    nailsColor: '#5c5c5c',
+    nailRadius: 1,
+  };
+
   setUpDraw() {
     super.setUpDraw();
     const { n, rotation, sides, margin, isMultiColor } = this.config;

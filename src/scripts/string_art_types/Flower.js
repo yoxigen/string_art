@@ -58,6 +58,12 @@ export default class Flower extends StringArt {
     COLOR_CONFIG,
   ];
 
+  defaultValues = {
+    nailsColor: '#29f1ff',
+    nailRadius: 1,
+    stringWidth: 0.5,
+  };
+
   setUpDraw() {
     super.setUpDraw();
     const { n, rotation, sides, layers, margin, isMultiColor } = this.config;

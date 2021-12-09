@@ -24,7 +24,7 @@ const COMMON_CONFIG_CONTROLS = [
         label: 'String width',
         defaultValue: 1,
         type: 'range',
-        attr: { min: 0.2, max: 4, step: 0.2 },
+        attr: { min: 0.2, max: 4, step: 0.1 },
         show: ({ showStrings }) => showStrings,
       },
     ],
@@ -145,7 +145,9 @@ class StringArt {
 
   get defaultConfig() {
     if (!this._defaultConfig) {
-      this._defaultConfig = flattenConfig(this.configControls);
+      this._defaultConfig = Object.freeze(
+        Object.assign(flattenConfig(this.configControls), this.defaultValues)
+      );
     }
 
     return this._defaultConfig;
