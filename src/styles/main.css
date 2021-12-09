@@ -82,12 +82,13 @@ canvas {
 }
 
 a {
-  color: var(--logo1);
+  color: var(--color-link);
   font-size: 14px;
 }
 
 a:hover {
   text-decoration: underline;
+  color: var(--color-link-hover);
 }
 #canvas_panel {
   grid-area: canvas;

@@ -1,28 +1,32 @@
 :root {
-  --color-header: #2b2b31;
-  --color-config: #212124;
-  --color-player: #222226;
-  --color-gray3: #262629;
-  --color_buttons_dialog: #3f3f4b;
   --color-accent: #ff218f;
-  --color-lighter: #ffffff87;
-  --color-text: White;
+  --color-buttons-dialog: #3f3f4b;
   --color-canvas-background: #0e0e0e;
-  --border-light: solid 1px #3a3a3a;
-  --border-lighter: dotted 1px #505050;
+  --color-config: #212124;
+  --color-gray3: #262629;
+  --color-header: #2b2b31;
+  --color-lighter: #ffffff87;
+  --color-link: #68c0ff;
+  --color-link-hover: #85ccff;
+  --color-player: #222226;
+  --color-text: White;
+
   --horizontal-padding: 16px;
   --vertical-padding: 12px;
 
-  --logo1: #3cc0f1;
-  --logo1-active: #0098d0;
-  --logo2: #ffcf83;
+  --logo1: #9892ff;
+  --logo1-active: #c5c2ff;
+  --logo2: #d4c1ff;
 
+  --border-light: solid 1px #3a3a3a;
+  --border-lighter: dotted 1px #505050;
+
+  --circular_button_width: 38px;
+  --controls-height: 50px;
   --header-height: 45px;
   --select-height: 49px;
-  --controls-height: 50px;
-  --sidebar-width: 270px;
-  --circular_button_width: 38px;
   --sidebar-form-padding-top: 16px;
+  --sidebar-width: 270px;
   --player-mobile-height: 40px;
   --responsive-width: 600px;
 }
