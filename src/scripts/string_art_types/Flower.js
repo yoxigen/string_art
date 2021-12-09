@@ -6,12 +6,12 @@ import Color from '../helpers/Color.js';
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
-    color: '#ffbb29',
-    multicolorRange: 345,
-    multicolorStart: 196,
-    multicolorByLightness: true,
-    minLightness: 40,
-    maxLightness: 55,
+    color: '#29f1ff',
+    multicolorRange: 264,
+    multicolorStart: 53,
+    multicolorByLightness: false,
+    minLightness: 30,
+    maxLightness: 70,
   },
   exclude: ['colorCount'],
 });
@@ -94,65 +94,67 @@ export default class Flower extends StringArt {
   }
 
   *generateStrings() {
-    const { sides, bezier } = this.config;
+    const { sides, bezier, layers } = this.config;
 
     let step = 0;
     let color = this.color.getColor(0);
 
-    for (let layer = 0; layer < this.polygons.length; layer++) {
+    for (let layer = 0; layer < layers; layer++) {
       const polygon = this.polygons[layer];
 
       for (let side = 0; side < sides; side++) {
-          const leftSide = side === sides - 1 ? 0 : side + 1;
+        const leftSide = side === sides - 1 ? 0 : side + 1;
 
-          for (let index = 0; index < polygon.nailsPerSide; index++) {
-            if (this.colorMap) {
-              color = this.colorMap.get(step);
-            }
-
-            const centerIndexes = this.getCenterIndexes({
-              polygon,
-              sideIndex: index
-            });
-
-            this.ctx.strokeStyle = color;
-            this.ctx.beginPath();
-            this.ctx.moveTo(...polygon.getSidePoint({ side, index }));
-            this.ctx.lineTo(
-              ...polygon.getCenterPoint({
-                side: side,
-                index: centerIndexes[0],
-              })
-            );
-            this.ctx.moveTo(...polygon.getSidePoint({ side, index }));
-            this.ctx.lineTo(
-              ...polygon.getCenterPoint({
-                side: leftSide,
-                index: centerIndexes[1],
-              })
-            );
-
-            this.ctx.stroke();
-
-            yield;
-            step++;
+        for (let index = 0; index <= polygon.nailsPerSide; index++) {
+          if (this.colorMap) {
+            color = this.colorMap.get(step);
           }
+
+          const centerIndexes = this.getCenterIndexes({
+            polygon,
+            sideIndex: index,
+          });
+
+          this.ctx.strokeStyle = color;
+          this.ctx.beginPath();
+          this.ctx.moveTo(...polygon.getSidePoint({ side, index }));
+          this.ctx.lineTo(
+            ...polygon.getCenterPoint({
+              side: side,
+              index: centerIndexes[0],
+            })
+          );
+          this.ctx.moveTo(...polygon.getSidePoint({ side, index }));
+          this.ctx.lineTo(
+            ...polygon.getCenterPoint({
+              side: leftSide,
+              index: centerIndexes[1],
+            })
+          );
+
+          this.ctx.stroke();
+
+          yield;
+          step++;
         }
       }
+    }
   }
 
   getCenterIndexes({ polygon, sideIndex }) {
     const extraNailCount = polygon.nailsPerSide - polygon.radiusNailsCount;
 
     return [
-      sideIndex < extraNailCount ? -extraNailCount + sideIndex : sideIndex - extraNailCount,
-      polygon.radiusNailsCount - sideIndex
+      sideIndex < extraNailCount
+        ? -extraNailCount + sideIndex
+        : sideIndex - extraNailCount,
+      polygon.radiusNailsCount - sideIndex,
     ];
   }
 
   getStepCount() {
     const { sides, n, layers } = this.config;
-    return sides * n * layers;
+    return sides * (n + 1) * layers;
   }
 
   drawNails() {

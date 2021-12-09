@@ -7,11 +7,11 @@ const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
     color: '#ff0000',
-    multicolorRange: 360,
+    multicolorRange: 1,
     multicolorStart: 0,
-    multicolorByLightness: false,
-    minLightness: 0,
-    maxLightness: 100,
+    multicolorByLightness: true,
+    minLightness: 20,
+    maxLightness: 50,
   },
   exclude: ['colorCount'],
 });
@@ -69,7 +69,7 @@ export default class PolygonPattern extends StringArt {
       margin,
       size,
       nailsSpacing: 1 / n,
-      fitSize: true
+      fitSize: true,
     };
 
     if (this.polygon) {

@@ -86,6 +86,7 @@ export default class Polygon {
     ];
     const nailsDistance = sideSize * nailsSpacing;
     const radiusNailsCount = Math.floor(radius / nailsDistance);
+    const radiusNailsDistance = radius / radiusNailsCount;
 
     return {
       nailsSpacing,
@@ -96,6 +97,7 @@ export default class Polygon {
       start,
       nailsDistance,
       radiusNailsCount,
+      radiusNailsDistance,
     };
   }
 
@@ -125,7 +127,7 @@ export default class Polygon {
   }
 
   getCenterPoint({ side, index }) {
-    const radius = index * this.nailsDistance;
+    const radius = index * this.radiusNailsDistance;
     const { sin, cos } = this.sides[side].center;
 
     return [this.center[0] + sin * radius, this.center[1] + cos * radius];
