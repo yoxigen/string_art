@@ -69,6 +69,7 @@ export default class PolygonPattern extends StringArt {
       margin,
       size,
       nailsSpacing: 1 / n,
+      fitSize: true
     };
 
     if (this.polygon) {

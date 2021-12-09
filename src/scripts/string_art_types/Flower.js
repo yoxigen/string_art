@@ -7,11 +7,11 @@ const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
     color: '#ffbb29',
-    multicolorRange: 76,
-    multicolorStart: 0,
-    multicolorByLightness: false,
-    minLightness: 0,
-    maxLightness: 100,
+    multicolorRange: 345,
+    multicolorStart: 196,
+    multicolorByLightness: true,
+    minLightness: 40,
+    maxLightness: 55,
   },
   exclude: ['colorCount'],
 });
@@ -80,13 +80,13 @@ export default class Flower extends StringArt {
     this.color = new Color({
       ...this.config,
       isMultiColor,
-      colorCount: sides,
+      colorCount: layers,
     });
 
     if (isMultiColor) {
       this.colorMap = this.color.getColorMap({
         stepCount: this.getStepCount(),
-        colorCount: sides,
+        colorCount: layers,
       });
     } else {
       this.colorMap = null;
@@ -103,21 +103,32 @@ export default class Flower extends StringArt {
       const polygon = this.polygons[layer];
 
       for (let side = 0; side < sides; side++) {
-        for (let centerSide = side; centerSide <= side + 1; centerSide++) {
-          const currentCenterSide = centerSide >= sides - 1 ? 0 : centerSide;
+          const leftSide = side === sides - 1 ? 0 : side + 1;
 
           for (let index = 0; index < polygon.nailsPerSide; index++) {
             if (this.colorMap) {
               color = this.colorMap.get(step);
             }
 
+            const centerIndexes = this.getCenterIndexes({
+              polygon,
+              sideIndex: index
+            });
+
             this.ctx.strokeStyle = color;
             this.ctx.beginPath();
             this.ctx.moveTo(...polygon.getSidePoint({ side, index }));
             this.ctx.lineTo(
               ...polygon.getCenterPoint({
-                side: currentCenterSide,
-                index: -index,
+                side: side,
+                index: centerIndexes[0],
+              })
+            );
+            this.ctx.moveTo(...polygon.getSidePoint({ side, index }));
+            this.ctx.lineTo(
+              ...polygon.getCenterPoint({
+                side: leftSide,
+                index: centerIndexes[1],
               })
             );
 
@@ -128,12 +139,20 @@ export default class Flower extends StringArt {
           }
         }
       }
-    }
+  }
+
+  getCenterIndexes({ polygon, sideIndex }) {
+    const extraNailCount = polygon.nailsPerSide - polygon.radiusNailsCount;
+
+    return [
+      sideIndex < extraNailCount ? -extraNailCount + sideIndex : sideIndex - extraNailCount,
+      polygon.radiusNailsCount - sideIndex
+    ];
   }
 
   getStepCount() {
     const { sides, n, layers } = this.config;
-    return sides * n * layers * 2;
+    return sides * n * layers;
   }
 
   drawNails() {

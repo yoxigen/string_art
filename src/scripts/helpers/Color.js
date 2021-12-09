@@ -130,7 +130,7 @@ export default class Color {
     if (isMultiColor) {
       this.multiColorStep = multicolorRange / colorCount;
       this.multiColorLightnessStep = multicolorByLightness
-        ? (maxLightness - minLightness) / colorCount
+        ? (maxLightness - minLightness) / (colorCount - 1)
         : 1;
 
       this.colors = new Array(colorCount).fill(null).map((_, colorIndex) => {
