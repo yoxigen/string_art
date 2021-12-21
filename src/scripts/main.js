@@ -3,6 +3,7 @@ import patternTypes from './pattern_types.js';
 import EditorControls from './editor/EditorControls.js';
 import EditorSizeControls from './editor/EditorSizeControls.js';
 import { Thumbnails } from './thumbnails/Thumbnails.js';
+import {deserializeConfig, serializeConfig} from './Serialize.js';
 
 const elements = {
   canvas: document.querySelector('canvas'),
@@ -111,7 +112,7 @@ function reset() {
 
 function onInputsChange({ withConfig = true } = {}) {
   player.update(currentPattern);
-  const configQuery = withConfig ? JSON.stringify(currentPattern.config) : null;
+  const configQuery = withConfig ? serializeConfig(currentPattern) : null;
   history.replaceState(
     {
       pattern: currentPattern.id,
@@ -167,7 +168,7 @@ function updateState(state) {
   const pattern = findPatternById(state.pattern);
   selectPattern(pattern, {
     draw: false,
-    config: state.config ? JSON.parse(state.config) : {},
+    config: state.config ? deserializeConfig(pattern, state.config) : {},
   });
 
   currentPattern.draw();
