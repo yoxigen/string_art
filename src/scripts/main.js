@@ -120,7 +120,7 @@ function onInputsChange({ withConfig = true } = {}) {
     },
     currentPattern.name,
     `?pattern=${currentPattern.id}${
-      withConfig ? `&config=${encodeURIComponent(configQuery)}` : ''
+      (withConfig && configQuery) ? `&config=${encodeURIComponent(configQuery)}` : ''
     }`
   );
 }
