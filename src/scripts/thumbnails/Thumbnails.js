@@ -17,6 +17,14 @@ export class Thumbnails {
 
   toggle() {
     if (this.elements.root.classList.contains(MINIMIZED_CLASS)) {
+      this.open();
+    } else if (this.pattern) {
+      this.close();
+    }
+  }
+
+  open() {
+    if (this.elements.root.classList.contains(MINIMIZED_CLASS)) {
       this.elements.root.classList.remove(MINIMIZED_CLASS);
       if (!this.thumbnailsRendered) {
         this.createThumbnails();
@@ -30,7 +38,11 @@ export class Thumbnails {
       };
 
       document.body.addEventListener('mousedown', this._onClickOutside);
-    } else {
+    }
+  }
+
+  close() {
+    if (!this.elements.root.classList.contains(MINIMIZED_CLASS)) {
       this.elements.root.classList.add(MINIMIZED_CLASS);
       document.body.removeEventListener('mousedown', this._onClickOutside);
       this._onClickOutside = null;

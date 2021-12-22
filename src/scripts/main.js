@@ -3,8 +3,12 @@ import patternTypes from './pattern_types.js';
 import EditorControls from './editor/EditorControls.js';
 import EditorSizeControls from './editor/EditorSizeControls.js';
 import { Thumbnails } from './thumbnails/Thumbnails.js';
-import {deserializeConfig, serializeConfig} from './Serialize.js';
+import { deserializeConfig, serializeConfig } from './Serialize.js';
 import { isShareSupported, share } from './share.js';
+
+window.addEventListener('error', function (event) {
+  alert('Error: ' + event.message);
+});
 
 const elements = {
   canvas: document.querySelector('canvas'),
@@ -30,13 +34,11 @@ const sizeControls = new EditorSizeControls({
 const thumbnails = new Thumbnails();
 
 let controls;
-let activeDialog;
 
 window.addEventListener('load', main);
 
 async function main() {
   initRouting();
-  initSize();
 
   if (history.state?.pattern) {
     updateState(history.state);
@@ -48,7 +50,7 @@ async function main() {
       const config = queryParams.get('config');
       updateState({ pattern: queryPattern, config });
     } else {
-      selectPattern(patterns[0]);
+      thumbnails.toggle();
     }
   }
 
@@ -61,10 +63,14 @@ async function main() {
   elements.downloadBtn.addEventListener('click', downloadCanvas);
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
   elements.resetBtn.addEventListener('click', reset);
-  elements.shareBtn.addEventListener('click', async () => await share({
-    canvas: elements.canvas,
-    pattern: currentPattern
-  }));
+  elements.shareBtn.addEventListener(
+    'click',
+    async () =>
+      await share({
+        canvas: elements.canvas,
+        pattern: currentPattern,
+      })
+  );
 
   thumbnails.addOnChangeListener(({ detail }) => {
     const pattern = findPatternById(detail.pattern);
@@ -80,14 +86,36 @@ async function main() {
       const toggledElement = document.querySelector('#' + dialogId);
       toggledElement.classList.toggle('open');
       document.body.classList.toggle('dialog_' + dialogId);
-      currentPattern.draw({ position: currentPattern.position });
+      currentPattern &&
+        currentPattern.draw({ position: currentPattern.position });
     }
   });
 
-  const showShare = await isShareSupported({ canvas: elements.canvas, pattern: currentPattern });
+  const showShare = await isShareSupported({
+    canvas: elements.canvas,
+    pattern: currentPattern,
+  });
   if (showShare) {
     elements.shareBtn.removeAttribute('hidden');
   }
+}
+
+function initPattern() {
+  if (!currentPattern) {
+    throw new Error("Can't init pattern - no current pattern available!");
+  }
+
+  initSize();
+
+  window.addEventListener('resize', () => currentPattern.draw());
+
+  elements.canvas.addEventListener('click', () => {
+    player.toggle();
+  });
+
+  elements.downloadBtn.addEventListener('click', downloadCanvas);
+  elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
+  elements.resetBtn.addEventListener('click', reset);
 }
 
 function downloadCanvas() {
@@ -131,7 +159,9 @@ function onInputsChange({ withConfig = true } = {}) {
     },
     currentPattern.name,
     `?pattern=${currentPattern.id}${
-      (withConfig && configQuery) ? `&config=${encodeURIComponent(configQuery)}` : ''
+      withConfig && configQuery
+        ? `&config=${encodeURIComponent(configQuery)}`
+        : ''
     }`
   );
 }
@@ -176,24 +206,32 @@ function initRouting() {
 }
 
 function updateState(state) {
-  const pattern = findPatternById(state.pattern);
-  selectPattern(pattern, {
-    draw: false,
-    config: state.config ? deserializeConfig(pattern, state.config) : {},
-  });
+  if (state?.pattern) {
+    const pattern = findPatternById(state.pattern);
+    selectPattern(pattern, {
+      draw: false,
+      config: state.config ? deserializeConfig(pattern, state.config) : {},
+    });
 
-  currentPattern.draw();
+    thumbnails.close();
+    currentPattern.draw();
+  } else {
+    unselectPattern();
+    thumbnails.open();
+  }
 }
 
 function findPatternById(patternId) {
   const pattern = patterns.find(({ id }) => id === patternId);
   if (!pattern) {
-    throw new Error(`Pattern with id "${patternId} not found!`);
+    throw new Error(`Pattern with id "${patternId}" not found!`);
   }
   return pattern;
 }
 
 function selectPattern(pattern, { config, draw = true } = {}) {
+  const isFirstTime = !currentPattern;
+
   currentPattern = pattern;
   if (config) {
     currentPattern.config = config;
@@ -218,4 +256,15 @@ function selectPattern(pattern, { config, draw = true } = {}) {
   player.update(currentPattern, { draw: false });
   thumbnails.setCurrentPattern(pattern);
   document.title = `${pattern.name} - String Art Studio`;
+
+  if (isFirstTime) {
+    initPattern();
+  }
+}
+
+function unselectPattern() {
+  currentPattern = null;
+  const context = elements.canvas.getContext('2d');
+
+  context.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
 }
