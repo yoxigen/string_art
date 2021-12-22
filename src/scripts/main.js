@@ -4,6 +4,7 @@ import EditorControls from './editor/EditorControls.js';
 import EditorSizeControls from './editor/EditorSizeControls.js';
 import { Thumbnails } from './thumbnails/Thumbnails.js';
 import {deserializeConfig, serializeConfig} from './Serialize.js';
+import { isShareSupported, share } from './share.js';
 
 const elements = {
   canvas: document.querySelector('canvas'),
@@ -11,6 +12,7 @@ const elements = {
   downloadBtn: document.querySelector('#download_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
   resetBtn: document.querySelector('#reset_btn'),
+  shareBtn: document.querySelector('#share_btn'),
   buttons: document.querySelector('#buttons'),
 };
 
@@ -32,7 +34,7 @@ let activeDialog;
 
 window.addEventListener('load', main);
 
-function main() {
+async function main() {
   initRouting();
   initSize();
 
@@ -59,6 +61,10 @@ function main() {
   elements.downloadBtn.addEventListener('click', downloadCanvas);
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
   elements.resetBtn.addEventListener('click', reset);
+  elements.shareBtn.addEventListener('click', async () => await share({
+    canvas: elements.canvas,
+    pattern: currentPattern
+  }));
 
   thumbnails.addOnChangeListener(({ detail }) => {
     const pattern = findPatternById(detail.pattern);
@@ -77,6 +83,11 @@ function main() {
       currentPattern.draw({ position: currentPattern.position });
     }
   });
+
+  const showShare = await isShareSupported({ canvas: elements.canvas, pattern: currentPattern });
+  if (showShare) {
+    elements.shareBtn.removeAttribute('hidden');
+  }
 }
 
 function downloadCanvas() {
