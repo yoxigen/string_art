@@ -39,7 +39,8 @@ window.addEventListener('load', main);
 
 async function main() {
   initRouting();
-
+  document.body.querySelectorAll('.pattern_only').forEach(hide);
+  unHide(document.querySelector('main'));
   if (history.state?.pattern) {
     updateState(history.state);
   } else {
@@ -54,12 +55,7 @@ async function main() {
     }
   }
 
-  window.addEventListener('resize', () => currentPattern.draw());
-
-  elements.canvas.addEventListener('click', () => {
-    player.toggle();
-  });
-
+  window.addEventListener('resize', () => currentPattern && currentPattern.draw());
   elements.downloadBtn.addEventListener('click', downloadCanvas);
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
   elements.resetBtn.addEventListener('click', reset);
@@ -96,7 +92,7 @@ async function main() {
     pattern: currentPattern,
   });
   if (showShare) {
-    elements.shareBtn.removeAttribute('hidden');
+    unHide(elements.shareBtn);
   }
 }
 
@@ -108,10 +104,6 @@ function initPattern() {
   initSize();
 
   window.addEventListener('resize', () => currentPattern.draw());
-
-  elements.canvas.addEventListener('click', () => {
-    player.toggle();
-  });
 
   elements.downloadBtn.addEventListener('click', downloadCanvas);
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
@@ -245,9 +237,9 @@ function selectPattern(pattern, { config, draw = true } = {}) {
 
   if (pattern.link) {
     elements.patternLink.setAttribute('href', pattern.link);
-    elements.patternLink.removeAttribute('hidden');
+    unHide(elements.patternLink);
   } else {
-    elements.patternLink.setAttribute('hidden', 'hidden');
+    hide(elements.patternLink);
   }
 
   if (draw) {
@@ -256,10 +248,20 @@ function selectPattern(pattern, { config, draw = true } = {}) {
   player.update(currentPattern, { draw: false });
   thumbnails.setCurrentPattern(pattern);
   document.title = `${pattern.name} - String Art Studio`;
+  document.body.setAttribute('data-pattern', pattern.id);
 
   if (isFirstTime) {
     initPattern();
+    document.body.querySelectorAll('.pattern_only').forEach(unHide);
   }
+}
+
+function unHide(element) {
+  element.removeAttribute('hidden');
+}
+
+function hide(element) {
+  element.setAttribute('hidden', 'hidden');
 }
 
 function unselectPattern() {
@@ -267,4 +269,9 @@ function unselectPattern() {
   const context = elements.canvas.getContext('2d');
 
   context.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+  hide(elements.patternLink);
+  thumbnails.setCurrentPattern(null);
+  controls.destroy();
+  document.body.querySelectorAll('.pattern_only').forEach(hide);
+  document.body.removeAttribute("data-pattern");
 }

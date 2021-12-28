@@ -51,7 +51,7 @@
     </script>
   </head>
   <body class="dialog_sidebar_form">
-    <main>
+    <main hidden>
       <header id="main_header">
         <h1>
           <span class="logo1">String Art</span>
@@ -66,7 +66,7 @@
         <a
             id="pattern_link"
             target="_blank"
-            hidden
+            class="pattern_only"
             title="View original which inspired this pattern"
             >Example</a
           >
@@ -75,7 +75,7 @@
           <ul id="pattern_select_thumbnails"></ul>
         </div>
       </div>
-      <form id="sidebar_form" class="noprint open">
+      <form id="sidebar_form" class="noprint open pattern_only">
         <div id="controls_panel">
           <div id="controls"></div>
           <div id="size_controls">
@@ -115,7 +115,7 @@
       <article id="canvas_panel">
         <canvas id="canvas"></canvas>
       </article>
-      <nav id="player" class="noprint">
+      <nav id="player" class="noprint pattern_only">
         <div id="player_controls">
           <div id="player_buttons">
             <button id="play_btn" class="circular_btn">
@@ -133,7 +133,7 @@
           </div>
         </div>
       </nav>
-      <footer id="buttons">
+      <footer id="buttons" class="pattern_only">
         <button
           id="share_btn"
           type="button"
@@ -168,7 +168,7 @@
           <i class="icon-refresh"></i>
         </button>
       </footer>
-      <div role="dialog" id="download" class="buttons_dialog">
+      <div role="dialog" id="download" class="buttons_dialog pattern_only">
         <button id="download_btn" class="btn">💾 Download image</button>
         <button id="download_nails_btn" class="btn">
           🔨 Download nails map

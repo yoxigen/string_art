@@ -1,6 +1,14 @@
 @media only screen and (max-width: 600px) {
   main {
     grid-template-columns: 1fr;
+    grid-template-rows: var(--select-height) 1fr;
+    grid-template-areas:
+      'pattern_select'
+      'canvas';
+  }
+
+  body[data-pattern] main {
+    grid-template-columns: 1fr;
     grid-template-rows: var(--select-height) 1fr var(--player-mobile-height) var(
         --controls-height
       );
@@ -12,6 +20,14 @@
   }
 
   .dialog_sidebar_form main {
+    grid-template-rows: var(--select-height) 100vw;
+    grid-template-areas:
+      'pattern_select'
+      'canvas';
+  }
+
+  body[data-pattern].dialog_sidebar_form main {
+    grid-template-columns: 1fr;
     grid-template-rows: var(--select-height) 100vw 1fr var(--controls-height);
     grid-template-areas:
       'pattern_select'

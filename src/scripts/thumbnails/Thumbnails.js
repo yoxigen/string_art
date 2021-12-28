@@ -51,7 +51,7 @@ export class Thumbnails {
 
   setCurrentPattern(pattern) {
     this.pattern = pattern;
-    this.elements.toggleBtn.innerText = pattern.name;
+    this.elements.toggleBtn.innerText = pattern?.name ?? 'Choose a pattern';
   }
 
   createThumbnails() {

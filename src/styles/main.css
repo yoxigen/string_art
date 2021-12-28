@@ -22,16 +22,27 @@ body {
 
 main {
   display: grid;
+  height: 100%;
   grid-template-columns: var(--sidebar-width) 1fr;
-  grid-template-rows: var(--header-height) var(--select-height) 1fr var(
-      --controls-height
-    );
+  grid-template-rows: var(--header-height) var(--select-height) 1fr;
   grid-template-areas:
     'header canvas'
     'pattern_select canvas'
-    'config canvas'
-    'controls player';
-  height: 100%;
+    'config canvas';
+}
+
+@media only screen and (min-width: 601px) {
+  body[data-pattern] main {
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--header-height) var(--select-height) 1fr var(
+        --controls-height
+      );
+    grid-template-areas:
+      'header canvas'
+      'pattern_select canvas'
+      'config canvas'
+      'controls player';
+  }
 }
 
 button {
