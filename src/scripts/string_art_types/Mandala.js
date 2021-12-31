@@ -2,7 +2,7 @@ import Color from '../helpers/Color.js';
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 
-export default class TimesTables extends StringArt {
+export default class Mandala extends StringArt {
   name = 'Mandala';
   id = 'mandala';
   link =
@@ -55,13 +55,15 @@ export default class TimesTables extends StringArt {
     this._n = null;
     super.setUpDraw();
 
-    const { layers, rotation, margin } = this.config;
+    const { layers, rotation, margin, layerFill, base, reverse } = this.config;
     const circleConfig = {
       size: this.size,
       n: this.n,
       margin,
       rotation,
+      reverse
     };
+    this.stringsPerLayer = layerFill ? Math.floor(this.n * layerFill) : this.n;
 
     if (this.circle) {
       this.circle.setConfig(circleConfig);
@@ -75,20 +77,20 @@ export default class TimesTables extends StringArt {
     });
 
     this.layerShift = Math.floor(this.n / layers);
+    this.base = base;
   }
 
   *drawTimesTable({ shift = 0, color = '#f00', time }) {
-    const { base } = this.config;
     const n = this.n;
 
     let point = this.circle.getPoint(shift);
 
-    for (let i = 1; i <= n; i++) {
+    for (let i = 1; i <= this.stringsPerLayer; i++) {
       this.ctx.beginPath();
       this.ctx.moveTo(...point);
       point = this.circle.getPoint(i + shift);
       this.ctx.lineTo(...point);
-      const toIndex = (i * base) % n;
+      const toIndex = (i * this.base) % n;
       this.ctx.lineTo(...this.circle.getPoint(toIndex + shift));
       this.ctx.strokeStyle = color;
       this.ctx.stroke();
@@ -118,7 +120,9 @@ export default class TimesTables extends StringArt {
   }
 
   getStepCount() {
-    return this.config.layers * this.n;
+    const {layers, layerFill} = this.config;
+    const stringsPerLayer = layerFill ? Math.floor(this.n * layerFill) : this.n;
+    return (layers ?? 1) * stringsPerLayer;
   }
 
   static thumbnailConfig = {

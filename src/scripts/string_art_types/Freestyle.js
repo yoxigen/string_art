@@ -1,7 +1,7 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 
-export default class Circles extends StringArt {
+export default class Freestyle extends StringArt {
   name = 'Freestyle';
   id = 'freestyle';
   link =

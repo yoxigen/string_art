@@ -28,7 +28,7 @@ export default class Spiral extends StringArt {
     {
       key: 'repetition',
       label: 'Repetition',
-      defaultValue: 6,
+      defaultValue: 5,
       type: 'range',
       attr: { min: 1, max: 20, step: 1 },
     },

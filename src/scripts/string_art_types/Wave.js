@@ -1,8 +1,8 @@
 import Color from '../helpers/Color.js';
 import Circle from '../helpers/Circle.js';
-import Spiral from './Spiral.js';
+import Mandala from './Mandala.js';
 
-export default class Wave extends Spiral {
+export default class Wave extends Mandala {
   id = 'wave';
   name = 'Wave';
   link =
@@ -10,18 +10,11 @@ export default class Wave extends Spiral {
   controls = [
     {
       ...Circle.nailsConfig,
-      defaultValue: 144,
+      defaultValue: 200,
     },
     {
-      key: 'repetition',
-      label: 'Repetition',
-      defaultValue: 2,
-      type: 'range',
-      attr: { min: 1, max: 20, step: 1 },
-    },
-    {
-      key: 'innerLength',
-      label: 'Spiral thickness',
+      key: 'layerFill',
+      label: 'Layer fill',
       defaultValue: 0.5,
       type: 'range',
       attr: {
@@ -29,7 +22,7 @@ export default class Wave extends Spiral {
         max: 1,
         step: ({ config: { n } }) => 1 / n,
       },
-      displayValue: ({ n, innerLength }) => Math.round(n * innerLength),
+      displayValue: ({ layerFill }) => Math.floor(100 * layerFill) + '%',
     },
     {
       ...Circle.rotationConfig,
@@ -45,7 +38,7 @@ export default class Wave extends Spiral {
     {
       key: 'layerSpread',
       label: 'Layer spread',
-      defaultValue: 0.075,
+      defaultValue: 15 / 200,
       type: 'range',
       attr: {
         min: 0,
@@ -53,6 +46,12 @@ export default class Wave extends Spiral {
         step: ({ config: { n } }) => 1 / n,
       },
       displayValue: ({ layerSpread, n }) => Math.round(layerSpread * n),
+    },
+    {
+      key: 'reverse',
+      label: 'Reverse',
+      defaultValue: true,
+      type: 'checkbox',
     },
     Color.getConfig({
       defaults: {
@@ -72,18 +71,22 @@ export default class Wave extends Spiral {
     super.setUpDraw();
     const { n, layerSpread } = this.config;
     this.layerShift = Math.round(n * layerSpread);
+    this.base = 2;
   }
 
   *generateStrings() {
-    for (let layer = 0; layer < this.layersCount; layer++) {
-      yield* this.drawSpiral({
+    const {layers, reverse} = this.config;
+
+    for (let layer = 0; layer < layers; layer++) {
+      yield* this.drawTimesTable({
         color: this.color.getColor(layer),
-        shift: -this.layerShift * layer,
+        shift: this.layerShift * (reverse ? 1 : -1) * layer,
+        time: layer,
       });
     }
   }
 
   static thumbnailConfig = {
-    n: 40,
+    n: 70,
   };
 }
