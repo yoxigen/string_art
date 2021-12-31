@@ -3,8 +3,8 @@ import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 
 export default class TimesTables extends StringArt {
-  name = 'Times Tables';
-  id = 'times_tables';
+  name = 'Mandala';
+  id = 'mandala';
   link =
     'https://www.youtube.com/watch?v=LWin7w9hF-E&ab_channel=Jorgedelatierra';
   controls = [
@@ -77,14 +77,13 @@ export default class TimesTables extends StringArt {
     this.layerShift = Math.floor(this.n / layers);
   }
 
-  *drawTimesTable({ shift = 0, color = '#f00', steps, time }) {
+  *drawTimesTable({ shift = 0, color = '#f00', time }) {
     const { base } = this.config;
     const n = this.n;
-    const stepsToRender = steps ?? n;
 
     let point = this.circle.getPoint(shift);
 
-    for (let i = 1; i <= stepsToRender; i++) {
+    for (let i = 1; i <= n; i++) {
       this.ctx.beginPath();
       this.ctx.moveTo(...point);
       point = this.circle.getPoint(i + shift);

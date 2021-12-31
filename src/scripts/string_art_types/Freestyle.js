@@ -2,8 +2,8 @@ import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 
 export default class Circles extends StringArt {
-  name = 'Circles';
-  id = 'circles';
+  name = 'Freestyle';
+  id = 'freestyle';
   link =
     'https://www.etsy.com/il-en/listing/1018950430/calming-wall-art-in-light-blue-for';
   controls = [

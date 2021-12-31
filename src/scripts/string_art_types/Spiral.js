@@ -115,7 +115,6 @@ export default class Spiral extends StringArt {
         repetitionCount++;
       }
 
-console.log("GO TO " + prevPointIndex)
       prevPoint = this.circle.getPoint(prevPointIndex);
       this.ctx.lineTo(...prevPoint);
 
