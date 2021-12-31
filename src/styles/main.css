@@ -110,6 +110,6 @@ a:hover {
   overflow: auto;
 }
 
-.small_only {
+.small_only, .large_only {
   display: none !important;
 }

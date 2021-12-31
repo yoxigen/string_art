@@ -67,3 +67,9 @@
     display: inherit !important;
   }
 }
+
+@media only screen and (min-width: 601px) {
+  .large_only {
+    display: inherit !important;
+  }
+}

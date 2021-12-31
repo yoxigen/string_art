@@ -5,20 +5,40 @@
 }
 
 #mobile_menu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
-  max-width: 400px;
-  z-index: 5;
-  transition: transform 200ms ease-out;
-  box-shadow: 3px 0 7px rgba(0 0 0 / 40%);
   padding: 16px;
   background: var(--color-header);
-  transform: translateX(-100%);
   line-height: 1.5rem;
   overflow: auto;
+}
+#mobile_menu_contents {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+@media only screen and (min-width: 601px) {
+  #mobile_menu {
+    grid-area: canvas;
+    padding-top: 80px;
+  }
+
+  body[data-pattern] #mobile_menu {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  #mobile_menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    max-width: 400px;
+    z-index: 5;
+    transition: transform 200ms ease-out;
+    box-shadow: 3px 0 7px rgba(0 0 0 / 40%);
+    transform: translateX(-100%);
+  }
 }
 
 #mobile_menu.open {

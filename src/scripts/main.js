@@ -55,7 +55,6 @@ async function main() {
     }
   }
 
-  window.addEventListener('resize', () => currentPattern && currentPattern.draw());
   elements.downloadBtn.addEventListener('click', downloadCanvas);
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
   elements.resetBtn.addEventListener('click', reset);
@@ -103,7 +102,7 @@ function initPattern() {
 
   initSize();
 
-  window.addEventListener('resize', () => currentPattern.draw());
+  window.addEventListener('resize', () => currentPattern && currentPattern.draw());
 
   elements.downloadBtn.addEventListener('click', downloadCanvas);
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
@@ -243,8 +242,11 @@ function selectPattern(pattern, { config, draw = true } = {}) {
   }
 
   if (draw) {
-    currentPattern.draw();
+    requestAnimationFrame(() => {
+      currentPattern.draw();
+    });
   }
+
   player.update(currentPattern, { draw: false });
   thumbnails.setCurrentPattern(pattern);
   document.title = `${pattern.name} - String Art Studio`;

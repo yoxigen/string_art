@@ -73,10 +73,13 @@
         <div id="pattern_select_dropdown">
           <h3 id="pattern_select_thumbnails_title">Available patterns</h3>
           <ul id="pattern_select_thumbnails"></ul>
+          <div id="pattern_select_dropdown_instructions" class="large_only">
+            <a href="./">Instructions</a>
+          </div>
         </div>
       </div>
-      <form id="sidebar_form" class="noprint open pattern_only">
-        <div id="controls_panel">
+      <form id="sidebar_form" class="noprint open">
+        <div id="controls_panel" class="pattern_only">
           <div id="controls"></div>
           <div id="size_controls">
             <fieldset class="minimized" data-group="size">
@@ -112,7 +115,7 @@
           </div>
         </div>
       </form>
-      <article id="canvas_panel">
+      <article id="canvas_panel" class="pattern_only">
         <canvas id="canvas"></canvas>
       </article>
       <nav id="player" class="noprint pattern_only">
@@ -174,53 +177,56 @@
           🔨 Download nails map
         </button>
       </div>
-    </main>
-    <article id="mobile_menu" class="small_only">
-      <header id="mobile_menu_header">
-        <h1>
-          <span class="logo1">String Art</span>
-          <span class="logo2">Studio</span>
-        </h1>
-        <div>
-          <button id="mobile_menu_close_btn" type="button" class="btn-icon small_only" title="Close menu" data-toggle-for="mobile_menu">
-            <i class="icon-arrow_left"></i>
-          </button>
+      <article id="mobile_menu">
+        <div id="mobile_menu_contents">
+          <header id="mobile_menu_header">
+            <h1>
+              <span class="logo1">String Art</span>
+              <span class="logo2">Studio</span>
+            </h1>
+            <div>
+              <button id="mobile_menu_close_btn" type="button" class="btn-icon small_only" title="Close menu" data-toggle-for="mobile_menu">
+                <i class="icon-arrow_left"></i>
+              </button>
+            </div>
+          </header>
+          <section>
+            <p>
+              Welcome to String Art Studio! With this app you can design and produce your own
+              beautiful string art projects.
+            </p>
+          </section>
+          <section>
+          <h2>How-to</h2>
+          <ol>
+            <li>Choose a pattern</li>
+            <li>Change options (like number of nails, shapes and colors)</li>
+            <li>Download and print a map of nail positions</li>
+            <li>Drive nails into a wood panel through the nails map</li>
+            <li>
+              Put strings to the nails as shown in the app's player.
+              You can play this process in the app's player and pause, to make things clear.
+            </li>
+            <li>You're done!</li>
+          </ol>
+        </section>
+        <section>
+          <h2>More info</h2>
+            <ul id="menu_links">
+              <li>
+                <a href="https://github.com/yoxigen/string_art" target="_blank">
+                  <img src="GitHub-Mark-Light-120px-plus.png" class="menu_link_img" alt="GitHub" />
+                  String Art Studio on GitHub
+                </a>
+              </li>
+              <li>
+                <a href="https://en.wikipedia.org/wiki/String_art" target="_blank">String Art on Wikipedia</a>
+              </li>
+            </ul>
+        </section>
         </div>
-      </header>
-      <section>
-        <p>
-          Welcome to String Art Studio! With this app you can design and produce your own
-          beautiful string art projects.
-        </p>
-      </section>
-      <section>
-      <h2>How-to</h2>
-      <ol>
-        <li>Choose a pattern</li>
-        <li>Change options (like number of nails, shapes and colors)</li>
-        <li>Download and print a map of nail positions</li>
-        <li>Drive nails into a wood panel through the nails map</li>
-        <li>
-          Put strings to the nails as shown in the app's player.
-          You can play this process in the app's player and pause, to make things clear.
-        </li>
-        <li>You're done!</li>
-      </ol>
-    </section>
-    <section>
-      <h2>More info</h2>
-        <ul id="menu_links">
-          <li>
-            <a href="https://github.com/yoxigen/string_art" target="_blank">
-              <img src="GitHub-Mark-Light-120px-plus.png" class="menu_link_img" alt="GitHub" />
-              String Art Studio on GitHub
-            </a>
-          </li>
-          <li>
-            <a href="https://en.wikipedia.org/wiki/String_art" target="_blank">String Art on Wikipedia</a>
-          </li>
-        </ul>
-    </section>
-    </article>
+      </article>
+    </main>
+
   </body>
 </html>
