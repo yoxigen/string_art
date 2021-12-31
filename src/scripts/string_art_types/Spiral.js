@@ -53,8 +53,9 @@ export default class Spiral extends StringArt {
 
   setUpDraw() {
     super.setUpDraw();
-    const { n, rotation, layers, margin, colorCount } = this.config;
+    const { n, rotation, layers, margin, colorCount, repetition } = this.config;
     this.layersCount = layers ?? 1;
+    this.realRepetition = repetition * 2 - 1;
 
     const circleConfig = {
       size: this.size,
@@ -83,7 +84,7 @@ export default class Spiral extends StringArt {
   }
 
   *drawSpiral({ shift = 0, color = '#ffffff' } = {}) {
-    const { repetition, innerLength, n } = this.config;
+    const { innerLength, n } = this.config;
 
     let currentInnerLength = Math.round(innerLength * n);
     let repetitionCount = 0;
@@ -102,18 +103,19 @@ export default class Spiral extends StringArt {
 
       this.ctx.beginPath();
       this.ctx.moveTo(...prevPoint);
-      const nextPointIndex = isPrevPoint
-        ? prevPointIndex - currentInnerLength
+      prevPointIndex = isPrevPoint
+        ? prevPointIndex - currentInnerLength + 1
         : prevPointIndex + currentInnerLength;
 
-      this.ctx.lineTo(...this.circle.getPoint(nextPointIndex));
-      repetitionCount++;
-      if (repetitionCount === repetition) {
+      if (repetitionCount === this.realRepetition) {
         currentInnerLength--;
         repetitionCount = 0;
+        prevPointIndex++;
+      } else {
+        repetitionCount++;
       }
 
-      prevPointIndex = nextPointIndex + 1;
+console.log("GO TO " + prevPointIndex)
       prevPoint = this.circle.getPoint(prevPointIndex);
       this.ctx.lineTo(...prevPoint);
 
@@ -132,7 +134,7 @@ export default class Spiral extends StringArt {
 
   getStepCount() {
     const { innerLength, repetition, n, layers = 1 } = this.config;
-    return layers * Math.round(innerLength * n) * repetition;
+    return Math.round(layers * n * (innerLength * 2) * repetition);
   }
 
   drawNails() {

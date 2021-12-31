@@ -51,7 +51,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(----color-text);
+  color: var(--color-text);
   font-size: 28px;
   transition: transform 200ms ease-out;
 }
