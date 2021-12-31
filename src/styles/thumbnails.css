@@ -112,19 +112,5 @@
 
 #pattern_select_dropdown_instructions a {
   display: block;
-  padding: 4px 8px;
   text-align: center;
-  border-radius: 4px;
-  background: var(--color-link);
-  color: Black;
-  text-decoration: none;
-}
-
-#pattern_select_dropdown_instructions a:hover {
-  background: var(--color-link-hover);
-}
-
-body:not([data-pattern]) #pattern_select_dropdown_instructions a {
-  cursor: default;
-  background: var(--color-link);
 }

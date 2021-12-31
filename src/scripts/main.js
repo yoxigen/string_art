@@ -18,6 +18,9 @@ const elements = {
   resetBtn: document.querySelector('#reset_btn'),
   shareBtn: document.querySelector('#share_btn'),
   buttons: document.querySelector('#buttons'),
+  instructionsLink: document.querySelector(
+    '#pattern_select_dropdown_instructions'
+  ),
 };
 
 const patterns = patternTypes.map(Pattern => new Pattern(elements.canvas));
@@ -37,7 +40,7 @@ let controls;
 
 window.addEventListener('load', main);
 
-async function main() {
+function main() {
   initRouting();
   document.body.querySelectorAll('.pattern_only').forEach(hide);
   unHide(document.querySelector('main'));
@@ -66,6 +69,11 @@ async function main() {
         pattern: currentPattern,
       })
   );
+  elements.instructionsLink.addEventListener('click', e => {
+    e.preventDefault();
+    history.pushState({ pattern: null }, 'String Art Studio', './');
+    unselectPattern();
+  });
 
   thumbnails.addOnChangeListener(({ detail }) => {
     const pattern = findPatternById(detail.pattern);
@@ -85,7 +93,23 @@ async function main() {
         currentPattern.draw({ position: currentPattern.position });
     }
   });
+}
 
+async function initPattern() {
+  if (!currentPattern) {
+    throw new Error("Can't init pattern - no current pattern available!");
+  }
+
+  initSize();
+
+  window.addEventListener(
+    'resize',
+    () => currentPattern && currentPattern.draw()
+  );
+
+  elements.downloadBtn.addEventListener('click', downloadCanvas);
+  elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
+  elements.resetBtn.addEventListener('click', reset);
   const showShare = await isShareSupported({
     canvas: elements.canvas,
     pattern: currentPattern,
@@ -93,20 +117,6 @@ async function main() {
   if (showShare) {
     unHide(elements.shareBtn);
   }
-}
-
-function initPattern() {
-  if (!currentPattern) {
-    throw new Error("Can't init pattern - no current pattern available!");
-  }
-
-  initSize();
-
-  window.addEventListener('resize', () => currentPattern && currentPattern.draw());
-
-  elements.downloadBtn.addEventListener('click', downloadCanvas);
-  elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
-  elements.resetBtn.addEventListener('click', reset);
 }
 
 function downloadCanvas() {
@@ -273,7 +283,7 @@ function unselectPattern() {
   context.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
   hide(elements.patternLink);
   thumbnails.setCurrentPattern(null);
-  controls.destroy();
+  controls && controls.destroy();
   document.body.querySelectorAll('.pattern_only').forEach(hide);
-  document.body.removeAttribute("data-pattern");
+  document.body.removeAttribute('data-pattern');
 }

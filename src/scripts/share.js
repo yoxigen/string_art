@@ -28,5 +28,6 @@ async function getShareData({ canvas, pattern }) {
     url: window.location.href,
     files,
     title: document.title,
+    text: 'String Art Studio - ' + pattern.name,
   };
 }
