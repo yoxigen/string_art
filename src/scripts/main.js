@@ -17,6 +17,7 @@ const elements = {
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
   resetBtn: document.querySelector('#reset_btn'),
   shareBtn: document.querySelector('#share_btn'),
+  playerBtn: document.querySelector('#player_btn'),
   buttons: document.querySelector('#buttons'),
   instructionsLink: document.querySelector(
     '#pattern_select_dropdown_instructions'
@@ -69,6 +70,14 @@ function main() {
         pattern: currentPattern,
       })
   );
+  elements.playerBtn.addEventListener('click', () => {
+    document.querySelectorAll('#buttons [data-toggle-for]').forEach(btn => {
+      if (btn.classList.contains('active')) {
+        btn.click();
+      }
+    });
+  });
+
   elements.instructionsLink.addEventListener('click', e => {
     e.preventDefault();
     history.pushState({ pattern: null }, 'String Art Studio', './');

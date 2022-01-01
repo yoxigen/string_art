@@ -42,22 +42,20 @@
 }
 
 .circular_btn {
-  width: var(--circular_button_width);
-  height: var(--circular_button_width);
+  width: var(--controls-height);
+  height: var(--controls-height);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
   background: none;
   border: none;
   cursor: pointer;
   color: var(--color-text);
   font-size: 28px;
-  transition: transform 200ms ease-out;
 }
 
 .circular_btn:hover {
-  transform: scale(1.1);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .circular_btn img {
@@ -66,7 +64,13 @@
 }
 
 .circular_btn.active {
-  color: var(--logo2);
+  box-shadow: 1px 1px 7px black inset;
+  padding: 0;
+  background: rgb(0 0 0 / 30%);
+}
+
+.circular_btn.active i {
+  transform: scale(0.95);
 }
 
 #buttons_dialogs {
@@ -89,9 +93,8 @@
   width: var(--sidebar-width);
   padding: var(--vertical-padding) var(--horizontal-padding);
   padding-top: calc(2 * var(--buttons-dialog-border-radius));
-  box-shadow: 0 -2px 6px rgb(0 0 0 / 30%);
-  border-radius: var(--buttons-dialog-border-radius)
-    var(--buttons-dialog-border-radius) 0 0;
+  box-shadow: 0 -2px 7px rgb(0 0 0 / 70%);
+  border-top: var(--border-light);
 }
 
 .buttons_dialog.open {

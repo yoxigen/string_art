@@ -66,6 +66,10 @@
   .small_only {
     display: inherit !important;
   }
+
+  .circular_btn:not(.active):hover {
+    background: transparent;
+  }
 }
 
 @media only screen and (min-width: 601px) {
