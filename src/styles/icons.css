@@ -1,16 +1,15 @@
 @font-face {
   font-family: 'string_art_studio';
-  src: url('fonts/string_art_studio.ttf?o9tofh') format('truetype'),
-    url('fonts/string_art_studio.woff?o9tofh') format('woff'),
-    url('fonts/string_art_studio.svg?o9tofh#string_art_studio') format('svg');
+  src:
+    url('fonts/string_art_studio.ttf?fmveaw') format('truetype'),
+    url('fonts/string_art_studio.woff?fmveaw') format('woff'),
+    url('fonts/string_art_studio.svg?fmveaw#string_art_studio') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
 }
 
-[class^='icon-'],
-[class*=' icon-'],
-.icon {
+[class^="icon-"], [class*=" icon-"] {
   /* use !important to prevent issues with browser extensions that change fonts */
   font-family: 'string_art_studio' !important;
   speak: never;
@@ -25,36 +24,42 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-pause:before {
+  content: "\e90b";
+}
+.icon-play:before {
+  content: "\e90c";
+}
 .icon-arrow_left:before {
-  content: '\e908';
+  content: "\e908";
 }
 .icon-arrow_right:before {
-  content: '\e909';
+  content: "\e909";
 }
 .icon-caret_down:before {
-  content: '\e90a';
+  content: "\e90a";
 }
 .icon-fullscreen:before {
-  content: '\e900';
+  content: "\e900";
 }
 .icon-download:before {
-  content: '\e901';
+  content: "\e901";
 }
 .icon-hamburger:before {
-  content: '\e902';
+  content: "\e902";
 }
 .icon-options:before {
-  content: '\e903';
+  content: "\e903";
 }
 .icon-refresh:before {
-  content: '\e904';
+  content: "\e904";
 }
 .icon-share:before {
-  content: '\e905';
+  content: "\e905";
 }
 .icon-thumbnails:before {
-  content: '\e906';
+  content: "\e906";
 }
 .icon-x:before {
-  content: '\e907';
+  content: "\e907";
 }

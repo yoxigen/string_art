@@ -25,6 +25,10 @@
   display: inline;
 }
 
+#player_buttons i {
+  font-size: 22px;
+}
+
 #player_controls {
   gap: var(--player-gap);
   padding: 0 16px;

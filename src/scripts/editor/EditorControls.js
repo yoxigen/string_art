@@ -43,7 +43,6 @@ export default class EditorControls {
 
     this._wrappedOnInput = e => this._onInput(e);
     elements.controls.addEventListener('input', this._wrappedOnInput);
-
     this._wrappedOnTouchStart = e => this._onTouchStart(e);
     elements.controls.addEventListener('touchstart', this._wrappedOnTouchStart);
     elements.sidebarForm.addEventListener('click', this._toggleFieldset);
@@ -61,6 +60,10 @@ export default class EditorControls {
     elements.sidebarForm.removeEventListener(
       'keydown',
       this._toggleFieldSetOnEnter
+    );
+    elements.controls.removeEventListener(
+      'touchstart',
+      this._wrappedOnTouchStart
     );
     elements.controls.innerHTML = '';
   }
@@ -106,7 +109,7 @@ export default class EditorControls {
     }
   }
 
-  _onTouchEnd(e) {
+  _onTouchEnd() {
     document.body.removeEventListener('touchend', this._wrappedOnTouchEnd);
     elements.controlsPanel.removeEventListener(
       'scroll',
@@ -115,13 +118,15 @@ export default class EditorControls {
 
     if (this._lockRange) {
       this._lockRange = false;
-      this.currentInputRange.value = this.currentInputRangeValue;
+      if (this.currentInputRange) {
+        this.currentInputRange.value = this.currentInputRangeValue;
+      }
     }
 
     this.currentInputRange = this.currentInputRangeValue = null;
   }
 
-  _onRangeScroll(e) {
+  _onRangeScroll() {
     this._lockRange = true;
   }
 

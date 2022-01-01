@@ -22,17 +22,6 @@ export default class Flower extends StringArt {
   link = 'https://www.sqrt.ch/Buch/fadenmodell4_100.svg';
   controls = [
     {
-      key: 'n',
-      label: 'Nails per side',
-      defaultValue: 60,
-      type: 'range',
-      attr: {
-        min: 1,
-        max: 100,
-        step: 1,
-      },
-    },
-    {
       key: 'sides',
       label: 'Sides',
       defaultValue: 4,
@@ -40,6 +29,17 @@ export default class Flower extends StringArt {
       attr: {
         min: 3,
         max: 10,
+        step: 1,
+      },
+    },
+    {
+      key: 'n',
+      label: 'Nails per side',
+      defaultValue: 60,
+      type: 'range',
+      attr: {
+        min: 1,
+        max: 100,
         step: 1,
       },
     },

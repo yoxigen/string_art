@@ -80,15 +80,17 @@ fieldset.minimized > div {
 }
 
 legend::before {
-  content: '\25B6';
+  font-family: 'string_art_studio';
+  content: '\e90a';
   display: inline-block;
-  margin-inline-end: 4px;
-  transform: scale(0.7) rotateZ(90deg);
-  font-size: 14px;
+  margin-inline-end: 2px;
+  font-size: 20px;
+  opacity: 0.7;
+  vertical-align: top;
 }
 
 fieldset.minimized > legend::before {
-  transform: scale(0.7) rotateZ(0);
+  transform: rotateZ(-90deg);
 }
 
 input[type='range'] + .control_input_value {
