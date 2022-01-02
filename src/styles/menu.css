@@ -93,14 +93,12 @@
 }
 
 #menu_links li {
-  padding: 0 0 0 16px;
+  padding: 8px 16px;
+  border-top: var(--border-lighter);
 }
 
 #menu_links a {
-  display: block;
-  padding: 8px 0;
   text-decoration: none;
-  border-top: var(--border-lighter);
   font-size: 1rem;
 }
 
