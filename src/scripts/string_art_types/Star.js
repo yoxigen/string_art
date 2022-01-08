@@ -21,6 +21,19 @@ export default class Star extends StringArt {
       type: 'range',
       attr: { min: 1, max: 200, step: 1 },
     },
+    {
+      key: 'ringSize',
+      label: 'Outer ring size',
+      defaultValue: 0.1,
+      type: 'range',
+      attr: {
+        min: 0,
+        max: 0.5,
+        step: ({ config: { sideNails, sides } }) => 1 / (sideNails * sides),
+      },
+      displayValue: ({ sideNails, sides, ringSize }) =>
+        Math.floor(ringSize * sideNails * sides),
+    },
     Circle.rotationConfig,
     {
       key: 'colorGroup',
@@ -37,6 +50,12 @@ export default class Star extends StringArt {
           key: 'outterColor',
           label: 'Outter color',
           defaultValue: '#2a82c6',
+          type: 'color',
+        },
+        {
+          key: 'ringColor',
+          label: 'Ring color',
+          defaultValue: '#b094ff',
           type: 'color',
         },
       ],
@@ -57,7 +76,7 @@ export default class Star extends StringArt {
     this._n = null;
     super.setUpDraw();
 
-    const { sides, rotation, sideNails, margin = 0 } = this.config;
+    const { sides, rotation, sideNails, margin = 0, ringSize } = this.config;
     const circleConfig = {
       size: this.size,
       n: sideNails * sides,
@@ -74,6 +93,10 @@ export default class Star extends StringArt {
     this.sideAngle = (Math.PI * 2) / sides;
     this.nailSpacing = this.circle.radius / sideNails;
     this.starCenterStart = (sideNails % 1) * this.nailSpacing;
+
+    if ((this.renderRing = ringSize > 0)) {
+      this.ringDistance = Math.floor(ringSize * circleConfig.n);
+    }
 
     this.sides = new Array(sides).fill(null).map((_, side) => {
       const sideAngle = side * this.sideAngle + this.circle.rotationAngle;
@@ -185,8 +208,47 @@ export default class Star extends StringArt {
     }
   }
 
+  *drawRing() {
+    if (!this.renderRing) {
+      return;
+    }
+
+    const { n } = this.circle.config;
+    const { ringColor } = this.config;
+
+    let prevPoint;
+    let prevPointIndex = 0;
+    let isPrevSide = false;
+    this.ctx.strokeStyle = ringColor;
+    for (let i = 0; i < n; i++) {
+      this.ctx.beginPath();
+      if (!prevPoint) {
+        prevPoint = this.circle.getPoint(0);
+      }
+
+      this.ctx.moveTo(...prevPoint);
+      prevPointIndex = isPrevSide ? i : prevPointIndex + this.ringDistance;
+      prevPoint = this.circle.getPoint(prevPointIndex);
+
+      this.ctx.lineTo(...prevPoint);
+
+      if (i < n - 1) {
+        prevPointIndex++;
+        prevPoint = this.circle.getPoint(prevPointIndex);
+        this.ctx.lineTo(...prevPoint);
+      }
+
+      this.ctx.stroke();
+
+      yield;
+
+      isPrevSide = !isPrevSide;
+    }
+  }
+
   *generateStrings() {
     yield* this.drawCircle();
+    yield* this.drawRing();
     yield* this.drawStar();
   }
 
@@ -204,9 +266,9 @@ export default class Star extends StringArt {
   }
 
   getStepCount() {
-    const { sides, sideNails } = this.config;
+    const { sides, sideNails, ringSize } = this.config;
     const starCount = sideNails * sides;
-    return starCount * 3; // Once for each side + two more times for the side's circle
+    return starCount * (3 + (ringSize ? 1 : 0)); // Once for each side + two more times for the side's circle
   }
 
   static thumbnailConfig = {

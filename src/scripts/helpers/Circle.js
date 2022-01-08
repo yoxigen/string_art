@@ -8,11 +8,11 @@ export default class Circle {
   }
 
   getPoint(index = 0) {
+    const realIndex = this.getNailIndex(index);
+
     if (this.points.has(index)) {
       return this.points.get(index);
     }
-
-    const realIndex = this.isReverse ? this.config.n - 1 - index : index;
 
     const point = [
       this.center[0] +
@@ -25,6 +25,14 @@ export default class Circle {
 
     this.points.set(index, point);
     return point;
+  }
+
+  getNailIndex(index = 0) {
+    let realIndex = this.isReverse ? this.config.n - 1 - index : index;
+    if (realIndex > this.config.n - 1) {
+      realIndex = realIndex % this.config.n;
+    }
+    return realIndex;
   }
 
   setConfig(config) {
