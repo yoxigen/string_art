@@ -7,6 +7,7 @@ export default class Nails {
     this.setConfig(config);
     this.centerX = canvas.width / 2;
     this.nails = [];
+    this.addedPoints = new Set();
   }
 
   setConfig({ nailRadius, nailsColor, nailNumbersFontSize }) {
@@ -14,11 +15,18 @@ export default class Nails {
     this.nailsColor = nailsColor;
     this.nailNumbersFontSize = nailNumbersFontSize;
     this.nails = [];
+    if (this.addedPoints) {
+      this.addedPoints.clear();
+    }
   }
 
   // Adds a nail to be rendered. nail: { point, number }
   addNail(nail) {
-    this.nails.push(nail);
+    const nailPoint = nail.point.map(Math.round).join('_');
+    if (!this.addedPoints.has(nailPoint)) {
+      this.nails.push(nail);
+      this.addedPoints.add(nailPoint);
+    }
   }
 
   fill({ drawNumbers = true } = {}) {
@@ -47,5 +55,6 @@ export default class Nails {
 
     this.context.fill();
     this.nails = [];
+    this.addedPoints.clear();
   }
 }

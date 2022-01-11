@@ -8,6 +8,7 @@ import Assymetry from './string_art_types/Assymetry.js';
 import Freestyle from './string_art_types/Freestyle.js';
 import PolygonPattern from './string_art_types/PolygonPattern.js';
 import Flower from './string_art_types/Flower.js';
+import MaurerRose from './string_art_types/MaurerRose.js';
 
 const patternTypes = [
   Star,
@@ -20,6 +21,7 @@ const patternTypes = [
   Freestyle,
   PolygonPattern,
   Flower,
+  MaurerRose,
 ];
 
 export default patternTypes;
