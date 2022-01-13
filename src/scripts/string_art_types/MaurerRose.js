@@ -23,8 +23,8 @@ const WHOLE_NUMBER_PRECISION_DELTA = 10 ** (-1 * WHOLE_NUMBER_PRECISION);
 export default class MaurerRose extends StringArt {
   name = 'Maurer Rose';
   id = 'maurer_rose';
-  link = 'https://en.wikipedia.org/wiki/Maurer_rose';
-  linkText = 'Wiki';
+  link = 'https://blog.glitch.land/en/posts/maurer-rose/';
+  linkText = 'Learn';
   controls = [
     {
       key: 'n',
@@ -55,7 +55,7 @@ export default class MaurerRose extends StringArt {
       type: 'range',
       attr: {
         min: 1,
-        max: 360,
+        max: 1000,
         step: 1,
       },
       displayValue: ({ angle }) => `${angle}°`,
@@ -100,11 +100,6 @@ export default class MaurerRose extends StringArt {
     } else {
       this.colorMap = null;
     }
-  }
-
-  getPetalsCount() {
-    const { n } = this.config;
-    return n % 2 ? n : n * 2;
   }
 
   getStructureProps() {

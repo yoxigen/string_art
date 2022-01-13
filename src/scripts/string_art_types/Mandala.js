@@ -5,8 +5,8 @@ import Circle from '../helpers/Circle.js';
 export default class Mandala extends StringArt {
   name = 'Mandala';
   id = 'mandala';
-  link =
-    'https://www.youtube.com/watch?v=LWin7w9hF-E&ab_channel=Jorgedelatierra';
+  link = 'https://www.youtube.com/watch?v=qhbuKbxJsk8';
+  linkText = 'Learn';
   controls = [
     {
       key: 'n',
@@ -61,7 +61,7 @@ export default class Mandala extends StringArt {
       n: this.n,
       margin,
       rotation,
-      reverse
+      reverse,
     };
     this.stringsPerLayer = layerFill ? Math.floor(this.n * layerFill) : this.n;
 
@@ -120,7 +120,7 @@ export default class Mandala extends StringArt {
   }
 
   getStepCount() {
-    const {layers, layerFill} = this.config;
+    const { layers, layerFill } = this.config;
     const stringsPerLayer = layerFill ? Math.floor(this.n * layerFill) : this.n;
     return (layers ?? 1) * stringsPerLayer;
   }

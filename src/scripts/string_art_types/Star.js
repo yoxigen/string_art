@@ -55,7 +55,7 @@ export default class Star extends StringArt {
         {
           key: 'ringColor',
           label: 'Ring color',
-          defaultValue: '#b094ff',
+          defaultValue: '#2ec0ff',
           type: 'color',
         },
       ],
