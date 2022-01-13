@@ -1,4 +1,4 @@
-const PI2 = Math.PI * 2;
+import { PI2 } from './math_utils.js';
 
 export default class Polygon {
   constructor(config) {
@@ -8,12 +8,7 @@ export default class Polygon {
   setConfig(config) {
     const serializedConfig = this._serializeConfig(config);
     if (serializedConfig !== this.serializedConfig) {
-      const {
-        size: configSize,
-        margin,
-        rotation = 0,
-        sides: sideCount,
-      } = (this.config = config);
+      const { rotation = 0, sides: sideCount } = (this.config = config);
 
       const sideAngle = PI2 / sideCount;
 
@@ -46,26 +41,31 @@ export default class Polygon {
       Object.assign(this, this._getProps());
 
       if (config.fitSize) {
-        const boundingRect = this.getBoundingRect();
-        const scale = Math.min(
-          (configSize[0] - 2 * margin) / boundingRect.width,
-          (configSize[1] - 2 * margin) / boundingRect.height
-        );
-
-        const size = configSize.map(v => v * scale);
-        const center = [
-          this.center[0] -
-            (scale * (boundingRect.left - configSize[0] + boundingRect.right)) /
-              2,
-          this.center[1] -
-            (scale * (boundingRect.top - configSize[1] + boundingRect.bottom)) /
-              2,
-        ];
-        Object.assign(this, this._getProps({ size, center }));
-
+        Object.assign(this, this._getProps(this.getSizeAndCenter()));
         this.points.clear();
       }
     }
+  }
+
+  getSizeAndCenter() {
+    const { size: configSize, margin } = this.config;
+
+    const boundingRect = this.getBoundingRect();
+    const scale = Math.min(
+      (configSize[0] - 2 * margin) / boundingRect.width,
+      (configSize[1] - 2 * margin) / boundingRect.height
+    );
+
+    const size = configSize.map(v => v * scale);
+    const center = [
+      this.center[0] -
+        (scale * (boundingRect.left - configSize[0] + boundingRect.right)) / 2,
+      this.center[1] -
+        (scale * (boundingRect.top - configSize[1] + boundingRect.bottom)) / 2,
+    ];
+
+    this.points.clear();
+    return { size, center };
   }
 
   _getProps(overrideConfig) {

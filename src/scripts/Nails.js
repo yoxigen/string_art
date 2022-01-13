@@ -1,4 +1,5 @@
-const PI2 = Math.PI * 2;
+import { PI2 } from './helpers/math_utils.js';
+
 const NUMBER_MARGIN = 4;
 
 export default class Nails {

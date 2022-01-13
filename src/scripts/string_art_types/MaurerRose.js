@@ -1,14 +1,14 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
-import Polygon from '../helpers/Polygon.js';
 import Color from '../helpers/Color.js';
+import { gcd } from '../helpers/math_utils.js';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
-    color: '#29f1ff',
-    multicolorRange: 146,
-    multicolorStart: 183,
+    color: '#ffffff',
+    multicolorRange: 133,
+    multicolorStart: 239,
     multicolorByLightness: false,
     minLightness: 30,
     maxLightness: 70,
@@ -17,15 +17,18 @@ const COLOR_CONFIG = Color.getConfig({
 });
 
 const SINGLE_DENSITY_STEPS = 360;
+const WHOLE_NUMBER_PRECISION = 6;
+const WHOLE_NUMBER_PRECISION_DELTA = 10 ** (-1 * WHOLE_NUMBER_PRECISION);
 
 export default class MaurerRose extends StringArt {
   name = 'Maurer Rose';
   id = 'maurer_rose';
   link = 'https://en.wikipedia.org/wiki/Maurer_rose';
+  linkText = 'Wiki';
   controls = [
     {
       key: 'n',
-      label: 'n',
+      label: 'N',
       defaultValue: 4,
       type: 'range',
       attr: {
@@ -37,18 +40,18 @@ export default class MaurerRose extends StringArt {
     {
       key: 'nailsCount',
       label: 'Nails count',
-      defaultValue: 360,
+      defaultValue: 512,
       type: 'range',
       attr: {
         min: 3,
-        max: 1000,
+        max: 999,
         step: 1,
       },
     },
     {
       key: 'angle',
       label: 'Angle',
-      defaultValue: 19,
+      defaultValue: 341,
       type: 'range',
       attr: {
         min: 1,
@@ -63,10 +66,13 @@ export default class MaurerRose extends StringArt {
 
   setUpDraw() {
     super.setUpDraw();
-    const { isMultiColor, colorCount } = this.config;
+    const { isMultiColor, colorCount, rotation, n, margin } = this.config;
     const structureProps = this.getStructureProps();
     const structureChanged = Object.entries(structureProps).some(
-      ([key, value]) => value !== this[key]
+      ([key, value]) =>
+        key === 'currentSize'
+          ? value.join(',') !== this[key].join(',')
+          : value !== this[key]
     );
 
     if (structureChanged) {
@@ -94,6 +100,11 @@ export default class MaurerRose extends StringArt {
     } else {
       this.colorMap = null;
     }
+  }
+
+  getPetalsCount() {
+    const { n } = this.config;
+    return n % 2 ? n : n * 2;
   }
 
   getStructureProps() {
@@ -168,28 +179,14 @@ export default class MaurerRose extends StringArt {
     if (this.stepCount) {
       return this.stepCount;
     }
-    //return this.config.nailsCount;
+
     const { nailsCount, angle, n } = this.config;
-    const radiansCount = 180 / angle;
+    const angleGcd = gcd(nailsCount, angle);
 
-    let times = 1;
-    let whole = null;
-
-    while (!whole && times < 10000) {
-      const result = radiansCount * times;
-      if (!(result % 1)) {
-        whole = result;
-      } else {
-        times++;
-      }
+    let steps = nailsCount / angleGcd;
+    if (!(steps % 2) && n % 2) {
+      steps /= 2;
     }
-
-    let steps = (nailsCount / angle) * times;
-    if (!(angle % n) && !(times % n)) {
-      steps /= n;
-    }
-
-    console.log('STEPS', { steps, times, radiansCount, whole, angle });
     return Math.round(steps);
   }
 
@@ -199,4 +196,9 @@ export default class MaurerRose extends StringArt {
       this.nails.addNail({ point, number: index });
     }
   }
+
+  static thumbnailConfig = {
+    nailsCount: 160,
+    angle: 213,
+  };
 }

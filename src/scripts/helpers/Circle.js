@@ -1,6 +1,5 @@
 import Nails from '../Nails.js';
-
-const PI2 = Math.PI * 2;
+import { PI2 } from './math_utils.js';
 
 export default class Circle {
   constructor(config) {

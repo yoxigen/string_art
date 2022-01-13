@@ -255,6 +255,7 @@ function selectPattern(pattern, { config, draw = true } = {}) {
 
   if (pattern.link) {
     elements.patternLink.setAttribute('href', pattern.link);
+    elements.patternLink.innerText = pattern.linkText ?? 'Example';
     unHide(elements.patternLink);
   } else {
     hide(elements.patternLink);

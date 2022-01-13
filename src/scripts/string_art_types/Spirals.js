@@ -1,6 +1,7 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 import Color from '../helpers/Color.js';
+import { PI2 } from '../helpers/math_utils.js';
 
 class Spirals extends StringArt {
   name = 'Spirals';
@@ -59,7 +60,6 @@ class Spirals extends StringArt {
       angleStep,
       colorCount,
     } = this.config;
-    const PI2 = Math.PI * 2;
 
     this.spiralRotations = new Array(nSpirals)
       .fill(null)
