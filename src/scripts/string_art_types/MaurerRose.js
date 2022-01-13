@@ -38,8 +38,8 @@ export default class MaurerRose extends StringArt {
       },
     },
     {
-      key: 'nailsCount',
-      label: 'Nails count',
+      key: 'maxSteps',
+      label: 'Max steps',
       defaultValue: 512,
       type: 'range',
       attr: {
@@ -103,9 +103,9 @@ export default class MaurerRose extends StringArt {
   }
 
   getStructureProps() {
-    const { n, angle, rotation, nailsCount } = this.config;
+    const { n, angle, rotation, maxSteps } = this.config;
     const size = this.getSize();
-    const density = nailsCount / SINGLE_DENSITY_STEPS;
+    const density = maxSteps / SINGLE_DENSITY_STEPS;
 
     return {
       n,
@@ -175,10 +175,10 @@ export default class MaurerRose extends StringArt {
       return this.stepCount;
     }
 
-    const { nailsCount, angle, n } = this.config;
-    const angleGcd = gcd(nailsCount, angle);
+    const { maxSteps, angle, n } = this.config;
+    const angleGcd = gcd(maxSteps, angle);
 
-    let steps = nailsCount / angleGcd;
+    let steps = maxSteps / angleGcd;
     if (!(steps % 2) && n % 2) {
       steps /= 2;
     }
@@ -193,7 +193,7 @@ export default class MaurerRose extends StringArt {
   }
 
   static thumbnailConfig = {
-    nailsCount: 160,
+    maxSteps: 160,
     angle: 213,
   };
 }
