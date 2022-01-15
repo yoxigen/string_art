@@ -5,6 +5,7 @@ import EditorSizeControls from './editor/EditorSizeControls.js';
 import { Thumbnails } from './thumbnails/Thumbnails.js';
 import { deserializeConfig, serializeConfig } from './Serialize.js';
 import { isShareSupported, share } from './share.js';
+import { initServiceWorker } from './pwa.js';
 
 window.addEventListener('error', function (event) {
   alert('Error: ' + event.message);
@@ -41,8 +42,11 @@ let controls;
 
 window.addEventListener('load', main);
 
-function main() {
+async function main() {
   initRouting();
+
+  await initServiceWorker();
+
   document.body.querySelectorAll('.pattern_only').forEach(hide);
   unHide(document.querySelector('main'));
   if (history.state?.pattern) {

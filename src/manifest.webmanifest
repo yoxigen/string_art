@@ -1,0 +1,36 @@
+{
+  "short_name": "String Art Studio",
+  "name": "String Art Studio",
+  "description": "An app to design and help produce string art projects",
+  "icons": [
+    {
+      "src": "favicon/favicon-16.png",
+      "type": "image/png",
+      "sizes": "16x16"
+    },
+    {
+      "src": "favicon/favicon-32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "favicon/favicon-96.png",
+      "type": "image/png",
+      "sizes": "96x96"
+    },
+    {
+      "src": "favicon/favicon-152.png",
+      "type": "image/png",
+      "sizes": "152x152"
+    },
+    {
+      "src": "favicon/favicon-196.png",
+      "type": "image/png",
+      "sizes": "196x196"
+    }    
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2b2b31",
+  "background_color": "#0e0e0e"
+}

@@ -4,7 +4,8 @@
   "description": "String Art Studio",
   "source": "./src/index.html",
   "scripts": {
-    "build": "parcel build"
+    "build": "parcel build",
+    "postbuild": "workbox generateSW"
   },
   "repository": {
     "type": "git",
@@ -27,8 +28,11 @@
   },
   "homepage": "https://github.com/yoxigen/string_art#readme",
   "devDependencies": {
-    "parcel": "^2.0.0",
-    "prettier": "2.4.1"
+    "@parcel/packager-raw-url": "^2.2.0",
+    "@parcel/transformer-webmanifest": "^2.2.0",
+    "parcel": "^2.2.0",
+    "prettier": "2.4.1",
+    "workbox-cli": "^6.4.2"
   },
   "targets": {
     "default": {
