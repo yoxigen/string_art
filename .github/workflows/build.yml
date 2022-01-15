@@ -13,6 +13,7 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm run build
+      - run: cp ./CNAME ./dist/CNAME
       - name: Push
         uses: s0/git-publish-subdir-action@develop
         env:
