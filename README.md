@@ -6,8 +6,6 @@ A webapp to design and help produce [string art](https://en.wikipedia.org/wiki/S
 
 Examples:
 
-[![Spirals](https://gcdn.pbrd.co/images/7BcwTQ5Do0zw.png?o=1)](https://www.stringart.app/?pattern=spirals)
-
 [![Flower](https://i.ibb.co/xDbrXLf/Flower-1.png)](https://www.stringart.app/?pattern=flower)
 
 [![Flower](https://i.ibb.co/ryxznSg/Maurer-Rose.png)](https://www.stringart.app/?pattern=maurer_rose)
