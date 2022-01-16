@@ -27,10 +27,15 @@
       "src": "favicon/favicon-196.png",
       "type": "image/png",
       "sizes": "196x196"
+    },
+    {
+      "src": "favicon/favicon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }    
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#2b2b31",
+  "theme_color": "#262629",
   "background_color": "#0e0e0e"
 }
