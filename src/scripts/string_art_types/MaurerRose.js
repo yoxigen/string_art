@@ -1,7 +1,7 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 import Color from '../helpers/Color.js';
-import { gcd } from '../helpers/math_utils.js';
+import { gcd, PI2 } from '../helpers/math_utils.js';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -15,10 +15,6 @@ const COLOR_CONFIG = Color.getConfig({
     colorCount: 4,
   },
 });
-
-const SINGLE_DENSITY_STEPS = 360;
-const WHOLE_NUMBER_PRECISION = 6;
-const WHOLE_NUMBER_PRECISION_DELTA = 10 ** (-1 * WHOLE_NUMBER_PRECISION);
 
 export default class MaurerRose extends StringArt {
   name = 'Maurer Rose';
@@ -44,7 +40,7 @@ export default class MaurerRose extends StringArt {
       type: 'range',
       attr: {
         min: 3,
-        max: 999,
+        max: 720,
         step: 1,
       },
     },
@@ -55,7 +51,7 @@ export default class MaurerRose extends StringArt {
       type: 'range',
       attr: {
         min: 1,
-        max: 1000,
+        max: 720,
         step: 1,
       },
       displayValue: ({ angle }) => `${angle}°`,
@@ -66,7 +62,7 @@ export default class MaurerRose extends StringArt {
 
   setUpDraw() {
     super.setUpDraw();
-    const { isMultiColor, colorCount, rotation, n, margin } = this.config;
+    const { isMultiColor, colorCount } = this.config;
     const structureProps = this.getStructureProps();
     const structureChanged = Object.entries(structureProps).some(
       ([key, value]) =>
@@ -105,11 +101,10 @@ export default class MaurerRose extends StringArt {
   getStructureProps() {
     const { n, angle, rotation, maxSteps } = this.config;
     const size = this.getSize();
-    const density = maxSteps / SINGLE_DENSITY_STEPS;
 
     return {
       n,
-      angleRadians: (angle * Math.PI) / 180 / density,
+      angleRadians: (PI2 * angle) / maxSteps,
       radius: Math.min(...size) / 2,
       currentSize: size,
       rotationAngle: -Math.PI * 2 * rotation,

@@ -1,7 +1,7 @@
 const swFilename = 'service-worker.js';
 
 export async function initServiceWorker() {
-  if (!navigator.serviceWorker) {
+  if (!navigator.serviceWorker || document.location.hostname === '127.0.0.1') {
     return;
   }
 
