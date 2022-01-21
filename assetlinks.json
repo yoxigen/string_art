@@ -1,0 +1,10 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.stringart.www.twa",
+      "sha256_cert_fingerprints": [
+        "29:84:E0:0F:46:63:31:08:CB:82:0E:42:2D:E2:9B:2C:B7:F9:CA:DF:EA:30:0F:9B:A0:60:21:94:EF:B7:87:15"
+      ]
+    }
+  }]
