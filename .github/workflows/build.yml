@@ -14,7 +14,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: cp ./CNAME ./dist/CNAME
-      - run: cp ./assetlinks.json ./dist/well-known/assetlinks.json
+      - run: mkdir dist/well-known && cp ./assetlinks.json ./dist/well-known/assetlinks.json
       - name: Push
         uses: s0/git-publish-subdir-action@develop
         env:
