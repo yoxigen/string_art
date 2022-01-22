@@ -1,3 +1,5 @@
+import { StringArtDOM } from '../dom/StringArtDOM.js';
+
 const elements = {
   controls: document.querySelector('#controls'),
   controlsPanel: document.querySelector('#controls_panel'),
@@ -14,6 +16,7 @@ export default class EditorControls {
   constructor({ pattern }) {
     this.pattern = pattern;
     this.state = this._getState() ?? { groups: {} };
+    this.dom = new StringArtDOM();
 
     this.eventHandlers = {
       input: new Set(),
@@ -41,10 +44,17 @@ export default class EditorControls {
       }
     };
 
-    this._wrappedOnInput = e => this._onInput(e);
-    elements.controls.addEventListener('input', this._wrappedOnInput);
-    this._wrappedOnTouchStart = e => this._onTouchStart(e);
-    elements.controls.addEventListener('touchstart', this._wrappedOnTouchStart);
+    this.dom.addEventListener(elements.controls, 'input', e =>
+      this._onInput(e)
+    );
+    this.dom.addEventListener(elements.controls, 'touchstart', e =>
+      this._onTouchStart(e)
+    );
+    this.dom.addEventListener(elements.controls, 'focusin', e => {
+      if (e.target.type === 'number') {
+        e.target.select();
+      }
+    });
     elements.sidebarForm.addEventListener('click', this._toggleFieldset);
     elements.sidebarForm.addEventListener(
       'keydown',
@@ -55,15 +65,11 @@ export default class EditorControls {
   }
 
   destroy() {
-    elements.controls.removeEventListener('input', this._wrappedOnInput);
+    this.dom.destroy();
     elements.sidebarForm.removeEventListener('click', this._toggleFieldset);
     elements.sidebarForm.removeEventListener(
       'keydown',
       this._toggleFieldSetOnEnter
-    );
-    elements.controls.removeEventListener(
-      'touchstart',
-      this._wrappedOnTouchStart
     );
     elements.controls.innerHTML = '';
   }
@@ -155,7 +161,7 @@ export default class EditorControls {
 
   updateInput({ inputElement, originalEvent, deferChange = true }) {
     const inputValue = getInputValue(inputElement.type, inputElement);
-    const controlKey = inputElement.id.replace(/^config_/, '');
+    const controlKey = inputElement.id.replace(/^config(__manual)?_/, '');
 
     this.pattern.config = Object.freeze({
       ...this.pattern.config,
@@ -294,39 +300,61 @@ export default class EditorControls {
 
         const label = document.createElement('label');
         label.innerHTML = control.label;
+        label.className = 'control_label';
         label.setAttribute('for', controlId);
 
         const inputEl = (controlElements.input =
           document.createElement('input'));
+        let inputValueManualEl;
         inputEl.setAttribute('type', control.type);
         const inputValue =
           this.pattern.config[control.key] ?? control.defaultValue;
-
-        if (control.attr) {
-          Object.entries(control.attr).forEach(([attr, value]) => {
-            const realValue =
-              value instanceof Function ? value(this.pattern) : value;
-            inputEl.setAttribute(attr, realValue);
-          });
-        }
 
         if (control.type === 'checkbox') {
           inputEl.checked = inputValue;
           controlEl.appendChild(inputEl);
           controlEl.appendChild(label);
         } else {
+          if (control.type === 'range') {
+            inputValueManualEl = document.createElement('input');
+            inputValueManualEl.setAttribute('type', 'number');
+            inputValueManualEl.value = control.displayValue
+              ? control.displayValue(this.pattern.config, control)
+              : inputValue;
+            inputValueManualEl.id = `config__manual_${control.key}`;
+            inputValueManualEl.className = 'control_input_manual';
+            controlEl.appendChild(inputValueManualEl);
+          }
+
           controlEl.appendChild(label);
           controlEl.appendChild(inputEl);
           inputEl.value = inputValue;
-          const inputValueEl = (controlElements.displayValue =
-            document.createElement('span'));
-          inputValueEl.id = `config_${control.key}_value`;
-          inputValueEl.innerText = control.displayValue
-            ? control.displayValue(this.pattern.config, control)
-            : inputValue;
-          inputValueEl.className = 'control_input_value';
-          controlEl.appendChild(inputValueEl);
+
+          if (control.type !== 'range') {
+            const inputValueEl = (controlElements.displayValue =
+              document.createElement('label'));
+            inputValueEl.id = `config_${control.key}_value`;
+            inputValueEl.setAttribute('for', `config__manual_${control.key}`);
+            inputValueEl.innerText = control.displayValue
+              ? control.displayValue(this.pattern.config, control)
+              : inputValue;
+            inputValueEl.className = 'control_input_value';
+            controlEl.appendChild(inputValueEl);
+          }
         }
+
+        if (control.attr) {
+          Object.entries(control.attr).forEach(([attr, value]) => {
+            const realValue =
+              value instanceof Function ? value(this.pattern) : value;
+            inputEl.setAttribute(attr, realValue);
+
+            if (inputValueManualEl) {
+              inputValueManualEl.setAttribute(attr, realValue);
+            }
+          });
+        }
+
         inputEl.id = controlId;
       }
 

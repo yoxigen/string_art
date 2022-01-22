@@ -12,7 +12,7 @@
   margin-top: 16px;
 }
 
-label {
+.control_label {
   font-size: 14px;
   font-weight: 500;
 }
@@ -30,7 +30,7 @@ form label {
   display: block;
 }
 
-input[type='checkbox'] + label {
+input[type='checkbox'] + .control_label {
   display: inline-block;
   margin-top: 0;
   position: relative;
@@ -112,6 +112,29 @@ select {
   top: -3px;
   margin-inline-start: 2px;
   font-size: 12px;
+}
+
+input[type='number'].control_input_manual {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  width: 56px;
+  text-align: right;
+  padding: 0;
+  height: 18px;
+  background: transparent;
+  color: white;
+  border: none;
+  direction: rtl;
+}
+
+input[type='number'].control_input_manual:focus {
+  background: white;
+  color: black;
+  border: solid 1px var(--color-input-border);
+  border-radius: 3px;
+  padding-right: 4px;
 }
 
 #size_custom {
