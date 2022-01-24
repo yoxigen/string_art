@@ -13,9 +13,7 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm run build
-      - run: cp ./CNAME ./dist/CNAME
-      - run: cp ./.nojekyll ./dist/.nojekyll
-      - run: mkdir dist/.well-known && cp ./assetlinks.json ./dist/.well-known/assetlinks.json
+      - run: cp -a ./assets/. ./dist/
       - name: Push
         uses: s0/git-publish-subdir-action@develop
         env:
