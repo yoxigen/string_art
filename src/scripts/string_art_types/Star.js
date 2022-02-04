@@ -119,6 +119,10 @@ export default class Star extends StringArt {
     return [centerX + sinSideAngle * radius, centerY + cosSideAngle * radius];
   }
 
+  getArcPoint({ side, sideIndex }) {
+    return this.circle.getPoint(side * this.config.sideNails + sideIndex);
+  }
+
   *generateStarPoints({ reverseOrder = false } = {}) {
     const { sides, sideNails } = this.config;
 
@@ -137,74 +141,77 @@ export default class Star extends StringArt {
   }
 
   *drawStar() {
-    const { innerColor, sideNails } = this.config;
+    const { innerColor, sideNails, sides } = this.config;
 
     this.ctx.strokeStyle = innerColor;
-    let prevPoint;
+    let alternate = false;
+    const linesPerRound = sides % 2 ? sides * 2 : sides;
+    const rounds = sides % 2 ? Math.floor(sideNails / 2) : sideNails;
 
-    for (const { prevSide, sideIndex, point } of this.generateStarPoints()) {
-      this.ctx.beginPath();
+    let prevPointIndex = 0;
+    let prevPoint = this.getStarPoint({ side: 0, sideIndex: prevPointIndex });
 
-      if (sideIndex && !(sideIndex % 2)) {
+    for (let round = 0; round <= rounds; round++) {
+      let side = 0;
+
+      const linesPerThisRound = linesPerRound - (round === rounds ? sides : 0);
+
+      for (let i = 0; i < linesPerThisRound; i++) {
+        this.ctx.beginPath();
+
         this.ctx.moveTo(...prevPoint);
-        this.ctx.lineTo(...point);
-      } else {
-        this.ctx.moveTo(...point);
+        side = side !== sides - 1 ? side + 1 : 0;
+        alternate = !alternate;
+        prevPointIndex = alternate ? sideNails - round : round;
+        prevPoint = this.getStarPoint({ side, sideIndex: prevPointIndex });
+        this.ctx.lineTo(...prevPoint);
+        this.ctx.stroke();
+        yield;
       }
 
-      const prevSideIndex = sideNails - sideIndex;
-      this.ctx.lineTo(
-        ...this.getStarPoint({ side: prevSide, sideIndex: prevSideIndex })
-      );
-      prevPoint = point;
-      this.ctx.stroke();
-      yield;
+      prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
+      prevPoint = this.getStarPoint({ side: 0, sideIndex: prevPointIndex });
+      this.ctx.lineTo(...prevPoint);
     }
   }
 
   *drawCircle() {
-    const { outterColor } = this.config;
-
-    let prevCirclePoint;
-    let isPrevSide = false;
+    const { outterColor, sides, sideNails } = this.config;
     this.ctx.strokeStyle = outterColor;
-    for (const { side, prevSide, sideIndex, point } of this.generateStarPoints({
-      reverseOrder: true,
-    })) {
-      this.ctx.beginPath();
-      if (!prevCirclePoint) {
-        prevCirclePoint = this.circle.getPoint(
-          this.sides[prevSide].circlePointsStart
-        );
+
+    let prevPoint = this.getStarPoint({ side: 0, sideIndex: 0 });
+    let alternate = false;
+    let isStar = false;
+
+    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
+    let side = 0;
+    const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
+
+    for (let round = 0; round <= rounds; round++) {
+      const linesPerThisRound =
+        linesPerRound - (round === rounds ? sides * 2 : 0);
+
+      for (let i = 0; i < linesPerThisRound; i++) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(...prevPoint);
+        const pointPosition = {
+          side,
+          sideIndex: alternate ? sideNails - round : round,
+        };
+        prevPoint = isStar
+          ? this.getStarPoint(pointPosition)
+          : this.getArcPoint(pointPosition);
+        this.ctx.lineTo(...prevPoint);
+        this.ctx.stroke();
+        yield;
+        isStar = !isStar;
+
+        if (isStar) {
+          side = side !== sides - 1 ? side + 1 : 0;
+          alternate = !alternate;
+        }
       }
-
-      this.ctx.moveTo(...prevCirclePoint);
-
-      this.ctx.lineTo(...point);
-      this.ctx.stroke();
-
-      yield;
-
-      this.ctx.beginPath();
-      this.ctx.moveTo(...point);
-      const nextPointIndex = isPrevSide
-        ? this.sides[prevSide].circlePointsEnd - sideIndex
-        : this.sides[side].circlePointsStart + sideIndex;
-
-      const nextPoint = this.circle.getPoint(nextPointIndex);
-      this.ctx.lineTo(...nextPoint);
-
-      prevCirclePoint = this.circle.getPoint(
-        isPrevSide
-          ? this.sides[prevSide].circlePointsEnd - sideIndex + 1
-          : this.sides[side].circlePointsStart + sideIndex - 1
-      );
-
-      this.ctx.lineTo(...prevCirclePoint);
-
-      this.ctx.stroke();
-      isPrevSide = !isPrevSide;
-      yield;
+      prevPoint = this.getStarPoint({ side: 0, sideIndex: round + 1 });
     }
   }
 
@@ -267,8 +274,10 @@ export default class Star extends StringArt {
 
   getStepCount() {
     const { sides, sideNails, ringSize } = this.config;
-    const starCount = sideNails * sides;
-    return starCount * (3 + (ringSize ? 1 : 0)); // Once for each side + two more times for the side's circle
+    const ringCount = ringSize ? sideNails * sides : 0;
+    const starAndCircleCount = 3 * sides * (sideNails + (sides % 2 ? 1 : 0));
+
+    return starAndCircleCount + ringCount;
   }
 
   static thumbnailConfig = {
