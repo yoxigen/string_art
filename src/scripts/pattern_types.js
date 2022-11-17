@@ -9,6 +9,7 @@ import Freestyle from './string_art_types/Freestyle.js';
 import PolygonPattern from './string_art_types/PolygonPattern.js';
 import Flower from './string_art_types/Flower.js';
 import MaurerRose from './string_art_types/MaurerRose.js';
+import FlowerOfLife from './string_art_types/FlowerOfLife.js';
 
 const patternTypes = [
   Star,
@@ -22,6 +23,7 @@ const patternTypes = [
   PolygonPattern,
   Flower,
   MaurerRose,
+  FlowerOfLife,
 ];
 
 export default patternTypes;
