@@ -23,90 +23,108 @@ export default class FlowerOfLife extends StringArt {
     {
       key: 'density',
       label: 'Density',
-      defaultValue: 20,
+      defaultValue: 10,
       type: 'range',
       attr: {
-        min: 1,
-        max: 100,
+        min: 2,
+        max: 50,
         step: 1,
       },
     },
   ];
 
-  setUpDraw() {
-    super.setUpDraw();
+  getStructureProps() {
     const { levels, density } = this.config;
-    this.edgeSize = Math.min(...this.size) / 2 / levels;
-    this.nailsPerEdge = this.edgeSize / density;
-    this.nailsLength = this.edgeSize / Math.sqrt(3) / 2;
-  }
+    const edgeSize = Math.min(...this.size) / 2 / levels;
+    const nailsLength = edgeSize / (2 * Math.cos(Math.PI / 6));
 
-  getPoint(index) {
-    if (this.points.has(index)) {
-      return this.points.get(index);
-    }
-
-    const k = index * this.angleRadians;
-    const r = this.radius * Math.sin(this.n * k);
-
-    const point = [
-      this.center[0] - r * Math.cos(k - this.rotationAngle),
-      this.center[1] - r * Math.sin(k - this.rotationAngle),
-    ];
-    this.points.set(index, point);
-    return point;
-  }
-
-  *generateTrianglePoints(position, rotation, triangleIndex) {
-    console.log(
-      'POINT',
-      [
-        position[0] + this.nailsLength * Math.cos(rotation + CENTER_ANGLE),
-        position[1] - this.nailsLength * Math.sin(rotation + CENTER_ANGLE),
-      ],
-      { rotation, triangleIndex }
-    );
-    yield {
-      point: [
-        position[0] + this.nailsLength * Math.cos(rotation + CENTER_ANGLE),
-        position[1] - this.nailsLength * Math.sin(rotation + CENTER_ANGLE),
-      ],
-      index: triangleIndex + 1,
+    return {
+      edgeSize,
+      triangleHeight: (edgeSize * Math.sqrt(3)) / 2,
+      nailsLength,
+      triangleCenterDistance: edgeSize / 2,
+      maxTrianglesPerSide: 2 * (levels - 1) + 1,
+      nailsPerTriangle: density * 3 + 1, // The center is shared, so counting it once
+      nailDistance: nailsLength / density,
     };
   }
 
+  setUpDraw() {
+    super.setUpDraw();
+    Object.assign(this, this.getStructureProps());
+
+    this.stepCount = null;
+    this.stepCount = this.getStepCount();
+  }
+
+  *generateTrianglePoints(center, isFlipped = false, triangleIndex) {
+    const initialAngle = isFlipped ? -Math.PI / 6 : -Math.PI / 2;
+    let nailIndex = triangleIndex * this.nailsPerTriangle;
+
+    // Yield first the center point of the triangle
+    yield {
+      point: center,
+      index: nailIndex++,
+    };
+
+    for (let side = 0; side < 3; side++) {
+      const sideAngle = initialAngle + side * (PI2 / 3);
+      for (let n = 1; n <= this.config.density; n++) {
+        yield {
+          point: [
+            center[0] + n * this.nailDistance * Math.cos(sideAngle),
+            center[1] + n * this.nailDistance * Math.sin(sideAngle),
+          ],
+          index: nailIndex++,
+        };
+      }
+    }
+  }
+
   *generatePoints() {
-    console.clear();
-    yield { point: this.center, index: 0 };
+    //console.clear();
 
     let triangleIndex = 0;
+    const largeDistance = this.nailsLength;
+    const smallDistance = this.triangleHeight - largeDistance;
 
-    for (let side = 0; side < 6; side++) {
-      const sideRotation = (PI2 * side) / 6;
+    // The Flower of Life is composed of six sides, each a triangle
+    for (let level = 0; level < this.config.levels; level++) {
+      const levelTriangleSideCount = this.maxTrianglesPerSide - level;
+      const levelTriangleCount = 1 + 2 * levelTriangleSideCount;
 
-      // The Flower of Life is composed of six sides, each a triangle
-      for (let level = 0; level < this.config.levels; level++) {
-        // We run over each of the levels in each side
-        const levelTriangleCount = 1 + level * 2; // Each level has 2 more triangles than the one before it (1, 3, 5, 7, ...)
+      const levelXStart =
+        this.center[0] - levelTriangleSideCount * this.triangleCenterDistance;
+
+      const levelYDistanceFromCenter = level * this.triangleHeight;
+
+      const sides = [-1, 1]; // -1 is top side, 1 is bottom side
+
+      for (const side of sides) {
         for (let i = 0; i < levelTriangleCount; i++) {
-          // Then, we generate the points for each triangle
-          const triangleRotation = sideRotation + CENTER_ANGLE * i;
-          const trianglePosition = [
-            this.center[0] + level * this.edgeSize * Math.cos(triangleRotation),
-            this.center[1] - level * this.edgeSize * Math.sin(triangleRotation),
-          ];
-          console.log('TRIANGLE', {
-            side,
-            level,
-            i,
-            triangleIndex: triangleIndex + 1,
-          });
+          let isFlipped = i % 2 !== 0; // Flipped means the triangle points down instead of up
+          if (side === 1) {
+            isFlipped = !isFlipped;
+          }
+
+          const distanceFromLevelBaseline =
+            side === 1
+              ? isFlipped
+                ? smallDistance
+                : largeDistance
+              : isFlipped
+              ? largeDistance
+              : smallDistance;
+
           yield* this.generateTrianglePoints(
-            trianglePosition,
-            triangleRotation,
-            triangleIndex
+            [
+              levelXStart + this.triangleCenterDistance * i,
+              this.center[1] +
+                (levelYDistanceFromCenter + distanceFromLevelBaseline) * side,
+            ],
+            isFlipped,
+            triangleIndex++
           );
-          triangleIndex++;
         }
       }
     }
@@ -117,7 +135,15 @@ export default class FlowerOfLife extends StringArt {
   }
 
   getStepCount() {
-    return 6;
+    if (this.stepCount) {
+      return this.stepCount;
+    }
+
+    return (
+      6 *
+      this.config.levels ** 2 *
+      (this.nailsPerTriangle ?? this.config.density * 3 + 1)
+    );
   }
 
   drawNails() {
