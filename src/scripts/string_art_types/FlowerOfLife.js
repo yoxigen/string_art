@@ -46,6 +46,7 @@ export default class FlowerOfLife extends StringArt {
       maxTrianglesPerSide: 2 * (levels - 1) + 1,
       nailsPerTriangle: density * 3 + 1, // The center is shared, so counting it once
       nailDistance: nailsLength / density,
+      triangleCount: 6 * levels ** 2,
     };
   }
 
@@ -131,7 +132,61 @@ export default class FlowerOfLife extends StringArt {
   }
 
   *generateStrings() {
-    return;
+    const points = this.generatePoints();
+    const { density } = this.config;
+
+    this.ctx.strokeStyle = '#ffffff';
+
+    let prevPoint;
+
+    for (
+      let triangleIndex = 0;
+      triangleIndex < this.triangleCount;
+      triangleIndex++
+    ) {
+      const triangleCenterPoint = points.next().value.point;
+      const triangleSidesPoints = new Array(3)
+        .fill(null)
+        .map(() => [triangleCenterPoint]);
+
+      for (let side = 0; side < 3; side++) {
+        const sidePoints = triangleSidesPoints[side];
+
+        for (let n = 0; n < this.config.density; n++) {
+          sidePoints.push(points.next().value.point);
+        }
+      }
+
+      prevPoint = triangleSidesPoints[0][0];
+
+      let isEnd = true;
+      let side = 0;
+      const nMax = Math.floor(this.config.density / 2);
+
+      for (let n = 0; n <= nMax; n++) {
+        const nSides = density % 2 === 0 && n === nMax ? 3 : 6;
+
+        for (let s = 0; s < nSides; s++) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(...prevPoint);
+
+          side = side === 2 ? 0 : side + 1;
+          const nextSidePoint = isEnd ? this.config.density - n : n;
+          prevPoint = triangleSidesPoints[side][nextSidePoint];
+          this.ctx.lineTo(...prevPoint);
+          this.ctx.stroke();
+
+          isEnd = !isEnd;
+
+          if (s === 5 && n < nMax) {
+            prevPoint = triangleSidesPoints[0][n + 1];
+            this.ctx.lineTo(...prevPoint);
+            this.ctx.stroke();
+          }
+          yield;
+        }
+      }
+    }
   }
 
   getStepCount() {
@@ -139,11 +194,12 @@ export default class FlowerOfLife extends StringArt {
       return this.stepCount;
     }
 
-    return (
-      6 *
-      this.config.levels ** 2 *
-      (this.nailsPerTriangle ?? this.config.density * 3 + 1)
-    );
+    const { levels, density } = this.config;
+    const triangleCount = this.triangleCount ?? 6 * levels ** 2;
+    const stepsPerTriangle =
+      (Math.floor(density / 2) + 1) * 6 - (density % 2 ? 0 : 3);
+
+    return triangleCount * stepsPerTriangle;
   }
 
   drawNails() {
