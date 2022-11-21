@@ -1,7 +1,18 @@
 import { PI2 } from '../helpers/math_utils.js';
 import StringArt from '../StringArt.js';
+import Color from '../helpers/Color.js';
 
-const CENTER_ANGLE = Math.PI / 6;
+const COLOR_CONFIG = Color.getConfig({
+  defaults: {
+    isMultiColor: true,
+    color: '#29f1ff',
+    multicolorRange: 264,
+    multicolorStart: 53,
+    multicolorByLightness: false,
+    minLightness: 30,
+    maxLightness: 70,
+  },
+});
 
 export default class FlowerOfLife extends StringArt {
   name = 'Flower of Life';
@@ -31,6 +42,13 @@ export default class FlowerOfLife extends StringArt {
         step: 1,
       },
     },
+    {
+      key: 'colorPerLevel',
+      label: 'Color per level',
+      defaultValue: false,
+      type: 'checkbox',
+    },
+    COLOR_CONFIG,
   ];
 
   getStructureProps() {
@@ -54,137 +72,202 @@ export default class FlowerOfLife extends StringArt {
     super.setUpDraw();
     Object.assign(this, this.getStructureProps());
 
+    this.points = null;
+    this.points = this.getPoints();
+
     this.stepCount = null;
     this.stepCount = this.getStepCount();
-  }
 
-  *generateTrianglePoints(center, isFlipped = false, triangleIndex) {
-    const initialAngle = isFlipped ? -Math.PI / 6 : -Math.PI / 2;
-    let nailIndex = triangleIndex * this.nailsPerTriangle;
+    const { isMultiColor, levels, colorPerLevel, ...config } = this.config;
 
-    // Yield first the center point of the triangle
-    yield {
-      point: center,
-      index: nailIndex++,
-    };
+    this.color = new Color({
+      ...config,
+      isMultiColor,
+      colorCount: levels,
+    });
 
-    for (let side = 0; side < 3; side++) {
-      const sideAngle = initialAngle + side * (PI2 / 3);
-      for (let n = 1; n <= this.config.density; n++) {
-        yield {
-          point: [
-            center[0] + n * this.nailDistance * Math.cos(sideAngle),
-            center[1] + n * this.nailDistance * Math.sin(sideAngle),
-          ],
-          index: nailIndex++,
-        };
-      }
+    if (isMultiColor) {
+      this.colorMap = this.color.getColorMap({
+        stepCount: colorPerLevel ? levels : 1,
+        colorCount: colorPerLevel ? levels : 1,
+      });
+    } else {
+      this.colorMap = null;
     }
   }
 
-  *generatePoints() {
-    //console.clear();
+  getTrianglePoints(center, isFlipped = false) {
+    const initialAngle = isFlipped ? -Math.PI / 6 : -Math.PI / 2;
 
-    let triangleIndex = 0;
+    // For each side of the triangle, the first point is the center of the triangle:
+    const trianglePoints = new Array(3).fill(null).map(() => [center]);
+
+    for (let side = 0; side < 3; side++) {
+      const sideAngle = initialAngle + side * (PI2 / 3);
+      const triangleSidePoints = trianglePoints[side];
+
+      for (let n = 1; n <= this.config.density; n++) {
+        triangleSidePoints.push([
+          center[0] + n * this.nailDistance * Math.cos(sideAngle),
+          center[1] + n * this.nailDistance * Math.sin(sideAngle),
+        ]);
+      }
+    }
+
+    return trianglePoints;
+  }
+
+  getPoints() {
+    if (this.points) {
+      return this.points;
+    }
+
+    const { levels } = this.config;
+
     const largeDistance = this.nailsLength;
     const smallDistance = this.triangleHeight - largeDistance;
+    const levelsPoints = [];
 
     // The Flower of Life is composed of six sides, each a triangle
-    for (let level = 0; level < this.config.levels; level++) {
-      const levelTriangleSideCount = this.maxTrianglesPerSide - level;
-      const levelTriangleCount = 1 + 2 * levelTriangleSideCount;
+    for (let level = 0; level < levels; level++) {
+      const levelTrianglesPoints = [];
+      levelsPoints.push(levelTrianglesPoints);
+
+      const levelTriangleTopCount = 3 + level * 2;
 
       const levelXStart =
-        this.center[0] - levelTriangleSideCount * this.triangleCenterDistance;
-
-      const levelYDistanceFromCenter = level * this.triangleHeight;
-
+        this.center[0] - this.triangleCenterDistance * (level + 1);
       const sides = [-1, 1]; // -1 is top side, 1 is bottom side
 
-      for (const side of sides) {
-        for (let i = 0; i < levelTriangleCount; i++) {
-          let isFlipped = i % 2 !== 0; // Flipped means the triangle points down instead of up
-          if (side === 1) {
-            isFlipped = !isFlipped;
-          }
-
-          const distanceFromLevelBaseline =
-            side === 1
-              ? isFlipped
-                ? smallDistance
-                : largeDistance
-              : isFlipped
-              ? largeDistance
-              : smallDistance;
-
-          yield* this.generateTrianglePoints(
-            [
-              levelXStart + this.triangleCenterDistance * i,
-              this.center[1] +
-                (levelYDistanceFromCenter + distanceFromLevelBaseline) * side,
-            ],
+      for (const verticalOrientation of sides) {
+        let isFlipped = verticalOrientation === 1; // Triangles start flipped on bottom lines (Flipped means the triangle points down instead of up)
+        for (let i = 0; i < levelTriangleTopCount; i++) {
+          const triangle = getTriangle.call(this, {
+            verticalOrientation,
             isFlipped,
-            triangleIndex++
-          );
+            xPosition: levelXStart + this.triangleCenterDistance * i,
+            level,
+            yLevel: level,
+          });
+
+          levelTrianglesPoints.push(triangle);
+          isFlipped = !isFlipped;
         }
+      }
+
+      if (level !== 0) {
+        for (let prevLevel = 0; prevLevel < level; prevLevel++) {
+          for (const verticalOrientation of sides) {
+            let isFlipped = verticalOrientation === -1;
+
+            // Add 2 triangles on each side, top and down
+            for (const horizontalOrientation of sides) {
+              const xStart =
+                this.center[0] +
+                horizontalOrientation *
+                  this.triangleCenterDistance *
+                  (level + 1);
+
+              for (let i = 0; i < 2; i++) {
+                const triangle = getTriangle.call(this, {
+                  verticalOrientation,
+                  isFlipped,
+                  xPosition:
+                    this.center[0] +
+                    (level + 1 + prevLevel + i) *
+                      this.triangleCenterDistance *
+                      horizontalOrientation,
+                  level,
+                  yLevel: level - prevLevel - 1,
+                  triangleIndex: i,
+                });
+
+                levelTrianglesPoints.push(triangle);
+                isFlipped = !isFlipped;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return levelsPoints;
+
+    function getTriangle({
+      verticalOrientation,
+      isFlipped,
+      xPosition,
+      yLevel,
+      level,
+    }) {
+      const levelYDistanceFromCenter = yLevel * this.triangleHeight;
+
+      const distanceFromLevelBaseline =
+        verticalOrientation === 1
+          ? isFlipped
+            ? smallDistance
+            : largeDistance
+          : isFlipped
+          ? largeDistance
+          : smallDistance;
+
+      const triangleCenterPoint = [
+        xPosition,
+        this.center[1] +
+          (levelYDistanceFromCenter + distanceFromLevelBaseline) *
+            verticalOrientation,
+      ];
+
+      return {
+        points: this.getTrianglePoints(triangleCenterPoint, isFlipped),
+        isFlipped,
+        level,
+      };
+    }
+  }
+
+  *generateTriangleStrings({ points, level }) {
+    this.ctx.strokeStyle = this.color.getColor(level);
+
+    const { density } = this.config;
+
+    let prevPoint = points[0][0];
+
+    let isEnd = true;
+    let side = 0;
+    const nMax = Math.floor(this.config.density / 2);
+
+    for (let n = 0; n <= nMax; n++) {
+      const nSides = density % 2 === 0 && n === nMax ? 3 : 6;
+
+      for (let s = 0; s < nSides; s++) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(...prevPoint);
+
+        side = side === 2 ? 0 : side + 1;
+        const nextSidePoint = isEnd ? this.config.density - n : n;
+        prevPoint = points[side][nextSidePoint];
+        this.ctx.lineTo(...prevPoint);
+        this.ctx.stroke();
+
+        isEnd = !isEnd;
+
+        if (s === 5 && n < nMax) {
+          prevPoint = points[0][n + 1];
+          this.ctx.lineTo(...prevPoint);
+          this.ctx.stroke();
+        }
+        yield;
       }
     }
   }
 
   *generateStrings() {
-    const points = this.generatePoints();
-    const { density } = this.config;
+    const triangleLevels = this.getPoints();
 
-    this.ctx.strokeStyle = '#ffffff';
-
-    let prevPoint;
-
-    for (
-      let triangleIndex = 0;
-      triangleIndex < this.triangleCount;
-      triangleIndex++
-    ) {
-      const triangleCenterPoint = points.next().value.point;
-      const triangleSidesPoints = new Array(3)
-        .fill(null)
-        .map(() => [triangleCenterPoint]);
-
-      for (let side = 0; side < 3; side++) {
-        const sidePoints = triangleSidesPoints[side];
-
-        for (let n = 0; n < this.config.density; n++) {
-          sidePoints.push(points.next().value.point);
-        }
-      }
-
-      prevPoint = triangleSidesPoints[0][0];
-
-      let isEnd = true;
-      let side = 0;
-      const nMax = Math.floor(this.config.density / 2);
-
-      for (let n = 0; n <= nMax; n++) {
-        const nSides = density % 2 === 0 && n === nMax ? 3 : 6;
-
-        for (let s = 0; s < nSides; s++) {
-          this.ctx.beginPath();
-          this.ctx.moveTo(...prevPoint);
-
-          side = side === 2 ? 0 : side + 1;
-          const nextSidePoint = isEnd ? this.config.density - n : n;
-          prevPoint = triangleSidesPoints[side][nextSidePoint];
-          this.ctx.lineTo(...prevPoint);
-          this.ctx.stroke();
-
-          isEnd = !isEnd;
-
-          if (s === 5 && n < nMax) {
-            prevPoint = triangleSidesPoints[0][n + 1];
-            this.ctx.lineTo(...prevPoint);
-            this.ctx.stroke();
-          }
-          yield;
-        }
+    for (const level of triangleLevels) {
+      for (const triangle of level) {
+        yield* this.generateTriangleStrings(triangle);
       }
     }
   }
@@ -196,6 +279,7 @@ export default class FlowerOfLife extends StringArt {
 
     const { levels, density } = this.config;
     const triangleCount = this.triangleCount ?? 6 * levels ** 2;
+
     const stepsPerTriangle =
       (Math.floor(density / 2) + 1) * 6 - (density % 2 ? 0 : 3);
 
@@ -203,9 +287,16 @@ export default class FlowerOfLife extends StringArt {
   }
 
   drawNails() {
-    const points = this.generatePoints();
-    for (const { point, index } of points) {
-      this.nails.addNail({ point, number: index });
+    const triangleLevels = this.getPoints();
+    let index = 0;
+    for (const level of triangleLevels) {
+      for (const triangle of level) {
+        for (const triangleSide of triangle.points) {
+          for (const point of triangleSide) {
+            this.nails.addNail({ point, number: index++ });
+          }
+        }
+      }
     }
   }
 }

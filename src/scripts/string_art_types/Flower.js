@@ -100,7 +100,7 @@ export default class Flower extends StringArt {
   }
 
   *generateStrings() {
-    const { sides, bezier, layers } = this.config;
+    const { sides, layers } = this.config;
 
     let step = 0;
     let color = this.color.getColor(0);
