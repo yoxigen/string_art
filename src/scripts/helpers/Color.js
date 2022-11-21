@@ -25,6 +25,13 @@ const COLOR_CONTROLS = [
     show: ({ isMultiColor }) => isMultiColor,
   },
   {
+    key: 'repeatColors',
+    label: 'Repeat colors',
+    defaultValue: false,
+    type: 'checkbox',
+    show: ({ isMultiColor }) => isMultiColor,
+  },
+  {
     key: 'multicolorRange',
     label: 'Multicolor range',
     defaultValue: 360,
@@ -156,14 +163,14 @@ export default class Color {
    * @returns string
    */
   getColor(colorIndex) {
-    const { isMultiColor, colorCount, color } = this.config;
+    const { isMultiColor, colorCount, color, repeatColors } = this.config;
 
     if (!isMultiColor) {
       return color;
     }
 
     if (colorIndex >= colorCount) {
-      colorIndex = colorCount - 1;
+      colorIndex = repeatColors ? colorIndex % colorCount : colorCount - 1;
     }
 
     return this.colors[colorIndex];
