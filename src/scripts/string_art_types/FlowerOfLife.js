@@ -6,11 +6,14 @@ const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
     color: '#29f1ff',
-    multicolorRange: 264,
-    multicolorStart: 53,
-    multicolorByLightness: false,
-    minLightness: 30,
-    maxLightness: 70,
+    multicolorRange: 26,
+    multicolorStart: 25,
+    multicolorByLightness: true,
+    minLightness: 40,
+    maxLightness: 95,
+    colorCount: 3,
+    repeatColors: true,
+    saturation: 85,
   },
 });
 
@@ -23,7 +26,7 @@ export default class FlowerOfLife extends StringArt {
     {
       key: 'levels',
       label: 'Levels',
-      defaultValue: 1,
+      defaultValue: 4,
       type: 'range',
       attr: {
         min: 1,
@@ -37,7 +40,7 @@ export default class FlowerOfLife extends StringArt {
       defaultValue: 10,
       type: 'range',
       attr: {
-        min: 2,
+        min: 1,
         max: 50,
         step: 1,
       },
@@ -50,6 +53,10 @@ export default class FlowerOfLife extends StringArt {
     },
     COLOR_CONFIG,
   ];
+
+  defaultValues = {
+    nailsColor: '#6c400e',
+  };
 
   getStructureProps() {
     const { levels, density } = this.config;
@@ -78,18 +85,25 @@ export default class FlowerOfLife extends StringArt {
     this.stepCount = null;
     this.stepCount = this.getStepCount();
 
-    const { isMultiColor, levels, colorPerLevel, ...config } = this.config;
+    const { isMultiColor, levels, colorPerLevel, colorCount, ...config } =
+      this.config;
+
+    const realColorCount = isMultiColor
+      ? colorPerLevel
+        ? levels
+        : Math.min(colorCount, levels)
+      : 1;
 
     this.color = new Color({
       ...config,
       isMultiColor,
-      colorCount: levels,
+      colorCount: realColorCount,
     });
 
     if (isMultiColor) {
       this.colorMap = this.color.getColorMap({
-        stepCount: colorPerLevel ? levels : 1,
-        colorCount: colorPerLevel ? levels : 1,
+        stepCount: realColorCount,
+        colorCount: realColorCount,
       });
     } else {
       this.colorMap = null;
@@ -150,7 +164,11 @@ export default class FlowerOfLife extends StringArt {
             yLevel: level,
           });
 
-          levelTrianglesPoints.push(triangle);
+          levelTrianglesPoints.splice(
+            verticalOrientation === -1 ? 0 : levelTrianglesPoints.length,
+            0,
+            triangle
+          );
           isFlipped = !isFlipped;
         }
       }
@@ -162,12 +180,6 @@ export default class FlowerOfLife extends StringArt {
 
             // Add 2 triangles on each side, top and down
             for (const horizontalOrientation of sides) {
-              const xStart =
-                this.center[0] +
-                horizontalOrientation *
-                  this.triangleCenterDistance *
-                  (level + 1);
-
               for (let i = 0; i < 2; i++) {
                 const triangle = getTriangle.call(this, {
                   verticalOrientation,
@@ -182,7 +194,14 @@ export default class FlowerOfLife extends StringArt {
                   triangleIndex: i,
                 });
 
-                levelTrianglesPoints.push(triangle);
+                levelTrianglesPoints.splice(
+                  horizontalOrientation === -1
+                    ? 0
+                    : levelTrianglesPoints.length,
+                  0,
+                  triangle
+                );
+
                 isFlipped = !isFlipped;
               }
             }
@@ -299,4 +318,11 @@ export default class FlowerOfLife extends StringArt {
       }
     }
   }
+
+  static thumbnailConfig = {
+    levels: 3,
+    density: 2,
+    reverseColors: true,
+    nailsColor: '#6c400e',
+  };
 }
