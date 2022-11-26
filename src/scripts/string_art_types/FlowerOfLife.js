@@ -1,19 +1,22 @@
 import { PI2 } from '../helpers/math_utils.js';
 import StringArt from '../StringArt.js';
 import Color from '../helpers/Color.js';
+import Polygon from '../helpers/Polygon.js';
+import Circle from '../helpers/Circle.js';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
     color: '#29f1ff',
-    multicolorRange: 26,
-    multicolorStart: 25,
+    multicolorRange: 236,
+    multicolorStart: 337,
     multicolorByLightness: true,
-    minLightness: 40,
-    maxLightness: 95,
+    minLightness: 50,
+    maxLightness: 90,
     colorCount: 3,
-    repeatColors: true,
-    saturation: 85,
+    repeatColors: false,
+    saturation: 76,
+    reverseColors: true,
   },
 });
 
@@ -31,7 +34,7 @@ export default class FlowerOfLife extends StringArt {
     {
       key: 'levels',
       label: 'Levels',
-      defaultValue: 4,
+      defaultValue: 3,
       type: 'range',
       attr: {
         min: 1,
@@ -51,6 +54,18 @@ export default class FlowerOfLife extends StringArt {
       },
     },
     {
+      key: 'globalRotation',
+      label: 'Rotation',
+      defaultValue: 0,
+      type: 'range',
+      attr: {
+        min: 0,
+        max: 30,
+        step: 1,
+      },
+      displayValue: (config, { key }) => `${config[key]}°`,
+    },
+    {
       key: 'renderTriangles',
       label: 'Triangles',
       defaultValue: true,
@@ -65,26 +80,37 @@ export default class FlowerOfLife extends StringArt {
     {
       key: 'fillColor',
       label: 'Fill color',
-      defaultValue: '#cc00cc',
+      defaultValue: '#254146',
       type: 'color',
       show: ({ fill }) => fill,
     },
     {
       key: 'colorPerLevel',
       label: 'Color per level',
-      defaultValue: false,
+      defaultValue: true,
       type: 'checkbox',
     },
     COLOR_CONFIG,
   ];
 
   defaultValues = {
-    nailsColor: '#6c400e',
+    nailsColor: '#474747',
   };
 
   getStructureProps() {
-    const { levels, density } = this.config;
-    const edgeSize = Math.min(...this.size) / 2 / levels;
+    const { levels, density, margin, globalRotation } = this.config;
+    const globalRotationRadians =
+      (globalRotation * Math.PI) / 180 + Math.PI / 6;
+
+    const polygon = new Polygon({
+      sides: 6,
+      size: this.getSize(),
+      margin,
+      rotation: globalRotationRadians,
+      fitSize: false,
+    });
+
+    const edgeSize = polygon.sideSize / levels;
     const nailsLength = edgeSize / (2 * Math.cos(Math.PI / 6));
 
     const countPerLevelSide = new Array(levels)
@@ -96,11 +122,10 @@ export default class FlowerOfLife extends StringArt {
       triangleHeight: (edgeSize * Math.sqrt(3)) / 2,
       nailsLength,
       triangleCenterDistance: edgeSize / 2,
-      maxTrianglesPerSide: 2 * (levels - 1) + 1,
-      nailsPerTriangle: density * 3 + 1, // The center is shared, so counting it once
       nailDistance: nailsLength / density,
       triangleCount: 6 * levels ** 2,
       countPerLevelSide,
+      globalRotationRadians,
     };
   }
 
@@ -200,7 +225,8 @@ export default class FlowerOfLife extends StringArt {
         for (let n = 0; n < levelSideTriangleCount; n++) {
           const { distanceFromCenter, rotation } = levelPositions[n];
 
-          const triangleCenterAngle = sideRotation - rotation;
+          const triangleCenterAngle =
+            sideRotation - rotation - this.globalRotationRadians;
 
           const rotatedTrianglePosition = [
             this.center[0] + distanceFromCenter * Math.cos(triangleCenterAngle),
@@ -209,7 +235,10 @@ export default class FlowerOfLife extends StringArt {
 
           const trianglePoints = this.getTrianglePoints(
             rotatedTrianglePosition,
-            sideRotation + (side * PI2) / 3 - n * ANGLE
+            sideRotation +
+              (side * PI2) / 3 -
+              n * ANGLE +
+              this.globalRotationRadians
           );
 
           levelTrianglesPoints.push(trianglePoints);
@@ -298,7 +327,6 @@ export default class FlowerOfLife extends StringArt {
           : s === 1 && isLastTriangleInSide
           ? 0
           : getNext(t1Side, 1);
-      console.log({ s, t1Side, t2Side, triangleIndex });
       const triangle1Points = triangle1[t1Side];
       const triangle2Points = triangle2[t2Side];
 
@@ -392,7 +420,6 @@ export default class FlowerOfLife extends StringArt {
     levels: 3,
     density: 3,
     reverseColors: true,
-    nailsColor: '#6c400e',
     fill: false,
   };
 }
