@@ -18,6 +18,21 @@ const COLOR_CONFIG = Color.getConfig({
     saturation: 76,
     reverseColors: true,
   },
+  customControls: [
+    {
+      key: 'fillColor',
+      label: 'Fill color',
+      defaultValue: '#254146',
+      type: 'color',
+      show: ({ fill }) => fill,
+    },
+    {
+      key: 'colorPerLevel',
+      label: 'Color per level',
+      defaultValue: true,
+      type: 'checkbox',
+    },
+  ],
 });
 
 const ANGLE = -PI2 / 6; // The angle of a equilateral triangle;
@@ -80,19 +95,6 @@ export default class FlowerOfLife extends StringArt {
     {
       key: 'fill',
       label: 'Fill',
-      defaultValue: true,
-      type: 'checkbox',
-    },
-    {
-      key: 'fillColor',
-      label: 'Fill color',
-      defaultValue: '#254146',
-      type: 'color',
-      show: ({ fill }) => fill,
-    },
-    {
-      key: 'colorPerLevel',
-      label: 'Color per level',
       defaultValue: true,
       type: 'checkbox',
     },

@@ -188,14 +188,14 @@ export default class Color {
     return colorMap;
   }
 
-  static getConfig({ include, exclude, defaults = {} }) {
+  static getConfig({ include, exclude, defaults = {}, customControls }) {
     const controls = getControls();
 
     return {
       key: 'colorGroup',
       label: 'Color',
       type: 'group',
-      children: controls,
+      children: [...(customControls ?? []), ...controls],
     };
 
     function getControls(controlsConfig = COLOR_CONTROLS) {
