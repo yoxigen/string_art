@@ -72,6 +72,12 @@ export default class FlowerOfLife extends StringArt {
       type: 'checkbox',
     },
     {
+      key: 'renderCaps',
+      label: 'Caps',
+      defaultValue: true,
+      type: 'checkbox',
+    },
+    {
       key: 'fill',
       label: 'Fill',
       defaultValue: true,
@@ -98,7 +104,7 @@ export default class FlowerOfLife extends StringArt {
   };
 
   getStructureProps() {
-    const { levels, density, margin, globalRotation } = this.config;
+    const { levels, density, margin, globalRotation, renderCaps } = this.config;
     const globalRotationRadians =
       (globalRotation * Math.PI) / 180 + Math.PI / 6;
 
@@ -113,7 +119,7 @@ export default class FlowerOfLife extends StringArt {
     const edgeSize = polygon.sideSize / levels;
     const nailsLength = edgeSize / (2 * Math.cos(Math.PI / 6));
 
-    const countPerLevelSide = new Array(levels)
+    const countPerLevelSide = new Array(levels + (renderCaps ? 1 : 0))
       .fill(null)
       .map((_, level) => level * 2 + 1);
 
@@ -164,11 +170,22 @@ export default class FlowerOfLife extends StringArt {
     }
   }
 
-  getTrianglePoints(center, rotation) {
+  getTrianglePoints({ center, rotation, isCapLevel, triangleIndexInSide }) {
+    let missingSide;
+    if (isCapLevel) {
+      const triangleIndex = (triangleIndexInSide + 2) % 3;
+      missingSide = this._getNextIndexInTriangle(triangleIndex);
+    }
+
     // For each side of the triangle, the first point is the center of the triangle:
-    const trianglePoints = new Array(3).fill(null).map(() => [center]);
+    const trianglePoints = new Array(3).fill(null).map((_, i) => i === missingSide ? [] : [center]);
 
     for (let side = 0; side < 3; side++) {
+      if (isCapLevel) {
+        if (side === missingSide) {
+          continue;
+        }
+      }
       const sideAngle = rotation + side * (PI2 / 3);
       const triangleSidePoints = trianglePoints[side];
 
@@ -188,13 +205,17 @@ export default class FlowerOfLife extends StringArt {
       return this.points;
     }
 
-    const { levels } = this.config;
+    const { levels, renderCaps } = this.config;
 
     const largeDistance = this.nailsLength;
     const smallDistance = this.triangleHeight - largeDistance;
     const levelsPoints = [];
 
-    for (let level = 0; level < levels; level++) {
+    const levelsCount = renderCaps ? levels + 1 : levels;
+
+    for (let level = 0; level < levelsCount; level++) {
+      const isCapLevel = renderCaps && level === levels;
+
       const levelTrianglesPoints = [];
       levelsPoints.push(levelTrianglesPoints);
 
@@ -223,6 +244,11 @@ export default class FlowerOfLife extends StringArt {
         const sideRotation = SIDE_ANGLES[side];
 
         for (let n = 0; n < levelSideTriangleCount; n++) {
+          if (isCapLevel && n % 2 === 0) { // Cap triangles are only odd indexes
+            levelTrianglesPoints.push(null)
+            continue;
+          }
+
           const { distanceFromCenter, rotation } = levelPositions[n];
 
           const triangleCenterAngle =
@@ -233,13 +259,13 @@ export default class FlowerOfLife extends StringArt {
             this.center[1] - distanceFromCenter * Math.sin(triangleCenterAngle),
           ];
 
-          const trianglePoints = this.getTrianglePoints(
-            rotatedTrianglePosition,
-            sideRotation +
+          const trianglePoints = this.getTrianglePoints({
+            center: rotatedTrianglePosition,
+            rotation: sideRotation +
               (side * PI2) / 3 -
-              n * ANGLE +
-              this.globalRotationRadians
-          );
+              n * ANGLE + this.globalRotationRadians,
+            isCapLevel,
+            triangleIndexInSide: n });
 
           levelTrianglesPoints.push(trianglePoints);
         }
@@ -249,34 +275,33 @@ export default class FlowerOfLife extends StringArt {
     return levelsPoints;
   }
 
-  *generateTriangleStrings(points, level, indexInLevel) {
+  *generateTriangleStrings({points, level, indexInSide}) {
     this.ctx.strokeStyle = this.color.getColor(level);
+    const { density, levels } = this.config;
+    const isCapLevel = level === levels;
 
-    const { density } = this.config;
+    const initialSide = isCapLevel ? this._getNextIndexInTriangle(indexInSide %3): 0;
+    const lastSide = isCapLevel ? initialSide : 2;
 
-    let prevPoint = points[0][0];
+    for (let side = initialSide; side <= lastSide; side++) {
+      const nextSide = this._getNextIndexInTriangle(side);
+      let prevPoint = points[side][0];
 
-    let isEnd = true;
-    let side = 0;
-    const nMax = Math.floor(this.config.density / 2);
+      for (let n = 0; n <= density; n++) {
+        const isNextSide = n % 2 === 0;
 
-    for (let n = 0; n <= nMax; n++) {
-      const nSides = density % 2 === 0 && n === nMax ? 3 : 6;
-
-      for (let s = 0; s < nSides; s++) {
         this.ctx.beginPath();
         this.ctx.moveTo(...prevPoint);
 
-        side = side === 2 ? 0 : side + 1;
-        const nextSidePoint = isEnd ? this.config.density - n : n;
-        prevPoint = points[side][nextSidePoint];
+        const nextSidePoint = isNextSide ? this.config.density - n : n;
+        const targetSide = isNextSide ? nextSide : side;
+
+        prevPoint = points[targetSide][nextSidePoint];
         this.ctx.lineTo(...prevPoint);
         this.ctx.stroke();
 
-        isEnd = !isEnd;
-
-        if (s === 5 && n < nMax) {
-          prevPoint = points[0][n + 1];
+        if (n < density) {
+          prevPoint = points[targetSide][isNextSide ? nextSidePoint - 1 : nextSidePoint + 1];
           this.ctx.lineTo(...prevPoint);
           this.ctx.stroke();
         }
@@ -298,26 +323,13 @@ export default class FlowerOfLife extends StringArt {
     this.ctx.strokeStyle = fillColor;
 
     const triangleIndexInSide = triangleIndex % levelSideCount;
-
-    const isFirstTriangleInSide = triangleIndexInSide === 0;
     const isLastTriangleInSide = triangleIndexInSide === levelSideCount - 1;
 
     const firstSide = angleShift;
     const sideIndex = [
       firstSide,
-      getNext(firstSide, triangleIndexInSide % 2 ? 1 : -1),
+      this._getNextIndexInTriangle(firstSide, triangleIndexInSide % 2 ? 1 : -1),
     ];
-
-    function getNext(index, direction = 1) {
-      const result = index + direction;
-      if (result < 0) {
-        return 2;
-      }
-      if (result > 2) {
-        return 0;
-      }
-      return result;
-    }
 
     for (let s = 0; s < 2; s++) {
       const t1Side = sideIndex[s];
@@ -326,7 +338,7 @@ export default class FlowerOfLife extends StringArt {
           ? 1
           : s === 1 && isLastTriangleInSide
           ? 0
-          : getNext(t1Side, 1);
+          : this._getNextIndexInTriangle(t1Side, 1);
       const triangle1Points = triangle1[t1Side];
       const triangle2Points = triangle2[t2Side];
 
@@ -351,8 +363,19 @@ export default class FlowerOfLife extends StringArt {
     // }
   }
 
+  _getNextIndexInTriangle(index, direction = 1) {
+    const result = index + direction;
+    if (result < 0) {
+      return 2;
+    }
+    if (result > 2) {
+      return 0;
+    }
+    return result;
+  }
+
   *generateStrings() {
-    const { fill, renderTriangles } = this.config;
+    const { fill, renderTriangles,levels } = this.config;
 
     const triangleLevels = this.getPoints();
 
@@ -360,10 +383,12 @@ export default class FlowerOfLife extends StringArt {
 
     for (const level of triangleLevels) {
       levelIndex++;
+      const isCapLevel = levelIndex === levels;
+
       let triangleIndex = -1;
       for (const triangle of level) {
         triangleIndex++;
-        if (fill) {
+        if (fill && !isCapLevel) {
           yield* this.generateStringsBetweenTriangles({
             triangle1: triangle,
             triangle2:
@@ -373,15 +398,18 @@ export default class FlowerOfLife extends StringArt {
           });
         }
 
-        if (renderTriangles) {
-          yield* this.generateTriangleStrings(
-            triangle,
-            levelIndex,
-            triangleIndex
-          );
+        const indexInSide = triangleIndex % this.countPerLevelSide[levelIndex];
+
+        if (renderTriangles && (!isCapLevel || indexInSide % 2)) {
+          yield* this.generateTriangleStrings({
+            points: triangle,
+            level: levelIndex,
+            indexInSide
+          });
         }
       }
     }
+
   }
 
   getStepCount() {
@@ -389,17 +417,20 @@ export default class FlowerOfLife extends StringArt {
       return this.stepCount;
     }
 
-    const { levels, density, fill, renderTriangles } = this.config;
+    const { levels, density, fill, renderTriangles, renderCaps } = this.config;
     const triangleCount = this.triangleCount ?? 6 * levels ** 2;
 
     const fillSteps = fill ? (density + 1) * 2 : 0;
     const triangleSteps = renderTriangles
-      ? (Math.floor(density / 2) + 1) * 6 - (density % 2 ? 0 : 3)
+      ? (density + 1) * 3
       : 0;
 
     const stepsPerTriangle = triangleSteps + fillSteps;
 
-    return triangleCount * stepsPerTriangle;
+    const stepsPerCap = (Math.floor(density / 2) + 1) * 4 - (density % 2 ? 0 : 2);
+    const capSteps = renderCaps ? 6 * levels * stepsPerCap : 0;
+
+    return triangleCount * stepsPerTriangle + fillSteps + capSteps;
   }
 
   drawNails() {
@@ -407,9 +438,11 @@ export default class FlowerOfLife extends StringArt {
     let index = 0;
     for (const level of triangleLevels) {
       for (const triangle of level) {
-        for (const triangleSide of triangle) {
-          for (const point of triangleSide) {
-            this.nails.addNail({ point, number: index++ });
+        if (triangle != null) { // A cap level has nulls between caps
+          for (const triangleSide of triangle) {
+            for (const point of triangleSide) {
+              this.nails.addNail({ point, number: index++ });
+            }
           }
         }
       }
