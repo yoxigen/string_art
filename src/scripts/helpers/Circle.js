@@ -110,6 +110,8 @@ export default class Circle {
       step: 1 / 360,
     },
     displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`,
+    isStructural: true,
+    affectsStepCount: false,
   });
 
   static nailsConfig = Object.freeze({
@@ -122,5 +124,6 @@ export default class Circle {
       max: 300,
       step: 1,
     },
+    isStructural: true,
   });
 }

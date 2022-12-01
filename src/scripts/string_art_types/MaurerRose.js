@@ -32,6 +32,7 @@ export default class MaurerRose extends StringArt {
         max: 12,
         step: 1,
       },
+      isStructural: true,
     },
     {
       key: 'maxSteps',
@@ -43,6 +44,7 @@ export default class MaurerRose extends StringArt {
         max: 720,
         step: 1,
       },
+      isStructural: true,
     },
     {
       key: 'angle',
@@ -55,30 +57,45 @@ export default class MaurerRose extends StringArt {
         step: 1,
       },
       displayValue: ({ angle }) => `${angle}°`,
+      isStructural: true,
     },
     Circle.rotationConfig,
     COLOR_CONFIG,
   ];
 
+  resetStructure() {
+    if (this.points) {
+      this.points.clear();
+    }
+    this.calc = null;
+  }
+
+  onConfigChange({ control }) {
+    if (control.isStructural) {
+      this.resetStructure();
+      if (control.affectsStepCount !== false) {
+        this.stepCount = null;
+      }
+    }
+  }
+
+  onResize() {
+    this.resetStructure();
+  }
+
   setUpDraw() {
     super.setUpDraw();
     const { isMultiColor, colorCount } = this.config;
-    const structureProps = this.getStructureProps();
-    const structureChanged = Object.entries(structureProps).some(
-      ([key, value]) =>
-        key === 'currentSize'
-          ? value.join(',') !== this[key].join(',')
-          : value !== this[key]
-    );
 
-    if (structureChanged) {
-      if (this.points) {
-        this.points.clear();
-      } else {
-        this.points = new Map();
-      }
-      Object.assign(this, structureProps);
-      this.stepCount = null;
+    if (!this.calc) {
+      this.calc = this.getCalc();
+    }
+
+    if (!this.points) {
+      this.points = new Map();
+    }
+
+    if (!this.stepCount) {
       this.stepCount = this.getStepCount();
     }
 
@@ -98,7 +115,7 @@ export default class MaurerRose extends StringArt {
     }
   }
 
-  getStructureProps() {
+  getCalc() {
     const { n, angle, rotation, maxSteps } = this.config;
     const size = this.getSize();
 
@@ -116,12 +133,12 @@ export default class MaurerRose extends StringArt {
       return this.points.get(index);
     }
 
-    const k = index * this.angleRadians;
-    const r = this.radius * Math.sin(this.n * k);
+    const k = index * this.calc.angleRadians;
+    const r = this.calc.radius * Math.sin(this.calc.n * k);
 
     const point = [
-      this.center[0] - r * Math.cos(k - this.rotationAngle),
-      this.center[1] - r * Math.sin(k - this.rotationAngle),
+      this.center[0] - r * Math.cos(k - this.calc.rotationAngle),
+      this.center[1] - r * Math.sin(k - this.calc.rotationAngle),
     ];
     this.points.set(index, point);
     return point;

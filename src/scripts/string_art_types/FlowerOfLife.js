@@ -56,6 +56,7 @@ export default class FlowerOfLife extends StringArt {
         max: 10,
         step: 1,
       },
+      isStructural: true,
     },
     {
       key: 'density',
@@ -67,6 +68,7 @@ export default class FlowerOfLife extends StringArt {
         max: 50,
         step: 1,
       },
+      isStructural: true,
     },
     {
       key: 'globalRotation',
@@ -79,12 +81,15 @@ export default class FlowerOfLife extends StringArt {
         step: 1,
       },
       displayValue: (config, { key }) => `${config[key]}°`,
+      isStructural: true,
+      affectsStepCount: false,
     },
     {
       key: 'renderTriangles',
       label: 'Triangles',
       defaultValue: true,
       type: 'checkbox',
+      isStructural: true,
     },
     {
       key: 'renderCaps',
@@ -92,12 +97,14 @@ export default class FlowerOfLife extends StringArt {
       defaultValue: true,
       type: 'checkbox',
       show: ({ renderTriangles }) => renderTriangles,
+      isStructural: true,
     },
     {
       key: 'fill',
       label: 'Fill',
       defaultValue: true,
       type: 'checkbox',
+      isStructural: true,
     },
     COLOR_CONFIG,
   ];
@@ -106,7 +113,7 @@ export default class FlowerOfLife extends StringArt {
     nailsColor: '#474747',
   };
 
-  getStructureProps() {
+  getCalc() {
     const {
       levels,
       density,
@@ -149,23 +156,36 @@ export default class FlowerOfLife extends StringArt {
     };
   }
 
+  resetStructure() {
+    this.points = null;
+    this.calc = null;
+  }
+
+  onConfigChange({ control }) {
+    if (control.isStructural) {
+      this.resetStructure();
+      if (control.affectsStepCount !== false) {
+        this.stepCount = null;
+      }
+    }
+  }
+
+  onResize() {
+    this.resetStructure();
+  }
+
   setUpDraw() {
     super.setUpDraw();
 
-    const structureProps = this.getStructureProps();
-    const structureChanged = Object.entries(structureProps).some(
-      ([key, value]) =>
-        key === 'countPerLevelSide'
-          ? value.join(',') !== this[key].join(',')
-          : value !== this[key]
-    );
+    if (!this.calc) {
+      this.calc = this.getCalc();
+    }
 
-    if (structureChanged) {
-      Object.assign(this, structureProps);
-      this.points = null;
+    if (!this.points) {
       this.points = this.getPoints();
+    }
 
-      this.stepCount = null;
+    if (!this.stepCount) {
       this.stepCount = this.getStepCount();
     }
 
@@ -217,7 +237,7 @@ export default class FlowerOfLife extends StringArt {
       const sinSideAngle = Math.sin(sideAngle);
 
       for (let n = 1; n <= this.config.density; n++) {
-        const nNailDistance = n * this.nailDistance;
+        const nNailDistance = n * this.calc.nailDistance;
 
         triangleSidePoints.push([
           center[0] + nNailDistance * cosSideAngle,
@@ -236,8 +256,8 @@ export default class FlowerOfLife extends StringArt {
 
     const { levels, renderCaps } = this.config;
 
-    const largeDistance = this.nailsLength;
-    const smallDistance = this.triangleHeight - largeDistance;
+    const largeDistance = this.calc.nailsLength;
+    const smallDistance = this.calc.triangleHeight - largeDistance;
     const levelsPoints = [];
 
     const levelsCount = renderCaps ? levels + 1 : levels;
@@ -248,7 +268,7 @@ export default class FlowerOfLife extends StringArt {
       const levelTrianglesPoints = [];
       levelsPoints.push(levelTrianglesPoints);
 
-      const levelSideTriangleCount = this.countPerLevelSide[level];
+      const levelSideTriangleCount = this.calc.countPerLevelSide[level];
 
       // Caching distances to avoid repeated calculations for each side:
       const levelPositions = new Array(levelSideTriangleCount)
@@ -256,8 +276,8 @@ export default class FlowerOfLife extends StringArt {
         .map((_, n) => {
           const isFlipped = n % 2 === 0;
           const trianglePosition = [
-            this.triangleCenterDistance * (n - level),
-            level * this.triangleHeight +
+            this.calc.triangleCenterDistance * (n - level),
+            level * this.calc.triangleHeight +
               (isFlipped ? largeDistance : smallDistance),
           ];
 
@@ -282,7 +302,7 @@ export default class FlowerOfLife extends StringArt {
           const { distanceFromCenter, rotation } = levelPositions[n];
 
           const triangleCenterAngle =
-            sideRotation - rotation - this.globalRotationRadians;
+            sideRotation - rotation - this.calc.globalRotationRadians;
 
           const rotatedTrianglePosition = [
             this.center[0] + distanceFromCenter * Math.cos(triangleCenterAngle),
@@ -295,7 +315,7 @@ export default class FlowerOfLife extends StringArt {
               sideRotation +
               (side * PI2) / 3 -
               n * ANGLE +
-              this.globalRotationRadians,
+              this.calc.globalRotationRadians,
             isCapLevel,
             triangleIndexInSide: n,
           });
@@ -356,7 +376,7 @@ export default class FlowerOfLife extends StringArt {
     triangleIndex,
   }) {
     const { density, fillColor } = this.config;
-    const levelSideCount = this.countPerLevelSide[level];
+    const levelSideCount = this.calc.countPerLevelSide[level];
     const angleShift = (triangleIndex % levelSideCount) % 3;
 
     this.ctx.strokeStyle = fillColor;
@@ -464,7 +484,8 @@ export default class FlowerOfLife extends StringArt {
           }
         }
 
-        const indexInSide = triangleIndex % this.countPerLevelSide[levelIndex];
+        const indexInSide =
+          triangleIndex % this.calc.countPerLevelSide[levelIndex];
 
         if (renderTriangles && (!isCapLevel || indexInSide % 2)) {
           yield* this.generateTriangleStrings({
@@ -483,7 +504,7 @@ export default class FlowerOfLife extends StringArt {
     }
 
     const { levels, density, fill, renderTriangles, renderCaps } = this.config;
-    const triangleCount = this.triangleCount ?? 6 * levels ** 2;
+    const triangleCount = 6 * levels ** 2;
 
     const fillStepsPerTriangle = fill ? density * 2 : 0;
     const triangleSteps = renderTriangles ? density * 3 : 0;

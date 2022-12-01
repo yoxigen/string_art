@@ -144,6 +144,14 @@ class StringArt {
     return (this.controls ?? []).concat(COMMON_CONFIG_CONTROLS);
   }
 
+  get controlsIndex() {
+    if (!this._controlsIndex) {
+      this._controlsIndex = getControlsIndex(this.controls);
+    }
+
+    return this._controlsIndex;
+  }
+
   get defaultConfig() {
     if (!this._defaultConfig) {
       this._defaultConfig = Object.freeze(
@@ -162,6 +170,20 @@ class StringArt {
     this._config = Object.assign({}, this.defaultConfig, value);
   }
 
+  setConfigValue(controlKey, value) {
+    this._config = Object.freeze({
+      ...(this._config ?? this.defaultConfig),
+      [controlKey]: value,
+    });
+
+    if (this.onConfigChange) {
+      this.onConfigChange({
+        control: this.controlsIndex[controlKey],
+        value,
+      });
+    }
+  }
+
   getSize() {
     const canvasScreenSize = [
       this.canvas.clientWidth,
@@ -171,6 +193,8 @@ class StringArt {
   }
 
   setUpDraw() {
+    const previousSize = this.size;
+
     this.canvas.removeAttribute('width');
     this.canvas.removeAttribute('height');
     const [width, height] = (this.size = this.getSize());
@@ -178,6 +202,15 @@ class StringArt {
     this.canvas.setAttribute('width', width);
     this.canvas.setAttribute('height', height);
     this.center = this.size.map(value => value / 2);
+
+    if (
+      previousSize &&
+      (previousSize[0] !== width || previousSize[1] !== height)
+    ) {
+      if (this.onResize) {
+        this.onResize();
+      }
+    }
 
     if (this.nails) {
       this.nails.setConfig(this.config);
@@ -289,6 +322,22 @@ function flattenConfig(configControls) {
         : {
             ...config,
             [key]: defaultValue,
+          },
+    {}
+  );
+}
+
+function getControlsIndex(configControls) {
+  return configControls.reduce(
+    (controlsIndex, control) =>
+      control.children
+        ? {
+            ...controlsIndex,
+            ...getControlsIndex(control.children),
+          }
+        : {
+            ...controlsIndex,
+            [control.key]: control,
           },
     {}
   );
