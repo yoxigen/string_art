@@ -374,6 +374,9 @@ export default class FlowerOfLife extends StringArt {
     triangle2,
     level,
     triangleIndex,
+    triangleIndexInSide,
+    isNextLevel,
+    nextLevelTriangleIndex,
   }) {
     const { density, fillColor } = this.config;
     const levelSideCount = this.calc.countPerLevelSide[level];
@@ -381,14 +384,22 @@ export default class FlowerOfLife extends StringArt {
 
     this.ctx.strokeStyle = fillColor;
 
-    const triangleIndexInSide = triangleIndex % levelSideCount;
     const isLastTriangleInSide = triangleIndexInSide === levelSideCount - 1;
 
     const firstSide = angleShift;
-    const sideIndex = [
-      firstSide,
-      this._getNextIndexInTriangle(firstSide, triangleIndexInSide % 2 ? 1 : -1),
-    ];
+
+    const sideIndex = isNextLevel
+      ? [
+          this._getNextIndexInTriangle(angleShift),
+          this._getNextIndexInTriangle(angleShift, -1),
+        ]
+      : [
+          firstSide,
+          this._getNextIndexInTriangle(
+            firstSide,
+            triangleIndexInSide % 2 ? 1 : -1
+          ),
+        ];
 
     for (let s = 0; s < 2; s++) {
       const order = generateOrderInSide.call(this, s);
@@ -404,12 +415,8 @@ export default class FlowerOfLife extends StringArt {
 
     function* generateOrderInSide(side) {
       const t1Side = sideIndex[side];
-      const t2Side =
-        side === 0 && isLastTriangleInSide
-          ? 1
-          : side === 1 && isLastTriangleInSide
-          ? 0
-          : this._getNextIndexInTriangle(t1Side, 1);
+      const t2Side = getNextTriangleSide.call(this);
+
       const triangle1Points = triangle1[t1Side];
       const triangle2Points = triangle2[t2Side];
 
@@ -424,18 +431,23 @@ export default class FlowerOfLife extends StringArt {
           yield { pointIndex: density - n, triangle1Points, triangle2Points };
         }
       }
+
+      function getNextTriangleSide() {
+        if (isNextLevel) {
+          return this._getNextIndexInTriangle(t1Side);
+        } else {
+          if (side === 0 && isLastTriangleInSide) {
+            return 1;
+          } else {
+            if (side === 1 && isLastTriangleInSide) {
+              return 0;
+            } else {
+              return this._getNextIndexInTriangle(t1Side, 1);
+            }
+          }
+        }
+      }
     }
-
-    // const COLORS = ['#f00', '#0f0', '#00f'];
-
-    // for (let s = 0; s < 3; s++) {
-    //   this.ctx.strokeStyle = COLORS[s];
-    //   this.ctx.beginPath();
-    //   this.ctx.moveTo(...triangle1[s][0]);
-    //   this.ctx.lineTo(...triangle1[s][density]);
-    //   this.ctx.stroke();
-    //   yield;
-    // }
   }
 
   _getNextIndexInTriangle(index, direction = 1) {
@@ -450,7 +462,9 @@ export default class FlowerOfLife extends StringArt {
   }
 
   *generateStrings() {
-    const { fill, renderTriangles, levels } = this.config;
+    console.clear();
+
+    const { fill, renderTriangles, renderCaps, levels } = this.config;
 
     const triangleLevels = this.getPoints();
 
@@ -465,6 +479,9 @@ export default class FlowerOfLife extends StringArt {
 
       for (const triangle of level) {
         triangleIndex++;
+        const levelSideCount = this.calc.countPerLevelSide[levelIndex];
+        const triangleIndexInSide = triangleIndex % levelSideCount;
+
         if (fill && !isCapLevel) {
           if (triangleIndex === 0) {
             yield* this.generateStringsBetweenTriangles({
@@ -472,6 +489,7 @@ export default class FlowerOfLife extends StringArt {
               triangle2: triangle,
               level: levelIndex,
               triangleIndex: lastIndexInLevel,
+              triangleIndexInSide: lastIndexInLevel % levelSideCount,
             });
           }
           if (triangleIndex !== lastIndexInLevel) {
@@ -480,6 +498,28 @@ export default class FlowerOfLife extends StringArt {
               triangle2: level[triangleIndex + 1],
               level: levelIndex,
               triangleIndex,
+              triangleIndexInSide,
+            });
+          }
+
+          if (
+            triangleIndexInSide % 2 === 0 &&
+            (renderCaps || levelIndex < levels - 1)
+          ) {
+            const side = Math.floor(triangleIndex / levelSideCount);
+            const nextLevelSideCount =
+              this.calc.countPerLevelSide[levelIndex + 1];
+            const nextLevelTriangleIndex =
+              side * nextLevelSideCount + triangleIndexInSide + 1;
+
+            yield* this.generateStringsBetweenTriangles({
+              triangle1: triangle,
+              triangle2: triangleLevels[levelIndex + 1][nextLevelTriangleIndex],
+              level: levelIndex,
+              triangleIndex,
+              triangleIndexInSide,
+              isNextLevel: true,
+              nextLevelTriangleIndex,
             });
           }
         }
@@ -511,11 +551,18 @@ export default class FlowerOfLife extends StringArt {
 
     const stepsPerTriangle = triangleSteps + fillStepsPerTriangle;
 
+    const levelsWithFillBetween = levels + (renderCaps ? 1 : 0);
+    const fillStepsBetweenLevels =
+      (fillStepsPerTriangle *
+        (levelsWithFillBetween - 1) *
+        6 *
+        levelsWithFillBetween) /
+      2;
     const stepsPerCap = density + 1;
     const capSteps =
       renderTriangles && renderCaps ? 6 * levels * stepsPerCap : 0;
 
-    return triangleCount * stepsPerTriangle + capSteps;
+    return triangleCount * stepsPerTriangle + capSteps + fillStepsBetweenLevels;
   }
 
   drawNails() {
