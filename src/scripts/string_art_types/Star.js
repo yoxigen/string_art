@@ -76,7 +76,7 @@ export default class Star extends StringArt {
     this._n = null;
     super.setUpDraw();
 
-    const { sides, rotation, sideNails, margin = 0, ringSize } = this.config;
+    const { sides, rotation, sideNails, margin = 0 } = this.config;
     const circleConfig = {
       size: this.size,
       n: sideNails * sides,
@@ -93,10 +93,6 @@ export default class Star extends StringArt {
     this.sideAngle = (Math.PI * 2) / sides;
     this.nailSpacing = this.circle.radius / sideNails;
     this.starCenterStart = (sideNails % 1) * this.nailSpacing;
-
-    if ((this.renderRing = ringSize > 0)) {
-      this.ringDistance = Math.floor(ringSize * circleConfig.n);
-    }
 
     this.sides = new Array(sides).fill(null).map((_, side) => {
       const sideAngle = side * this.sideAngle + this.circle.rotationAngle;
@@ -215,47 +211,14 @@ export default class Star extends StringArt {
     }
   }
 
-  *drawRing() {
-    if (!this.renderRing) {
-      return;
-    }
-
-    const { n } = this.circle.config;
-    const { ringColor } = this.config;
-
-    let prevPoint;
-    let prevPointIndex = 0;
-    let isPrevSide = false;
-    this.ctx.strokeStyle = ringColor;
-    for (let i = 0; i < n; i++) {
-      this.ctx.beginPath();
-      if (!prevPoint) {
-        prevPoint = this.circle.getPoint(0);
-      }
-
-      this.ctx.moveTo(...prevPoint);
-      prevPointIndex = isPrevSide ? i : prevPointIndex + this.ringDistance;
-      prevPoint = this.circle.getPoint(prevPointIndex);
-
-      this.ctx.lineTo(...prevPoint);
-
-      if (i < n - 1) {
-        prevPointIndex++;
-        prevPoint = this.circle.getPoint(prevPointIndex);
-        this.ctx.lineTo(...prevPoint);
-      }
-
-      this.ctx.stroke();
-
-      yield;
-
-      isPrevSide = !isPrevSide;
-    }
-  }
-
   *generateStrings() {
     yield* this.drawCircle();
-    yield* this.drawRing();
+
+    const {ringSize, ringColor} = this.config;
+
+   if (ringSize !== 0) {
+      yield* this.circle.drawRing(this.ctx, { ringSize, color: ringColor });
+   }
     yield* this.drawStar();
   }
 

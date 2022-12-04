@@ -99,6 +99,40 @@ export default class Circle {
     }
   }
 
+  *drawRing(ctx, { ringSize, color }) {
+    const { n } = this.config;
+    const ringDistance = Math.floor(ringSize * n);
+
+    let prevPoint;
+    let prevPointIndex = 0;
+    let isPrevSide = false;
+    ctx.strokeStyle = color;
+    for (let i = 0; i < n; i++) {
+      ctx.beginPath();
+      if (!prevPoint) {
+        prevPoint = this.getPoint(0);
+      }
+
+      ctx.moveTo(...prevPoint);
+      prevPointIndex = isPrevSide ? i : prevPointIndex + ringDistance;
+      prevPoint = this.getPoint(prevPointIndex);
+
+      ctx.lineTo(...prevPoint);
+
+      if (i < n - 1) {
+        prevPointIndex++;
+        prevPoint = this.getPoint(prevPointIndex);
+        ctx.lineTo(...prevPoint);
+      }
+
+      ctx.stroke();
+
+      yield;
+
+      isPrevSide = !isPrevSide;
+    }
+  }
+
   static rotationConfig = Object.freeze({
     key: 'rotation',
     label: 'Rotation',

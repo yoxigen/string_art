@@ -8,24 +8,17 @@ const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
     color: '#29f1ff',
-    multicolorRange: 236,
-    multicolorStart: 337,
+    multicolorRange: 22,
+    multicolorStart: 50,
     multicolorByLightness: true,
-    minLightness: 50,
-    maxLightness: 90,
+    minLightness: 40,
+    maxLightness: 95,
     colorCount: 3,
     repeatColors: true,
-    saturation: 76,
+    saturation: 100,
     reverseColors: true,
   },
   customControls: [
-    {
-      key: 'fillColor',
-      label: 'Fill color',
-      defaultValue: '#254146',
-      type: 'color',
-      show: ({ fill }) => fill,
-    },
     {
       key: 'colorPerLevel',
       label: 'Color per level',
@@ -85,6 +78,89 @@ export default class FlowerOfLife extends StringArt {
       affectsStepCount: false,
     },
     {
+      key: 'fillGroup',
+      label: 'Fill',
+      type: 'group',
+      children: [
+        {
+          key: 'fill',
+          label: 'Show fill',
+          defaultValue: true,
+          type: 'checkbox',
+          isStructural: true,
+        },
+        {
+          key: 'fillColor',
+          label: 'Fill color',
+          defaultValue: '#292e29',
+          type: 'color',
+          show: ({ fill }) => fill,
+        },
+      ]
+    },
+    {
+      key: 'ringGroup',
+      label: 'Ring',
+      type: 'group',
+      children: [
+        {
+          key: 'renderRing',
+          label: 'Show outer ring',
+          type: 'checkbox',
+          defaultValue: true,
+          isStructural: true,
+        },
+        {
+          key: 'ringNailCount',
+          label: 'Ring nail count',
+          defaultValue: 144,
+          type: 'range',
+          attr: {
+            min: 3,
+            max: 360,
+            step: 1,
+          },
+          show: ({ renderRing }) => renderRing,
+          isStructural: true,
+        },
+        {
+          key: 'ringSize',
+          label: 'Outer ring size',
+          defaultValue: 0.23,
+          type: 'range',
+          attr: {
+            min: 0,
+            max: 0.5,
+            step: 0.01,
+          },
+          show: ({ renderRing }) => renderRing,
+          displayValue: ({ ringSize }) => `${Math.round(100 * ringSize)}%`,
+          isStructural: true,
+        },
+        {
+          key: 'ringPadding',
+          label: 'Ring padding',
+          defaultValue: .06,
+          type: 'range',
+          attr: {
+            min: 0,
+            max: 0.5,
+            step: 0.01,
+          },
+          show: ({ renderRing }) => renderRing,
+          isStructural: true,
+          displayValue: ({ ringPadding }) => `${Math.round(100 * ringPadding)}%`,
+        },
+        {
+          key: 'ringColor',
+          label: 'Ring color',
+          defaultValue: '#ceaf12',
+          type: 'color',
+          show: ({ renderRing }) => renderRing,
+        },
+      ]
+    },
+    {
       key: 'renderTriangles',
       label: 'Triangles',
       defaultValue: true,
@@ -99,13 +175,7 @@ export default class FlowerOfLife extends StringArt {
       show: ({ renderTriangles }) => renderTriangles,
       isStructural: true,
     },
-    {
-      key: 'fill',
-      label: 'Fill',
-      defaultValue: true,
-      type: 'checkbox',
-      isStructural: true,
-    },
+
     COLOR_CONFIG,
   ];
 
@@ -122,14 +192,22 @@ export default class FlowerOfLife extends StringArt {
       renderCaps,
       fill,
       renderTriangles,
+      renderRing,
+      ringNailCount,
+      ringSize,
+      ringPadding,
     } = this.config;
     const globalRotationRadians =
       (globalRotation * Math.PI) / 180 + Math.PI / 6;
 
+    const radius = renderRing ?  Math.min(...(this.size ?? this.getSize()).map(v => v / 2 - margin)) : null;
+    const ringDistance = renderRing ? Math.floor(ringSize * ringNailCount / 2) : 0; // The number of nails to count for strings in the outer ring
+    const ringWidth = renderRing ? radius * (1 - Math.cos(PI2 * (ringDistance / ringNailCount) / 2)) : 0;
+
     const polygon = new Polygon({
       sides: 6,
       size: this.getSize(),
-      margin,
+      margin: margin + ringWidth + ringPadding * radius,
       rotation: globalRotationRadians,
       fitSize: false,
     });
@@ -153,6 +231,8 @@ export default class FlowerOfLife extends StringArt {
       fill,
       renderTriangles,
       renderCaps,
+      ringNailCount,
+      radius,
     };
   }
 
@@ -177,8 +257,28 @@ export default class FlowerOfLife extends StringArt {
   setUpDraw() {
     super.setUpDraw();
 
+    const { isMultiColor, levels, colorPerLevel, colorCount, renderRing, ringSize, ...config } =
+      this.config;
+
     if (!this.calc) {
       this.calc = this.getCalc();
+    }
+
+    if (renderRing && ringSize) {
+      const circleConfig = {
+        size: this.size,
+        n: this.calc.ringNailCount,
+        margin: config.margin,
+        rotation: config.globalRotation,
+      };
+
+      if (this.circle) {
+        this.circle.setConfig(circleConfig);
+      } else {
+        this.circle = new Circle(circleConfig);
+      }
+    } else {
+      this.circle = null;
     }
 
     if (!this.points) {
@@ -186,11 +286,8 @@ export default class FlowerOfLife extends StringArt {
     }
 
     if (!this.stepCount) {
-      this.stepCount = this.getStepCount();
+      this.stepCount = this.getStepCount(this.calc);
     }
-
-    const { isMultiColor, levels, colorPerLevel, colorCount, ...config } =
-      this.config;
 
     const realColorCount = isMultiColor
       ? colorPerLevel
@@ -462,9 +559,7 @@ export default class FlowerOfLife extends StringArt {
   }
 
   *generateStrings() {
-    console.clear();
-
-    const { fill, renderTriangles, renderCaps, levels } = this.config;
+    const { fill, renderTriangles, renderCaps, levels, renderRing, ringSize, ringColor } = this.config;
 
     const triangleLevels = this.getPoints();
 
@@ -536,15 +631,23 @@ export default class FlowerOfLife extends StringArt {
         }
       }
     }
+
+    if (renderRing && ringSize) {
+      yield* this.circle.drawRing(this.ctx, { ringSize: ringSize / 2, color: ringColor});
+    }
   }
 
-  getStepCount() {
+  getStepCount(calc) {
     if (this.stepCount) {
       return this.stepCount;
     }
 
+    if (!calc) {
+      calc = this.getCalc();
+    }
+
     const { levels, density, fill, renderTriangles, renderCaps } = this.config;
-    const triangleCount = 6 * levels ** 2;
+    const { triangleCount, ringNailCount = 0 } = calc;
 
     const fillStepsPerTriangle = fill ? density * 2 : 0;
     const triangleSteps = renderTriangles ? density * 3 : 0;
@@ -562,7 +665,7 @@ export default class FlowerOfLife extends StringArt {
     const capSteps =
       renderTriangles && renderCaps ? 6 * levels * stepsPerCap : 0;
 
-    return triangleCount * stepsPerTriangle + capSteps + fillStepsBetweenLevels;
+    return triangleCount * stepsPerTriangle + capSteps + fillStepsBetweenLevels + ringNailCount;
   }
 
   drawNails() {
@@ -580,11 +683,16 @@ export default class FlowerOfLife extends StringArt {
         }
       }
     }
+
+    if (this.circle) {
+      this.circle.drawNails(this.nails);
+    }
   }
 
   static thumbnailConfig = {
     levels: 3,
     density: 3,
     fill: false,
+    renderRing: false,
   };
 }
