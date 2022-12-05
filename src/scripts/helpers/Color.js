@@ -6,13 +6,6 @@ const COLOR_CONTROLS = [
     type: 'checkbox',
   },
   {
-    key: 'color',
-    label: 'String color',
-    defaultValue: '#ff4d00',
-    type: 'color',
-    show: ({ isMultiColor }) => !isMultiColor,
-  },
-  {
     key: 'colorCount',
     label: 'Colors count',
     defaultValue: 7,
@@ -23,6 +16,13 @@ const COLOR_CONTROLS = [
       step: 1,
     },
     show: ({ isMultiColor }) => isMultiColor,
+  },
+  {
+    key: 'color',
+    label: 'String color',
+    defaultValue: '#ff4d00',
+    type: 'color',
+    show: ({ isMultiColor }) => !isMultiColor,
   },
   {
     key: 'repeatColors',
@@ -137,7 +137,7 @@ export default class Color {
     if (isMultiColor) {
       this.multiColorStep = multicolorRange / colorCount;
       this.multiColorLightnessStep = multicolorByLightness
-        ? (maxLightness - minLightness) / (colorCount - 1)
+        ? (maxLightness - minLightness) / (Math.max(colorCount, 2) - 1)
         : 1;
 
       this.colors = new Array(colorCount).fill(null).map((_, colorIndex) => {

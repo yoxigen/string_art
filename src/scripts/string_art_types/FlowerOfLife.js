@@ -96,7 +96,7 @@ export default class FlowerOfLife extends StringArt {
           type: 'color',
           show: ({ fill }) => fill,
         },
-      ]
+      ],
     },
     {
       key: 'ringGroup',
@@ -140,7 +140,7 @@ export default class FlowerOfLife extends StringArt {
         {
           key: 'ringPadding',
           label: 'Ring padding',
-          defaultValue: .06,
+          defaultValue: 0.06,
           type: 'range',
           attr: {
             min: 0,
@@ -149,7 +149,8 @@ export default class FlowerOfLife extends StringArt {
           },
           show: ({ renderRing }) => renderRing,
           isStructural: true,
-          displayValue: ({ ringPadding }) => `${Math.round(100 * ringPadding)}%`,
+          displayValue: ({ ringPadding }) =>
+            `${Math.round(100 * ringPadding)}%`,
         },
         {
           key: 'ringColor',
@@ -158,18 +159,18 @@ export default class FlowerOfLife extends StringArt {
           type: 'color',
           show: ({ renderRing }) => renderRing,
         },
-      ]
+      ],
     },
     {
       key: 'renderTriangles',
-      label: 'Triangles',
+      label: 'Show triangles',
       defaultValue: true,
       type: 'checkbox',
       isStructural: true,
     },
     {
       key: 'renderCaps',
-      label: 'Caps',
+      label: 'Show caps',
       defaultValue: true,
       type: 'checkbox',
       show: ({ renderTriangles }) => renderTriangles,
@@ -200,9 +201,15 @@ export default class FlowerOfLife extends StringArt {
     const globalRotationRadians =
       (globalRotation * Math.PI) / 180 + Math.PI / 6;
 
-    const radius = renderRing ?  Math.min(...(this.size ?? this.getSize()).map(v => v / 2 - margin)) : null;
-    const ringDistance = renderRing ? Math.floor(ringSize * ringNailCount / 2) : 0; // The number of nails to count for strings in the outer ring
-    const ringWidth = renderRing ? radius * (1 - Math.cos(PI2 * (ringDistance / ringNailCount) / 2)) : 0;
+    const radius = renderRing
+      ? Math.min(...(this.size ?? this.getSize()).map(v => v / 2 - margin))
+      : null;
+    const ringDistance = renderRing
+      ? Math.floor((ringSize * ringNailCount) / 2)
+      : 0; // The number of nails to count for strings in the outer ring
+    const ringWidth = renderRing
+      ? radius * (1 - Math.cos((PI2 * (ringDistance / ringNailCount)) / 2))
+      : 0;
 
     const polygon = new Polygon({
       sides: 6,
@@ -257,8 +264,15 @@ export default class FlowerOfLife extends StringArt {
   setUpDraw() {
     super.setUpDraw();
 
-    const { isMultiColor, levels, colorPerLevel, colorCount, renderRing, ringSize, ...config } =
-      this.config;
+    const {
+      isMultiColor,
+      levels,
+      colorPerLevel,
+      colorCount,
+      renderRing,
+      ringSize,
+      ...config
+    } = this.config;
 
     if (!this.calc) {
       this.calc = this.getCalc();
@@ -559,7 +573,15 @@ export default class FlowerOfLife extends StringArt {
   }
 
   *generateStrings() {
-    const { fill, renderTriangles, renderCaps, levels, renderRing, ringSize, ringColor } = this.config;
+    const {
+      fill,
+      renderTriangles,
+      renderCaps,
+      levels,
+      renderRing,
+      ringSize,
+      ringColor,
+    } = this.config;
 
     const triangleLevels = this.getPoints();
 
@@ -633,7 +655,10 @@ export default class FlowerOfLife extends StringArt {
     }
 
     if (renderRing && ringSize) {
-      yield* this.circle.drawRing(this.ctx, { ringSize: ringSize / 2, color: ringColor});
+      yield* this.circle.drawRing(this.ctx, {
+        ringSize: ringSize / 2,
+        color: ringColor,
+      });
     }
   }
 
@@ -665,7 +690,12 @@ export default class FlowerOfLife extends StringArt {
     const capSteps =
       renderTriangles && renderCaps ? 6 * levels * stepsPerCap : 0;
 
-    return triangleCount * stepsPerTriangle + capSteps + fillStepsBetweenLevels + ringNailCount;
+    return (
+      triangleCount * stepsPerTriangle +
+      capSteps +
+      fillStepsBetweenLevels +
+      ringNailCount
+    );
   }
 
   drawNails() {
@@ -693,6 +723,6 @@ export default class FlowerOfLife extends StringArt {
     levels: 3,
     density: 3,
     fill: false,
-    renderRing: false,
+    renderRing: true,
   };
 }
