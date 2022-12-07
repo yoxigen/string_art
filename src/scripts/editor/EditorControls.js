@@ -212,7 +212,7 @@ export default class EditorControls {
   updateControlsVisibility(configControls = this.pattern.configControls) {
     configControls.forEach(control => {
       if (control.show) {
-        const shouldShowControl = control.show(this.pattern.config);
+        const shouldShowControl = control.show(this.pattern.config, control);
         const controlEl = this.controlElements[control.key].control;
         if (controlEl) {
           if (shouldShowControl) {

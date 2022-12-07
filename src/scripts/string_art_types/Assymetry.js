@@ -1,6 +1,12 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 
+const LAYER_DEFAULTS = [
+  { size: 0.25, end: 1, color: '#a94fb0' },
+  { size: 0.125, end: 0.888, color: '#ec6ad0' },
+  { size: 0, end: 0.826, color: '#f08ad5', reverse: true },
+];
+
 export default class Assymetry extends StringArt {
   name = 'Assymetry';
   id = 'assymetry';
@@ -13,167 +19,62 @@ export default class Assymetry extends StringArt {
       key: 'layers',
       label: 'Layers',
       type: 'group',
-      children: [
-        {
-          key: 'layer1',
-          label: 'Layer 1',
+      children: LAYER_DEFAULTS.map(({ size, end, color, reverse}, i) => {
+        const layer = i + 1;
+        return  {
+          key: `layer${layer}`,
+          label: `Layer ${layer}`,
           type: 'group',
           children: [
             {
-              key: 'show1',
+              key: `show${layer}`,
               label: 'Enable',
               defaultValue: true,
               type: 'checkbox',
             },
             {
-              key: 'size1',
+              key: `size${layer}`,
               label: 'Size',
-              defaultValue: 0.25,
+              defaultValue: size,
               type: 'range',
               attr: {
                 min: 0,
                 max: 0.5,
                 step: ({ config: { n } }) => 1 / n,
               },
-              displayValue: ({ size1, n }) => Math.round(n * size1),
-              show: ({ show1 }) => show1,
+              displayValue: (config, { key }) => Math.round(config.n * config[key]),
+              show: (config) => config[`show${layer}`],
             },
             {
-              key: 'end1',
+              key: `end${layer}`,
               label: 'End Position',
-              defaultValue: 1,
+              defaultValue: end,
               type: 'range',
               attr: {
                 min: 0,
                 max: 1,
                 step: ({ config: { n } }) => 1 / n,
               },
-              displayValue: ({ end1, n }) => Math.round(n * end1),
-              show: ({ show1 }) => show1,
+              displayValue: (config, {key}) => Math.round(config.n * config[key]),
+              show: (config) => config[`show${layer}`],
             },
             {
-              key: 'color1',
+              key: `color${layer}`,
               label: 'Color',
-              defaultValue: '#a94fb0',
+              defaultValue: color,
               type: 'color',
-              show: ({ show1 }) => show1,
+              show: (config) => config[`show${layer}`],
             },
             {
-              key: 'reverse1',
+              key: `reverse${layer}`,
               label: 'Reverse',
-              defaultValue: false,
+              defaultValue: reverse === true,
               type: 'checkbox',
-              show: ({ show1 }) => show1,
+              show: (config) => config[`show${layer}`],
             },
-          ],
-        },
-        {
-          key: 'layer2',
-          label: 'Layer 2',
-          type: 'group',
-          children: [
-            {
-              key: 'show2',
-              label: 'Enable',
-              defaultValue: true,
-              type: 'checkbox',
-            },
-            {
-              key: 'size2',
-              label: 'Size',
-              defaultValue: 0.125,
-              type: 'range',
-              attr: {
-                min: 0,
-                max: 0.5,
-                step: ({ config: { n } }) => 1 / n,
-              },
-              displayValue: ({ size2, n }) => Math.round(n * size2),
-              show: ({ show2 }) => show2,
-            },
-            {
-              key: 'end2',
-              label: 'End Position',
-              defaultValue: 0.888,
-              type: 'range',
-              attr: {
-                min: 0,
-                max: 1,
-                step: ({ config: { n } }) => 1 / n,
-              },
-              displayValue: ({ end2, n }) => Math.round(n * end2),
-              show: ({ show2 }) => show2,
-            },
-            {
-              key: 'color2',
-              label: 'Color',
-              defaultValue: '#ec6ad0',
-              type: 'color',
-              show: ({ show2 }) => show2,
-            },
-            {
-              key: 'reverse2',
-              label: 'Reverse',
-              defaultValue: false,
-              type: 'checkbox',
-              show: ({ show2 }) => show2,
-            },
-          ],
-        },
-        {
-          key: 'layer3',
-          label: 'Layer 3',
-          type: 'group',
-          children: [
-            {
-              key: 'show3',
-              label: 'Enable',
-              defaultValue: true,
-              type: 'checkbox',
-            },
-            {
-              key: 'size3',
-              label: 'Size',
-              defaultValue: 0,
-              type: 'range',
-              attr: {
-                min: 0,
-                max: 0.5,
-                step: ({ config: { n } }) => 1 / n,
-              },
-              displayValue: ({ size3, n }) => Math.round(n * size3),
-              show: ({ show3 }) => show3,
-            },
-            {
-              key: 'end3',
-              label: 'End Position',
-              defaultValue: 0.826,
-              type: 'range',
-              attr: {
-                min: 0,
-                max: 1,
-                step: ({ config: { n } }) => 1 / n,
-              },
-              displayValue: ({ end2, n }) => Math.round(n * end2),
-              show: ({ show3 }) => show3,
-            },
-            {
-              key: 'color3',
-              label: 'Color',
-              defaultValue: '#f08ad5',
-              type: 'color',
-              show: ({ show3 }) => show3,
-            },
-            {
-              key: 'reverse3',
-              label: 'Reverse',
-              defaultValue: true,
-              type: 'checkbox',
-              show: ({ show3 }) => show3,
-            },
-          ],
-        },
-      ],
+          ]
+        };
+      }),
     },
   ];
 
