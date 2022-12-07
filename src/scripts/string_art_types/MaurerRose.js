@@ -71,7 +71,7 @@ export default class MaurerRose extends StringArt {
   }
 
   onConfigChange({ control }) {
-    if (control.isStructural) {
+    if (control?.isStructural) {
       this.resetStructure();
       if (control.affectsStepCount !== false) {
         this.stepCount = null;
