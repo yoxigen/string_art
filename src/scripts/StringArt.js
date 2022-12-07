@@ -170,6 +170,18 @@ class StringArt {
     this._config = Object.assign({}, this.defaultConfig, value);
   }
 
+  setConfig(config) {
+    const currentConfig = this.config;
+    this.config = config;
+    if (this.onConfigChange) {
+      const changedControlKeys = Object.keys(currentConfig).filter(key => config[key] !== currentConfig[key]);
+
+      this.onConfigChange({
+        controls: changedControlKeys.map(key => ({ control: this.controlsIndex[key], value: config[key] }))
+      });
+    }
+  }
+
   setConfigValue(controlKey, value) {
     this._config = Object.freeze({
       ...(this._config ?? this.defaultConfig),
@@ -178,8 +190,7 @@ class StringArt {
 
     if (this.onConfigChange) {
       this.onConfigChange({
-        control: this.controlsIndex[controlKey],
-        value,
+        controls: [{ control: this.controlsIndex[controlKey], value }].filter(({control}) => !!control),
       });
     }
   }

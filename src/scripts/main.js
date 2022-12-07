@@ -248,7 +248,7 @@ function selectPattern(pattern, { config, draw = true } = {}) {
 
   currentPattern = pattern;
   if (config) {
-    currentPattern.config = config;
+    currentPattern.setConfig(config);
   }
   if (controls) {
     controls.destroy();

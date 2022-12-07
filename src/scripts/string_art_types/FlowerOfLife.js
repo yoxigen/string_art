@@ -248,10 +248,10 @@ export default class FlowerOfLife extends StringArt {
     this.calc = null;
   }
 
-  onConfigChange({ control }) {
-    if (control?.isStructural) {
+  onConfigChange({ controls }) {
+    if (controls.some(({control}) => control.isStructural)) {
       this.resetStructure();
-      if (control.affectsStepCount !== false) {
+      if (controls.some(({control}) => control.affectsStepCount !== false)) {
         this.stepCount = null;
       }
     }
