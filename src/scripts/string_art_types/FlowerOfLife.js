@@ -8,14 +8,14 @@ const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
     color: '#29f1ff',
-    multicolorRange: 22,
-    multicolorStart: 50,
+    multicolorRange: 43,
+    multicolorStart: 25,
     multicolorByLightness: true,
     minLightness: 40,
     maxLightness: 95,
     colorCount: 3,
     repeatColors: true,
-    saturation: 100,
+    saturation: 83,
     reverseColors: true,
   },
   customControls: [
@@ -155,7 +155,7 @@ export default class FlowerOfLife extends StringArt {
         {
           key: 'ringColor',
           label: 'Ring color',
-          defaultValue: '#ceaf12',
+          defaultValue: '#e8b564',
           type: 'color',
           show: ({ renderRing }) => renderRing,
         },
@@ -214,7 +214,10 @@ export default class FlowerOfLife extends StringArt {
     const polygon = new Polygon({
       sides: 6,
       size: this.getSize(),
-      margin: margin + ringWidth + ringPadding * radius,
+      margin:
+        margin +
+        ringWidth +
+        (renderRing && ringSize ? ringPadding * radius : 0),
       rotation: globalRotationRadians,
       fitSize: false,
     });
@@ -249,9 +252,9 @@ export default class FlowerOfLife extends StringArt {
   }
 
   onConfigChange({ controls }) {
-    if (controls.some(({control}) => control.isStructural)) {
+    if (controls.some(({ control }) => control.isStructural)) {
       this.resetStructure();
-      if (controls.some(({control}) => control.affectsStepCount !== false)) {
+      if (controls.some(({ control }) => control.affectsStepCount !== false)) {
         this.stepCount = null;
       }
     }
