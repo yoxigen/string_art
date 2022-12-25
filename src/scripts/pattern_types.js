@@ -10,6 +10,7 @@ import PolygonPattern from './string_art_types/PolygonPattern.js';
 import Flower from './string_art_types/Flower.js';
 import MaurerRose from './string_art_types/MaurerRose.js';
 import FlowerOfLife from './string_art_types/FlowerOfLife.js';
+import Portal from './string_art_types/Portal.js';
 
 const patternTypes = [
   Star,
@@ -24,6 +25,7 @@ const patternTypes = [
   Flower,
   MaurerRose,
   FlowerOfLife,
+  Portal
 ];
 
 export default patternTypes;
