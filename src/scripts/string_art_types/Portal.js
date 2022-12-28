@@ -91,22 +91,14 @@ export default class Portal extends StringArt {
       radius + (size[0] - diameter) * circleX,
       radius + (size[1] - diameter) * circleY,
     ];
-    const nailDistance = Math.max(...size) / density;
-    const countWidth = Math.round(size[0] / nailDistance);
-    const countHeight = Math.round(size[1] / nailDistance);
+    const nailDistanceSmallSide = Math.min(...size) / density;
+    const nailDistanceLargeSide = nailDistanceSmallSide + Math.max(...size) % nailDistanceSmallSide;
 
     return {
-      nailDistance,
+      nailDistance: [size[0] <= size[1] ? nailDistanceSmallSide : nailDistanceLargeSide, size[0] > size[1] ? nailDistanceSmallSide : nailDistanceLargeSide],
       radius,
       circleCenter,
     };
-  }
-
-  getPointDistanceToCircleCenter(point) {
-    return Math.sqrt(
-      (point[0] - this.calc.circleCenter[0]) ** 2 +
-        (point[1] - this.calc.circleCenter[1]) ** 2
-    );
   }
 
   resetStructure() {
@@ -137,35 +129,42 @@ export default class Portal extends StringArt {
 
   getPointDestination(point) {
     const [width, height] = this.size;
-
-    const isBottom = point[1] === height;
-    const isRight = point[0] === width;
-
+    const [pointX, pointY] = point;
     const [centerX, centerY] = this.calc.circleCenter;
 
-    const distanceToCircleCenter = this.getPointDistanceToCircleCenter(point); // Always the same
-    const tangentAngle = Math.asin(this.calc.radius / distanceToCircleCenter); // Always the same
+    const isBottom = pointY === height;
+    const isRight = pointX === width;
 
-    const isPointHorizontal = point[1] === 0 && point[0] !== this.size[0] || point[1] === this.size[1] && point[0] !== 0;
+    const distanceToCircleCenter = Math.sqrt(
+        (pointX - centerX) ** 2 +
+        (pointY - centerY) ** 2
+    );
+
+    const tangentAngle = Math.asin(this.calc.radius / distanceToCircleCenter);
+
+    const isPointHorizontal = pointY === 0 && pointX !== this.size[0] || pointY === this.size[1] && pointX !== 0;
 
     const isAfterCenter = isPointHorizontal
         ? isBottom
-            ? point[0] < centerX
-            : point[0] > centerX
+            ? pointX < centerX
+            : pointX > centerX
         : isRight
-            ? point[1] > centerY
-            : point[1] < centerY;
+            ? pointY > centerY
+            : pointY < centerY;
 
     const angleBetweenPointSideAndDistanceToCircleCenter = Math.asin((isPointHorizontal
-        ? isBottom ? point[1] - this.calc.circleCenter[1] : this.calc.circleCenter[1]
-        : isRight ? point[0] - this.calc.circleCenter[0] : this.calc.circleCenter[0]
+        ? isBottom ? pointY - centerY : centerY
+        : isRight ? pointX - centerX : centerX
     ) / distanceToCircleCenter);
 
-    const tanAngle = isAfterCenter ? Math.tan(angleBetweenPointSideAndDistanceToCircleCenter + tangentAngle) : Math.tan(angleBetweenPointSideAndDistanceToCircleCenter - tangentAngle);
+    const tanAngle = Math.tan(isAfterCenter
+        ? angleBetweenPointSideAndDistanceToCircleCenter + tangentAngle
+        : angleBetweenPointSideAndDistanceToCircleCenter - tangentAngle
+    );
 
     let nextSide = isPointHorizontal
-        ? point[1] === 0 ? 1 : 3
-        : point[0] === 0 ? 0 : 2;
+        ? pointY === 0 ? 1 : 3
+        : pointX === 0 ? 0 : 2;
 
     if (isAfterCenter) {
         nextSide++;
@@ -175,19 +174,20 @@ export default class Portal extends StringArt {
     }
     let nextSideValue = isAfterCenter
         ? isPointHorizontal
-            ? isBottom ? point[0] + height / tanAngle : (width - point[0]) + height / tanAngle
-            : isRight ? (height - point[1]) + width / tanAngle : point[1] + width / tanAngle
+            ? isBottom ? pointX + height / tanAngle : (width - pointX) + height / tanAngle
+            : isRight ? (height - pointY) + width / tanAngle : pointY + width / tanAngle
         : isPointHorizontal
-            ? isBottom ? point[0] * tanAngle : (width - point[0]) * tanAngle
-            : isRight ? (height - point[1]) * tanAngle : point[1] * tanAngle;
+            ? isBottom ? pointX * tanAngle : (width - pointX) * tanAngle
+            : isRight ? (height - pointY) * tanAngle : pointY * tanAngle;
 
+    // When perfect circle isn't enabled, it means that points have to be only on nail positions,
+    // so rounding the destination point to the nearest nail position.
     if (!this.config.isPerfectCircle) {
-        // TODO: Vertical and horizontal shouldn't be the same nail distance, because then nails aren't even in one side.
-        // Need to find a close distance for the other side. Then use that for rounding here.
-        const leftOverFromLastNail = nextSideValue % this.calc.nailDistance;
+        const nailDistance = this.calc.nailDistance[nextSide % 2 ? 1 : 0];
+        const leftOverFromLastNail = nextSideValue % nailDistance;
         nextSideValue = nextSideValue - leftOverFromLastNail;
-        if (leftOverFromLastNail > this.calc.nailDistance / 2) {
-            nextSideValue += this.calc.nailDistance;
+        if (leftOverFromLastNail > nailDistance / 2) {
+            nextSideValue += nailDistance;
         }
     }
 
@@ -215,14 +215,14 @@ export default class Portal extends StringArt {
     const { nailDistance } = this.calc;
     const [width, height] = this.size;
 
-    const countWidth = Math.ceil(width / nailDistance);
-    const countHeight = Math.ceil(height / nailDistance);
+    const countWidth = Math.ceil(width / nailDistance[0]);
+    const countHeight = Math.ceil(height / nailDistance[1]);
 
     const sides = [
-      { count: countWidth, getPoint: i => [i * nailDistance, 0] },
-      { count: countHeight, getPoint: i => [width, i * nailDistance] },
-      { count: countWidth, getPoint: i => [width - i * nailDistance, height] },
-      { count: countHeight, getPoint: i => [0, height - i * nailDistance] },
+      { count: countWidth, getPoint: i => [i * nailDistance[0], 0] },
+      { count: countHeight, getPoint: i => [width, i * nailDistance[1]] },
+      { count: countWidth, getPoint: i => [width - i * nailDistance[0], height] },
+      { count: countHeight, getPoint: i => [0, height - i * nailDistance[1]] },
     ];
 
     for (const { count, getPoint } of sides) {
@@ -235,7 +235,7 @@ export default class Portal extends StringArt {
   getStepCount() {
     const { nailDistance } = this.getCalc();
     const [width, height] = this.size ?? this.getSize();
-    return Math.ceil(width / nailDistance + height / nailDistance) * 2;
+    return Math.ceil(width / nailDistance[0] + height / nailDistance[1]) * 2;
   }
 
   drawNails() {
