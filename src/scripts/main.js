@@ -6,13 +6,14 @@ import { Thumbnails } from './thumbnails/Thumbnails.js';
 import { deserializeConfig, serializeConfig } from './Serialize.js';
 import { isShareSupported, share } from './share.js';
 import { initServiceWorker } from './pwa.js';
+import CanvasRenderer from './renderers/CanvasRenderer.js';
 
 window.addEventListener('error', function (event) {
   alert('Error: ' + event.message);
 });
 
 const elements = {
-  canvas: document.querySelector('canvas'),
+  canvas: document.querySelector('#canvas_panel'),
   patternLink: document.querySelector('#pattern_link'),
   downloadBtn: document.querySelector('#download_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
@@ -25,7 +26,9 @@ const elements = {
   ),
 };
 
-const patterns = patternTypes.map(Pattern => new Pattern(elements.canvas));
+const canvasRenderer = new CanvasRenderer(elements.canvas);
+
+const patterns = patternTypes.map(Pattern => new Pattern(canvasRenderer));
 
 let currentPattern;
 const player = new Player(document.querySelector('#player'));
@@ -70,7 +73,7 @@ async function main() {
     'click',
     async () =>
       await share({
-        canvas: elements.canvas,
+        renderer: canvasRenderer,
         pattern: currentPattern,
       })
   );
@@ -124,7 +127,7 @@ async function initPattern() {
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
   elements.resetBtn.addEventListener('click', reset);
   const showShare = await isShareSupported({
-    canvas: elements.canvas,
+    renderer: canvasRenderer,
     pattern: currentPattern,
   });
   if (showShare) {
@@ -135,7 +138,7 @@ async function initPattern() {
 function downloadCanvas() {
   const downloadLink = document.createElement('a');
   downloadLink.download = currentPattern.name + '.png';
-  downloadLink.href = elements.canvas.toDataURL('image/png');
+  downloadLink.href = canvasRenderer.toDataURL();
   downloadLink.setAttribute('target', 'download');
   downloadLink.click();
 }
@@ -195,19 +198,15 @@ function initSize() {
   });
 }
 
-function setSize({ width, height }) {
-  elements.canvas.removeAttribute('width');
-  elements.canvas.removeAttribute('height');
-
-  if (width && height) {
-    elements.canvas.style.width = `${width}px`;
-    elements.canvas.style.height = `${height}px`;
-    if (!elements.canvas.parentElement.classList.contains('overflow')) {
-      elements.canvas.parentElement.classList.add('overflow');
+function setSize(size) {
+  if (size.width && size.height) {
+    canvasRenderer.setSize(size);
+    if (!elements.canvas.classList.contains('overflow')) {
+      elements.canvas.classList.add('overflow');
     }
   } else {
-    elements.canvas.parentElement.classList.remove('overflow');
-    elements.canvas.removeAttribute('style');
+    elements.canvas.classList.remove('overflow');
+    canvasRenderer.setSize(null);
   }
 
   currentPattern.draw();
@@ -292,9 +291,7 @@ function hide(element) {
 
 function unselectPattern() {
   currentPattern = null;
-  const context = elements.canvas.getContext('2d');
-
-  context.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+  canvasRenderer.clear();
   hide(elements.patternLink);
   thumbnails.setCurrentPattern(null);
   controls && controls.destroy();

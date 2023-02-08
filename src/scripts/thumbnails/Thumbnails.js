@@ -1,6 +1,7 @@
 import patternTypes from '../pattern_types.js';
+import CanvasRenderer from '../renderers/CanvasRenderer.js';
 
-const THUMBNAIL_WIDTH = 100;
+const THUMBNAIL_WIDTH_PX = '100px';
 const MINIMIZED_CLASS = 'minimized';
 
 export class Thumbnails {
@@ -59,10 +60,12 @@ export class Thumbnails {
     const patterns = [];
 
     patternTypes.forEach(PatternType => {
-      const canvas = document.createElement('canvas');
-      canvas.style.width = canvas.style.height = `${THUMBNAIL_WIDTH}px`;
+      const patternLink = document.createElement('a');
+      const renderer = new CanvasRenderer(patternLink);
 
-      const pattern = new PatternType(canvas);
+      patternLink.style.width = patternLink.style.height = THUMBNAIL_WIDTH_PX;
+
+      const pattern = new PatternType(renderer);
       pattern.config = Object.assign(
         {
           margin: 1,
@@ -76,11 +79,10 @@ export class Thumbnails {
 
       const li = document.createElement('li');
       thumbnailsFragment.appendChild(li);
-      const patternLink = document.createElement('a');
+
       patternLink.href = `?pattern=${pattern.id}`;
       patternLink.setAttribute('data-pattern', pattern.id);
       patternLink.title = pattern.name;
-      patternLink.appendChild(canvas);
       li.appendChild(patternLink);
     });
 

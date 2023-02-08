@@ -87,7 +87,7 @@ h1 {
   color: var(--logo2);
 }
 
-canvas {
+canvas, svg {
   height: 100%;
   width: 100%;
 }

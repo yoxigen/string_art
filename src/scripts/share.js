@@ -15,8 +15,8 @@ export async function isShareSupported(input) {
   return navigator.canShare(shareData);
 }
 
-async function getShareData({ canvas, pattern }) {
-  const dataUrl = canvas.toDataURL();
+async function getShareData({ renderer, pattern }) {
+  const dataUrl = renderer.toDataURL();
   const blob = await (await fetch(dataUrl)).blob();
   const files = [
     new File([blob], pattern.name + '.jpg', {

@@ -443,7 +443,7 @@ export default class FlowerOfLife extends StringArt {
   }
 
   *generateTriangleStrings({ points, level, indexInSide }) {
-    this.ctx.strokeStyle = this.color.getColor(level);
+    this.renderer.setColor(this.color.getColor(level));
     const { density, levels } = this.config;
     const isCapLevel = level === levels;
 
@@ -460,24 +460,22 @@ export default class FlowerOfLife extends StringArt {
       for (let n = 0; n <= lastIndex; n++) {
         const isNextSide = n % 2 === 0;
 
-        this.ctx.beginPath();
-        this.ctx.moveTo(...prevPoint);
-
+        const positions = [];
         const nextSidePoint = isNextSide ? this.config.density - n : n;
         const targetSide = isNextSide ? nextSide : side;
-
-        prevPoint = points[targetSide][nextSidePoint];
-        this.ctx.lineTo(...prevPoint);
-        this.ctx.stroke();
+        positions.push(points[targetSide][nextSidePoint]);
 
         if (n < density) {
-          prevPoint =
+          positions.push(
             points[targetSide][
               isNextSide ? nextSidePoint - 1 : nextSidePoint + 1
-            ];
-          this.ctx.lineTo(...prevPoint);
-          this.ctx.stroke();
+            ]
+          );
         }
+
+        this.renderer.renderLines(prevPoint, ...positions);
+        prevPoint = positions[positions.length - 1];
+
         yield;
       }
     }
@@ -496,10 +494,9 @@ export default class FlowerOfLife extends StringArt {
     const levelSideCount = this.calc.countPerLevelSide[level];
     const angleShift = (triangleIndex % levelSideCount) % 3;
 
-    this.ctx.strokeStyle = fillColor;
+    this.renderer.setColor(fillColor);
 
     const isLastTriangleInSide = triangleIndexInSide === levelSideCount - 1;
-
     const firstSide = angleShift;
 
     const sideIndex = isNextLevel
@@ -519,10 +516,11 @@ export default class FlowerOfLife extends StringArt {
       const order = generateOrderInSide.call(this, s);
 
       for (const { pointIndex, triangle1Points, triangle2Points } of order) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(...triangle1Points[pointIndex]);
-        this.ctx.lineTo(...triangle2Points[pointIndex]);
-        this.ctx.stroke();
+        this.renderer.renderLines(
+          triangle1Points[pointIndex],
+          triangle2Points[pointIndex]
+        );
+
         yield;
       }
     }
@@ -658,7 +656,7 @@ export default class FlowerOfLife extends StringArt {
     }
 
     if (renderRing && ringSize) {
-      yield* this.circle.drawRing(this.ctx, {
+      yield* this.circle.drawRing(this.renderer, {
         ringSize: ringSize / 2,
         color: ringColor,
       });

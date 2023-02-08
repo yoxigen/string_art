@@ -104,24 +104,20 @@ export default class PolygonPattern extends StringArt {
     const limitedBezier = Math.min(bezier, Math.ceil(sides / 2) - 1);
 
     let step = 0;
-    let color = this.color.getColor(0);
+    this.renderer.setColor(this.color.getColor(0));
 
     for (let side = 0; side < sides; side++) {
       const nextSide = (side + limitedBezier) % sides;
 
       for (let index = 0; index < this.polygon.nailsPerSide; index++) {
         if (this.colorMap) {
-          color = this.colorMap.get(step);
+          this.renderer.setColor(this.colorMap.get(step));
         }
 
-        this.ctx.strokeStyle = color;
-        this.ctx.beginPath();
-        this.ctx.moveTo(...this.polygon.getSidePoint({ side, index }));
-        this.ctx.lineTo(
-          ...this.polygon.getSidePoint({ side: nextSide, index })
+        this.renderer.renderLines(
+          this.polygon.getSidePoint({ side, index }),
+          this.polygon.getSidePoint({ side: nextSide, index })
         );
-
-        this.ctx.stroke();
 
         yield;
         step++;

@@ -1,4 +1,5 @@
 import Nails from './Nails.js';
+import Renderer from './renderers/Renderer.js';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -122,22 +123,16 @@ const COMMON_CONFIG_CONTROLS = [
 ];
 
 class StringArt {
-  constructor(canvas) {
-    if (!canvas) {
-      throw new Error('Canvas not specified!');
+  constructor(renderer) {
+    if (!renderer) {
+      throw new Error('Renderer not specified!');
     }
 
-    this.canvas = canvas;
-    this.ctx = this.canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    const bsr =
-      this.ctx.webkitBackingStorePixelRatio ||
-      this.ctx.mozBackingStorePixelRatio ||
-      this.ctx.msBackingStorePixelRatio ||
-      this.ctx.oBackingStorePixelRatio ||
-      this.ctx.backingStorePixelRatio ||
-      1;
-    this.pixelRatio = dpr / bsr;
+    if (!(renderer instanceof Renderer)) {
+      throw new Error('Renderer is not an instance of Renderer!');
+    }
+
+    this.renderer = renderer;
   }
 
   get configControls() {
@@ -174,10 +169,15 @@ class StringArt {
     const currentConfig = this.config;
     this.config = config;
     if (this.onConfigChange) {
-      const changedControlKeys = Object.keys(currentConfig).filter(key => config[key] !== currentConfig[key]);
+      const changedControlKeys = Object.keys(currentConfig).filter(
+        key => config[key] !== currentConfig[key]
+      );
 
       this.onConfigChange({
-        controls: changedControlKeys.map(key => ({ control: this.controlsIndex[key], value: config[key] }))
+        controls: changedControlKeys.map(key => ({
+          control: this.controlsIndex[key],
+          value: config[key],
+        })),
       });
     }
   }
@@ -190,28 +190,22 @@ class StringArt {
 
     if (this.onConfigChange) {
       this.onConfigChange({
-        controls: [{ control: this.controlsIndex[controlKey], value }].filter(({control}) => !!control),
+        controls: [{ control: this.controlsIndex[controlKey], value }].filter(
+          ({ control }) => !!control
+        ),
       });
     }
   }
 
   getSize() {
-    const canvasScreenSize = [
-      this.canvas.clientWidth,
-      this.canvas.clientHeight,
-    ];
-    return canvasScreenSize.map(v => v * this.pixelRatio);
+    return this.renderer.getSize();
   }
 
   setUpDraw() {
     const previousSize = this.size;
-
-    this.canvas.removeAttribute('width');
-    this.canvas.removeAttribute('height');
+    this.renderer.reset();
     const [width, height] = (this.size = this.getSize());
     Object.assign(this, this.size);
-    this.canvas.setAttribute('width', width);
-    this.canvas.setAttribute('height', height);
     this.center = this.size.map(value => value / 2);
 
     if (
@@ -226,11 +220,10 @@ class StringArt {
     if (this.nails) {
       this.nails.setConfig(this.config);
     } else {
-      this.nails = new Nails(this.canvas, this.config);
+      this.nails = new Nails(this.renderer, this.config);
     }
 
-    this.ctx.clearRect(0, 0, ...this.size);
-    this.ctx.lineWidth = this.config.stringWidth;
+    this.renderer.setLineWidth(this.config.stringWidth);
   }
 
   afterDraw() {
@@ -252,18 +245,17 @@ class StringArt {
       enableBackground,
     } = this.config;
 
-    this.ctx.beginPath();
+    //this.ctx.beginPath();
     if (enableBackground) {
-      this.ctx.globalCompositeOperation = 'destination-over';
-      this.ctx.fillStyle = customBackgroundColor
-        ? backgroundColor
-        : darkMode
-        ? COLORS.dark
-        : COLORS.light;
-      this.ctx.fillRect(0, 0, ...this.size);
+      this.renderer.setBackground(
+        customBackgroundColor
+          ? backgroundColor
+          : darkMode
+          ? COLORS.dark
+          : COLORS.light
+      );
     }
 
-    this.ctx.globalCompositeOperation = 'source-over';
     if (showNails) {
       this.drawNails();
       this.nails.fill({ drawNumbers: showNailNumbers });
@@ -271,7 +263,7 @@ class StringArt {
   }
 
   /**
-   * Draws the string art on canvas
+   * Draws the string art
    * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all)
    */
   draw({ position = Infinity } = {}) {

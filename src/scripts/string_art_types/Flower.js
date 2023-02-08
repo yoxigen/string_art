@@ -103,7 +103,7 @@ export default class Flower extends StringArt {
     const { sides, layers } = this.config;
 
     let step = 0;
-    let color = this.color.getColor(0);
+    this.renderer.setColor(this.color.getColor(0));
 
     for (let layer = 0; layer < layers; layer++) {
       const polygon = this.polygons[layer];
@@ -113,7 +113,7 @@ export default class Flower extends StringArt {
 
         for (let index = 0; index <= polygon.nailsPerSide; index++) {
           if (this.colorMap) {
-            color = this.colorMap.get(step);
+            this.renderer.setColor(this.colorMap.get(step));
           }
 
           const centerIndexes = this.getCenterIndexes({
@@ -121,24 +121,17 @@ export default class Flower extends StringArt {
             sideIndex: index,
           });
 
-          this.ctx.strokeStyle = color;
-          this.ctx.beginPath();
-          this.ctx.moveTo(...polygon.getSidePoint({ side, index }));
-          this.ctx.lineTo(
-            ...polygon.getCenterPoint({
+          this.renderer.renderLines(
+            polygon.getCenterPoint({
               side: side,
               index: centerIndexes[0],
-            })
-          );
-          this.ctx.moveTo(...polygon.getSidePoint({ side, index }));
-          this.ctx.lineTo(
-            ...polygon.getCenterPoint({
+            }),
+            polygon.getSidePoint({ side, index }),
+            polygon.getCenterPoint({
               side: leftSide,
               index: centerIndexes[1],
             })
           );
-
-          this.ctx.stroke();
 
           yield;
           step++;

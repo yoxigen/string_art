@@ -253,17 +253,17 @@ export default class Freestyle extends StringArt {
   *generateStrings() {
     const { n, color } = this.config;
 
-    this.ctx.strokeStyle = color;
+    this.renderer.setColor(color);
     let prevCirclePoint;
 
     for (let i = 0; i < this.maxShapeNailsCount; i++) {
       for (let layerIndex = 0; layerIndex < this.layers.length; layerIndex++) {
         const layer = this.layers[layerIndex];
-        this.ctx.beginPath();
-        this.ctx.moveTo(...(prevCirclePoint ?? this.getPoint(layer, i)));
+        const startPoint = prevCirclePoint ?? this.getPoint(layer, i);
 
+        const positions = [];
         if (layerIndex === 0 && i) {
-          this.ctx.lineTo(...this.getPoint(layer, i));
+          positions.push(this.getPoint(layer, i));
         }
 
         let nextLayerIndex = layerIndex + 1;
@@ -272,8 +272,8 @@ export default class Freestyle extends StringArt {
         }
 
         prevCirclePoint = this.getPoint(this.layers[nextLayerIndex], i);
-        this.ctx.lineTo(...prevCirclePoint);
-        this.ctx.stroke();
+
+        this.renderer.renderLines(startPoint, prevCirclePoint);
         yield;
       }
     }

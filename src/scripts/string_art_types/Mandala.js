@@ -82,18 +82,19 @@ export default class Mandala extends StringArt {
 
   *drawTimesTable({ shift = 0, color = '#f00', time }) {
     const n = this.n;
+    this.renderer.setColor(color);
 
     let point = this.circle.getPoint(shift);
 
     for (let i = 1; i <= this.stringsPerLayer; i++) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(...point);
+      const startPoint = point;
       point = this.circle.getPoint(i + shift);
-      this.ctx.lineTo(...point);
       const toIndex = (i * this.base) % n;
-      this.ctx.lineTo(...this.circle.getPoint(toIndex + shift));
-      this.ctx.strokeStyle = color;
-      this.ctx.stroke();
+      this.renderer.renderLines(
+        startPoint,
+        point,
+        this.circle.getPoint(toIndex + shift)
+      );
 
       yield {
         instructions: `${i - 1} → ${i} → ${toIndex} → ${i}`,

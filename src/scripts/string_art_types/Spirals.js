@@ -105,27 +105,21 @@ class Spirals extends StringArt {
   *generateStrings() {
     const points = this.generatePoints();
     let index = 0;
-    this.ctx.beginPath();
-    this.ctx.moveTo(...this.center);
-    this.ctx.strokeStyle = this.color.getColor(0);
-
-    let lastPoint;
+    this.renderer.setColor(this.color.getColor(0));
+    let lastPoint = this.center;
 
     for (const { point } of points) {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
-          this.ctx.strokeStyle = stepColor;
+          this.renderer.setColor(stepColor);
         }
       }
 
-      this.ctx.beginPath();
       if (lastPoint) {
-        this.ctx.moveTo(...lastPoint);
-        this.ctx.lineTo(...point);
+        this.renderer.renderLines(lastPoint, point);
       }
       lastPoint = point;
-      this.ctx.stroke();
       yield index++;
     }
   }

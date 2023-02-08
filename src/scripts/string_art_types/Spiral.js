@@ -88,7 +88,7 @@ export default class Spiral extends StringArt {
 
     let currentInnerLength = Math.round(innerLength * n);
     let repetitionCount = 0;
-    this.ctx.strokeStyle = color;
+    this.renderer.setColor(color);
     let prevPointIndex = shift;
     let prevPoint = this.circle.getPoint(prevPointIndex);
     let isPrevPoint = false;
@@ -97,12 +97,10 @@ export default class Spiral extends StringArt {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(i);
         if (stepColor) {
-          this.ctx.strokeStyle = stepColor;
+          this.renderer.setColor(stepColor);
         }
       }
 
-      this.ctx.beginPath();
-      this.ctx.moveTo(...prevPoint);
       prevPointIndex = isPrevPoint
         ? prevPointIndex - currentInnerLength + 1
         : prevPointIndex + currentInnerLength;
@@ -115,10 +113,10 @@ export default class Spiral extends StringArt {
         repetitionCount++;
       }
 
-      prevPoint = this.circle.getPoint(prevPointIndex);
-      this.ctx.lineTo(...prevPoint);
+      const nextPoint = this.circle.getPoint(prevPointIndex);
 
-      this.ctx.stroke();
+      this.renderer.renderLines(prevPoint, nextPoint);
+      prevPoint = nextPoint;
 
       yield i;
       isPrevPoint = !isPrevPoint;

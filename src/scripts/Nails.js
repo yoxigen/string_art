@@ -1,14 +1,11 @@
-import { PI2 } from './helpers/math_utils.js';
-
 const NUMBER_MARGIN = 4;
 
 export default class Nails {
-  constructor(canvas, config) {
-    this.context = canvas.getContext('2d');
+  constructor(renderer, config) {
     this.setConfig(config);
-    this.centerX = canvas.width / 2;
     this.nails = [];
     this.addedPoints = new Set();
+    this.renderer = renderer;
   }
 
   setConfig({ nailRadius, nailsColor, nailNumbersFontSize }) {
@@ -31,30 +28,14 @@ export default class Nails {
   }
 
   fill({ drawNumbers = true } = {}) {
-    this.context.globalCompositeOperation = 'source-over';
-    this.context.beginPath();
-    this.context.fillStyle = this.nailsColor;
-    this.context.textBaseline = 'middle';
-    this.context.font = `${this.nailNumbersFontSize}px sans-serif`;
-    const nailNumberOffset = this.nailRadius + NUMBER_MARGIN;
-
-    this.nails.forEach(({ point: [x, y], number }) => {
-      this.context.moveTo(x + this.nailRadius, y);
-      this.context.arc(x, y, this.nailRadius, 0, PI2);
-      if (drawNumbers && number !== undefined && number !== null) {
-        const isRightAlign = x < this.centerX;
-
-        const numberPosition = [
-          isRightAlign ? x - nailNumberOffset : x + nailNumberOffset,
-          y,
-        ];
-
-        this.context.textAlign = isRightAlign ? 'right' : 'left';
-        this.context.fillText(String(number), ...numberPosition);
-      }
+    this.renderer.renderNails(this.nails, {
+      color: this.nailsColor,
+      fontSize: this.nailNumbersFontSize,
+      radius: this.nailRadius,
+      renderNumbers: drawNumbers,
+      margin: NUMBER_MARGIN,
     });
 
-    this.context.fill();
     this.nails = [];
     this.addedPoints.clear();
   }

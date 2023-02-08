@@ -114,22 +114,19 @@ class Eye extends StringArt {
     const nextSideRotation = SIDES_ROTATION[nextSide];
 
     const sideProps = { layerStringCount, size, layerStart, angle };
+    this.renderer.setColor(color);
 
     for (let i = 0; i <= layerStringCount; i++) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(
-        ...this.getPoint({ side, index: i, rotation, ...sideProps })
-      );
-      this.ctx.lineTo(
-        ...this.getPoint({
+      this.renderer.renderLines(
+        this.getPoint({ side, index: i, rotation, ...sideProps }),
+        this.getPoint({
           side: nextSide,
           index: i,
           rotation: nextSideRotation,
           ...sideProps,
         })
       );
-      this.ctx.strokeStyle = color;
-      this.ctx.stroke();
+
       yield i;
     }
   }
@@ -195,8 +192,7 @@ class Eye extends StringArt {
     let count = 0;
     const { layers, angle, n, margin } = this.config;
     const layerAngle = (angle * Math.PI) / 180;
-    const maxSize =
-      Math.min(this.canvas.clientWidth, this.canvas.clientHeight) - 2 * margin;
+    const maxSize = Math.min(...this.renderer.getSize()) - 2 * margin;
     const nailSpacing = maxSize / (n - 1);
 
     for (let layer = 0; layer < layers; layer++) {

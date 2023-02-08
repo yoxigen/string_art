@@ -71,9 +71,9 @@ export default class MaurerRose extends StringArt {
   }
 
   onConfigChange({ controls }) {
-    if (controls.some(({control}) => control.isStructural)) {
+    if (controls.some(({ control }) => control.isStructural)) {
       this.resetStructure();
-      if (controls.some(({control}) => control.affectsStepCount !== false)) {
+      if (controls.some(({ control }) => control.affectsStepCount !== false)) {
         this.stepCount = null;
       }
     }
@@ -156,8 +156,7 @@ export default class MaurerRose extends StringArt {
     const points = this.generatePoints();
 
     let prevPoint;
-
-    this.ctx.strokeStyle = this.color.getColor(0);
+    this.renderer.setColor(this.color.getColor(0));
 
     for (const { point, index } of points) {
       if (!prevPoint) {
@@ -168,15 +167,12 @@ export default class MaurerRose extends StringArt {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
-          this.ctx.strokeStyle = stepColor;
+          this.renderer.setColor(stepColor);
         }
       }
 
-      this.ctx.beginPath();
-      this.ctx.moveTo(...prevPoint);
+      this.renderer.renderLines(prevPoint, point);
       prevPoint = point;
-      this.ctx.lineTo(...point);
-      this.ctx.stroke();
 
       yield;
     }
