@@ -22,8 +22,8 @@ export default class CanvasRenderer extends Renderer {
     parentElement.appendChild(this.canvas);
   }
 
-  destroy() {
-    this.parentElement.removeElement(this.canvas);
+  get element() {
+    return this.canvas;
   }
 
   reset() {
@@ -56,20 +56,6 @@ export default class CanvasRenderer extends Renderer {
       this.canvas.clientWidth * this.pixelRatio,
       this.canvas.clientHeight * this.pixelRatio,
     ];
-  }
-
-  setSize(size) {
-    this.size = size;
-
-    this.canvas.removeAttribute('width');
-    this.canvas.removeAttribute('height');
-
-    if (size) {
-      this.canvas.style.width = `${size.width}px`;
-      this.canvas.style.height = `${size.height}px`;
-    } else {
-      this.canvas.removeAttribute('style');
-    }
   }
 
   renderLines(startPosition, ...positions) {

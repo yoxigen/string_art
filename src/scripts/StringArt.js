@@ -245,7 +245,6 @@ class StringArt {
       enableBackground,
     } = this.config;
 
-    //this.ctx.beginPath();
     if (enableBackground) {
       this.renderer.setBackground(
         customBackgroundColor

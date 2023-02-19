@@ -3,7 +3,13 @@ export default class Renderer {
     this.parentElement = parentElement;
   }
 
-  destroy() {}
+  destroy() {
+    this.parentElement.removeElement(this.element);
+  }
+
+  get element() {
+    throw new Error('element getter not implemented!');
+  }
 
   reset() {}
 
@@ -29,10 +35,24 @@ export default class Renderer {
   }
 
   getSize() {
-    throw new Error('Renderer "getSize" method not implemented!');
+    const { width, height } = this.parentElement.getBoundingClientRect();
+    return [width, height];
   }
 
-  setSize({ width, height }) {}
+  setSize(size) {
+    this.size = size;
+
+    this.element.removeAttribute('width');
+    this.element.removeAttribute('height');
+
+    if (size) {
+      this.element.style.width = `${size.width}px`;
+      this.element.style.height = `${size.height}px`;
+    } else {
+      this.element.removeAttribute('style');
+    }
+  }
+
   clear() {
     throw new Error('Renderer "clear" method not implemented!');
   }

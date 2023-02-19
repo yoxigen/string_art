@@ -7,6 +7,7 @@ import { deserializeConfig, serializeConfig } from './Serialize.js';
 import { isShareSupported, share } from './share.js';
 import { initServiceWorker } from './pwa.js';
 import CanvasRenderer from './renderers/CanvasRenderer.js';
+import SVGRenderer from './renderers/SVGRenderer.js';
 
 window.addEventListener('error', function (event) {
   alert('Error: ' + event.message);
@@ -26,9 +27,8 @@ const elements = {
   ),
 };
 
-const canvasRenderer = new CanvasRenderer(elements.canvas);
-
-const patterns = patternTypes.map(Pattern => new Pattern(canvasRenderer));
+let canvasRenderer;
+let patterns;
 
 let currentPattern;
 const player = new Player(document.querySelector('#player'));
@@ -52,10 +52,18 @@ async function main() {
 
   document.body.querySelectorAll('.pattern_only').forEach(hide);
   unHide(document.querySelector('main'));
+
+  const queryParams = new URLSearchParams(document.location.search);
+  canvasRenderer =
+    queryParams.get('renderer') === 'svg'
+      ? new SVGRenderer(elements.canvas)
+      : new CanvasRenderer(elements.canvas);
+
+  patterns = patternTypes.map(Pattern => new Pattern(canvasRenderer));
+
   if (history.state?.pattern) {
     updateState(history.state);
   } else {
-    const queryParams = new URLSearchParams(document.location.search);
     const queryPattern = queryParams.get('pattern');
 
     if (queryPattern) {
