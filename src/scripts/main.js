@@ -8,6 +8,8 @@ import { isShareSupported, share } from './share.js';
 import { initServiceWorker } from './pwa.js';
 import CanvasRenderer from './renderers/CanvasRenderer.js';
 import SVGRenderer from './renderers/SVGRenderer.js';
+import { downloadPatternAsSVG } from './download/SVGDownload.js';
+import { downloadFile } from './download/Download.js';
 
 window.addEventListener('error', function (event) {
   alert('Error: ' + event.message);
@@ -17,6 +19,7 @@ const elements = {
   canvas: document.querySelector('#canvas_panel'),
   patternLink: document.querySelector('#pattern_link'),
   downloadBtn: document.querySelector('#download_btn'),
+  downloadSVGBtn: document.querySelector('#download_svg_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
   resetBtn: document.querySelector('#reset_btn'),
   shareBtn: document.querySelector('#share_btn'),
@@ -75,6 +78,7 @@ async function main() {
   }
 
   elements.downloadBtn.addEventListener('click', downloadCanvas);
+  elements.downloadSVGBtn.addEventListener('click', downloadSVG);
   elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
   elements.resetBtn.addEventListener('click', reset);
   elements.shareBtn.addEventListener(
@@ -144,11 +148,11 @@ async function initPattern() {
 }
 
 function downloadCanvas() {
-  const downloadLink = document.createElement('a');
-  downloadLink.download = currentPattern.name + '.png';
-  downloadLink.href = canvasRenderer.toDataURL();
-  downloadLink.setAttribute('target', 'download');
-  downloadLink.click();
+  downloadFile(canvasRenderer.toDataURL(), currentPattern.name + '.png');
+}
+
+function downloadSVG() {
+  downloadPatternAsSVG(currentPattern, canvasRenderer.getSize());
 }
 
 function downloadNailsImage() {

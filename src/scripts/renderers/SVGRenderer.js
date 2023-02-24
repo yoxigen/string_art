@@ -49,19 +49,26 @@ export default class SVGRenderer extends Renderer {
     this.svg.setAttributeNS(SVG_NS, 'height', height);
     this.svg.style.width = width + 'px';
     this.svg.style.height = height + 'px';
+    this.currentColor = null;
+    this.lineWidth = null;
   }
 
   setColor(color) {
     if (color !== this.currentColor) {
       this.currentLineGroup = document.createElementNS(SVG_NS, 'g');
       this.currentLineGroup.setAttribute('stroke', color);
+      this.currentLineGroup.setAttribute('stroke-width', this.lineWidth);
       this.linesGroup.appendChild(this.currentLineGroup);
       this.currentColor = color;
     }
   }
 
   setLineWidth(width) {
-    this.linesGroup.setAttributeNS(SVG_NS, 'width', width ?? '1');
+    this.lineWidth = width ?? '1';
+    this.linesGroup.setAttributeNS(SVG_NS, 'stroke-width', width ?? '1');
+    this.linesGroup.childNodes.forEach(group =>
+      group.setAttributeNS(SVG_NS, 'stroke-width', width ?? '1')
+    );
   }
 
   setBackground(color) {
