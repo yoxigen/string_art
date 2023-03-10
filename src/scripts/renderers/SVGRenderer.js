@@ -105,6 +105,7 @@ export default class SVGRenderer extends Renderer {
       line.setAttribute('y1', Math.trunc(previousPoint[1]));
       line.setAttribute('x2', Math.trunc(position[0]));
       line.setAttribute('y2', Math.trunc(position[1]));
+      previousPoint = position;
 
       fragment.appendChild(line);
     }
