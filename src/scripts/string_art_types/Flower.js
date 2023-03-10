@@ -112,7 +112,7 @@ export default class Flower extends StringArt {
         const leftSide = side === sides - 1 ? 0 : side + 1;
 
         for (let index = 0; index <= polygon.nailsPerSide; index++) {
-          if (this.colorMap) {
+          if (this.colorMap?.has(step)) {
             this.renderer.setColor(this.colorMap.get(step));
           }
 
