@@ -1,4 +1,5 @@
 import Nails from '../Nails.js';
+import easing from './easing.js';
 import { PI2 } from './math_utils.js';
 
 export default class Circle {
@@ -13,13 +14,11 @@ export default class Circle {
       return this.points.get(index);
     }
 
+    const angle =
+      easing.linear(realIndex / this.config.n) * PI2 + this.rotationAngle;
     const point = [
-      this.center[0] +
-        Math.sin(realIndex * this.indexAngle + this.rotationAngle) *
-          this.radius,
-      this.center[1] +
-        Math.cos(realIndex * this.indexAngle + this.rotationAngle) *
-          this.radius,
+      this.center[0] + Math.sin(angle) * this.radius,
+      this.center[1] - Math.cos(angle) * this.radius,
     ];
 
     this.points.set(index, point);
