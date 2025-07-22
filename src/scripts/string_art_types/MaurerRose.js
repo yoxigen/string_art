@@ -116,14 +116,15 @@ export default class MaurerRose extends StringArt {
   }
 
   getCalc() {
-    const { n, rotation } = this.config;
+    const { n, angle, rotation, maxSteps } = this.config;
     const size = this.getSize();
 
     return {
       n,
-      angleRadians: PI2 / n,
+      angleRadians: (PI2 * angle) / maxSteps,
       radius: Math.min(...size) / 2,
-      rotationAngle: -PI2 * rotation,
+      currentSize: size,
+      rotationAngle: -Math.PI * 2 * rotation,
     };
   }
 
