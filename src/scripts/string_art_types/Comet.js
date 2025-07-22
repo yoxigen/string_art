@@ -6,14 +6,14 @@ import { PI2 } from '../helpers/math_utils.js';
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
-    color: '#29f1ff',
-    multicolorRange: 264,
-    multicolorStart: 53,
+    color: '#ff0000',
+    multicolorRange: 133,
+    multicolorStart: 239,
     multicolorByLightness: false,
     minLightness: 30,
     maxLightness: 70,
+    colorCount: 4,
   },
-  exclude: ['colorCount'],
 });
 
 export default class Comet extends StringArt {
@@ -70,6 +70,13 @@ export default class Comet extends StringArt {
     } else {
       this.circle = new Circle(circleConfig);
     }
+
+    const { isMultiColor, colorCount } = this.config;
+    this.color = new Color({
+      ...this.config,
+      isMultiColor,
+      colorCount,
+    });
   }
 
   getCalc() {
@@ -86,14 +93,12 @@ export default class Comet extends StringArt {
   }
 
   *drawLayer(layerIndex = 0) {
-    const layerColor = '#ffffff';
-
     const { n } = this.config;
     const ringDistance = Math.round(this.config.ringSize * n);
 
     let prevPoint = this.circle.getPoint(0);
     let prevPointIndex = 0;
-    this.renderer.setColor(layerColor);
+    this.renderer.setColor(this.color.getColor(layerIndex));
 
     for (let i = 0; i < n - ringDistance + 1; i++) {
       const pointIndex = i + ringDistance;
