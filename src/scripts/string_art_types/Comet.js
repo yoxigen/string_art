@@ -24,7 +24,7 @@ export default class Comet extends StringArt {
     {
       key: 'ringSize',
       label: 'Ring size',
-      defaultValue: 0.42,
+      defaultValue: 0.3,
       type: 'range',
       attr: {
         min: 0,
@@ -34,8 +34,18 @@ export default class Comet extends StringArt {
       displayValue: ({ ringSize }) => `${Math.round(100 * ringSize)}%`,
     },
     Circle.rotationConfig,
+    Circle.distortionConfig,
+    Circle.displacementConfig,
     COLOR_CONFIG,
   ];
+
+  defaultValues = {
+    ringSize: 0.3,
+    rotation: 0.5,
+    distortion: -0.27,
+    displacementFunc: 'fastInOut',
+    displacementMag: 1.5,
+  };
 
   resetStructure() {
     if (this.points) {
@@ -50,6 +60,9 @@ export default class Comet extends StringArt {
       n: this.config.n,
       margin: this.config.margin,
       rotation: this.config.rotation,
+      distortion: this.config.distortion,
+      displacementFunc: this.config.displacementFunc,
+      displacementMag: this.config.displacementMag,
     };
 
     if (this.circle) {

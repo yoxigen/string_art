@@ -293,11 +293,49 @@ export default class EditorControls {
         label.innerHTML = control.label;
         label.setAttribute('for', controlId);
 
-        const inputEl = (controlElements.input =
-          document.createElement('input'));
-        inputEl.setAttribute('type', control.type);
+        const inputEl = (controlElements.input = document.createElement(
+          control.type === 'select' ? 'select' : 'input'
+        ));
+
         const inputValue =
           this.pattern.config[control.key] ?? control.defaultValue;
+
+        if (control.type === 'select') {
+          const selectOptions = document.createDocumentFragment();
+          control.options.forEach(_option => {
+            const { value, label } =
+              typeof _option === 'string'
+                ? { value: _option, label: _option }
+                : _option;
+            const optionEl = document.createElement('option');
+            optionEl.setAttribute('value', value);
+            optionEl.innerText = label;
+            selectOptions.appendChild(optionEl);
+          });
+          inputEl.appendChild(selectOptions);
+          inputEl.value = inputValue;
+          controlEl.appendChild(inputEl);
+        } else {
+          inputEl.setAttribute('type', control.type);
+
+          if (control.type === 'checkbox') {
+            inputEl.checked = inputValue;
+            controlEl.appendChild(inputEl);
+            controlEl.appendChild(label);
+          } else {
+            controlEl.appendChild(label);
+            controlEl.appendChild(inputEl);
+            inputEl.value = inputValue;
+            const inputValueEl = (controlElements.displayValue =
+              document.createElement('span'));
+            inputValueEl.id = `config_${control.key}_value`;
+            inputValueEl.innerText = control.displayValue
+              ? control.displayValue(this.pattern.config, control)
+              : inputValue;
+            inputValueEl.className = 'control_input_value';
+            controlEl.appendChild(inputValueEl);
+          }
+        }
 
         if (control.attr) {
           Object.entries(control.attr).forEach(([attr, value]) => {
@@ -307,23 +345,6 @@ export default class EditorControls {
           });
         }
 
-        if (control.type === 'checkbox') {
-          inputEl.checked = inputValue;
-          controlEl.appendChild(inputEl);
-          controlEl.appendChild(label);
-        } else {
-          controlEl.appendChild(label);
-          controlEl.appendChild(inputEl);
-          inputEl.value = inputValue;
-          const inputValueEl = (controlElements.displayValue =
-            document.createElement('span'));
-          inputValueEl.id = `config_${control.key}_value`;
-          inputValueEl.innerText = control.displayValue
-            ? control.displayValue(this.pattern.config, control)
-            : inputValue;
-          inputValueEl.className = 'control_input_value';
-          controlEl.appendChild(inputValueEl);
-        }
         inputEl.id = controlId;
       }
 

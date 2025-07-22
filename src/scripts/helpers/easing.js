@@ -29,6 +29,13 @@ const easing = {
       ? (1 - Math.pow(1 - x * 2, 5)) / 2
       : 0.5 + Math.pow(x * 2 - 1, 5) / 2;
   },
+  fastInOut(pow, x) {
+    return x <= 0.5
+      ? (1 - Math.pow(1 - x * 2, pow)) / 2
+      : 0.5 + Math.pow(x * 2 - 1, pow) / 2;
+  },
 };
+
+easing.fastInOut.requireParams = true;
 
 export default easing;

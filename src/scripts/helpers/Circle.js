@@ -1,6 +1,6 @@
 import Nails from '../Nails.js';
 import easing from './easing.js';
-import { PI2 } from './math_utils.js';
+import { fitInside, PI2 } from './math_utils.js';
 
 export default class Circle {
   constructor(config) {
@@ -15,10 +15,11 @@ export default class Circle {
     }
 
     const angle =
-      easing.linear(realIndex / this.config.n) * PI2 + this.rotationAngle;
+      this.easingFunction(realIndex / this.config.n) * PI2 + this.rotationAngle;
+
     const point = [
-      this.center[0] + Math.sin(angle) * this.radius,
-      this.center[1] - Math.cos(angle) * this.radius,
+      this.center[0] + Math.sin(angle) * this.radius[0],
+      this.center[1] + Math.cos(angle) * this.radius[1],
     ];
 
     this.points.set(index, point);
@@ -46,13 +47,37 @@ export default class Circle {
         reverse = false,
       } = config;
       const center = configCenter ?? size.map(v => v / 2);
+      const clampedRadius = radius ?? Math.min(...center) - margin;
+      let xyRadius = [clampedRadius, clampedRadius];
+
+      if (config.distortion) {
+        const distortedBox =
+          config.distortion < 0
+            ? [clampedRadius * (1 - Math.abs(config.distortion)), clampedRadius]
+            : [clampedRadius / (1 - config.distortion), clampedRadius];
+
+        xyRadius = fitInside(
+          distortedBox,
+          center.map(v => v - margin)
+        );
+      }
+
       const props = {
         center,
-        radius: radius ?? Math.min(...center) - margin,
+        radius: xyRadius,
         indexAngle: PI2 / n,
         rotationAngle: -PI2 * rotation,
         isReverse: reverse,
       };
+
+      const easingFunction = config.displacementFunc
+        ? easing[config.displacementFunc]
+        : easing.linear;
+      const easingFunctionWithParams = easingFunction.requireParams
+        ? easingFunction.bind(null, config.displacementMag)
+        : easingFunction;
+
+      this.easingFunction = easingFunctionWithParams;
       this.config = config;
       this.serializedConfig = serializedConfig;
       Object.assign(this, props);
@@ -72,6 +97,9 @@ export default class Circle {
     center,
     radius,
     reverse = false,
+    distortion = 0,
+    displacementFunc,
+    displacementMag,
   }) {
     return [
       size?.join(','),
@@ -81,7 +109,12 @@ export default class Circle {
       n,
       rotation,
       reverse,
-    ].join('_');
+      distortion,
+    ]
+      .concat(
+        displacementFunc === 'linear' ? [] : [displacementFunc, displacementMag]
+      )
+      .join('_');
   }
 
   /**
@@ -155,6 +188,48 @@ export default class Circle {
       min: 3,
       max: 300,
       step: 1,
+    },
+    isStructural: true,
+  });
+
+  static displacementConfig = Object.freeze({
+    key: 'displacement',
+    label: 'Displacement',
+    type: 'group',
+    children: [
+      {
+        key: 'displacementFunc',
+        label: 'Displacement function',
+        defaultValue: 'linear',
+        type: 'select',
+        options: Object.keys(easing),
+        isStructural: true,
+      },
+      {
+        key: 'displacementMag',
+        label: 'Displacement magnitude',
+        defaultValue: 3,
+        type: 'range',
+        attr: {
+          min: 0,
+          max: 10,
+          step: 0.1,
+        },
+        show: ({ displacementFunc }) => easing[displacementFunc].requireParams,
+        isStructural: true,
+      },
+    ],
+  });
+
+  static distortionConfig = Object.freeze({
+    key: 'distortion',
+    label: 'Distortion',
+    defaultValue: 0,
+    type: 'range',
+    attr: {
+      min: -0.99,
+      max: 0.99,
+      step: 0.01,
     },
     isStructural: true,
   });
