@@ -30,6 +30,7 @@ export default class Mandala extends StringArt {
       attr: { min: 1, max: 20, step: 1 },
     },
     Circle.rotationConfig,
+    Circle.distortionConfig,
     Color.getConfig({
       defaults: {
         isMultiColor: true,
@@ -55,12 +56,14 @@ export default class Mandala extends StringArt {
     this._n = null;
     super.setUpDraw();
 
-    const { layers, rotation, margin, layerFill, base, reverse } = this.config;
+    const { layers, rotation, distortion, margin, layerFill, base, reverse } =
+      this.config;
     const circleConfig = {
       size: this.size,
       n: this.n,
       margin,
       rotation,
+      distortion,
       reverse,
     };
     this.stringsPerLayer = layerFill ? Math.floor(this.n * layerFill) : this.n;

@@ -15,6 +15,7 @@ export default class Assymetry extends StringArt {
   controls = [
     Circle.nailsConfig,
     Circle.rotationConfig,
+    Circle.distortionConfig,
     {
       key: 'layers',
       label: 'Layers',
@@ -86,7 +87,7 @@ export default class Assymetry extends StringArt {
   }
 
   getSetUp() {
-    const { rotation, n, margin = 0 } = this.config;
+    const { rotation, n, margin = 0, distortion } = this.config;
     const size = this.getSize();
 
     const circleConfig = {
@@ -94,6 +95,7 @@ export default class Assymetry extends StringArt {
       n,
       margin,
       rotation: rotation - 0.25,
+      distortion,
     };
 
     let circle;

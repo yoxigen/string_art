@@ -18,8 +18,8 @@ export default class Circle {
       this.easingFunction(realIndex / this.config.n) * PI2 + this.rotationAngle;
 
     const point = [
-      this.center[0] + Math.sin(angle) * this.radius[0],
-      this.center[1] + Math.cos(angle) * this.radius[1],
+      this.center[0] + Math.sin(angle) * this.xyRadius[0],
+      this.center[1] + Math.cos(angle) * this.xyRadius[1],
     ];
 
     this.points.set(index, point);
@@ -64,7 +64,8 @@ export default class Circle {
 
       const props = {
         center,
-        radius: xyRadius,
+        radius: clampedRadius,
+        xyRadius,
         indexAngle: PI2 / n,
         rotationAngle: -PI2 * rotation,
         isReverse: reverse,

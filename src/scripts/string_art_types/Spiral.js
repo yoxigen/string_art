@@ -48,12 +48,14 @@ export default class Spiral extends StringArt {
       ...Circle.rotationConfig,
       defaultValue: 0.75,
     },
+    Circle.distortionConfig,
     COLOR_CONFIG,
   ];
 
   setUpDraw() {
     super.setUpDraw();
-    const { n, rotation, layers, margin, colorCount, repetition } = this.config;
+    const { n, rotation, layers, margin, colorCount, repetition, distortion } =
+      this.config;
     this.layersCount = layers ?? 1;
     this.realRepetition = repetition * 2 - 1;
 
@@ -62,6 +64,7 @@ export default class Spiral extends StringArt {
       n,
       margin,
       rotation,
+      distortion,
     };
 
     if (this.circle) {

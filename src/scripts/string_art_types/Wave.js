@@ -28,6 +28,7 @@ export default class Wave extends Mandala {
       ...Circle.rotationConfig,
       defaultValue: 176 / 360,
     },
+    Circle.distortionConfig,
     {
       key: 'layers',
       label: 'Layers',
@@ -75,7 +76,7 @@ export default class Wave extends Mandala {
   }
 
   *generateStrings() {
-    const {layers, reverse} = this.config;
+    const { layers, reverse } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
       yield* this.drawTimesTable({

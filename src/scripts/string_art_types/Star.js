@@ -35,6 +35,7 @@ export default class Star extends StringArt {
         Math.floor(ringSize * sideNails * sides),
     },
     Circle.rotationConfig,
+    Circle.distortionConfig,
     {
       key: 'colorGroup',
       label: 'Color',
@@ -76,12 +77,13 @@ export default class Star extends StringArt {
     this._n = null;
     super.setUpDraw();
 
-    const { sides, rotation, sideNails, margin = 0 } = this.config;
+    const { sides, rotation, distortion, sideNails, margin = 0 } = this.config;
     const circleConfig = {
       size: this.size,
       n: sideNails * sides,
       margin,
       rotation,
+      distortion,
     };
 
     if (this.circle) {
