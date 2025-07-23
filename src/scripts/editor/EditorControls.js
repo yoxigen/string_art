@@ -44,7 +44,9 @@ export default class EditorControls {
     this._wrappedOnInput = e => this._onInput(e);
     elements.controls.addEventListener('input', this._wrappedOnInput);
     this._wrappedOnTouchStart = e => this._onTouchStart(e);
+    this._wrappedOnMouseDown = e => this._onMouseDown(e);
     elements.controls.addEventListener('touchstart', this._wrappedOnTouchStart);
+    elements.controls.addEventListener('mousedown', this._wrappedOnMouseDown);
     elements.sidebarForm.addEventListener('click', this._toggleFieldset);
     elements.sidebarForm.addEventListener(
       'keydown',
@@ -65,6 +67,10 @@ export default class EditorControls {
       'touchstart',
       this._wrappedOnTouchStart
     );
+    elements.controls.removeEventListener(
+      'mousedown',
+      this._wrappedOnMouseDown
+    );
     elements.controls.innerHTML = '';
   }
 
@@ -83,6 +89,15 @@ export default class EditorControls {
   _triggerEvent(event, eventData) {
     for (const eventHandler of this.eventHandlers[event]) {
       eventHandler(eventData);
+    }
+  }
+
+  _onMouseDown(e) {
+    // Clearing selection when starting to click in the controls, do avoid a buggy behavior,
+    // when if a control's display value was selected (can happen by mistake), the drag of range input doesn't work.
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
     }
   }
 
@@ -179,6 +194,7 @@ export default class EditorControls {
     const triggerChange = () => {
       this._triggerEvent('change', eventData);
       this.updateControlsVisibility();
+      this.updateControlsAttributes();
     };
 
     if (deferChange) {
@@ -207,6 +223,34 @@ export default class EditorControls {
     } else {
       localStorage.removeItem(STATE_LOCAL_STORAGE_KEY);
     }
+  }
+
+  updateControlsAttributes(configControls = this.pattern.configControls) {
+    configControls.forEach(control => {
+      if (control.attr) {
+        const functionAttrs = Object.entries(control.attr).filter(
+          ([_, value]) => value instanceof Function
+        );
+        if (functionAttrs.length) {
+          const inputEl = this.controlElements[control.key].input;
+          if (inputEl) {
+            functionAttrs.forEach(([name, value]) => {
+              const newAttrValue = value(this.pattern);
+              if (newAttrValue != inputEl.getAttribute(name)) {
+                if (
+                  (name === 'min' && inputEl.value < newAttrValue) ||
+                  (name === 'max' && inputEl.value > newAttrValue)
+                ) {
+                  inputEl.value = newAttrValue;
+                  this.updateInput({ inputElement: inputEl });
+                }
+                inputEl.setAttribute(name, newAttrValue);
+              }
+            });
+          }
+        }
+      }
+    });
   }
 
   updateControlsVisibility(configControls = this.pattern.configControls) {

@@ -25,13 +25,6 @@ const COLOR_CONTROLS = [
     show: ({ isMultiColor }) => !isMultiColor,
   },
   {
-    key: 'repeatColors',
-    label: 'Repeat colors',
-    defaultValue: false,
-    type: 'checkbox',
-    show: ({ isMultiColor }) => isMultiColor,
-  },
-  {
     key: 'multicolorRange',
     label: 'Multicolor range',
     defaultValue: 360,
@@ -53,13 +46,6 @@ const COLOR_CONTROLS = [
       max: 360,
       step: 1,
     },
-    show: ({ isMultiColor }) => isMultiColor,
-  },
-  {
-    key: 'reverseColors',
-    label: 'Reverse colors order',
-    defaultValue: false,
-    type: 'checkbox',
     show: ({ isMultiColor }) => isMultiColor,
   },
   {
@@ -116,6 +102,36 @@ const COLOR_CONTROLS = [
       },
     ],
   },
+  {
+    key: 'colorOrderGroup',
+    type: 'group',
+    label: 'Order',
+    defaultValue: 'minimized',
+    show: ({ isMultiColor }) => isMultiColor,
+    children: [
+      {
+        key: 'reverseColors',
+        label: 'Reverse colors order',
+        defaultValue: false,
+        type: 'checkbox',
+        show: ({ isMultiColor }) => isMultiColor,
+      },
+      {
+        key: 'repeatColors',
+        label: 'Repeat colors',
+        defaultValue: false,
+        type: 'checkbox',
+        show: ({ isMultiColor }) => isMultiColor,
+      },
+      {
+        key: 'mirrorColors',
+        label: 'Mirror Colors',
+        defaultValue: false,
+        type: 'checkbox',
+        show: ({ isMultiColor, repeatColors }) => isMultiColor && repeatColors,
+      },
+    ],
+  },
 ];
 
 export default class Color {
@@ -131,6 +147,8 @@ export default class Color {
       darkMode,
       saturation,
       reverseColors,
+      repeatColors,
+      mirrorColors,
       isMultiColor,
     } = config;
 
@@ -151,6 +169,12 @@ export default class Color {
         }, ${saturation}%, ${lightness}%)`;
       });
 
+      if (repeatColors && mirrorColors) {
+        const [_firstColor, ...restColors] = this.colors;
+        restColors.pop();
+        this.colors = [...this.colors, ...restColors.reverse()];
+      }
+
       if (reverseColors) {
         this.colors.reverse();
       }
@@ -163,14 +187,17 @@ export default class Color {
    * @returns string
    */
   getColor(colorIndex) {
-    const { isMultiColor, colorCount, color, repeatColors } = this.config;
+    const { isMultiColor, colorCount, color, repeatColors, mirrorColors } =
+      this.config;
 
     if (!isMultiColor) {
       return color;
     }
 
     if (colorIndex >= colorCount) {
-      colorIndex = repeatColors ? colorIndex % colorCount : colorCount - 1;
+      colorIndex = repeatColors
+        ? colorIndex % this.colors.length
+        : this.colors.length - 1;
     }
 
     return this.colors[colorIndex];

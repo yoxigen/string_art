@@ -26,15 +26,14 @@ const COLOR_CONFIG = Color.getConfig({
 
 const spreadModes = {
   evenly: {
-    f: (layerIndex, config) => {
-      return Math.round(
-        config.ringSize * (1 - layerIndex / config.layers) * config.n
-      );
+    f: (layerIndex, { ringSize, layers, n }) => {
+      const firstLayerDistance = Math.round(n * ringSize);
+      return Math.floor(((layers - layerIndex) * firstLayerDistance) / layers);
     },
     name: 'Evenly',
   },
   distance: {
-    f: (layerIndex, { n, ringSize, layerDistance, layers }) => {
+    f: (layerIndex, { n, ringSize, layerDistance }) => {
       const firstLayerDistance = Math.round(n * ringSize);
 
       if (layerIndex > 0) {
@@ -94,7 +93,7 @@ export default class Comet extends StringArt {
       type: 'range',
       attr: {
         min: 1,
-        max: ({ config: { n, layers } }) => Math.floor(n / 2) / layers,
+        max: ({ config: { n, layers } }) => Math.floor(n / 2 / layers),
         step: 1,
       },
       defaultValue: 1,
@@ -108,14 +107,17 @@ export default class Comet extends StringArt {
   ];
 
   defaultValues = {
-    n: 74,
-    layers: 11,
-    colorCount: 7,
-    ringSize: 0.46,
-    rotation: 0.5,
-    distortion: -0.27,
+    n: 42,
+    layers: 12,
+    colorCount: 9,
+    colorPerLayer: true,
+    multicolorRange: 203,
+    multicolorStart: 137,
+    ringSize: 0.5,
+    rotation: 90 / 360,
+    distortion: 0.38,
     displacementFunc: 'fastInOut',
-    displacementMag: 1.5,
+    displacementMag: 2.2,
     layerSpread: 'distance',
     layerDistance: 1,
   };
@@ -246,6 +248,7 @@ export default class Comet extends StringArt {
   }
 
   static thumbnailConfig = {
-    n: 60,
+    n: 20,
+    layers: 8,
   };
 }
