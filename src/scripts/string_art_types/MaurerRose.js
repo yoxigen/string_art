@@ -64,23 +64,12 @@ export default class MaurerRose extends StringArt {
   ];
 
   resetStructure() {
+    super.resetStructure();
+
     if (this.points) {
       this.points.clear();
     }
     this.calc = null;
-  }
-
-  onConfigChange({ controls }) {
-    if (controls.some(({ control }) => control.isStructural)) {
-      this.resetStructure();
-      if (controls.some(({ control }) => control.affectsStepCount !== false)) {
-        this.stepCount = null;
-      }
-    }
-  }
-
-  onResize() {
-    this.resetStructure();
   }
 
   setUpDraw() {

@@ -205,6 +205,7 @@ export default class Circle {
         type: 'select',
         options: Object.keys(easing),
         isStructural: true,
+        affectsStepCount: false,
       },
       {
         key: 'displacementMag',
@@ -218,6 +219,7 @@ export default class Circle {
         },
         show: ({ displacementFunc }) => easing[displacementFunc].requireParams,
         isStructural: true,
+        affectsStepCount: false,
       },
     ],
   });
@@ -233,5 +235,6 @@ export default class Circle {
       step: 0.01,
     },
     isStructural: true,
+    affectsStepCount: false,
   });
 }

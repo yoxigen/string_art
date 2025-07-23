@@ -14,13 +14,56 @@ const COLOR_CONFIG = Color.getConfig({
     maxLightness: 70,
     colorCount: 4,
   },
+  customControls: [
+    {
+      key: 'colorPerLayer',
+      label: 'Color per layer',
+      defaultValue: true,
+      type: 'checkbox',
+    },
+  ],
 });
+
+const spreadModes = {
+  evenly: {
+    f: (layerIndex, config) => {
+      return Math.round(
+        config.ringSize * (1 - layerIndex / config.layers) * config.n
+      );
+    },
+    name: 'Evenly',
+  },
+  distance: {
+    f: (layerIndex, { n, ringSize, layerDistance, layers }) => {
+      const firstLayerDistance = Math.round(n * ringSize);
+
+      if (layerIndex > 0) {
+        return firstLayerDistance - layerIndex * layerDistance;
+      }
+
+      return firstLayerDistance;
+    },
+    name: 'Specific distance',
+  },
+};
 
 export default class Comet extends StringArt {
   name = 'Comet';
   id = 'comet';
   controls = [
     Circle.nailsConfig,
+    {
+      key: 'layers',
+      label: 'Layers',
+      defaultValue: 5,
+      type: 'range',
+      attr: {
+        min: 1,
+        max: 12,
+        step: 1,
+      },
+      isStructural: true,
+    },
     {
       key: 'ringSize',
       label: 'Ring size',
@@ -32,6 +75,31 @@ export default class Comet extends StringArt {
         step: 0.01,
       },
       displayValue: ({ ringSize }) => `${Math.round(100 * ringSize)}%`,
+      isStructural: true,
+    },
+    {
+      key: 'layerSpread',
+      label: 'Layer Spread',
+      type: 'select',
+      defaultValue: 'distance',
+      options: Object.entries(spreadModes).map(([key, { name }]) => ({
+        value: key,
+        label: name,
+      })),
+      isStructural: true,
+    },
+    {
+      key: 'layerDistance',
+      label: 'Layer Distance',
+      type: 'range',
+      attr: {
+        min: 1,
+        max: ({ config: { n, layers } }) => Math.floor(n / 2) / layers,
+        step: 1,
+      },
+      defaultValue: 1,
+      isStructural: true,
+      show: ({ layerSpread }) => layerSpread !== 'evenly',
     },
     Circle.rotationConfig,
     Circle.distortionConfig,
@@ -40,16 +108,25 @@ export default class Comet extends StringArt {
   ];
 
   defaultValues = {
-    ringSize: 0.3,
+    n: 74,
+    layers: 11,
+    colorCount: 7,
+    ringSize: 0.46,
     rotation: 0.5,
     distortion: -0.27,
     displacementFunc: 'fastInOut',
     displacementMag: 1.5,
+    layerSpread: 'distance',
+    layerDistance: 1,
   };
 
   resetStructure() {
     if (this.points) {
       this.points.clear();
+    }
+
+    if (this.layerRingDistances) {
+      this.layerRingDistances.clear();
     }
   }
 
@@ -71,11 +148,21 @@ export default class Comet extends StringArt {
       this.circle = new Circle(circleConfig);
     }
 
-    const { isMultiColor, colorCount } = this.config;
+    if (!this.stepCount) {
+      this.stepCount = this.getStepCount();
+    }
+
+    const { isMultiColor, colorCount, layers, colorPerLayer } = this.config;
+    const realColorCount = isMultiColor
+      ? colorPerLayer
+        ? layers
+        : Math.min(colorCount, layers)
+      : 1;
+
     this.color = new Color({
       ...this.config,
       isMultiColor,
-      colorCount,
+      colorCount: realColorCount,
     });
   }
 
@@ -92,9 +179,24 @@ export default class Comet extends StringArt {
     };
   }
 
+  getLayerRingDistance(layerIndex) {
+    const spread = spreadModes[this.config.layerSpread];
+    if (!spread) {
+      throw new Error(`Invalid spread mode, "${this.config.layerSpread}"!`);
+    }
+
+    return spread.f(layerIndex, this.config);
+  }
+
+  getLayerRingStepCount(layerIndex) {
+    const layerRingDistance = this.getLayerRingDistance(layerIndex);
+    return (this.config.n - layerRingDistance + 1) * 2 - 1;
+  }
+
   *drawLayer(layerIndex = 0) {
     const { n } = this.config;
-    const ringDistance = Math.round(this.config.ringSize * n);
+    const ringDistance = this.getLayerRingDistance(layerIndex);
+    const stepCount = n - ringDistance + 1;
 
     let prevPoint = this.circle.getPoint(0);
     let prevPointIndex = 0;
@@ -107,24 +209,36 @@ export default class Comet extends StringArt {
       this.renderer.renderLines(prevPoint, point);
       yield;
 
-      prevPointIndex = i + 1;
-      prevPoint = this.circle.getPoint(prevPointIndex);
+      if (i !== stepCount - 1) {
+        prevPointIndex = i + 1;
+        prevPoint = this.circle.getPoint(prevPointIndex);
 
-      this.renderer.renderLines(point, prevPoint);
+        this.renderer.renderLines(point, prevPoint);
 
-      yield;
+        yield;
+      }
     }
   }
 
   *generateStrings() {
-    yield* this.drawLayer(0);
+    for (let layer = 0; layer < this.config.layers; layer++) {
+      yield* this.drawLayer(layer);
+    }
   }
 
   getStepCount() {
-    const { n } = this.config;
-    const ringDistance = Math.round(this.config.ringSize * n);
+    if (this.stepCount) {
+      return this.stepCount;
+    }
 
-    return (n - ringDistance) * 2 + 1;
+    const { layers } = this.config;
+    return new Array(layers)
+      .fill(0)
+      .reduce(
+        (totalStepCount, _, layerIndex) =>
+          totalStepCount + this.getLayerRingStepCount(layerIndex),
+        0
+      );
   }
 
   drawNails() {

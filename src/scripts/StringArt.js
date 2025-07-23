@@ -182,6 +182,24 @@ class StringArt {
     }
   }
 
+  resetStructure() {}
+
+  onConfigChange({ controls }) {
+    if (controls.some(({ control }) => control.isStructural)) {
+      this.resetStructure();
+      if (
+        this.stepCount != null &&
+        controls.some(({ control }) => control.affectsStepCount !== false)
+      ) {
+        this.stepCount = null;
+      }
+    }
+  }
+
+  onResize() {
+    this.resetStructure();
+  }
+
   setConfigValue(controlKey, value) {
     this._config = Object.freeze({
       ...(this._config ?? this.defaultConfig),
