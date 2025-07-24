@@ -109,17 +109,17 @@ export default class Comet extends StringArt {
   ];
 
   defaultValues = {
-    n: 42,
-    layers: 12,
-    colorCount: 9,
+    n: 51,
+    layers: 11,
     colorPerLayer: true,
     multicolorRange: 203,
     multicolorStart: 137,
-    ringSize: 0.5,
+    ringSize: 0.47,
     rotation: 90 / 360,
     distortion: 0.38,
     displacementFunc: 'fastInOut',
-    displacementMag: 2.2,
+    displacementMag: 1.8,
+    displacementFastArea: 0.43,
     layerSpread: 'distance',
     layerDistance: 1,
   };
