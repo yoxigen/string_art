@@ -251,7 +251,7 @@ export default class Comet extends StringArt {
   }
 
   static thumbnailConfig = {
-    n: 20,
+    n: 24,
     layers: 8,
   };
 }
