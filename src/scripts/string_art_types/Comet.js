@@ -58,7 +58,7 @@ export default class Comet extends StringArt {
       type: 'range',
       attr: {
         min: 1,
-        max: 12,
+        max: 20,
         step: 1,
       },
       isStructural: true,
@@ -72,7 +72,7 @@ export default class Comet extends StringArt {
       type: 'range',
       attr: {
         min: 0,
-        max: 0.5,
+        max: 1,
         step: 0.01,
       },
       displayValue: ({ ringSize, n }) => Math.floor(n * ringSize),

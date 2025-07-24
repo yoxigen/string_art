@@ -369,7 +369,9 @@ export default class EditorControls {
           } else {
             controlEl.appendChild(label);
             controlEl.appendChild(inputEl);
-            inputEl.value = inputValue;
+            setTimeout(() => {
+              inputEl.value = inputValue;
+            });
             const inputValueEl = (controlElements.displayValue =
               document.createElement('span'));
             inputValueEl.id = `config_${control.key}_value`;
