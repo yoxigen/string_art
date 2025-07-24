@@ -27,14 +27,14 @@ const COLOR_CONFIG = Color.getConfig({
 const spreadModes = {
   evenly: {
     f: (layerIndex, { ringSize, layers, n }) => {
-      const firstLayerDistance = Math.round(n * ringSize);
+      const firstLayerDistance = Math.floor(n * ringSize);
       return Math.floor(((layers - layerIndex) * firstLayerDistance) / layers);
     },
     name: 'Evenly',
   },
   distance: {
     f: (layerIndex, { n, ringSize, layerDistance }) => {
-      const firstLayerDistance = Math.round(n * ringSize);
+      const firstLayerDistance = Math.floor(n * ringSize);
 
       if (layerIndex > 0) {
         return firstLayerDistance - layerIndex * layerDistance;
@@ -65,7 +65,9 @@ export default class Comet extends StringArt {
     },
     {
       key: 'ringSize',
-      label: 'Ring size',
+      label: 'First layer size',
+      description:
+        'Nail count from the top center nail to the first connected nail in the first layer',
       defaultValue: 0.3,
       type: 'range',
       attr: {
@@ -73,7 +75,7 @@ export default class Comet extends StringArt {
         max: 0.5,
         step: 0.01,
       },
-      displayValue: ({ ringSize }) => `${Math.round(100 * ringSize)}%`,
+      displayValue: ({ ringSize, n }) => Math.floor(n * ringSize),
       isStructural: true,
     },
     {
