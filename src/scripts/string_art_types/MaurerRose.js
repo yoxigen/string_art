@@ -14,6 +14,7 @@ const COLOR_CONFIG = Color.getConfig({
     maxLightness: 70,
     colorCount: 4,
   },
+  exclude: ['repeatColors', 'mirrorColors'],
 });
 
 export default class MaurerRose extends StringArt {

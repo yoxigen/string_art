@@ -74,8 +74,15 @@ export default class Circle {
       const easingFunction = config.displacementFunc
         ? easing[config.displacementFunc]
         : easing.linear;
-      const easingFunctionWithParams = easingFunction.requireParams
-        ? easingFunction.bind(null, config.displacementMag)
+      const easingParams = [];
+      if (easingFunction.requirePower) {
+        easingParams.push(config.displacementMag);
+      }
+      if (easingFunction.requireFastArea) {
+        easingParams.push(config.displacementFastArea);
+      }
+      const easingFunctionWithParams = easingParams.length
+        ? easingFunction.bind(null, ...easingParams)
         : easingFunction;
 
       this.easingFunction = easingFunctionWithParams;
@@ -101,6 +108,7 @@ export default class Circle {
     distortion = 0,
     displacementFunc,
     displacementMag,
+    displacementFastArea,
   }) {
     return [
       size?.join(','),
@@ -113,7 +121,9 @@ export default class Circle {
       distortion,
     ]
       .concat(
-        displacementFunc === 'linear' ? [] : [displacementFunc, displacementMag]
+        displacementFunc === 'linear'
+          ? []
+          : [displacementFunc, displacementMag, displacementFastArea]
       )
       .join('_');
   }
@@ -217,7 +227,22 @@ export default class Circle {
           max: 10,
           step: 0.1,
         },
-        show: ({ displacementFunc }) => easing[displacementFunc].requireParams,
+        show: ({ displacementFunc }) => easing[displacementFunc].requirePower,
+        isStructural: true,
+        affectsStepCount: false,
+      },
+      {
+        key: 'displacementFastArea',
+        label: 'Displacement fast area',
+        defaultValue: 0.4,
+        type: 'range',
+        attr: {
+          min: 0,
+          max: 0.5,
+          step: 0.01,
+        },
+        show: ({ displacementFunc }) =>
+          easing[displacementFunc].requireFastArea,
         isStructural: true,
         affectsStepCount: false,
       },

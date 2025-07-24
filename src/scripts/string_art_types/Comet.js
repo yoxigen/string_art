@@ -142,6 +142,7 @@ export default class Comet extends StringArt {
       distortion: this.config.distortion,
       displacementFunc: this.config.displacementFunc,
       displacementMag: this.config.displacementMag,
+      displacementFastArea: this.config.displacementFastArea,
     };
 
     if (this.circle) {

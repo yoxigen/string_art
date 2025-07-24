@@ -13,6 +13,7 @@ const COLOR_CONFIG = Color.getConfig({
     minLightness: 36,
     maxLightness: 98,
   },
+  exclude: ['repeatColors', 'mirrorColors'],
 });
 
 export default class Spiral extends StringArt {

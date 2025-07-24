@@ -34,8 +34,21 @@ const easing = {
       ? (1 - Math.pow(1 - x * 2, pow)) / 2
       : 0.5 + Math.pow(x * 2 - 1, pow) / 2;
   },
+  fastInOutFixed(pow, fastArea, x) {
+    if (x > fastArea && x < 1 - fastArea) {
+      const y1 = (1 - Math.pow(1 - fastArea * 2, pow)) / 2;
+      const y2 = 0.5 + Math.pow((1 - fastArea) * 2 - 1, pow) / 2;
+
+      return y1 + ((x - fastArea) * (y2 - y1)) / (1 - 2 * fastArea);
+    }
+    return x <= fastArea
+      ? (1 - Math.pow(1 - x * 2, pow)) / 2
+      : 0.5 + Math.pow(x * 2 - 1, pow) / 2;
+  },
 };
 
-easing.fastInOut.requireParams = true;
+easing.fastInOut.requirePower = true;
+easing.fastInOutFixed.requirePower = true;
+easing.fastInOutFixed.requireFastArea = true;
 
 export default easing;
