@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang=en><title>String Art Studio</title><link rel=stylesheet href=string_art.5d248ce8.css><script type=module src=string_art.0b29293a.js></script><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Yossi Kolesnicov"><meta name=description content="An app to design and help produce string art projects"><meta name=theme-color content=#262629><link rel=icon type=image/png href=favicon-16.2f1470d8.png sizes=16x16><link rel=icon type=image/png href=favicon-32.c9a5c761.png sizes=32x32><link rel=icon type=image/png href=favicon-96.f47611a0.png sizes=96x96><link rel=apple-touch-icon-precomposed type=image/png href=favicon-152.c9bfea9e.png sizes=152x152><link rel=icon type=image/png href=favicon-196.815ccb95.png sizes=196x196><link rel=manifest href=manifest.webmanifest><script async src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-1QTWZCWLPY");</script><body class=dialog_sidebar_form>
+<!DOCTYPE html><html lang=en><title>String Art Studio</title><link rel=stylesheet href=string_art.b5e6fdf8.css><script type=module src=string_art.0b29293a.js></script><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Yossi Kolesnicov"><meta name=description content="An app to design and help produce string art projects"><meta name=theme-color content=#262629><link rel=icon type=image/png href=favicon-16.2f1470d8.png sizes=16x16><link rel=icon type=image/png href=favicon-32.c9a5c761.png sizes=32x32><link rel=icon type=image/png href=favicon-96.f47611a0.png sizes=96x96><link rel=apple-touch-icon-precomposed type=image/png href=favicon-152.c9bfea9e.png sizes=152x152><link rel=icon type=image/png href=favicon-196.815ccb95.png sizes=196x196><link rel=manifest href=manifest.webmanifest><script async src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-1QTWZCWLPY");</script><body class=dialog_sidebar_form>
     <main hidden>
       <header id=main_header>
         <h1>
@@ -41,14 +41,12 @@
                     <input type=number min=0 placeholder=Height id=size_custom_height>
                   </div>
                 </div>
-
               </div>
             </fieldset>
           </div>
         </div>
       </form>
-      <article id=canvas_panel class=pattern_only>
-      </article>
+      <article id=canvas_panel class=pattern_only></article>
       <nav id=player class="noprint pattern_only">
         <div id=player_controls>
           <div id=player_buttons>
@@ -89,7 +87,9 @@
           🔨 Download nails map
         </button>
         <button id=download_btn class=btn>💾 Download image (PNG)</button>
-        <button id=download_svg_btn class=btn>💾 Download image (SVG)</button>
+        <button id=download_svg_btn class=btn>
+          💾 Download image (SVG)
+        </button>
       </div>
       <article id=mobile_menu>
         <div id=mobile_menu_contents>
@@ -106,30 +106,49 @@
           </header>
           <section>
             <p>
-              Welcome to String Art Studio! With this app you can design and produce your own
-              beautiful string art projects.
+              Welcome to String Art Studio! With this app you can design and
+              produce your own beautiful string art projects.
             </p>
           </section>
           <section>
-          <h2>How-to</h2>
-          <ol>
-            <li>Choose a pattern</li>
-            <li>Change options (like number of nails, shapes and colors)</li>
-            <li>Download and print a map of nail positions</li>
-            <li>Drive nails into a wood panel through the nails map</li>
-            <li>
-              Put strings to the nails as shown in the app's player.
-              You can play this process in the app's player and pause, to make things clear.
-            </li>
-            <li>You're done!</li>
-          </ol>
-        </section>
-        <section>
-          <h2>More info</h2>
-            <ul id=menu_links>
+            <h2>How-to</h2>
+            <ol>
+              <li>Choose a pattern</li>
+              <li>Change options (like number of nails, shapes and colors)</li>
+              <li>Download and print a map of nail positions</li>
+              <li>Drive nails into a wood panel through the nails map</li>
+              <li>
+                Put strings to the nails as shown in the app's player. You can
+                play this process in the app's player and pause, to make things
+                clear.
+              </li>
+            </ol>
+          </section>
+          <section>
+            <h2>Support</h2>
+
+            <p>
+              This app is free and maintained with love to promote string art. I
+              take requests for new patterns and ideas on how to improve it, so
+              feel free to
+              <a href="mailto:yoxigen+string_art@gmail.com?subject=Contact through String Art Studio" target=_blank class=no_text_break>send me an email</a>.
+            </p>
+            <p>
+              If you got value from the app and would like to show your
+              appreciation through a small donation, I'd really apreciate it,
+              and the money would help pay for hosting expenses and keeping the
+              app free. Thank you so much!
+              <br><br>
+              <a href=https://ko-fi.com/yossikolesnicov targe=_blank class=menu_btn><img src=https://storage.ko-fi.com/cdn/cup-border.png alt="Ko-fi donations" class=kofiimg width=25 height=20>
+                Donate</a>
+            </p>
+          </section>
+          <section>
+            <h2>More info</h2>
+            <ul class=menu_links>
               <li>
                 <a href=https://github.com/yoxigen/string_art target=_blank>
-                  <img src=GitHub-Mark-Light-32px.2c1002b6.png class=menu_link_img alt=GitHub width=24 height=24>
+                  <img src=GitHub-Mark-Light-32px.2c1002b6.png class="menu_item_aside menu_link_img" alt=GitHub width=24 height=24>
                   String Art Studio on GitHub
                 </a>
               </li>
@@ -137,14 +156,10 @@
                 <a href=https://en.wikipedia.org/wiki/String_art target=_blank>String Art on Wikipedia</a>
               </li>
               <li>
-                Want to request a new pattern? Found a bug? Just want to talk?
-                <a href="mailto:yoxigen+string_art@gmail.com?subject=Contact through String Art Studio" target=_blank>Email me!</a>
-              </li>
-              <li>
                 <a href=privacy.html>Privacy policy</a>
               </li>
             </ul>
-        </section>
+          </section>
         </div>
       </article>
     </main>
