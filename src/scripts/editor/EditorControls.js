@@ -358,6 +358,7 @@ export default class EditorControls {
           });
           inputEl.appendChild(selectOptions);
           inputEl.value = inputValue;
+          controlEl.appendChild(label);
           controlEl.appendChild(inputEl);
         } else {
           inputEl.setAttribute('type', control.type);

@@ -4,6 +4,7 @@
   "description": "String Art Studio",
   "source": "./src/index.html",
   "scripts": {
+    "dev": "parcel",
     "build": "parcel build",
     "postbuild": "workbox generateSW"
   },
@@ -30,7 +31,7 @@
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.2.0",
     "@parcel/transformer-webmanifest": "^2.2.0",
-    "parcel": "^2.2.0",
+    "parcel": "2.15.4",
     "prettier": "2.4.1",
     "workbox-cli": "^6.4.2"
   },
