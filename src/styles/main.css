@@ -87,7 +87,8 @@ h1 {
   color: var(--logo2);
 }
 
-canvas, svg {
+canvas,
+svg {
   height: 100%;
   width: 100%;
 }
@@ -110,6 +111,11 @@ a:hover {
   overflow: auto;
 }
 
-.small_only, .large_only {
+.small_only,
+.large_only {
   display: none !important;
+}
+
+.no_text_break {
+  white-space: nowrap;
 }

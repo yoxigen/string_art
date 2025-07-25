@@ -107,3 +107,34 @@
   color: White;
   font-size: 22px;
 }
+
+.menu_btn {
+  display: inline-flex;
+  height: 48px;
+  padding: 0 32px 0 24px;
+  background: var(--color-accent);
+  color: var(--color-text);
+  border-radius: 24px;
+  align-items: center;
+  font-weight: 500;
+  font-size: 1.1em !important;
+  text-decoration: none;
+}
+
+@media only screen and (max-width: 600px) {
+  .menu_btn {
+    display: flex;
+    width: auto;
+    justify-content: center;
+  }
+}
+
+.menu_btn:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.menu_btn img {
+  margin-inline-end: 8px;
+}

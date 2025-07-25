@@ -5,8 +5,11 @@
     <link type="text/css" rel="stylesheet" href="styles/index.css" />
     <script type="module" src="scripts/main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="author" content="Yossi Kolesnicov">
-    <meta name="description" content="An app to design and help produce string art projects" />
+    <meta name="author" content="Yossi Kolesnicov" />
+    <meta
+      name="description"
+      content="An app to design and help produce string art projects"
+    />
     <meta name="theme-color" content="#262629" />
     <link
       rel="icon"
@@ -63,21 +66,30 @@
         </h1>
       </header>
       <div id="pattern_select_panel" class="minimized">
-        <button id="menu_btn" class="btn-icon small_only" title="Open menu" data-toggle-for="mobile_menu">
+        <button
+          id="menu_btn"
+          class="btn-icon small_only"
+          title="Open menu"
+          data-toggle-for="mobile_menu"
+        >
           <i class="icon-hamburger"></i>
         </button>
         <button type="button" id="pattern_select_btn">Choose a pattern</button>
         <a
-            id="pattern_link"
-            target="_blank"
-            class="pattern_only"
-            title="View original which inspired this pattern"
-            >Example</a
-          >
+          id="pattern_link"
+          target="_blank"
+          class="pattern_only"
+          title="View original which inspired this pattern"
+          >Example</a
+        >
         <div id="pattern_select_dropdown">
           <h3 id="pattern_select_thumbnails_title">Available patterns</h3>
           <ul id="pattern_select_thumbnails"></ul>
-          <div id="pattern_select_dropdown_instructions" class="large_only pattern_only" hidden>
+          <div
+            id="pattern_select_dropdown_instructions"
+            class="large_only pattern_only"
+            hidden
+          >
             <a href="./">Instructions</a>
           </div>
         </div>
@@ -113,14 +125,12 @@
                     />
                   </div>
                 </div>
-
               </div>
             </fieldset>
           </div>
         </div>
       </form>
-      <article id="canvas_panel" class="pattern_only">
-      </article>
+      <article id="canvas_panel" class="pattern_only"></article>
       <nav id="player" class="noprint pattern_only">
         <div id="player_controls">
           <div id="player_buttons">
@@ -187,7 +197,9 @@
           🔨 Download nails map
         </button>
         <button id="download_btn" class="btn">💾 Download image (PNG)</button>
-        <button id="download_svg_btn" class="btn">💾 Download image (SVG)</button>
+        <button id="download_svg_btn" class="btn">
+          💾 Download image (SVG)
+        </button>
       </div>
       <article id="mobile_menu">
         <div id="mobile_menu_contents">
@@ -197,52 +209,99 @@
               <span class="logo2">Studio</span>
             </h1>
             <div>
-              <button id="mobile_menu_close_btn" type="button" class="btn-icon small_only" title="Close menu" data-toggle-for="mobile_menu">
+              <button
+                id="mobile_menu_close_btn"
+                type="button"
+                class="btn-icon small_only"
+                title="Close menu"
+                data-toggle-for="mobile_menu"
+              >
                 <i class="icon-arrow_left"></i>
               </button>
             </div>
           </header>
           <section>
             <p>
-              Welcome to String Art Studio! With this app you can design and produce your own
-              beautiful string art projects.
+              Welcome to String Art Studio! With this app you can design and
+              produce your own beautiful string art projects.
             </p>
           </section>
           <section>
-          <h2>How-to</h2>
-          <ol>
-            <li>Choose a pattern</li>
-            <li>Change options (like number of nails, shapes and colors)</li>
-            <li>Download and print a map of nail positions</li>
-            <li>Drive nails into a wood panel through the nails map</li>
-            <li>
-              Put strings to the nails as shown in the app's player.
-              You can play this process in the app's player and pause, to make things clear.
-            </li>
-            <li>You're done!</li>
-          </ol>
-        </section>
-        <section>
-          <h2>More info</h2>
-            <ul id="menu_links">
+            <h2>How-to</h2>
+            <ol>
+              <li>Choose a pattern</li>
+              <li>Change options (like number of nails, shapes and colors)</li>
+              <li>Download and print a map of nail positions</li>
+              <li>Drive nails into a wood panel through the nails map</li>
+              <li>
+                Put strings to the nails as shown in the app's player. You can
+                play this process in the app's player and pause, to make things
+                clear.
+              </li>
+            </ol>
+          </section>
+          <section>
+            <h2>Support</h2>
+
+            <p>
+              This app is free and maintained with love to promote string art. I
+              take requests for new patterns and ideas on how to improve it, so
+              feel free to
+              <a
+                href="mailto:yoxigen+string_art@gmail.com?subject=Contact through String Art Studio"
+                target="_blank"
+                class="no_text_break"
+                >send me an email</a
+              >.
+            </p>
+            <p>
+              If you got value from the app and would like to show your
+              appreciation through a small donation, I'd really apreciate it,
+              and the money would help pay for hosting expenses and keeping the
+              app free. Thank you so much!
+              <br /><br />
+              <a
+                href="https://ko-fi.com/yossikolesnicov"
+                targe="_blank"
+                class="menu_btn"
+                ><img
+                  src="https://storage.ko-fi.com/cdn/cup-border.png"
+                  alt="Ko-fi donations"
+                  class="kofiimg"
+                  width="25"
+                  height="20"
+                />
+                Donate</a
+              >
+            </p>
+          </section>
+          <section>
+            <h2>More info</h2>
+            <ul class="menu_links">
               <li>
                 <a href="https://github.com/yoxigen/string_art" target="_blank">
-                  <img src="images/GitHub-Mark-Light-32px.png" class="menu_link_img" alt="GitHub" width="24" height="24" />
+                  <img
+                    src="images/GitHub-Mark-Light-32px.png"
+                    class="menu_item_aside menu_link_img"
+                    alt="GitHub"
+                    width="24"
+                    height="24"
+                  />
                   String Art Studio on GitHub
                 </a>
               </li>
               <li>
-                <a href="https://en.wikipedia.org/wiki/String_art" target="_blank">String Art on Wikipedia</a>
-              </li>
-              <li>
-                Want to request a new pattern? Found a bug? Just want to talk?
-                <a href="mailto:yoxigen+string_art@gmail.com?subject=Contact through String Art Studio" target="_blank">Email me!</a>
+                <a
+                  href="https://en.wikipedia.org/wiki/String_art"
+                  target="_blank"
+                  >String Art on Wikipedia</a
+                >
               </li>
               <li>
                 <a href="privacy.html">Privacy policy</a>
               </li>
             </ul>
-        </section>
+          </section>
         </div>
       </article>
     </main>

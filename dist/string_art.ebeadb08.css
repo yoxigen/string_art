@@ -1,6 +1,7 @@
 @import "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap";
 :root {
   --color-accent: #ff218f;
+  --color-accent-hover: #b11b66;
   --color-buttons-dialog: #212124;
   --color-canvas-background: #0e0e0e;
   --color-config: #212124;
@@ -142,6 +143,10 @@ a:hover {
 
 .small_only, .large_only {
   display: none !important;
+}
+
+.no_text_break {
+  white-space: nowrap;
 }
 
 #player {
@@ -466,6 +471,37 @@ select {
   font-size: 22px;
 }
 
+.menu_btn {
+  background: var(--color-accent);
+  height: 48px;
+  color: var(--color-text);
+  border-radius: 24px;
+  align-items: center;
+  padding: 0 32px 0 24px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  font-size: 1.1em !important;
+}
+
+@media only screen and (width <= 600px) {
+  .menu_btn {
+    justify-content: center;
+    width: auto;
+    display: flex;
+  }
+}
+
+.menu_btn:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.menu_btn img {
+  margin-inline-end: 8px;
+}
+
 #pattern_link {
   white-space: nowrap;
   flex: 0;
@@ -703,7 +739,7 @@ input[type="range"] {
     z-index: 5;
     width: 100vw;
     max-width: 400px;
-    height: 100vh;
+    height: 100%;
     transition: transform .2s ease-out;
     position: fixed;
     top: 0;
@@ -758,25 +794,28 @@ input[type="range"] {
   box-shadow: inset 0 1px #ffffff26;
 }
 
-#menu_links {
+.menu_links {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-#menu_links li {
+.menu_links li {
   border-top: var(--border-lighter);
   padding: 8px 16px;
 }
 
-#menu_links a {
+.menu_links a {
   font-size: 1rem;
   text-decoration: none;
 }
 
 .menu_link_img {
-  float: right;
   width: 24px;
+}
+
+.menu_item_aside {
+  float: inline-end;
   margin-inline-start: 16px;
 }
 

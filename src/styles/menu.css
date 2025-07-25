@@ -31,7 +31,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 100%;
     width: 100vw;
     max-width: 400px;
     z-index: 5;
@@ -86,24 +86,27 @@
   box-shadow: 0 1px 0 rgb(255 255 255 / 15%) inset;
 }
 
-#menu_links {
+.menu_links {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-#menu_links li {
+.menu_links li {
   padding: 8px 16px;
   border-top: var(--border-lighter);
 }
 
-#menu_links a {
+.menu_links a {
   text-decoration: none;
   font-size: 1rem;
 }
 
 .menu_link_img {
   width: 24px;
+}
+
+.menu_item_aside {
   margin-inline-start: 16px;
-  float: right;
+  float: inline-end;
 }
