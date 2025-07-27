@@ -25,18 +25,6 @@ const COLOR_CONTROLS = [
     show: ({ isMultiColor }) => !isMultiColor,
   },
   {
-    key: 'multicolorRange',
-    label: 'Multicolor range',
-    defaultValue: 360,
-    type: 'range',
-    attr: {
-      min: 1,
-      max: 360,
-      step: 1,
-    },
-    show: ({ isMultiColor }) => isMultiColor,
-  },
-  {
     key: 'multicolorStart',
     label: 'Multicolor start',
     defaultValue: 0,
@@ -45,6 +33,31 @@ const COLOR_CONTROLS = [
       min: 0,
       max: 360,
       step: 1,
+      background:
+        'linear-gradient(90deg in hsl longer hue, hsl(0 100 50), hsl(360deg 100 50))',
+      thumbcolor: ({ config: { multicolorStart } }) =>
+        `hsl(${multicolorStart}deg 100 50)`,
+    },
+    show: ({ isMultiColor }) => isMultiColor,
+  },
+  {
+    key: 'multicolorRange',
+    label: 'Multicolor range',
+    defaultValue: 360,
+    type: 'range',
+    attr: {
+      min: 1,
+      max: 360,
+      step: 1,
+      background: ({
+        config: { multicolorStart, multicolorRange, reverseColors },
+      }) =>
+        `linear-gradient(to ${reverseColors ? 'left' : 'right'} in hsl ${
+          multicolorRange > 180 ? 'longer' : 'shorter'
+        } hue, hsl(${multicolorStart} 100 50), hsl(${
+          multicolorStart + multicolorRange
+        } 100 50))`,
+      thumbcolor: 'white',
     },
     show: ({ isMultiColor }) => isMultiColor,
   },
@@ -83,6 +96,10 @@ const COLOR_CONTROLS = [
           min: 0,
           max: 100,
           step: 1,
+          snap: '50',
+          thumbcolor: ({ config: { minLightness } }) =>
+            `hsl(0 0 ${minLightness})`,
+          background: 'linear-gradient(to right, black, white)',
         },
         show: ({ multicolorByLightness, isMultiColor }) =>
           multicolorByLightness && isMultiColor,
@@ -96,6 +113,10 @@ const COLOR_CONTROLS = [
           min: 0,
           max: 100,
           step: 1,
+          snap: '50',
+          thumbcolor: ({ config: { maxLightness } }) =>
+            `hsl(0 0 ${maxLightness})`,
+          background: 'linear-gradient(to right, black, white)',
         },
         show: ({ multicolorByLightness, isMultiColor }) =>
           multicolorByLightness && isMultiColor,

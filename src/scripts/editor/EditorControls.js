@@ -149,7 +149,11 @@ export default class EditorControls {
     clearTimeout(inputTimeout);
     clearTimeout(this._postponeRangeInputTimeout);
 
-    if (this._postponeRangeInput && e.target.getAttribute('type') === 'range') {
+    if (
+      this._postponeRangeInput &&
+      (e.target.getAttribute('type') === 'range' ||
+        e.target.nodeName === 'STRING-ART-RANGE-INPUT')
+    ) {
       e.preventDefault();
       this._postponeRangeInputTimeout = setTimeout(() => {
         this._onInput(e);
@@ -194,8 +198,9 @@ export default class EditorControls {
     const triggerChange = () => {
       this._triggerEvent('change', eventData);
       this.updateControlsVisibility();
-      this.updateControlsAttributes();
     };
+
+    this.updateControlsAttributes();
 
     if (deferChange) {
       inputTimeout = setTimeout(triggerChange, 100);
@@ -227,7 +232,9 @@ export default class EditorControls {
 
   updateControlsAttributes(configControls = this.pattern.configControls) {
     configControls.forEach(control => {
-      if (control.attr) {
+      if (control.type === 'group') {
+        this.updateControlsAttributes(control.children);
+      } else if (control.attr) {
         const functionAttrs = Object.entries(control.attr).filter(
           ([_, value]) => value instanceof Function
         );
@@ -338,7 +345,11 @@ export default class EditorControls {
         label.setAttribute('for', controlId);
 
         const inputEl = (controlElements.input = document.createElement(
-          control.type === 'select' ? 'select' : 'input'
+          control.type === 'select'
+            ? 'select'
+            : control.type === 'range'
+            ? 'string-art-range-input'
+            : 'input'
         ));
 
         const inputValue =
@@ -422,6 +433,10 @@ export default class EditorControls {
 }
 
 function getInputValue(type, inputElement) {
+  if (inputElement.nodeName === 'STRING-ART-RANGE-INPUT') {
+    return parseFloat(inputElement.value);
+  }
+
   switch (type) {
     case 'range':
       return parseFloat(inputElement.value);

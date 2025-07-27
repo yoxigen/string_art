@@ -11,6 +11,7 @@ input[type='text'] {
   padding: 4px;
 }
 
-input[type='range'] {
+input[type='range'],
+string-art-range-input {
   width: 100%;
 }
