@@ -176,6 +176,10 @@ export default class EditorControls {
     const inputValue = getInputValue(inputElement.type, inputElement);
     const controlKey = inputElement.id.replace(/^config_/, '');
 
+    if (this.pattern.config[controlKey] === inputValue) {
+      return;
+    }
+
     this.pattern.setConfigValue(controlKey, inputValue);
 
     const { config, displayValue } = this.controlElements[controlKey];

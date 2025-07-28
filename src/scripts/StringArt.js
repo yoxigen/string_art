@@ -201,6 +201,10 @@ class StringArt {
   }
 
   setConfigValue(controlKey, value) {
+    if (this._config && this._config[controlKey] === value) {
+      return;
+    }
+
     this._config = Object.freeze({
       ...(this._config ?? this.defaultConfig),
       [controlKey]: value,
