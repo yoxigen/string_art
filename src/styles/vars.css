@@ -12,6 +12,9 @@
   --color-player: #222226;
   --color-text: White;
   --color-text-hover: #85ccff;
+  --color-input: #c51880;
+  --color-input-hover: #961663;
+  --color-input-active: #e20c8c;
 
   --horizontal-padding: 16px;
   --vertical-padding: 12px;

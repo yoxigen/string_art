@@ -93,6 +93,7 @@ fieldset.minimized > legend::before {
   transform: rotateZ(-90deg);
 }
 
+string-art-range-input + .control_input_value,
 input[type='range'] + .control_input_value {
   position: absolute;
   right: 0;

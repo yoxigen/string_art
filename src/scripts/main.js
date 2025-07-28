@@ -10,6 +10,7 @@ import CanvasRenderer from './renderers/CanvasRenderer.js';
 import SVGRenderer from './renderers/SVGRenderer.js';
 import { downloadPatternAsSVG } from './download/SVGDownload.js';
 import { downloadFile } from './download/Download.js';
+import './components/StringArtRangeInput.js';
 
 window.addEventListener('error', function (event) {
   alert('Error: ' + event.message);
