@@ -2,6 +2,7 @@ const DEFAULT_SNAP_DISTANCE = 0.05;
 const THUMB_RADIUS = 8;
 const TICK_WIDTH = 2;
 const TICK_COLOR = 'rgba(0,0,0,.2)';
+const FAR_VALUES_DISTANCE = 0.2; // values are considered far from each other if they are at least a fifth of the width of the input apart
 
 export default class StringArtRangeInput extends HTMLElement {
   #input = null;
@@ -96,10 +97,15 @@ export default class StringArtRangeInput extends HTMLElement {
     }
 
     if (this.min != null && this.max != null) {
+      if (this.min > this.max) {
+        this.max = this.min;
+        this.#input.max = this.min;
+      }
+
       this.#snapDistance =
         (this.max - this.min) * this.#snap || DEFAULT_SNAP_DISTANCE;
 
-      if (this.#tickValues && value != null) {
+      if (this.#tickValues && this.value != null) {
         const snappedValue = this.getClosestTick(value);
         if (snappedValue != null) {
           this.#prevSnapValue = snappedValue;
@@ -151,7 +157,10 @@ export default class StringArtRangeInput extends HTMLElement {
     const ticks = this.getAttribute('snap');
     const ticksMatch = ticks?.match(/\d+(\.\d+)?/g);
     if (!ticksMatch) return [];
-    return ticksMatch.map(Number).filter(n => !isNaN(n));
+    return ticksMatch
+      .map(Number)
+      .filter(n => !isNaN(n))
+      .sort();
   }
 
   #shouldAvoidSnap(newValue, closestTick) {
@@ -176,8 +185,14 @@ export default class StringArtRangeInput extends HTMLElement {
     return false;
   }
 
+  // Checks whether two values are far apart,
+  #areValuesFar(value1, value2) {
+    const distance = Math.abs(value1 - value2) / (this.max - this.min);
+    return distance >= FAR_VALUES_DISTANCE;
+  }
+
   handleInput() {
-    const value = parseFloat(this.#input.value);
+    const value = Number(this.#input.value);
     const closestTick = this.getClosestTick(value);
 
     if (
@@ -200,6 +215,14 @@ export default class StringArtRangeInput extends HTMLElement {
       }
     }
 
+    if (
+      this.#snapDisabledTick != null &&
+      closestTick == null &&
+      this.#areValuesFar(value, this.#snapDisabledTick)
+    ) {
+      this.#snapDisabledTick = null;
+    }
+
     this.#setStyle();
     this.#prevValue = value;
 
@@ -211,39 +234,46 @@ export default class StringArtRangeInput extends HTMLElement {
   }
 
   handleKeydown(event) {
-    const step = parseFloat(this.#input.step || 1);
-    const value = parseFloat(this.#input.value);
-    const min = parseFloat(this.#input.min || 0);
-    const max = parseFloat(this.#input.max || 100);
+    const step = Number(this.#input.step || 1);
+    const value = Number(this.#input.value);
+
+    let newValue;
 
     if (event.key === 'ArrowLeft') {
-      this.#input.value = Math.max(min, value - step);
+      newValue = Math.max(this.min, value - step);
     } else if (event.key === 'ArrowRight') {
-      this.#input.value = Math.min(max, value + step);
+      newValue = Math.min(this.max, value + step);
     } else if (event.key === 'ArrowUp') {
       const next = this.#tickValues.find(t => t > value);
       if (next !== undefined) {
-        this.#input.value = next;
-        this.#vibrate();
+        newValue = next;
+      } else if (value !== this.max) {
+        // no next tick found, go to max
+        newValue = this.max;
       }
     } else if (event.key === 'ArrowDown') {
       const reversed = [...this.#tickValues].reverse();
       const prev = reversed.find(t => t < value);
       if (prev !== undefined) {
-        this.#input.value = prev;
-        this.#vibrate();
+        newValue = prev;
+      } else if (value !== this.min) {
+        newValue = this.min;
       }
-    } else {
-      return; // don't emit change for other keys
     }
 
-    // emit event and prevent default for arrow keys
-    event.preventDefault();
-    this.dispatchEvent(
-      new CustomEvent('change', {
-        detail: { value: this.#input.value },
-      })
-    );
+    if (newValue != null) {
+      this.#input.value = newValue;
+      this.#setStyle();
+      this.#prevValue = newValue;
+      // emit event and prevent default for arrow keys
+      this.dispatchEvent(
+        new InputEvent('input', {
+          detail: { value: newValue },
+          bubbles: true,
+          composed: true,
+        })
+      );
+    }
   }
 
   getClosestTick(value) {
