@@ -7,11 +7,13 @@ export default class StringArtRangeInput extends HTMLElement {
   #input = null;
   #backgroundStyle = null;
   #snap = DEFAULT_SNAP_DISTANCE;
+  #prevValue = null;
   #prevSnapValue = null;
   #tickValues = null;
   #snapDistance = null;
   #background = null;
   #thumbColor = null;
+  #snapDisabledTick = null;
 
   constructor() {
     super();
@@ -105,7 +107,7 @@ export default class StringArtRangeInput extends HTMLElement {
       }
     }
 
-    this.#setBackground();
+    this.#setStyle();
   }
 
   get value() {
@@ -114,7 +116,7 @@ export default class StringArtRangeInput extends HTMLElement {
 
   set value(v) {
     this.#input.value = v;
-    this.#setBackground();
+    this.#setStyle();
   }
 
   connectedCallback() {
@@ -128,14 +130,17 @@ export default class StringArtRangeInput extends HTMLElement {
     this.resizeObserver = new ResizeObserver(entries => {
       for (let entry of entries) {
         const width = entry.contentRect.width;
-        this.#setBackground();
+        this.#setStyle();
       }
     });
     this.resizeObserver.observe(this.#input);
 
     this.#input.addEventListener('input', () => this.handleInput());
     this.#input.addEventListener('keydown', e => this.handleKeydown(e));
-    //this.#input.addEventListener('change', () => (this.#prevSnapValue = null));
+    this.#input.addEventListener(
+      'change',
+      () => (this.#snapDisabledTick = null)
+    );
   }
 
   disconnectedCallback() {
@@ -149,21 +154,54 @@ export default class StringArtRangeInput extends HTMLElement {
     return ticksMatch.map(Number).filter(n => !isNaN(n));
   }
 
+  #shouldAvoidSnap(newValue, closestTick) {
+    if (closestTick == null) {
+      closestTick = this.getClosestTick(newValue);
+    }
+
+    if (closestTick == null) {
+      return true;
+    }
+
+    // If moving away from the snap value, don't snap:
+    const distanceFromTick = Math.abs(newValue - closestTick);
+
+    if (
+      distanceFromTick >= this.#snapDistance / 2 &&
+      distanceFromTick > Math.abs(this.#prevValue - closestTick)
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   handleInput() {
     const value = parseFloat(this.#input.value);
     const closestTick = this.getClosestTick(value);
 
-    if (closestTick !== null) {
-      this.#input.value = closestTick;
-      if (closestTick !== this.#prevSnapValue) {
-        this.#vibrate();
-        this.#prevSnapValue = closestTick;
-      }
-    } else if (this.#prevSnapValue != null) {
-      this.#prevSnapValue = null;
+    if (
+      closestTick != null &&
+      this.#snapDisabledTick !== closestTick &&
+      this.#shouldAvoidSnap(value, closestTick)
+    ) {
+      this.#snapDisabledTick = closestTick;
     }
 
-    this.#setBackground();
+    if (closestTick !== this.#snapDisabledTick) {
+      if (closestTick !== null) {
+        this.#input.value = closestTick;
+        if (closestTick !== this.#prevSnapValue) {
+          this.#vibrate();
+          this.#prevSnapValue = closestTick;
+        }
+      } else if (this.#prevSnapValue != null) {
+        this.#prevSnapValue = null;
+      }
+    }
+
+    this.#setStyle();
+    this.#prevValue = value;
 
     this.dispatchEvent(
       new CustomEvent('input', {
@@ -227,7 +265,7 @@ export default class StringArtRangeInput extends HTMLElement {
     }
   }
 
-  #setBackground() {
+  #setStyle() {
     const inputWidth = this.#input.clientWidth;
     if (!inputWidth) {
       return;
