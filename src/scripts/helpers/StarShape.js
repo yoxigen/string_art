@@ -1,3 +1,5 @@
+import { compareObjects } from './objects.js';
+
 export default class StarShape {
   constructor(config) {
     this.setConfig(config);
@@ -5,15 +7,15 @@ export default class StarShape {
 
   #getCalc({ radius, sides, sideNails, rotation }) {
     const nailSpacing = radius / sideNails;
-    const sideAngle = (Math.PI * 2) / sides;
+    const sidesAngle = (Math.PI * 2) / sides;
     const rotationAngle = rotation ? -PI2 * rotation : 0;
 
     return {
-      sideAngle,
+      sideAngle: sidesAngle,
       nailSpacing,
       starCenterStart: (sideNails % 1) * nailSpacing,
-      side: new Array(sides).fill(null).map((_, side) => {
-        const sideAngle = side * sideAngle + rotationAngle;
+      sides: new Array(sides).fill(null).map((_, side) => {
+        const sideAngle = side * sidesAngle + rotationAngle;
         const circlePointsStart = side * sideNails;
 
         return {
@@ -35,6 +37,19 @@ export default class StarShape {
   }
 
   setConfig(config) {
+    if (
+      compareObjects(config, this.config, [
+        'radius',
+        'sides',
+        'sideNails',
+        'rotation',
+        'center',
+        'size',
+      ])
+    ) {
+      return;
+    }
+
     const center = config.center ?? config.size.map(v => v / 2);
 
     this.config = config;
@@ -42,23 +57,66 @@ export default class StarShape {
     this.calc = this.#getCalc(config);
   }
 
-  #serializeConfig() {}
-
   /**
    * Given a Nails instance, uses it to draw the nails of this Circle
    * @param {Nails} nails
    * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
    */
-  drawNails(nails, { nailsNumberStart = 0, getNumber } = {}) {
-    for (let i = 0; i < this.config.n; i++) {
-      nails.addNail({
-        point: this.getPoint(i),
-        number: getNumber ? getNumber(i) : i + nailsNumberStart,
-      });
+  drawNails(nails, { getNumber, reverseOrder } = {}) {
+    const { sides, sideNails } = this.config;
+
+    for (let side = 0; side < sides; side++) {
+      for (let i = 0; i < sideNails; i++) {
+        const sideIndex = reverseOrder ? sideNails - i : i;
+        nails.addNail({
+          point: this.getPoint(side, sideIndex),
+          number: getNumber
+            ? getNumber(side, sideIndex)
+            : sideIndex
+            ? `${side}_${sideIndex}`
+            : 0,
+        });
+      }
     }
   }
 
-  *drawStar(renderer, { starSize, color }) {}
+  *draw(renderer) {
+    const { sideNails, sides } = this.config;
+
+    let alternate = false;
+    const linesPerRound = sides % 2 ? sides * 2 : sides;
+    const rounds = sides % 2 ? Math.floor(sideNails / 2) : sideNails;
+
+    let prevPointIndex = 0;
+    let prevPoint = this.getPoint(0, prevPointIndex);
+
+    for (let round = 0; round <= rounds; round++) {
+      let side = 0;
+
+      const linesPerThisRound = linesPerRound - (round === rounds ? sides : 0);
+
+      for (let i = 0; i < linesPerThisRound; i++) {
+        side = side !== sides - 1 ? side + 1 : 0;
+        alternate = !alternate;
+        prevPointIndex = alternate ? sideNails - round : round;
+        const nextPoint = this.getPoint(side, prevPointIndex);
+        renderer.renderLines(prevPoint, nextPoint);
+        prevPoint = nextPoint;
+        yield;
+      }
+
+      prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
+      const nextPoint = this.getPoint(0, prevPointIndex);
+      renderer.renderLines(prevPoint, nextPoint);
+      prevPoint = nextPoint;
+    }
+  }
+
+  getStepCount() {
+    const { sides, sideNails } = this.config;
+
+    return sides * sideNails;
+  }
 
   static nailsConfig = Object.freeze({
     key: 'sideNails',
