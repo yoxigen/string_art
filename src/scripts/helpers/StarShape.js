@@ -24,13 +24,10 @@ export default class StarShape {
       sideSize: radius - centerRadius,
       sides: new Array(sides).fill(null).map((_, side) => {
         const sideAngle = side * sidesAngle + rotationAngle;
-        const circlePointsStart = side * sideNails;
 
         return {
           sinSideAngle: Math.sin(sideAngle),
           cosSideAngle: Math.cos(sideAngle),
-          circlePointsStart,
-          circlePointsEnd: circlePointsStart + sideNails,
         };
       }),
     };
@@ -96,8 +93,11 @@ export default class StarShape {
   // The threading is: star at the center, then next side at the edge (outtermost nail), then back to the center for the next side,
   // until all sides have been connected both center and edge (for odd-side-count stars) or until all sides have been connected (for odd-side-count)
   // Then move up one nail from the center and start another round.
-  *generateStrings(renderer) {
-    const { sideNails, sides } = this.config;
+  *generateStrings(renderer, { size } = {}) {
+    const { sideNails: sideNailsConfig, sides } = this.config;
+    const sideNails = size
+      ? Math.min(Math.floor(size), sideNailsConfig)
+      : sideNailsConfig;
 
     let alternate = false;
 
@@ -131,11 +131,14 @@ export default class StarShape {
     }
   }
 
-  getStepCount() {
-    return StarShape.getStepCount(this.config);
+  getStepCount(size) {
+    return StarShape.getStepCount(this.config, { size });
   }
 
-  static getStepCount({ sides, sideNails, centerRadius }) {
+  static getStepCount({ sides, sideNails: sideNailsConfig }, { size } = {}) {
+    const sideNails = size
+      ? Math.min(Math.floor(size), sideNailsConfig)
+      : sideNailsConfig;
     return sides * sideNails;
   }
 
