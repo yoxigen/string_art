@@ -5,15 +5,23 @@ export default class StarShape {
     this.setConfig(config);
   }
 
-  #getCalc({ radius, sides, sideNails, rotation }) {
-    const nailSpacing = radius / sideNails;
-    const sidesAngle = (Math.PI * 2) / sides;
-    const rotationAngle = rotation ? -PI2 * rotation : 0;
+  #getCalc({
+    radius,
+    sides,
+    sideNails,
+    rotation,
+    centerRadius: centerRadiusFraction = 0,
+  }) {
+    const centerRadius = radius * centerRadiusFraction;
+    const nailSpacing = (radius - centerRadius) / sideNails; // The distance between nails on the same side, in px
+    const sidesAngle = (Math.PI * 2) / sides; // The angle, in radians, between each side
+    const rotationAngle = rotation ? (-Math.PI * 2 * rotation) / sides : 0;
 
     return {
       sideAngle: sidesAngle,
       nailSpacing,
-      starCenterStart: (sideNails % 1) * nailSpacing,
+      centerRadius,
+      sideSize: radius - centerRadius,
       sides: new Array(sides).fill(null).map((_, side) => {
         const sideAngle = side * sidesAngle + rotationAngle;
         const circlePointsStart = side * sideNails;
@@ -29,11 +37,13 @@ export default class StarShape {
   }
 
   getPoint(side = 0, index = 0) {
-    const radius = this.calc.starCenterStart + index * this.calc.nailSpacing;
+    const radius = this.calc.centerRadius + index * this.calc.nailSpacing;
     const { sinSideAngle, cosSideAngle } = this.calc.sides[side];
-    const [centerX, centerY] = this.center;
 
-    return [centerX + sinSideAngle * radius, centerY + cosSideAngle * radius];
+    return [
+      this.center[0] + sinSideAngle * radius,
+      this.center[1] + cosSideAngle * radius,
+    ];
   }
 
   setConfig(config) {
@@ -45,6 +55,7 @@ export default class StarShape {
         'rotation',
         'center',
         'size',
+        'centerRadius',
       ])
     ) {
       return;
@@ -72,7 +83,7 @@ export default class StarShape {
           point: this.getPoint(side, sideIndex),
           number: getNumber
             ? getNumber(side, sideIndex)
-            : sideIndex
+            : sideIndex || this.config.centerRadius
             ? `${side}_${sideIndex}`
             : 0,
         });
@@ -80,7 +91,7 @@ export default class StarShape {
     }
   }
 
-  *draw(renderer) {
+  *generateStrings(renderer) {
     const { sideNails, sides } = this.config;
 
     let alternate = false;
@@ -96,7 +107,7 @@ export default class StarShape {
       const linesPerThisRound = linesPerRound - (round === rounds ? sides : 0);
 
       for (let i = 0; i < linesPerThisRound; i++) {
-        side = side !== sides - 1 ? side + 1 : 0;
+        side = (side + 1) % sides;
         alternate = !alternate;
         prevPointIndex = alternate ? sideNails - round : round;
         const nextPoint = this.getPoint(side, prevPointIndex);
@@ -113,9 +124,11 @@ export default class StarShape {
   }
 
   getStepCount() {
-    const { sides, sideNails } = this.config;
+    return StarShape.getStepCount(this.config);
+  }
 
-    return sides * sideNails;
+  static getStepCount({ sides, sideNails }) {
+    return sides * (sideNails + 1);
   }
 
   static nailsConfig = Object.freeze({
@@ -124,6 +137,7 @@ export default class StarShape {
     defaultValue: 40,
     type: 'range',
     attr: { min: 1, max: 200, step: 1 },
+    isStructural: true,
   });
 
   static sidesConfig = Object.freeze({
@@ -132,5 +146,42 @@ export default class StarShape {
     defaultValue: 3,
     type: 'range',
     attr: { min: 3, max: 20, step: 1 },
+    isStructural: true,
   });
+
+  static centerRadiusConfig = Object.freeze({
+    key: 'centerRadius',
+    label: 'Center radius',
+    defaultValue: 0,
+    type: 'range',
+    attr: {
+      min: 0,
+      max: ({ config: { sideNails } }) => (sideNails - 1) / sideNails,
+      step: 0.01,
+    },
+    displayValue: ({ centerRadius }) => `${Math.round(100 * centerRadius)}%`,
+    isStructural: true,
+  });
+
+  static rotationConfig = Object.freeze({
+    key: 'rotation',
+    label: 'Rotation',
+    defaultValue: 0,
+    type: 'range',
+    attr: {
+      min: 0,
+      max: 1,
+      step: 0.01,
+    },
+    displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`,
+    isStructural: true,
+    affectsStepCount: false,
+  });
+
+  static StarConfig = Object.freeze([
+    StarShape.nailsConfig,
+    StarShape.sidesConfig,
+    StarShape.centerRadiusConfig,
+    StarShape.rotationConfig,
+  ]);
 }

@@ -109,12 +109,35 @@ async function main() {
     setCurrentPattern(pattern);
   });
 
+  // If just a click, advance by one. If touch is left, play until removed
+  elements.canvas.addEventListener('mousedown', () => {
+    let timeout;
+
+    const advance = () => {
+      clearTimeout(timeout);
+      player.advance();
+      elements.canvas.removeEventListener('mouseup', advance);
+    };
+
+    timeout = setTimeout(() => {
+      player.play();
+      const stopPlay = () => {
+        player.pause();
+        elements.canvas.removeEventListener('mouseup', stopPlay);
+      };
+      elements.canvas.addEventListener('mouseup', stopPlay);
+    }, 200);
+
+    elements.canvas.addEventListener('mouseup', advance);
+  });
+
   document.body.addEventListener('click', e => {
     const toggleBtn = e.target.closest('[data-toggle-for]');
     if (toggleBtn) {
       const dialogId = toggleBtn.dataset.toggleFor;
 
       toggleBtn.classList.toggle('active');
+
       const toggledElement = document.querySelector('#' + dialogId);
       toggledElement.classList.toggle('open');
       document.body.classList.toggle('dialog_' + dialogId);

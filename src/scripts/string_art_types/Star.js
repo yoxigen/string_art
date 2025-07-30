@@ -22,6 +22,7 @@ export default class Star extends StringArt {
       type: 'range',
       attr: { min: 1, max: 200, step: 1 },
     },
+    StarShape.centerRadiusConfig,
     {
       key: 'ringSize',
       label: 'Outer ring size',
@@ -116,7 +117,7 @@ export default class Star extends StringArt {
     const { innerColor } = this.config;
 
     this.renderer.setColor(innerColor);
-    yield* this.#star.draw(this.renderer);
+    yield* this.#star.generateStrings(this.renderer);
   }
 
   *drawCircle() {
@@ -183,9 +184,9 @@ export default class Star extends StringArt {
   getStepCount() {
     const { sides, sideNails, ringSize } = this.config;
     const ringCount = ringSize ? sideNails * sides : 0;
-    const starAndCircleCount = 3 * sides * (sideNails + (sides % 2 ? 1 : 0));
-
-    return starAndCircleCount + ringCount;
+    const circleCount = 2 * sides * (sideNails + (sides % 2 ? 1 : 0));
+    const starCount = StarShape.getStepCount(this.config);
+    return circleCount + ringCount + starCount;
   }
 
   static thumbnailConfig = {
