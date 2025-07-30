@@ -13,7 +13,7 @@ export default class StarShape {
     centerRadius: centerRadiusFraction = 0,
   }) {
     const centerRadius = radius * centerRadiusFraction;
-    const nailSpacing = (radius - centerRadius) / sideNails; // The distance between nails on the same side, in px
+    const nailSpacing = (radius - centerRadius) / (sideNails - 1); // The distance between nails on the same side, in px
     const sidesAngle = (Math.PI * 2) / sides; // The angle, in radians, between each side
     const rotationAngle = rotation ? (-Math.PI * 2 * rotation) / sides : 0;
 
@@ -91,35 +91,43 @@ export default class StarShape {
     }
   }
 
+  // In this pattern, strings are connected in a "merry-go-round" way, around the star.
+  // With even sides count, the strings go around the star once, while with odd sides count, each round goes twice around the star.
+  // The threading is: star at the center, then next side at the edge (outtermost nail), then back to the center for the next side,
+  // until all sides have been connected both center and edge (for odd-side-count stars) or until all sides have been connected (for odd-side-count)
+  // Then move up one nail from the center and start another round.
   *generateStrings(renderer) {
     const { sideNails, sides } = this.config;
 
     let alternate = false;
-    const linesPerRound = sides % 2 ? sides * 2 : sides;
-    const rounds = sides % 2 ? Math.floor(sideNails / 2) : sideNails;
+
+    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
 
     let prevPointIndex = 0;
     let prevPoint = this.getPoint(0, prevPointIndex);
-
-    for (let round = 0; round <= rounds; round++) {
+    console.clear();
+    for (let round = 0; round < rounds; round++) {
+      const isLastRound = round === rounds - 1;
       let side = 0;
 
-      const linesPerThisRound = linesPerRound - (round === rounds ? sides : 0);
+      const linesThisRound = sides % 2 ? sides * 2 : sides;
 
-      for (let i = 0; i < linesPerThisRound; i++) {
+      for (let i = 0; i < linesThisRound; i++) {
         side = (side + 1) % sides;
         alternate = !alternate;
-        prevPointIndex = alternate ? sideNails - round : round;
+        prevPointIndex = alternate ? sideNails - round - 1 : round;
         const nextPoint = this.getPoint(side, prevPointIndex);
         renderer.renderLines(prevPoint, nextPoint);
         prevPoint = nextPoint;
         yield;
       }
 
-      prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
-      const nextPoint = this.getPoint(0, prevPointIndex);
-      renderer.renderLines(prevPoint, nextPoint);
-      prevPoint = nextPoint;
+      if (!isLastRound) {
+        prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
+        const nextPoint = this.getPoint(0, prevPointIndex);
+        renderer.renderLines(prevPoint, nextPoint);
+        prevPoint = nextPoint;
+      }
     }
   }
 
@@ -127,8 +135,8 @@ export default class StarShape {
     return StarShape.getStepCount(this.config);
   }
 
-  static getStepCount({ sides, sideNails }) {
-    return sides * (sideNails + 1);
+  static getStepCount({ sides, sideNails, centerRadius }) {
+    return sides * sideNails;
   }
 
   static nailsConfig = Object.freeze({
