@@ -1,6 +1,7 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 import StarShape from '../helpers/StarShape.js';
+import { withoutAttribute } from '../helpers/config_utils.js';
 
 export default class Star extends StringArt {
   name = 'Star';
@@ -36,7 +37,7 @@ export default class Star extends StringArt {
       displayValue: ({ sideNails, sides, ringSize }) =>
         Math.floor(ringSize * sideNails * sides),
     },
-    Circle.rotationConfig,
+    withoutAttribute(Circle.rotationConfig, 'snap'),
     Circle.distortionConfig,
     {
       key: 'colorGroup',
@@ -86,7 +87,7 @@ export default class Star extends StringArt {
       size: this.size,
       n: sideNails * sides,
       margin,
-      rotation,
+      rotation: rotation ? rotation / sides : 0,
       distortion,
     };
 
@@ -139,7 +140,7 @@ export default class Star extends StringArt {
       for (let i = 0; i < linesPerThisRound; i++) {
         const pointPosition = {
           side,
-          sideIndex: alternate ? sideNails - round : round,
+          sideIndex: alternate ? sideNails - round - 1 : round,
         };
 
         const nextPoint = isStar
