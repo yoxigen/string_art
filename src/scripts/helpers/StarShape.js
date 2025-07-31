@@ -96,7 +96,7 @@ export default class StarShape {
   *generateStrings(renderer, { size } = {}) {
     const { sideNails: sideNailsConfig, sides } = this.config;
     const sideNails = size
-      ? Math.min(Math.floor(size), sideNailsConfig)
+      ? Math.max(1, Math.min(Math.floor(size), sideNailsConfig))
       : sideNailsConfig;
 
     let alternate = false;
@@ -105,7 +105,7 @@ export default class StarShape {
 
     let prevPointIndex = 0;
     let prevPoint = this.getPoint(0, prevPointIndex);
-    console.clear();
+
     for (let round = 0; round < rounds; round++) {
       const isLastRound = round === rounds - 1;
       let side = 0;
@@ -139,7 +139,10 @@ export default class StarShape {
     const sideNails = size
       ? Math.min(Math.floor(size), sideNailsConfig)
       : sideNailsConfig;
-    return sides * sideNails;
+
+    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
+    const linesPerRound = sides % 2 ? sides * 2 : sides;
+    return rounds * linesPerRound;
   }
 
   static nailsConfig = Object.freeze({

@@ -121,7 +121,7 @@ export default class Sun extends StringArt {
 
     let stepCount = 0;
     for (let layer = 0; layer < layers; layer++) {
-      const layerSize = sideNails * (1 - layerSpread * layer);
+      const layerSize = Math.floor(sideNails * (1 - layerSpread * layer));
       stepCount += StarShape.getStepCount(this.config, { size: layerSize });
     }
 
