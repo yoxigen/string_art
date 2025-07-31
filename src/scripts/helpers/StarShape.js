@@ -172,7 +172,7 @@ export default class StarShape {
     label: 'Sides',
     defaultValue: 3,
     type: 'range',
-    attr: { min: 3, max: 20, step: 1 },
+    attr: { min: 3, max: 40, step: 1 },
     isStructural: true,
   });
 

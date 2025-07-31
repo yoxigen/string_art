@@ -54,35 +54,6 @@ export default class Sun extends StringArt {
         isStructural: true,
       },
       {
-        key: 'backdropSize',
-        label: 'Backdrop Size',
-        defaultValue: 0.5,
-        type: 'range',
-        displayValue: ({ backdropSize }) =>
-          formatFractionAsPercent(backdropSize),
-        attr: {
-          min: 0,
-          max: 1,
-          step: ({ config: { sideNails } }) => 1 / sideNails,
-        },
-        isStructural: true,
-      },
-      {
-        key: 'backdropRadius',
-        label: 'Backdrop Radius',
-        defaultValue: 1,
-        type: 'range',
-        displayValue: ({ backdropRadius }) =>
-          formatFractionAsPercent(backdropRadius),
-        attr: {
-          min: 0,
-          max: 1,
-          step: 0.01,
-        },
-        isStructural: true,
-        affectsStepCount: false,
-      },
-      {
         key: 'starRadius',
         label: 'Star Radius',
         defaultValue: 1,
@@ -95,6 +66,58 @@ export default class Sun extends StringArt {
         },
         isStructural: true,
         affectsStepCount: false,
+      },
+      {
+        key: 'backdrop',
+        label: 'Backdrop',
+        type: 'group',
+        children: [
+          {
+            key: 'backdropSize',
+            label: 'Backdrop size',
+            defaultValue: 0.5,
+            type: 'range',
+            displayValue: ({ backdropSize }) =>
+              formatFractionAsPercent(backdropSize),
+            attr: {
+              min: 0,
+              max: 1,
+              step: ({ config: { sideNails } }) => 1 / sideNails,
+            },
+            isStructural: true,
+          },
+          {
+            key: 'backdropRadius',
+            label: 'Backdrop radius',
+            defaultValue: 1,
+            type: 'range',
+            displayValue: ({ backdropRadius }) =>
+              formatFractionAsPercent(backdropRadius),
+            attr: {
+              min: 0,
+              max: 1,
+              step: 0.01,
+            },
+            isStructural: true,
+            affectsStepCount: false,
+          },
+          {
+            key: 'backdropShift',
+            label: 'Backdrop shift',
+            defaultValue: 0,
+            type: 'range',
+            displayValue: ({ backdropShift }) =>
+              formatFractionAsPercent(backdropShift),
+            attr: {
+              min: 0,
+              max: 1,
+              step: ({ config: { sideNails, backdropSize } }) =>
+                (1 / (sideNails * (1 - backdropSize))).toFixed(3),
+            },
+            isStructural: true,
+            affectsStepCount: false,
+          },
+        ],
       },
     ]
   );
@@ -205,11 +228,13 @@ export default class Sun extends StringArt {
     // For the backdrop size, connect the nail to the number of points in the star for the two sides near the backdrop nail
 
     const { backdropNails } = this.calc;
-    const { sides } = this.config;
+    const { sides, backdropShift, sideNails } = this.config;
 
     let prevPoint;
     let currentSide = 0;
-    let currentSideIndex = backdropNails;
+    const shift = Math.floor(backdropShift * (sideNails - backdropNails));
+
+    let currentSideIndex = shift + backdropNails - 1;
 
     this.renderer.setColor(this.color.getColor(0));
 
@@ -246,7 +271,9 @@ export default class Sun extends StringArt {
 
   drawNails() {
     this.#star.drawNails(this.nails);
-    this.#circle.drawNails(this.nails);
+    if (this.config.backdropSize) {
+      this.#circle.drawNails(this.nails);
+    }
   }
 
   getStepCount() {
