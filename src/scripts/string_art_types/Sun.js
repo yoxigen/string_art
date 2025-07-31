@@ -157,6 +157,7 @@ export default class Sun extends StringArt {
       margin = 0,
       layers,
       backdropRadius: backdropRadiusConfig = 1,
+      backdropSize,
       rotation,
       sides,
       starRadius: starRadiusConfig = 1,
@@ -164,7 +165,7 @@ export default class Sun extends StringArt {
     const center = this.size.map(v => v / 2);
     const radius = Math.min(...center) - margin;
     const starRadius =
-      starRadiusConfig < backdropRadiusConfig
+      backdropSize && starRadiusConfig < backdropRadiusConfig
         ? (radius * starRadiusConfig) / backdropRadiusConfig
         : radius;
     const backdropRadius =

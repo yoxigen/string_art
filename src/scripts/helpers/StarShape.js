@@ -216,6 +216,7 @@ export default class StarShape {
       min: 0,
       max: 1,
       step: 0.01,
+      snap: '0.5',
     },
     displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`,
     isStructural: true,
