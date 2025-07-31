@@ -1,7 +1,9 @@
 import StringArt from '../StringArt.js';
+import Circle from '../helpers/Circle.js';
 import Color from '../helpers/Color.js';
 import StarShape from '../helpers/StarShape.js';
 import { insertAfter } from '../helpers/config_utils.js';
+import { formatFractionAsPercent } from '../helpers/string_utils.js';
 
 export default class Sun extends StringArt {
   name = 'Sun';
@@ -51,8 +53,54 @@ export default class Sun extends StringArt {
         },
         isStructural: true,
       },
+      {
+        key: 'backdropSize',
+        label: 'Backdrop Size',
+        defaultValue: 0.5,
+        type: 'range',
+        displayValue: ({ backdropSize }) =>
+          formatFractionAsPercent(backdropSize),
+        attr: {
+          min: 0,
+          max: 1,
+          step: ({ config: { sideNails } }) => 1 / sideNails,
+        },
+        isStructural: true,
+      },
+      {
+        key: 'backdropRadius',
+        label: 'Backdrop Radius',
+        defaultValue: 1,
+        type: 'range',
+        displayValue: ({ backdropRadius }) =>
+          formatFractionAsPercent(backdropRadius),
+        attr: {
+          min: 0,
+          max: 1,
+          step: 0.01,
+        },
+        isStructural: true,
+        affectsStepCount: false,
+      },
+      {
+        key: 'starRadius',
+        label: 'Star Radius',
+        defaultValue: 1,
+        type: 'range',
+        displayValue: ({ starRadius }) => formatFractionAsPercent(starRadius),
+        attr: {
+          min: 0.2,
+          max: 1,
+          step: 0.01,
+        },
+        isStructural: true,
+        affectsStepCount: false,
+      },
     ]
   );
+
+  #circle = null;
+  #star = null;
 
   defaultValues = {
     sides: 8,
@@ -65,18 +113,49 @@ export default class Sun extends StringArt {
     maxLightness: 97,
   };
 
-  #star = null;
+  getCalc() {
+    const { sideNails, backdropSize } = this.config;
+
+    return {
+      backdropNails: Math.floor(sideNails * backdropSize),
+    };
+  }
+
+  resetStructure() {
+    super.resetStructure();
+
+    this.calc = null;
+  }
 
   setUpDraw() {
     super.setUpDraw();
 
-    const { margin = 0, layers } = this.config;
+    const {
+      margin = 0,
+      layers,
+      backdropRadius: backdropRadiusConfig = 1,
+      rotation,
+      sides,
+      starRadius: starRadiusConfig = 1,
+    } = this.config;
     const center = this.size.map(v => v / 2);
     const radius = Math.min(...center) - margin;
+    const starRadius =
+      starRadiusConfig < backdropRadiusConfig
+        ? (radius * starRadiusConfig) / backdropRadiusConfig
+        : radius;
+    const backdropRadius =
+      backdropRadiusConfig < starRadiusConfig
+        ? (radius * backdropRadiusConfig) / starRadiusConfig
+        : radius;
+
+    if (!this.calc) {
+      this.calc = this.getCalc();
+    }
 
     const starConfig = {
       ...this.config,
-      radius,
+      radius: starRadius,
       size: this.size,
     };
 
@@ -90,6 +169,19 @@ export default class Sun extends StringArt {
       ...this.config,
       colorCount: layers,
     });
+
+    const circleConfig = {
+      size: this.size,
+      n: sides,
+      rotation: -1 / sides / 2 + (rotation ? rotation / sides : 0),
+      radius: backdropRadius,
+    };
+
+    if (this.#circle) {
+      this.#circle.setConfig(circleConfig);
+    } else {
+      this.#circle = new Circle(circleConfig);
+    }
   }
 
   *drawStar(size) {
@@ -108,18 +200,62 @@ export default class Sun extends StringArt {
     }
   }
 
+  *drawBackdrop() {
+    // For each side, add a nail between two star sides, at the specified backdropRadius.
+    // For the backdrop size, connect the nail to the number of points in the star for the two sides near the backdrop nail
+
+    const { backdropNails } = this.calc;
+    const { sides } = this.config;
+
+    let prevPoint;
+    let currentSide = 0;
+    let currentSideIndex = backdropNails;
+
+    this.renderer.setColor(this.color.getColor(0));
+
+    for (let side = 0; side < sides; side++) {
+      const backdropPoint = this.#circle.getPoint(side);
+      let alternate = false;
+      const direction = side % 2 ? 1 : -1; // 1 if backdrop threading starts at the bottom and goes up, -1 if it goes down
+      prevPoint = this.#star.getPoint(side, currentSideIndex);
+
+      for (let i = 0; i < backdropNails; i++) {
+        this.renderer.renderLines(prevPoint, backdropPoint);
+        yield;
+
+        currentSide = (alternate ? side : side + 1) % sides;
+        prevPoint = this.#star.getPoint(currentSide, currentSideIndex);
+        this.renderer.renderLines(backdropPoint, prevPoint);
+        yield;
+
+        if (i < backdropNails - 1) {
+          alternate = !alternate;
+          currentSideIndex += direction;
+          const nextPoint = this.#star.getPoint(currentSide, currentSideIndex);
+          this.renderer.renderLines(prevPoint, nextPoint);
+          prevPoint = nextPoint;
+        }
+      }
+    }
+  }
+
   *generateStrings() {
+    yield* this.drawBackdrop();
     yield* this.generateLayers();
   }
 
   drawNails() {
     this.#star.drawNails(this.nails);
+    this.#circle.drawNails(this.nails);
   }
 
   getStepCount() {
-    const { layers, layerSpread, sideNails } = this.config;
+    const { layers, layerSpread, sideNails, sides } = this.config;
+    const { backdropNails } = this.getCalc();
 
-    let stepCount = 0;
+    const backdropStepCount = sides * backdropNails * 2;
+
+    let stepCount = backdropStepCount;
     for (let layer = 0; layer < layers; layer++) {
       const layerSize = Math.floor(sideNails * (1 - layerSpread * layer));
       stepCount += StarShape.getStepCount(this.config, { size: layerSize });

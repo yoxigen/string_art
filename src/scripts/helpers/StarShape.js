@@ -1,4 +1,5 @@
 import { compareObjects } from './objects.js';
+import { formatFractionAsPercent } from './string_utils.js';
 
 export default class StarShape {
   constructor(config) {
@@ -11,6 +12,7 @@ export default class StarShape {
     sideNails,
     rotation,
     centerRadius: centerRadiusFraction = 0,
+    maxCurveSize = 1,
   }) {
     const centerRadius = radius * centerRadiusFraction;
     const nailSpacing = (radius - centerRadius) / (sideNails - 1); // The distance between nails on the same side, in px
@@ -21,6 +23,7 @@ export default class StarShape {
       sideAngle: sidesAngle,
       nailSpacing,
       centerRadius,
+      sidesConnectionCount: Math.floor(Math.min(1, maxCurveSize) * sideNails),
       sideSize: radius - centerRadius,
       sides: new Array(sides).fill(null).map((_, side) => {
         const sideAngle = side * sidesAngle + rotationAngle;
@@ -53,6 +56,7 @@ export default class StarShape {
         'center',
         'size',
         'centerRadius',
+        'maxCurveSize',
       ])
     ) {
       return;
@@ -95,15 +99,22 @@ export default class StarShape {
   // Then move up one nail from the center and start another round.
   *generateStrings(renderer, { size } = {}) {
     const { sideNails: sideNailsConfig, sides } = this.config;
+    const { sidesConnectionCount } = this.calc;
+
     const sideNails = size
       ? Math.max(1, Math.min(Math.floor(size), sideNailsConfig))
       : sideNailsConfig;
 
+    const minNailIndex = Math.max(0, sideNails - sidesConnectionCount);
+
     let alternate = false;
 
-    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
+    const rounds =
+      sides % 2
+        ? Math.ceil(Math.min(sideNails, sidesConnectionCount) / 2)
+        : sideNails - minNailIndex;
 
-    let prevPointIndex = 0;
+    let prevPointIndex = minNailIndex;
     let prevPoint = this.getPoint(0, prevPointIndex);
 
     for (let round = 0; round < rounds; round++) {
@@ -115,7 +126,9 @@ export default class StarShape {
       for (let i = 0; i < linesThisRound; i++) {
         side = (side + 1) % sides;
         alternate = !alternate;
-        prevPointIndex = alternate ? sideNails - round - 1 : round;
+        prevPointIndex = alternate
+          ? sideNails - round - 1
+          : round + minNailIndex;
         const nextPoint = this.getPoint(side, prevPointIndex);
         renderer.renderLines(prevPoint, nextPoint);
         prevPoint = nextPoint;
@@ -163,6 +176,23 @@ export default class StarShape {
     isStructural: true,
   });
 
+  static maxCurveSize = Object.freeze({
+    key: 'maxCurveSize',
+    label: 'Max curve size',
+    description:
+      'The maximum number of connections used to create a curve between two sides.',
+    defaultValue: 1,
+    type: 'range',
+    displayValue: ({ maxCurveSize, sideNails }) =>
+      Math.floor(maxCurveSize * sideNails),
+    attr: {
+      min: 0,
+      max: 1,
+      step: ({ config: { sideNails } }) => 1 / sideNails,
+    },
+    isStructural: true,
+  });
+
   static centerRadiusConfig = Object.freeze({
     key: 'centerRadius',
     label: 'Center radius',
@@ -173,7 +203,7 @@ export default class StarShape {
       max: ({ config: { sideNails } }) => (sideNails - 1) / sideNails,
       step: 0.01,
     },
-    displayValue: ({ centerRadius }) => `${Math.round(100 * centerRadius)}%`,
+    displayValue: ({ centerRadius }) => formatFractionAsPercent(centerRadius),
     isStructural: true,
   });
 
@@ -196,6 +226,7 @@ export default class StarShape {
     StarShape.nailsConfig,
     StarShape.sidesConfig,
     StarShape.centerRadiusConfig,
+    StarShape.maxCurveSize,
     StarShape.rotationConfig,
   ]);
 }
