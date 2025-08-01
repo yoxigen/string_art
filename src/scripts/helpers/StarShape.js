@@ -23,6 +23,7 @@ export default class StarShape {
       sideAngle: sidesAngle,
       nailSpacing,
       centerRadius,
+      linesPerRound: sides % 2 ? sides * 2 : sides,
       sidesConnectionCount: Math.floor(Math.min(1, maxCurveSize) * sideNails),
       sideSize: radius - centerRadius,
       sides: new Array(sides).fill(null).map((_, side) => {
@@ -99,7 +100,7 @@ export default class StarShape {
   // Then move up one nail from the center and start another round.
   *generateStrings(renderer, { size } = {}) {
     const { sideNails: sideNailsConfig, sides } = this.config;
-    const { sidesConnectionCount } = this.calc;
+    const { sidesConnectionCount, linesPerRound } = this.calc;
 
     const sideNails = size
       ? Math.max(1, Math.min(Math.floor(size), sideNailsConfig))
@@ -121,9 +122,7 @@ export default class StarShape {
       const isLastRound = round === rounds - 1;
       let side = 0;
 
-      const linesThisRound = sides % 2 ? sides * 2 : sides;
-
-      for (let i = 0; i < linesThisRound; i++) {
+      for (let i = 0; i < linesPerRound; i++) {
         side = (side + 1) % sides;
         alternate = !alternate;
         prevPointIndex = alternate
@@ -148,12 +147,23 @@ export default class StarShape {
     return StarShape.getStepCount(this.config, { size });
   }
 
-  static getStepCount({ sides, sideNails: sideNailsConfig }, { size } = {}) {
+  static getStepCount(
+    { sides, sideNails: sideNailsConfig, maxCurveSize },
+    { size } = {}
+  ) {
+    const sidesConnectionCount = Math.floor(
+      Math.min(1, maxCurveSize) * sideNailsConfig
+    );
     const sideNails = size
       ? Math.min(Math.floor(size), sideNailsConfig)
       : sideNailsConfig;
+    const minNailIndex = Math.max(0, sideNails - sidesConnectionCount);
 
-    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
+    const rounds =
+      sides % 2
+        ? Math.ceil(Math.min(sideNails, sidesConnectionCount) / 2)
+        : sideNails - minNailIndex;
+
     const linesPerRound = sides % 2 ? sides * 2 : sides;
     return rounds * linesPerRound;
   }

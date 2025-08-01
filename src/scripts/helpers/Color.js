@@ -208,8 +208,7 @@ export default class Color {
    * @returns string
    */
   getColor(colorIndex) {
-    const { isMultiColor, colorCount, color, repeatColors, mirrorColors } =
-      this.config;
+    const { isMultiColor, colorCount, color, repeatColors } = this.config;
 
     if (!isMultiColor) {
       return color;
@@ -222,6 +221,22 @@ export default class Color {
     }
 
     return this.colors[colorIndex];
+  }
+
+  /**
+   * Returns the color with the opposite hue to the color at this index
+   * @param {number} colorIndex
+   */
+  static getOppositeColor(hslColor) {
+    const hslMatch = hslColor.match(
+      /^hsl\((\d+)(?:deg)?(?:,?\s?)(\d+%?)(?:,?\s?)(\d+%?)\)$/
+    );
+    if (hslMatch) {
+      const oppositeHue = (Number(hslMatch[1]) + 180) % 360;
+      return `hsl(${oppositeHue}, ${hslMatch[2]}, ${hslMatch[3]})`;
+    }
+
+    return null;
   }
 
   getColorMap({ stepCount, colorCount }) {

@@ -117,6 +117,17 @@ export default class Sun extends StringArt {
             isStructural: true,
             affectsStepCount: false,
           },
+          {
+            key: 'backdropSkip',
+            label: 'Backdrop skip',
+            description:
+              "If yes, connections in the backdrop are from the backdrop's nail to the second-nearest side, not the ones near it",
+            defaultValue: false,
+            type: 'checkbox',
+            isStructural: true,
+            affectsStepCount: false,
+            show: ({ sides }) => sides > 3,
+          },
         ],
       },
     ]
@@ -126,14 +137,22 @@ export default class Sun extends StringArt {
   #star = null;
 
   defaultValues = {
-    sides: 8,
+    sideNails: 50,
+    sides: 16,
     layers: 4,
-    layerSpread: 0.1625,
-    color: '#ffffff',
-    saturation: 40,
+    layerSpread: 9 / 50,
+    backdropSize: 0.35,
+    backdropRadius: 0.91,
+    backdropShift: 0.5,
+    centerRadius: 0.2,
+    maxCurveSize: 32 / 50,
+    rotation: 0.5,
+    saturation: 50,
+    multicolorStart: 206,
+    multicolorRange: 1,
     multicolorByLightness: true,
-    minLightness: 20,
-    maxLightness: 97,
+    minLightness: 33,
+    maxLightness: 90,
   };
 
   getCalc() {
@@ -229,18 +248,21 @@ export default class Sun extends StringArt {
     // For the backdrop size, connect the nail to the number of points in the star for the two sides near the backdrop nail
 
     const { backdropNails } = this.calc;
-    const { sides, backdropShift, sideNails } = this.config;
+    const { sides, backdropShift, sideNails, backdropSkip } = this.config;
 
+    const shouldSkip = backdropSkip && sides > 3;
     let prevPoint;
     let currentSide = 0;
     const shift = Math.floor(backdropShift * (sideNails - backdropNails));
 
     let currentSideIndex = shift + backdropNails - 1;
 
-    this.renderer.setColor(this.color.getColor(0));
+    this.renderer.setColor(Color.getOppositeColor(this.color.getColor(0)));
 
     for (let side = 0; side < sides; side++) {
-      const backdropPoint = this.#circle.getPoint(side);
+      const backdropPoint = this.#circle.getPoint(
+        shouldSkip ? (side + 1) % sides : side
+      );
       let alternate = false;
       const direction = side % 2 ? 1 : -1; // 1 if backdrop threading starts at the bottom and goes up, -1 if it goes down
       prevPoint = this.#star.getPoint(side, currentSideIndex);
@@ -249,7 +271,7 @@ export default class Sun extends StringArt {
         this.renderer.renderLines(prevPoint, backdropPoint);
         yield;
 
-        currentSide = (alternate ? side : side + 1) % sides;
+        currentSide = (alternate ? side : side + (shouldSkip ? 3 : 1)) % sides;
         prevPoint = this.#star.getPoint(currentSide, currentSideIndex);
         this.renderer.renderLines(backdropPoint, prevPoint);
         yield;
