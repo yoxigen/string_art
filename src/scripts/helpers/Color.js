@@ -1,3 +1,5 @@
+import { mapControls } from './config_utils.js';
+
 const COLOR_CONTROLS = [
   {
     key: 'isMultiColor',
@@ -251,12 +253,19 @@ export default class Color {
     return colorMap;
   }
 
-  static getConfig({ include, exclude, defaults = {}, customControls }) {
-    const controls = getControls();
+  static getConfig({
+    include,
+    exclude,
+    defaults = {},
+    customControls,
+    propMapper,
+    groupLabel,
+  }) {
+    const controls = mapControls(getControls(), propMapper);
 
     return {
       key: 'colorGroup',
-      label: 'Color',
+      label: groupLabel ?? 'Color',
       type: 'group',
       children: [...(customControls ?? []), ...controls],
     };

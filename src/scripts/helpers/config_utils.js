@@ -44,3 +44,27 @@ export function insertAfter(
 
   return controlsConfig;
 }
+
+/**
+ * Maps the array of control configs to change properties using the mapper
+ * @param {*} controlsConfig
+ * @param {*} controlPropMapper
+ * @returns
+ */
+export function mapControls(controlsConfig, controlPropMapper) {
+  return controlPropMapper
+    ? controlsConfig.map(control => {
+        if (control.children) {
+          control = {
+            ...control,
+            children: mapControls(control.children, controlPropMapper),
+          };
+        }
+
+        return {
+          ...control,
+          ...controlPropMapper(control),
+        };
+      })
+    : controlsConfig;
+}

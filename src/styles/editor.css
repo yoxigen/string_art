@@ -50,6 +50,7 @@ fieldset {
   border: var(--border-light);
   background: rgba(255, 255, 255, 0.03);
   border-radius: 9px;
+  padding-inline: 0.5em;
 }
 
 fieldset > legend {

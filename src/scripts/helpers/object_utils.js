@@ -36,3 +36,17 @@ export function compareObjects(obj1, obj2, props) {
 
   return obj1 === obj2;
 }
+
+/**
+ * Maps the keys of an object. The mapped accepts the original key and the value of that property
+ * @param {*} obj
+ * @param {*} mapper
+ * @returns
+ */
+export function mapKeys(obj, mapper) {
+  const mappedObj = {};
+  Object.entries(obj).forEach(
+    ([key, value]) => (mappedObj[mapper(key, value)] = value)
+  );
+  return mappedObj;
+}

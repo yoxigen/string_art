@@ -1,4 +1,4 @@
-import { compareObjects } from './objects.js';
+import { compareObjects } from './object_utils.js';
 import { formatFractionAsPercent } from './string_utils.js';
 
 export default class StarShape {
