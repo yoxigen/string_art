@@ -145,16 +145,15 @@ export default class Sun extends StringArt {
         Color.getConfig({
           defaults: {
             isMultiColor: true,
-            multicolorRange: 1,
-            multicolorStart: 237,
+            multicolorRange: 39,
+            multicolorStart: 0,
             color: '#ffffff',
             backdropColorCount: 2,
-            saturation: 40,
+            saturation: 57,
             multicolorByLightness: true,
             minLightness: 20,
-            maxLightness: 97,
+            maxLightness: 40,
           },
-          exclude: ['colorCount'],
           propMapper: ({ key, show }) => {
             const newKey = 'backdrop' + key[0].toUpperCase() + key.slice(1);
             return {
@@ -168,10 +167,13 @@ export default class Sun extends StringArt {
             };
           },
           groupLabel: 'Backdrop color',
+          maxColorCount: 2,
         }),
       ],
     },
   ];
+
+  mapCommonControls(controls) {}
 
   #circle = null;
   #star = null;
@@ -181,18 +183,19 @@ export default class Sun extends StringArt {
     sides: 16,
     layers: 4,
     layerSpread: 9 / 50,
-    backdropSize: 0.35,
-    backdropRadius: 0.91,
-    backdropShift: 0.5,
+    backdropSize: 0.26,
+    backdropRadius: 0.9,
+    backdropShift: 0.59,
+    backdropColorCount: 2,
     centerRadius: 0.2,
     maxCurveSize: 32 / 50,
     rotation: 0.5,
-    saturation: 50,
+    saturation: 73,
     multicolorStart: 206,
     multicolorRange: 1,
     multicolorByLightness: true,
-    minLightness: 33,
-    maxLightness: 90,
+    minLightness: 35,
+    maxLightness: 100,
   };
 
   getCalc() {
@@ -220,6 +223,7 @@ export default class Sun extends StringArt {
       rotation,
       sides,
       starRadius: starRadiusConfig = 1,
+      backdropColorCount,
     } = this.config;
     const center = this.size.map(v => v / 2);
     const radius = Math.min(...center) - margin;
@@ -258,7 +262,7 @@ export default class Sun extends StringArt {
         const match = key.match(/^backdrop(\w)(.+)/);
         return match ? match[1].toLowerCase() + match[2] : key;
       }),
-      colorCount: 2,
+      colorCount: backdropColorCount,
     });
     const circleConfig = {
       size: this.size,
@@ -341,7 +345,11 @@ export default class Sun extends StringArt {
   drawNails() {
     this.#star.drawNails(this.nails);
     if (this.config.backdropSize) {
-      this.#circle.drawNails(this.nails);
+      const circleNails = [];
+      for (const circleNail of this.#circle.generateNails()) {
+        circleNails.push(circleNail);
+      }
+      this.nails.addGroup(circleNails, { color: '#ffffff' });
     }
   }
 
@@ -361,6 +369,6 @@ export default class Sun extends StringArt {
   }
 
   static thumbnailConfig = {
-    sideNails: 18,
+    sideNails: 10,
   };
 }

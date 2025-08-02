@@ -128,17 +128,23 @@ export default class Circle {
       .join('_');
   }
 
+  *generateNails({ nailsNumberStart = 0, getNumber } = {}) {
+    for (let i = 0; i < this.config.n; i++) {
+      yield {
+        point: this.getPoint(i),
+        number: getNumber ? getNumber(i) : i + nailsNumberStart,
+      };
+    }
+  }
+
   /**
    * Given a Nails instance, uses it to draw the nails of this Circle
    * @param {Nails} nails
    * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
    */
-  drawNails(nails, { nailsNumberStart = 0, getNumber } = {}) {
-    for (let i = 0; i < this.config.n; i++) {
-      nails.addNail({
-        point: this.getPoint(i),
-        number: getNumber ? getNumber(i) : i + nailsNumberStart,
-      });
+  drawNails(nails, props) {
+    for (const nail of this.generateNails(props)) {
+      nails.addNail(nail);
     }
   }
 

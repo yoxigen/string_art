@@ -75,13 +75,15 @@ export default class StarShape {
    * @param {Nails} nails
    * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
    */
-  drawNails(nails, { getNumber, reverseOrder } = {}) {
+  drawNails(nails, { getNumber, reverseOrder, ...nailsConfig } = {}) {
     const { sides, sideNails } = this.config;
+
+    const groupNails = [];
 
     for (let side = 0; side < sides; side++) {
       for (let i = 0; i < sideNails; i++) {
         const sideIndex = reverseOrder ? sideNails - i : i;
-        nails.addNail({
+        groupNails.push({
           point: this.getPoint(side, sideIndex),
           number: getNumber
             ? getNumber(side, sideIndex)
@@ -91,6 +93,8 @@ export default class StarShape {
         });
       }
     }
+
+    nails.addGroup(groupNails, nailsConfig);
   }
 
   // In this pattern, strings are connected in a "merry-go-round" way, around the star.

@@ -260,6 +260,7 @@ export default class Color {
     customControls,
     propMapper,
     groupLabel,
+    maxColorCount,
   }) {
     const controls = mapControls(getControls(), propMapper);
 
@@ -286,6 +287,11 @@ export default class Color {
           if (control.type === 'group') {
             finalControl.children = getControls(control.children);
           }
+
+          if (control.key === 'colorCount' && maxColorCount) {
+            finalControl.attr.max = maxColorCount;
+          }
+
           return Object.freeze(finalControl);
         });
     }

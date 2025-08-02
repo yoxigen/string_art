@@ -12,23 +12,24 @@ export function withoutAttribute(controlConfig, attributeName) {
   };
 }
 
-// Inserts the control configs after the specified control.
+// If the key to add after is found, returns a copy of the controls config (all the tree) with the added config
 export function insertAfter(
   controlsConfig,
   insertAfterKey,
   controlsConfigToInsert
 ) {
-  function findContainingList(root) {
+  function getControlPath(root) {
     const foundIndex = root.findIndex(({ key }) => key === insertAfterKey);
     if (foundIndex !== -1) {
-      return { list: root, index: foundIndex };
+      return [foundIndex];
     }
 
-    for (control of controlsConfig) {
+    for (let i = 0; i < root.length; i++) {
+      const control = root[i];
       if (control.children) {
-        const childContainingList = findContainingList(control.children);
-        if (childContainingList) {
-          return childContainingList;
+        const pathToControl = findContainingList(control.children);
+        if (pathToControl) {
+          return [i, ...pathToControl];
         }
       }
     }
@@ -36,8 +37,14 @@ export function insertAfter(
     return null;
   }
 
-  const containingList = findContainingList(controlsConfig);
-  if (containingList) {
+  const pathToControl = getControlPath(controlsConfig);
+  if (pathToControl) {
+    const controlIndex = pathToControl.pop();
+    const configCopy = structuredClone(controlsConfig);
+    let list = configCopy[pathToControl.shift()].reduce(
+      (control, position) => control.children[position]
+    );
+    const list = pathToControl.reduce(position);
     const { list, index } = containingList;
     list.splice(index + 1, 0, ...controlsConfigToInsert);
   }
