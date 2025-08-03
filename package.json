@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "parcel",
     "build": "parcel build",
-    "postbuild": "workbox generateSW"
+    "postbuild": "workbox generateSW",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "teast:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yoxigen/string_art.git"
   },
+  "type": "module",
   "keywords": [
     "javascript",
     "canvas",
@@ -31,6 +34,8 @@
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.2.0",
     "@parcel/transformer-webmanifest": "^2.2.0",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
     "parcel": "2.15.4",
     "prettier": "2.4.1",
     "workbox-cli": "^6.4.2"

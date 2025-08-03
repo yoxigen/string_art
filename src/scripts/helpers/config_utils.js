@@ -12,41 +12,65 @@ export function withoutAttribute(controlConfig, attributeName) {
   };
 }
 
+export function copyConfig(controlsConfig) {
+  return controlsConfig.map(control => {
+    const copy = { ...control };
+    if (control.children) {
+      copy.children = copyConfig(control.children);
+    }
+    if (control.attr) {
+      copy.attr = { ...control.attr };
+    }
+
+    return copy;
+  });
+}
+
+/**
+ * Gets the index path to a node with the given key. The path includes the index of controls in the 'children' prop of a group.
+ * @param {*} root
+ * @param {*} controlKey
+ * @returns
+ */
+function getControlPath(controlsConfig, controlKey) {
+  const foundIndex = controlsConfig.findIndex(({ key }) => key === controlKey);
+  if (foundIndex !== -1) {
+    return [foundIndex];
+  }
+
+  for (let i = 0; i < controlsConfig.length; i++) {
+    const control = controlsConfig[i];
+    if (control.children) {
+      const pathToControl = getControlPath(control.children, controlKey);
+      if (pathToControl) {
+        return [i, ...pathToControl];
+      }
+    }
+  }
+
+  return null;
+}
+
 // If the key to add after is found, returns a copy of the controls config (all the tree) with the added config
 export function insertAfter(
   controlsConfig,
   insertAfterKey,
   controlsConfigToInsert
 ) {
-  function getControlPath(root) {
-    const foundIndex = root.findIndex(({ key }) => key === insertAfterKey);
-    if (foundIndex !== -1) {
-      return [foundIndex];
-    }
+  const pathToControl = getControlPath(controlsConfig, insertAfterKey);
+  if (pathToControl) {
+    const controlIndex = pathToControl.pop();
+    const configCopy = copyConfig(controlsConfig);
+    let list = configCopy;
 
-    for (let i = 0; i < root.length; i++) {
-      const control = root[i];
-      if (control.children) {
-        const pathToControl = findContainingList(control.children);
-        if (pathToControl) {
-          return [i, ...pathToControl];
-        }
+    if (pathToControl.length) {
+      while (pathToControl.length) {
+        list = list[pathToControl.shift()].children;
       }
     }
 
-    return null;
-  }
-
-  const pathToControl = getControlPath(controlsConfig);
-  if (pathToControl) {
-    const controlIndex = pathToControl.pop();
-    const configCopy = structuredClone(controlsConfig);
-    let list = configCopy[pathToControl.shift()].reduce(
-      (control, position) => control.children[position]
-    );
-    const list = pathToControl.reduce(position);
-    const { list, index } = containingList;
-    list.splice(index + 1, 0, ...controlsConfigToInsert);
+    list.splice(controlIndex + 1, 0, ...controlsConfigToInsert);
+    return configCopy;
   }
 
   return controlsConfig;

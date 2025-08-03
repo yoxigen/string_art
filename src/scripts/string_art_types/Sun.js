@@ -173,7 +173,25 @@ export default class Sun extends StringArt {
     },
   ];
 
-  mapCommonControls(controls) {}
+  mapCommonControls(controls) {
+    return insertAfter(controls, 'nailsColor', [
+      {
+        key: 'backdropNailsColor',
+        label: 'Backdrop nails color',
+        type: 'color',
+        defaultValue: '#ffffff',
+        show: ({ showNails }) => showNails,
+      },
+      {
+        key: 'backdropNailsRadius',
+        label: 'Backdrop nails radius',
+        type: 'range',
+        defaultValue: 1.5,
+        attr: { min: 0.5, max: 5, step: 0.25 },
+        show: ({ showNails }) => showNails,
+      },
+    ]);
+  }
 
   #circle = null;
   #star = null;
@@ -196,6 +214,9 @@ export default class Sun extends StringArt {
     multicolorByLightness: true,
     minLightness: 35,
     maxLightness: 100,
+    nailsColor: '#000000',
+    backdropNailsColor: '#ffffff',
+    backdropNailsRadius: 2.275,
   };
 
   getCalc() {
@@ -343,13 +364,19 @@ export default class Sun extends StringArt {
   }
 
   drawNails() {
+    const { backdropSize, backdropNailsColor, backdropNailsRadius } =
+      this.config;
+
     this.#star.drawNails(this.nails);
-    if (this.config.backdropSize) {
+    if (backdropSize) {
       const circleNails = [];
       for (const circleNail of this.#circle.generateNails()) {
         circleNails.push(circleNail);
       }
-      this.nails.addGroup(circleNails, { color: '#ffffff' });
+      this.nails.addGroup(circleNails, {
+        color: backdropNailsColor,
+        radius: backdropNailsRadius,
+      });
     }
   }
 
