@@ -152,7 +152,7 @@ export default class StarShape {
   }
 
   static getStepCount(
-    { sides, sideNails: sideNailsConfig, maxCurveSize },
+    { sides, sideNails: sideNailsConfig, maxCurveSize = 1 },
     { size } = {}
   ) {
     const sidesConnectionCount = Math.floor(
