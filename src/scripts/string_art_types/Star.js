@@ -1,5 +1,7 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
+import StarShape from '../helpers/StarShape.js';
+import { withoutAttribute } from '../helpers/config_utils.js';
 
 export default class Star extends StringArt {
   name = 'Star';
@@ -21,6 +23,7 @@ export default class Star extends StringArt {
       type: 'range',
       attr: { min: 1, max: 200, step: 1 },
     },
+    StarShape.centerRadiusConfig,
     {
       key: 'ringSize',
       label: 'Outer ring size',
@@ -34,7 +37,7 @@ export default class Star extends StringArt {
       displayValue: ({ sideNails, sides, ringSize }) =>
         Math.floor(ringSize * sideNails * sides),
     },
-    Circle.rotationConfig,
+    withoutAttribute(Circle.rotationConfig, 'snap'),
     Circle.distortionConfig,
     {
       key: 'colorGroup',
@@ -63,6 +66,8 @@ export default class Star extends StringArt {
     },
   ];
 
+  #star = null;
+
   get n() {
     if (!this._n) {
       const { n, sides } = this.config;
@@ -82,7 +87,7 @@ export default class Star extends StringArt {
       size: this.size,
       n: sideNails * sides,
       margin,
-      rotation,
+      rotation: rotation ? rotation / sides : 0,
       distortion,
     };
 
@@ -92,96 +97,35 @@ export default class Star extends StringArt {
       this.circle = new Circle(circleConfig);
     }
 
-    this.sideAngle = (Math.PI * 2) / sides;
-    this.nailSpacing = this.circle.radius / sideNails;
-    this.starCenterStart = (sideNails % 1) * this.nailSpacing;
+    const starConfig = {
+      ...this.config,
+      radius: this.circle.radius,
+      size: this.size,
+    };
 
-    this.sides = new Array(sides).fill(null).map((_, side) => {
-      const sideAngle = side * this.sideAngle + this.circle.rotationAngle;
-      const circlePointsStart = side * sideNails;
-
-      return {
-        sinSideAngle: Math.sin(sideAngle),
-        cosSideAngle: Math.cos(sideAngle),
-        circlePointsStart,
-        circlePointsEnd: circlePointsStart + sideNails,
-      };
-    });
-  }
-
-  getStarPoint({ side, sideIndex }) {
-    const radius = this.starCenterStart + sideIndex * this.nailSpacing;
-    const { sinSideAngle, cosSideAngle } = this.sides[side];
-    const [centerX, centerY] = this.circle.center;
-
-    return [centerX + sinSideAngle * radius, centerY + cosSideAngle * radius];
+    if (this.#star) {
+      this.#star.setConfig(starConfig);
+    } else {
+      this.#star = new StarShape(starConfig);
+    }
   }
 
   getArcPoint({ side, sideIndex }) {
     return this.circle.getPoint(side * this.config.sideNails + sideIndex);
   }
 
-  *generateStarPoints({ reverseOrder = false } = {}) {
-    const { sides, sideNails } = this.config;
-
-    for (let side = 0; side < sides; side++) {
-      const prevSide = side === 0 ? sides - 1 : side - 1;
-      for (let i = 0; i < sideNails; i++) {
-        const sideIndex = reverseOrder ? sideNails - i : i;
-        yield {
-          side,
-          prevSide,
-          sideIndex,
-          point: this.getStarPoint({ side, sideIndex }),
-        };
-      }
-    }
-  }
-
   *drawStar() {
-    const { innerColor, sideNails, sides } = this.config;
+    const { innerColor } = this.config;
 
     this.renderer.setColor(innerColor);
-    let alternate = false;
-    const linesPerRound = sides % 2 ? sides * 2 : sides;
-    const rounds = sides % 2 ? Math.floor(sideNails / 2) : sideNails;
-
-    let prevPointIndex = 0;
-    let prevPoint = this.getStarPoint({ side: 0, sideIndex: prevPointIndex });
-
-    for (let round = 0; round <= rounds; round++) {
-      let side = 0;
-
-      const linesPerThisRound = linesPerRound - (round === rounds ? sides : 0);
-
-      for (let i = 0; i < linesPerThisRound; i++) {
-        side = side !== sides - 1 ? side + 1 : 0;
-        alternate = !alternate;
-        prevPointIndex = alternate ? sideNails - round : round;
-        const nextPoint = this.getStarPoint({
-          side,
-          sideIndex: prevPointIndex,
-        });
-        this.renderer.renderLines(prevPoint, nextPoint);
-        prevPoint = nextPoint;
-        yield;
-      }
-
-      prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
-      const nextPoint = this.getStarPoint({
-        side: 0,
-        sideIndex: prevPointIndex,
-      });
-      this.renderer.renderLines(prevPoint, nextPoint);
-      prevPoint = nextPoint;
-    }
+    yield* this.#star.generateStrings(this.renderer);
   }
 
   *drawCircle() {
     const { outterColor, sides, sideNails } = this.config;
     this.renderer.setColor(outterColor);
 
-    let prevPoint = this.getStarPoint({ side: 0, sideIndex: 0 });
+    let prevPoint = this.#star.getPoint(0, 0);
     let alternate = false;
     let isStar = false;
 
@@ -196,11 +140,11 @@ export default class Star extends StringArt {
       for (let i = 0; i < linesPerThisRound; i++) {
         const pointPosition = {
           side,
-          sideIndex: alternate ? sideNails - round : round,
+          sideIndex: alternate ? sideNails - round - 1 : round,
         };
 
         const nextPoint = isStar
-          ? this.getStarPoint(pointPosition)
+          ? this.#star.getPoint(pointPosition.side, pointPosition.sideIndex)
           : this.getArcPoint(pointPosition);
 
         this.renderer.renderLines(prevPoint, nextPoint);
@@ -214,7 +158,7 @@ export default class Star extends StringArt {
           alternate = !alternate;
         }
       }
-      prevPoint = this.getStarPoint({ side: 0, sideIndex: round + 1 });
+      prevPoint = this.#star.getPoint(0, round + 1);
     }
   }
 
@@ -234,23 +178,16 @@ export default class Star extends StringArt {
 
   drawNails() {
     this.circle.drawNails(this.nails);
-
-    for (const { point, side, sideIndex } of this.generateStarPoints()) {
-      this.nails.addNail({
-        point,
-        number: sideIndex ? `${side}_${sideIndex}` : 0,
-      });
-    }
-
+    this.#star.drawNails(this.nails);
     this.circle.drawNails(this.nails);
   }
 
   getStepCount() {
     const { sides, sideNails, ringSize } = this.config;
     const ringCount = ringSize ? sideNails * sides : 0;
-    const starAndCircleCount = 3 * sides * (sideNails + (sides % 2 ? 1 : 0));
-
-    return starAndCircleCount + ringCount;
+    const circleCount = 2 * sides * (sideNails + (sides % 2 ? 1 : 0));
+    const starCount = StarShape.getStepCount(this.config);
+    return circleCount + ringCount + starCount;
   }
 
   static thumbnailConfig = {

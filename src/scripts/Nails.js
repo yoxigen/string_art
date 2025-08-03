@@ -1,6 +1,16 @@
 const NUMBER_MARGIN = 4;
 
+const DEFAULT_CONFIG = {
+  color: '#ffffff',
+  fontSize: 10,
+  radius: 1.5,
+  renderNumbers: false,
+  margin: NUMBER_MARGIN,
+};
+
 export default class Nails {
+  #nailGroups = [];
+
   constructor(renderer, config) {
     this.setConfig(config);
     this.nails = [];
@@ -27,16 +37,39 @@ export default class Nails {
     }
   }
 
+  addGroup(nails, config) {
+    this.#nailGroups.push({ nails, config });
+  }
+
+  #render(nails, _config) {
+    const config = {
+      ...DEFAULT_CONFIG,
+      ..._config,
+    };
+
+    this.renderer.renderNails(nails, config);
+  }
+
   fill({ drawNumbers = true } = {}) {
-    this.renderer.renderNails(this.nails, {
+    const config = {
       color: this.nailsColor,
       fontSize: this.nailNumbersFontSize,
       radius: this.nailRadius,
       renderNumbers: drawNumbers,
-      margin: NUMBER_MARGIN,
-    });
+    };
+
+    this.#render(this.nails, config);
 
     this.nails = [];
     this.addedPoints.clear();
+
+    this.#nailGroups.forEach(({ nails: groupNails, config: groupConfig }) => {
+      this.#render(groupNails, {
+        ...config,
+        ...groupConfig,
+      });
+    });
+
+    this.#nailGroups = [];
   }
 }

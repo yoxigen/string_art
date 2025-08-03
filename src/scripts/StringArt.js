@@ -136,7 +136,9 @@ class StringArt {
   }
 
   get configControls() {
-    return (this.controls ?? []).concat(COMMON_CONFIG_CONTROLS);
+    return (this.controls ?? []).concat(
+      this.mapCommonControls?.(COMMON_CONFIG_CONTROLS) ?? COMMON_CONFIG_CONTROLS
+    );
   }
 
   get controlsIndex() {

@@ -245,15 +245,18 @@ export default class EditorControls {
         if (functionAttrs.length) {
           const inputEl = this.controlElements[control.key].input;
           if (inputEl) {
-            functionAttrs.forEach(([name, value]) => {
-              const newAttrValue = value(this.pattern);
+            functionAttrs.forEach(([name, attributeValueFn]) => {
+              const newAttrValue = attributeValueFn(this.pattern);
               if (newAttrValue != inputEl.getAttribute(name)) {
                 if (
                   (name === 'min' && inputEl.value < newAttrValue) ||
                   (name === 'max' && inputEl.value > newAttrValue)
                 ) {
                   inputEl.value = newAttrValue;
-                  this.updateInput({ inputElement: inputEl });
+                  clearTimeout(inputEl.updateTimeout);
+                  inputEl.updateTimeout = setTimeout(() => {
+                    this.updateInput({ inputElement: inputEl });
+                  }, 100);
                 }
                 inputEl.setAttribute(name, newAttrValue);
               }

@@ -1,3 +1,5 @@
+import { mapControls } from './config_utils.js';
+
 const COLOR_CONTROLS = [
   {
     key: 'isMultiColor',
@@ -208,8 +210,7 @@ export default class Color {
    * @returns string
    */
   getColor(colorIndex) {
-    const { isMultiColor, colorCount, color, repeatColors, mirrorColors } =
-      this.config;
+    const { isMultiColor, colorCount, color, repeatColors } = this.config;
 
     if (!isMultiColor) {
       return color;
@@ -224,6 +225,22 @@ export default class Color {
     return this.colors[colorIndex];
   }
 
+  /**
+   * Returns the color with the opposite hue to the color at this index
+   * @param {number} colorIndex
+   */
+  static getOppositeColor(hslColor) {
+    const hslMatch = hslColor.match(
+      /^hsl\((\d+)(?:deg)?(?:,?\s?)(\d+%?)(?:,?\s?)(\d+%?)\)$/
+    );
+    if (hslMatch) {
+      const oppositeHue = (Number(hslMatch[1]) + 180) % 360;
+      return `hsl(${oppositeHue}, ${hslMatch[2]}, ${hslMatch[3]})`;
+    }
+
+    return null;
+  }
+
   getColorMap({ stepCount, colorCount }) {
     if (!colorCount) {
       throw new Error("Can't get color map, no colorCount provided!");
@@ -236,12 +253,20 @@ export default class Color {
     return colorMap;
   }
 
-  static getConfig({ include, exclude, defaults = {}, customControls }) {
-    const controls = getControls();
+  static getConfig({
+    include,
+    exclude,
+    defaults = {},
+    customControls,
+    propMapper,
+    groupLabel,
+    maxColorCount,
+  }) {
+    const controls = mapControls(getControls(), propMapper);
 
     return {
       key: 'colorGroup',
-      label: 'Color',
+      label: groupLabel ?? 'Color',
       type: 'group',
       children: [...(customControls ?? []), ...controls],
     };
@@ -262,6 +287,11 @@ export default class Color {
           if (control.type === 'group') {
             finalControl.children = getControls(control.children);
           }
+
+          if (control.key === 'colorCount' && maxColorCount) {
+            finalControl.attr.max = maxColorCount;
+          }
+
           return Object.freeze(finalControl);
         });
     }

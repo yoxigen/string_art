@@ -56,6 +56,19 @@ export default class Player {
     }
   }
 
+  advance(value = 1) {
+    const currentPosition = Number(this.elements.playerPosition.value);
+
+    this.goto(
+      currentPosition === this.stepCount
+        ? 1
+        : Math.min(
+            this.stepCount,
+            Number(this.elements.playerPosition.value) + value
+          )
+    );
+  }
+
   setInstructions(instructions) {
     // this.elements.stepInstructions.innerText = instructions;
   }
