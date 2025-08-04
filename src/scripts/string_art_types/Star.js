@@ -182,10 +182,19 @@ export default class Star extends StringArt {
     this.circle.drawNails(this.nails);
   }
 
+  #getCircleStepCount() {
+    const { sides, sideNails } = this.config;
+    const circleRounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
+    const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
+
+    return (circleRounds + 1) * linesPerRound - sides * 2;
+  }
+
   getStepCount() {
     const { sides, sideNails, ringSize } = this.config;
+
     const ringCount = ringSize ? sideNails * sides : 0;
-    const circleCount = 2 * sides * (sideNails + (sides % 2 ? 1 : 0));
+    const circleCount = this.#getCircleStepCount();
     const starCount = StarShape.getStepCount(this.config);
     return circleCount + ringCount + starCount;
   }

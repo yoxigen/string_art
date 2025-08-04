@@ -136,6 +136,10 @@ export default class StarShape {
         renderer.renderLines(prevPoint, nextPoint);
         prevPoint = nextPoint;
         yield;
+
+        if (isLastRound && i === sides - 1 && sides % 2 && sideNails % 2) {
+          break;
+        }
       }
 
       if (!isLastRound) {
@@ -169,7 +173,8 @@ export default class StarShape {
         : sideNails - minNailIndex;
 
     const linesPerRound = sides % 2 ? sides * 2 : sides;
-    return rounds * linesPerRound;
+    const isOdd = sides % 2 && sideNails % 2;
+    return rounds * linesPerRound - (isOdd ? sides : 0);
   }
 
   static nailsConfig = Object.freeze({
