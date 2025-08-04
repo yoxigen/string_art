@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "parcel",
     "build": "parcel build",
-    "postbuild": "workbox generateSW",
+    "postbuild": "workbox generateSW workbox-config.cjs",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "teast:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
   },
