@@ -1,8 +1,5 @@
-import type {
-  ColorValue,
-  Coordinates,
-  Dimensions,
-} from '../types/general.types';
+import { ColorValue } from '../helpers/color/color.types';
+import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail, NailsRenderOptions } from '../types/stringart.types';
 
 export default class Renderer {

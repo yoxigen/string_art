@@ -1,11 +1,8 @@
 import Renderer from './Renderer';
 import { PI2 } from '../helpers/math_utils';
-import type {
-  ColorValue,
-  Coordinates,
-  Dimensions,
-} from '../types/general.types';
+import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail } from '../types/stringart.types';
+import { ColorValue } from '../helpers/color/color.types';
 
 export default class CanvasRenderer extends Renderer {
   canvas: HTMLCanvasElement;

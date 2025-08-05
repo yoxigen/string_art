@@ -1,11 +1,11 @@
+import { ColorValue } from './helpers/color/color.types';
 import type Renderer from './renderers/Renderer';
 import { NailsConfig } from './types/config.types';
-import { ColorValue } from './types/general.types';
 import { Nail, NailsRenderOptions } from './types/stringart.types';
 
 const NUMBER_MARGIN = 4;
 
-const DEFAULT_CONFIG: NailsRenderOptions = {
+const DEFAULT_OPTIONS: NailsRenderOptions = {
   color: '#ffffff',
   fontSize: 10,
   radius: 1.5,
@@ -49,35 +49,33 @@ export default class Nails {
     }
   }
 
-  addGroup(nails: ReadonlyArray<Nail>, config: Partial<NailsConfig>) {
-    this.#nailGroups.push({ nails, config });
+  addGroup(nails: ReadonlyArray<Nail>, options: Partial<NailsRenderOptions>) {
+    this.#nailGroups.push({ nails, options });
   }
 
-  #render(nails: ReadonlyArray<Nail>, _config: NailsRenderOptions) {
-    const config = {
-      ...DEFAULT_CONFIG,
-      ..._config,
-    };
-
-    this.renderer.renderNails(nails, config);
+  #render(nails: ReadonlyArray<Nail>, options: NailsRenderOptions) {
+    this.renderer.renderNails(nails, {
+      ...DEFAULT_OPTIONS,
+      ...options,
+    });
   }
 
   fill({ drawNumbers = true } = {}) {
-    const config: NailsRenderOptions = {
+    const options: NailsRenderOptions = {
       color: this.nailsColor,
       fontSize: this.nailNumbersFontSize,
       radius: this.nailRadius,
       renderNumbers: drawNumbers,
     };
 
-    this.#render(this.nails, config);
+    this.#render(this.nails, options);
 
     this.nails = [];
     this.addedPoints.clear();
 
-    this.#nailGroups.forEach(({ nails: groupNails, config: groupConfig }) => {
+    this.#nailGroups.forEach(({ nails: groupNails, options: groupConfig }) => {
       this.#render(groupNails, {
-        ...config,
+        ...options,
         ...groupConfig,
       });
     });

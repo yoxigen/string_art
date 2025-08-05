@@ -1,4 +1,4 @@
-import { ColorValue } from './general.types';
+import { ColorValue } from '../helpers/color/color.types';
 
 export type ControlType =
   | 'range'
@@ -19,6 +19,7 @@ export interface NailsConfig {
   nailNumbersFontSize: number;
   showNails: boolean;
   showNailNumbers: boolean;
+  margin: number;
 }
 
 export interface StringsConfig {
@@ -45,10 +46,10 @@ export type ConfigFunction<
 > = (config: Config<TConfig>) => TReturn;
 
 export interface ControlConfig<T = Record<string, PrimitiveValue>> {
-  key: string;
+  key: keyof T;
   label: string;
   type: ControlType;
-  defaultValue?: number | string | boolean | ConfigFunction<T>;
+  defaultValue?: PrimitiveValue | ConfigFunction<T>;
   displayValue?: ConfigFunction<T>;
   attr?: {
     [key: string]:
@@ -63,6 +64,7 @@ export interface ControlConfig<T = Record<string, PrimitiveValue>> {
   show?: ConfigFunction<T>;
   children?: ControlsConfig<T>;
   isDisabled?: ConfigFunction<T>;
+  options?: Array<string | { label: string; value: string }>;
 }
 
 export type ControlsConfig<T = Record<string, PrimitiveValue>> = Array<

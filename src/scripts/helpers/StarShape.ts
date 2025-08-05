@@ -12,12 +12,12 @@ import { formatFractionAsPercent } from './string_utils';
 export interface StarShapeConfig {
   sideNails: number;
   sides: number;
-  maxCurveSize: number;
+  maxCurveSize?: number;
   centerRadius: number;
   rotation: number;
-  center: Coordinates;
-  size: Dimensions;
-  radius: number;
+  center?: Coordinates;
+  size?: Dimensions;
+  radius?: number;
 }
 
 export default class StarShape {

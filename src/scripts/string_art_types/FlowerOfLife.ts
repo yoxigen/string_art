@@ -1,6 +1,6 @@
 import { PI2 } from '../helpers/math_utils.js';
 import StringArt from '../StringArt.js';
-import Color from '../helpers/Color.js';
+import Color from '../helpers/color/Color.js';
 import Polygon from '../helpers/Polygon.js';
 import Circle from '../helpers/Circle.js';
 import { formatFractionAsPercent } from '../helpers/string_utils.js';

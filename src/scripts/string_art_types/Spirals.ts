@@ -1,6 +1,6 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
-import Color from '../helpers/Color.js';
+import Color from '../helpers/color/Color.js';
 import { PI2 } from '../helpers/math_utils.js';
 
 class Spirals extends StringArt {

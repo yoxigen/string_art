@@ -1,9 +1,39 @@
-import Nails from '../Nails.js';
-import easing from './easing.js';
-import { fitInside, PI2 } from './math_utils.js';
+import Nails from '../Nails';
+import Renderer from '../renderers/Renderer';
+import { ControlConfig, GroupValue } from '../types/config.types';
+import { Coordinates, Dimensions } from '../types/general.types';
+import { Nail } from '../types/stringart.types';
+import { ColorValue } from './color/color.types';
+import easing from './easing';
+import { fitInside, PI2 } from './math_utils';
+
+export interface CircleConfig {
+  n: number;
+  size: Dimensions;
+  margin: number;
+  rotation: number;
+  center?: Coordinates;
+  radius?: number;
+  reverse?: boolean;
+  distortion?: number;
+  displacement?: GroupValue;
+  displacementFunc?: keyof typeof easing;
+  displacementMag?: number;
+  displacementFastArea?: number;
+}
 
 export default class Circle {
-  constructor(config) {
+  serializedConfig: string;
+  points: Map<number, Coordinates>;
+  easingFunction: Function;
+  config: CircleConfig;
+  center: Coordinates;
+  xyRadius: Dimensions;
+  rotationAngle: number = 0;
+  isReverse: boolean = false;
+  radius: number;
+
+  constructor(config: CircleConfig) {
     this.setConfig(config);
   }
 
@@ -17,7 +47,7 @@ export default class Circle {
     const angle =
       this.easingFunction(realIndex / this.config.n) * PI2 + this.rotationAngle;
 
-    const point = [
+    const point: Coordinates = [
       this.center[0] + Math.sin(angle) * this.xyRadius[0],
       this.center[1] + Math.cos(angle) * this.xyRadius[1],
     ];
@@ -34,8 +64,8 @@ export default class Circle {
     return realIndex;
   }
 
-  setConfig(config) {
-    const serializedConfig = this._serializeConfig(config);
+  setConfig(config: CircleConfig) {
+    const serializedConfig = this.#serializeConfig(config);
     if (serializedConfig !== this.serializedConfig) {
       const {
         n,
@@ -97,7 +127,7 @@ export default class Circle {
     }
   }
 
-  _serializeConfig({
+  #serializeConfig({
     n,
     size,
     margin = 0,
@@ -109,7 +139,7 @@ export default class Circle {
     displacementFunc,
     displacementMag,
     displacementFastArea,
-  }) {
+  }: CircleConfig): string {
     return [
       size?.join(','),
       center?.join(','),
@@ -128,7 +158,13 @@ export default class Circle {
       .join('_');
   }
 
-  *generateNails({ nailsNumberStart = 0, getNumber } = {}) {
+  *generateNails({
+    nailsNumberStart = 0,
+    getNumber,
+  }: {
+    nailsNumberStart?: number;
+    getNumber?: (n: number) => number | string;
+  } = {}): Generator<Nail> {
     for (let i = 0; i < this.config.n; i++) {
       yield {
         point: this.getPoint(i),
@@ -142,17 +178,26 @@ export default class Circle {
    * @param {Nails} nails
    * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
    */
-  drawNails(nails, props) {
+  drawNails(
+    nails: Nails,
+    props: {
+      nailsNumberStart?: number;
+      getNumber?: (n: number) => number | string;
+    } = {}
+  ) {
     for (const nail of this.generateNails(props)) {
       nails.addNail(nail);
     }
   }
 
-  *drawRing(renderer, { ringSize, color }) {
+  *drawRing(
+    renderer: Renderer,
+    { ringSize, color }: { ringSize: number; color: ColorValue }
+  ): Generator<void> {
     const { n } = this.config;
     const ringDistance = Math.floor(ringSize * n);
 
-    let prevPoint;
+    let prevPoint: Coordinates;
     let prevPointIndex = 0;
     let isPrevSide = false;
     renderer.setColor(color);
@@ -163,7 +208,7 @@ export default class Circle {
       }
 
       const startPoint = prevPoint;
-      const positions = [];
+      const positions: Array<Coordinates> = [];
       prevPointIndex = isPrevSide ? i : prevPointIndex + ringDistance;
       prevPoint = this.getPoint(prevPointIndex);
       positions.push(prevPoint);
@@ -181,7 +226,7 @@ export default class Circle {
     }
   }
 
-  static rotationConfig = Object.freeze({
+  static rotationConfig: ControlConfig<{ rotation: number }> = {
     key: 'rotation',
     label: 'Rotation',
     defaultValue: 0,
@@ -192,10 +237,10 @@ export default class Circle {
       step: 1 / 360,
       snap: '0.25, 0.5, 0.75',
     },
-    displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`,
+    displayValue: ({ rotation }) => `${Math.round(rotation * 360)}°`,
     isStructural: true,
     affectsStepCount: false,
-  });
+  };
 
   static nailsConfig = Object.freeze({
     key: 'n',
@@ -210,7 +255,7 @@ export default class Circle {
     isStructural: true,
   });
 
-  static displacementConfig = Object.freeze({
+  static displacementConfig: ControlConfig<CircleConfig> = {
     key: 'displacement',
     label: 'Displacement',
     type: 'group',
@@ -254,9 +299,9 @@ export default class Circle {
         affectsStepCount: false,
       },
     ],
-  });
+  };
 
-  static distortionConfig = Object.freeze({
+  static distortionConfig: ControlConfig<{ distortion: number }> = {
     key: 'distortion',
     label: 'Distortion',
     defaultValue: 0,
@@ -269,5 +314,5 @@ export default class Circle {
     },
     isStructural: true,
     affectsStepCount: false,
-  });
+  };
 }

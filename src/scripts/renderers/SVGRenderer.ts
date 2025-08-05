@@ -1,6 +1,7 @@
 import Renderer from './Renderer.js';
 import { PI2 } from '../helpers/math_utils.js';
-import type { ColorValue, Dimensions } from '../types/general.types.js';
+import type { Dimensions } from '../types/general.types.js';
+import { ColorValue } from '../helpers/color/color.types.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 

@@ -49,10 +49,10 @@ function getControlConfigNodeByKey<T>(
   return findControlConfigNode(controlsConfig, ({ key }) => key === controlKey);
 }
 
-export function withoutAttribute(
-  controlConfig: ControlConfig,
+export function withoutAttribute<T>(
+  controlConfig: ControlConfig<T>,
   attributeName: string
-): ControlConfig {
+): ControlConfig<T> {
   const attr = controlConfig.attr;
   if (!attr) {
     return controlConfig;
@@ -134,10 +134,10 @@ export function insertAfter<T>(
  * @param {*} controlPropMapper
  * @returns
  */
-export function mapControls(
-  controlsConfig: ControlsConfig,
-  controlPropMapper: (control: ControlConfig) => Partial<ControlConfig>
-): ControlsConfig {
+export function mapControls<T>(
+  controlsConfig: ControlsConfig<T>,
+  controlPropMapper: (control: ControlConfig<T>) => Partial<ControlConfig<T>>
+): ControlsConfig<T> {
   return controlPropMapper
     ? controlsConfig.map(control => {
         if (control.children) {
@@ -163,7 +163,7 @@ export function mapControls(
 export function getConfigDefaultValues<T>(
   configControls: ControlsConfig<T>
 ): Config<T> {
-  const defaultValues: Config<T> = {} as Config<T>;
+  const defaultValues = {} as Config<T>;
   for (const {
     control: { key, defaultValue },
   } of traverseConfig(configControls)) {
@@ -183,9 +183,7 @@ export function getConfigDefaultValues<T>(
 export function getControlsIndex<T>(configControls: ControlsConfig<T>): {
   [key: string]: ControlConfig<T>;
 } {
-  const configIndex: {
-    [key: string]: ControlConfig<T>;
-  } = {};
+  const configIndex = {} as Record<keyof T, ControlConfig<T>>;
   for (const { control } of traverseConfig(configControls)) {
     configIndex[control.key] = control;
   }

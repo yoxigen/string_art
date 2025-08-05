@@ -1,32 +1,44 @@
 import StringArt from '../StringArt';
 import Circle from '../helpers/Circle';
-import Color from '../helpers/Color';
+import Color from '../helpers/color/Color';
 import StarShape, { StarShapeConfig } from '../helpers/StarShape';
 import { insertAfter } from '../helpers/config_utils';
 import { mapKeys } from '../helpers/object_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
-import type { ControlsConfig } from '../types/config.types';
+import type { ControlsConfig, GroupValue } from '../types/config.types';
+import { ColorConfig, ColorValue } from '../helpers/color/color.types';
+import { Coordinates } from '../types/general.types';
 
-interface SunConfig extends StarShapeConfig {
+interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;
-  layersSpread: number;
+  layerSpread: number;
   starRadius: number;
+  backdrop: GroupValue;
+  backdropColorCount: number;
+  backdropNailsRadius: number;
   backdropSize: number;
   backdropRadius: number;
   backdropShift: number;
   backdropSkip: boolean;
+  backdropNailsColor: ColorValue;
+  backdropIsMultiColor: boolean;
+  starGroup: GroupValue;
+}
+
+interface TCalc {
+  backdropNails: number;
 }
 
 export default class Sun extends StringArt<SunConfig> {
   name = 'Sun';
   id = 'sun';
-  controls = [
+  controls: ControlsConfig<SunConfig> = [
     {
       key: 'starGroup',
       label: 'Star',
       type: 'group',
       children: [
-        ...insertAfter(
+        ...insertAfter<SunConfig>(
           [
             ...StarShape.StarConfig,
             Color.getConfig({
@@ -153,7 +165,7 @@ export default class Sun extends StringArt<SunConfig> {
           affectsStepCount: false,
           show: ({ sides }) => sides > 3,
         },
-        Color.getConfig({
+        Color.getConfig<SunConfig>({
           defaults: {
             isMultiColor: true,
             multicolorRange: 39,
@@ -184,28 +196,35 @@ export default class Sun extends StringArt<SunConfig> {
     },
   ];
 
-  getCommonControls(): ControlsConfig {
-    return insertAfter(super.getCommonControls(), 'nailsColor', [
-      {
-        key: 'backdropNailsColor',
-        label: 'Backdrop nails color',
-        type: 'color',
-        defaultValue: '#ffffff',
-        show: ({ showNails }) => showNails,
-      },
-      {
-        key: 'backdropNailsRadius',
-        label: 'Backdrop nails radius',
-        type: 'range',
-        defaultValue: 1.5,
-        attr: { min: 0.5, max: 5, step: 0.25 },
-        show: ({ showNails }) => showNails,
-      },
-    ]);
+  getCommonControls(): ControlsConfig<Partial<SunConfig>> {
+    return insertAfter<Partial<SunConfig>>(
+      super.getCommonControls(),
+      'nailsColor',
+      [
+        {
+          key: 'backdropNailsColor',
+          label: 'Backdrop nails color',
+          type: 'color',
+          defaultValue: '#ffffff',
+          show: ({ showNails }) => showNails,
+        },
+        {
+          key: 'backdropNailsRadius',
+          label: 'Backdrop nails radius',
+          type: 'range',
+          defaultValue: 1.5,
+          attr: { min: 0.5, max: 5, step: 0.25 },
+          show: ({ showNails }) => showNails,
+        },
+      ]
+    );
   }
 
-  #circle = null;
-  #star = null;
+  #circle: Circle = null;
+  #star: StarShape = null;
+  #calc: TCalc;
+  #color: Color;
+  #backdropColor: Color;
 
   defaultValues = {
     sideNails: 50,
@@ -230,7 +249,7 @@ export default class Sun extends StringArt<SunConfig> {
     backdropNailsRadius: 2.275,
   };
 
-  getCalc() {
+  getCalc(): TCalc {
     const { sideNails, backdropSize } = this.config;
 
     return {
@@ -241,7 +260,7 @@ export default class Sun extends StringArt<SunConfig> {
   resetStructure() {
     super.resetStructure();
 
-    this.calc = null;
+    this.#calc = null;
   }
 
   setUpDraw() {
@@ -268,11 +287,11 @@ export default class Sun extends StringArt<SunConfig> {
         ? (radius * backdropRadiusConfig) / starRadiusConfig
         : radius;
 
-    if (!this.calc) {
-      this.calc = this.getCalc();
+    if (!this.#calc) {
+      this.#calc = this.getCalc();
     }
 
-    const starConfig = {
+    const starConfig: StarShapeConfig = {
       ...this.config,
       radius: starRadius,
       size: this.size,
@@ -284,12 +303,12 @@ export default class Sun extends StringArt<SunConfig> {
       this.#star = new StarShape(starConfig);
     }
 
-    this.color = new Color({
+    this.#color = new Color({
       ...this.config,
       colorCount: layers,
     });
 
-    this.backdropColor = new Color({
+    this.#backdropColor = new Color({
       ...mapKeys(this.config, key => {
         const match = key.match(/^backdrop(\w)(.+)/);
         return match ? match[1].toLowerCase() + match[2] : key;
@@ -318,7 +337,7 @@ export default class Sun extends StringArt<SunConfig> {
     const { sideNails, layerSpread, layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      const color = this.color.getColor(layer);
+      const color = this.#color.getColor(layer);
       this.renderer.setColor(color);
 
       const layerSize = Math.floor(sideNails * (1 - layerSpread * layer));
@@ -330,18 +349,18 @@ export default class Sun extends StringArt<SunConfig> {
     // For each side, add a nail between two star sides, at the specified backdropRadius.
     // For the backdrop size, connect the nail to the number of points in the star for the two sides near the backdrop nail
 
-    const { backdropNails } = this.calc;
+    const { backdropNails } = this.#calc;
     const { sides, backdropShift, sideNails, backdropSkip } = this.config;
 
     const shouldSkip = backdropSkip && sides > 3;
-    let prevPoint;
+    let prevPoint: Coordinates;
     let currentSide = 0;
     const shift = Math.floor(backdropShift * (sideNails - backdropNails));
 
     let currentSideIndex = shift + backdropNails - 1;
 
     for (let side = 0; side < sides; side++) {
-      this.renderer.setColor(this.backdropColor.getColor(side % 2 ? 0 : 1));
+      this.renderer.setColor(this.#backdropColor.getColor(side % 2 ? 0 : 1));
       const backdropPoint = this.#circle.getPoint(
         shouldSkip ? (side + 1) % sides : side
       );

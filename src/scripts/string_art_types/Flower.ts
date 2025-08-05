@@ -1,7 +1,7 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
 import Polygon from '../helpers/Polygon.js';
-import Color from '../helpers/Color.js';
+import Color from '../helpers/color/Color.js';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {

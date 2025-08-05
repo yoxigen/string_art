@@ -1,4 +1,4 @@
-import Color from '../helpers/Color.js';
+import Color from '../helpers/color/Color.js';
 import Circle from '../helpers/Circle.js';
 import Mandala from './Mandala.js';
 

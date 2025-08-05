@@ -137,7 +137,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
 abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   renderer: Renderer;
   controls: ControlsConfig<TConfig>;
-  defaultValues: Config<TConfig>;
+  defaultValues: Partial<Config<TConfig>>;
   stepCount: number = null;
   size: Dimensions = null;
   center: Coordinates = null;
@@ -165,7 +165,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   abstract generateStrings(): Generator<void>;
   abstract getStepCount(): number;
 
-  getCommonControls(): ControlsConfig<CommonConfig> {
+  getCommonControls(): ControlsConfig<Partial<CommonConfig>> {
     return COMMON_CONFIG_CONTROLS;
   }
 

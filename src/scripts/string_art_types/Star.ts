@@ -1,14 +1,30 @@
 import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
-import StarShape from '../helpers/StarShape.js';
+import Circle, { CircleConfig } from '../helpers/Circle.js';
+import StarShape, { StarShapeConfig } from '../helpers/StarShape.js';
+import { ColorValue } from '../helpers/color/color.types.js';
 import { withoutAttribute } from '../helpers/config_utils.js';
+import { ControlsConfig, GroupValue } from '../types/config.types.js';
+import { Coordinates } from '../types/general.types.js';
 
-export default class Star extends StringArt {
+interface StarConfig {
+  sides: number;
+  sideNails: number;
+  centerRadius: number;
+  ringSize: number;
+  rotation: number;
+  distortion: number;
+  innerColor: ColorValue;
+  outerColor: ColorValue;
+  ringColor: ColorValue;
+  colorGroup: GroupValue;
+}
+
+export default class Star extends StringArt<StarConfig> {
   name = 'Star';
   id = 'star';
   link =
     'https://www.etsy.com/listing/557818258/string-art-meditation-geometric-yoga?epik=dj0yJnU9Mm1hYmZKdks1eTc3bVY2TkVhS2p2Qlg0N2dyVWJxaTEmcD0wJm49MGlWSXE1SVJ2Vm0xZ0xtaGhITDBWQSZ0PUFBQUFBR0Zwd2lj';
-  controls = [
+  controls: ControlsConfig<StarConfig> = [
     {
       key: 'sides',
       label: 'Sides',
@@ -37,7 +53,7 @@ export default class Star extends StringArt {
       displayValue: ({ sideNails, sides, ringSize }) =>
         Math.floor(ringSize * sideNails * sides),
     },
-    withoutAttribute(Circle.rotationConfig, 'snap'),
+    withoutAttribute<StarConfig>(Circle.rotationConfig, 'snap'),
     Circle.distortionConfig,
     {
       key: 'colorGroup',
@@ -51,7 +67,7 @@ export default class Star extends StringArt {
           type: 'color',
         },
         {
-          key: 'outterColor',
+          key: 'outerColor',
           label: 'Outter color',
           defaultValue: '#2a82c6',
           type: 'color',
@@ -66,24 +82,14 @@ export default class Star extends StringArt {
     },
   ];
 
-  #star = null;
-
-  get n() {
-    if (!this._n) {
-      const { n, sides } = this.config;
-      const extraNails = n % sides;
-      this._n = n - extraNails;
-    }
-
-    return this._n;
-  }
+  #star: StarShape = null;
+  #circle: Circle;
 
   setUpDraw() {
-    this._n = null;
     super.setUpDraw();
 
     const { sides, rotation, distortion, sideNails, margin = 0 } = this.config;
-    const circleConfig = {
+    const circleConfig: CircleConfig = {
       size: this.size,
       n: sideNails * sides,
       margin,
@@ -91,15 +97,15 @@ export default class Star extends StringArt {
       distortion,
     };
 
-    if (this.circle) {
-      this.circle.setConfig(circleConfig);
+    if (this.#circle) {
+      this.#circle.setConfig(circleConfig);
     } else {
-      this.circle = new Circle(circleConfig);
+      this.#circle = new Circle(circleConfig);
     }
 
-    const starConfig = {
+    const starConfig: StarShapeConfig = {
       ...this.config,
-      radius: this.circle.radius,
+      radius: this.#circle.radius,
       size: this.size,
     };
 
@@ -110,20 +116,26 @@ export default class Star extends StringArt {
     }
   }
 
-  getArcPoint({ side, sideIndex }) {
-    return this.circle.getPoint(side * this.config.sideNails + sideIndex);
+  getArcPoint({
+    side,
+    sideIndex,
+  }: {
+    side: number;
+    sideIndex: number;
+  }): Coordinates {
+    return this.#circle.getPoint(side * this.config.sideNails + sideIndex);
   }
 
-  *drawStar() {
+  *drawStar(): Generator<void> {
     const { innerColor } = this.config;
 
     this.renderer.setColor(innerColor);
     yield* this.#star.generateStrings(this.renderer);
   }
 
-  *drawCircle() {
-    const { outterColor, sides, sideNails } = this.config;
-    this.renderer.setColor(outterColor);
+  *drawCircle(): Generator<void> {
+    const { outerColor, sides, sideNails } = this.config;
+    this.renderer.setColor(outerColor);
 
     let prevPoint = this.#star.getPoint(0, 0);
     let alternate = false;
@@ -162,13 +174,13 @@ export default class Star extends StringArt {
     }
   }
 
-  *generateStrings() {
+  *generateStrings(): Generator<void> {
     yield* this.drawCircle();
 
     const { ringSize, ringColor } = this.config;
 
     if (ringSize !== 0) {
-      yield* this.circle.drawRing(this.renderer, {
+      yield* this.#circle.drawRing(this.renderer, {
         ringSize,
         color: ringColor,
       });
@@ -176,13 +188,13 @@ export default class Star extends StringArt {
     yield* this.drawStar();
   }
 
-  drawNails() {
-    this.circle.drawNails(this.nails);
+  drawNails(): void {
+    this.#circle.drawNails(this.nails);
     this.#star.drawNails(this.nails);
-    this.circle.drawNails(this.nails);
+    this.#circle.drawNails(this.nails);
   }
 
-  #getCircleStepCount() {
+  #getCircleStepCount(): number {
     const { sides, sideNails } = this.config;
     const circleRounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
     const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
@@ -190,7 +202,7 @@ export default class Star extends StringArt {
     return (circleRounds + 1) * linesPerRound - sides * 2;
   }
 
-  getStepCount() {
+  getStepCount(): number {
     const { sides, sideNails, ringSize } = this.config;
 
     const ringCount = ringSize ? sideNails * sides : 0;
