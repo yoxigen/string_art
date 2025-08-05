@@ -18,6 +18,10 @@ const COLORS = {
   light: '#ffffff',
 };
 
+export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
+  renderer: Renderer
+) => StringArt<TConfig>;
+
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
   {
     key: 'strings',

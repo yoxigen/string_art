@@ -1,18 +1,19 @@
-import Player from './editor/Player.js';
-import patternTypes from './pattern_types.js';
-import EditorControls from './editor/EditorControls.js';
-import EditorSizeControls from './editor/EditorSizeControls.js';
-import { Thumbnails } from './thumbnails/Thumbnails.js';
-import { deserializeConfig, serializeConfig } from './Serialize.js';
-import { isShareSupported, share } from './share.js';
-import { initServiceWorker } from './pwa.js';
-import CanvasRenderer from './renderers/CanvasRenderer.js';
-import SVGRenderer from './renderers/SVGRenderer.js';
-import { downloadPatternAsSVG } from './download/SVGDownload.js';
-import { downloadFile } from './download/Download.js';
-import './components/StringArtRangeInput.js';
-import type Renderer from './renderers/Renderer.js';
-import type { Dimensions } from './types/general.types.js';
+import Player from './editor/Player';
+import patternTypes from './pattern_types';
+import EditorControls from './editor/EditorControls';
+import EditorSizeControls from './editor/EditorSizeControls';
+import { Thumbnails } from './thumbnails/Thumbnails';
+import { deserializeConfig, serializeConfig } from './Serialize';
+import { isShareSupported, share } from './share';
+import { initServiceWorker } from './pwa';
+import CanvasRenderer from './renderers/CanvasRenderer';
+import SVGRenderer from './renderers/SVGRenderer';
+import { downloadPatternAsSVG } from './download/SVGDownload';
+import { downloadFile } from './download/Download';
+import './components/StringArtRangeInput';
+import type Renderer from './renderers/Renderer';
+import type { Dimensions } from './types/general.types';
+import StringArt from './StringArt';
 
 window.addEventListener('error', function (event) {
   alert('Error: ' + event.message);
@@ -34,7 +35,6 @@ const elements: { [key: string]: HTMLElement } = {
 };
 
 let canvasRenderer: Renderer;
-let patterns;
 
 let currentPattern;
 const player = new Player(document.querySelector('#player'));
@@ -65,7 +65,7 @@ async function main() {
       ? new SVGRenderer(elements.canvas)
       : new CanvasRenderer(elements.canvas);
 
-  patterns = patternTypes.map(Pattern => new Pattern(canvasRenderer));
+  const patterns = patternTypes.map(Pattern => new Pattern(canvasRenderer));
 
   if (history.state?.pattern) {
     updateState(history.state);
@@ -147,6 +147,36 @@ async function main() {
         currentPattern.draw({ position: currentPattern.position });
     }
   });
+
+  function initRouting() {
+    window.addEventListener('popstate', ({ state }) => {
+      updateState(state);
+    });
+  }
+
+  function updateState(state) {
+    if (state?.pattern) {
+      const pattern = findPatternById(state.pattern);
+      selectPattern(pattern, {
+        draw: false,
+        config: state.config ? deserializeConfig(pattern, state.config) : {},
+      });
+
+      thumbnails.close();
+      currentPattern.draw();
+    } else {
+      unselectPattern();
+      thumbnails.open();
+    }
+  }
+
+  function findPatternById(patternId) {
+    const pattern = patterns.find(({ id }) => id === patternId);
+    if (!pattern) {
+      throw new Error(`Pattern with id "${patternId}" not found!`);
+    }
+    return pattern;
+  }
 }
 
 async function initPattern() {
@@ -251,36 +281,6 @@ function setSize(size: Dimensions | null) {
   }
 
   currentPattern.draw();
-}
-
-function initRouting() {
-  window.addEventListener('popstate', ({ state }) => {
-    updateState(state);
-  });
-}
-
-function updateState(state) {
-  if (state?.pattern) {
-    const pattern = findPatternById(state.pattern);
-    selectPattern(pattern, {
-      draw: false,
-      config: state.config ? deserializeConfig(pattern, state.config) : {},
-    });
-
-    thumbnails.close();
-    currentPattern.draw();
-  } else {
-    unselectPattern();
-    thumbnails.open();
-  }
-}
-
-function findPatternById(patternId) {
-  const pattern = patterns.find(({ id }) => id === patternId);
-  if (!pattern) {
-    throw new Error(`Pattern with id "${patternId}" not found!`);
-  }
-  return pattern;
 }
 
 function selectPattern(pattern, { config, draw = true } = {}) {
