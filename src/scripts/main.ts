@@ -11,12 +11,14 @@ import SVGRenderer from './renderers/SVGRenderer.js';
 import { downloadPatternAsSVG } from './download/SVGDownload.js';
 import { downloadFile } from './download/Download.js';
 import './components/StringArtRangeInput.js';
+import type Renderer from './renderers/Renderer.js';
+import type { Dimensions } from './types/general.types.js';
 
 window.addEventListener('error', function (event) {
   alert('Error: ' + event.message);
 });
 
-const elements = {
+const elements: { [key: string]: HTMLElement } = {
   canvas: document.querySelector('#canvas_panel'),
   patternLink: document.querySelector('#pattern_link'),
   downloadBtn: document.querySelector('#download_btn'),
@@ -31,7 +33,7 @@ const elements = {
   ),
 };
 
-let canvasRenderer;
+let canvasRenderer: Renderer;
 let patterns;
 
 let currentPattern;
@@ -109,27 +111,27 @@ async function main() {
     setCurrentPattern(pattern);
   });
 
-  // If just a click, advance by one. If touch is left, play until removed
-  elements.canvas.addEventListener('mousedown', () => {
-    let timeout;
+  // // If just a click, advance by one. If touch is left, play until removed
+  // elements.canvas.addEventListener('mousedown', () => {
+  //   let timeout;
 
-    const advance = () => {
-      clearTimeout(timeout);
-      player.advance();
-      elements.canvas.removeEventListener('mouseup', advance);
-    };
+  //   const advance = () => {
+  //     clearTimeout(timeout);
+  //     player.advance();
+  //     elements.canvas.removeEventListener('mouseup', advance);
+  //   };
 
-    timeout = setTimeout(() => {
-      player.play();
-      const stopPlay = () => {
-        player.pause();
-        elements.canvas.removeEventListener('mouseup', stopPlay);
-      };
-      elements.canvas.addEventListener('mouseup', stopPlay);
-    }, 200);
+  //   timeout = setTimeout(() => {
+  //     player.play();
+  //     const stopPlay = () => {
+  //       player.pause();
+  //       elements.canvas.removeEventListener('mouseup', stopPlay);
+  //     };
+  //     elements.canvas.addEventListener('mouseup', stopPlay);
+  //   }, 200);
 
-    elements.canvas.addEventListener('mouseup', advance);
-  });
+  //   elements.canvas.addEventListener('mouseup', advance);
+  // });
 
   document.body.addEventListener('click', e => {
     const toggleBtn = e.target.closest('[data-toggle-for]');
@@ -229,13 +231,16 @@ function setCurrentPattern(pattern, setPatternOptions) {
 }
 
 function initSize() {
-  sizeControls.element.addEventListener('sizechange', ({ detail }) => {
-    setSize(detail);
-  });
+  sizeControls.element.addEventListener(
+    'sizechange',
+    ({ detail }: CustomEvent<Dimensions | null>) => {
+      setSize(detail);
+    }
+  );
 }
 
-function setSize(size) {
-  if (size.width && size.height) {
+function setSize(size: Dimensions | null) {
+  if (size && size.length === 2) {
     canvasRenderer.setSize(size);
     if (!elements.canvas.classList.contains('overflow')) {
       elements.canvas.classList.add('overflow');

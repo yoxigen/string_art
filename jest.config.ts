@@ -3,7 +3,9 @@
  * https://jestjs.io/docs/configuration
  */
 
-const config = {
+import type { Config } from 'jest';
+
+const config: Config = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -102,7 +104,7 @@ const config = {
   // notifyMode: "failure-change",
 
   // A preset that is used as a base for Jest's configuration
-  // preset: undefined,
+  preset: 'ts-jest/presets/default-esm',
 
   // Run tests from one or more projects
   // projects: undefined,
@@ -176,7 +178,6 @@ const config = {
 
   // A map from regular expressions to paths to transformers
   transform: {},
-
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [
   //   "\\\\node_modules\\\\",
@@ -194,6 +195,12 @@ const config = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
+  extensionsToTreatAsEsm: ['.ts'],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
 };
 
 export default config;

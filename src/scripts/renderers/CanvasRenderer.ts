@@ -1,22 +1,25 @@
-import Renderer from './Renderer.js';
-import { PI2 } from '../helpers/math_utils.js';
+import Renderer from './Renderer';
+import { PI2 } from '../helpers/math_utils';
+import type {
+  ColorValue,
+  Coordinates,
+  Dimensions,
+} from '../types/general.types';
+import type { Nail } from '../types/stringart.types';
 
 export default class CanvasRenderer extends Renderer {
-  constructor(parentElement) {
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  pixelRatio: number;
+
+  constructor(parentElement: HTMLElement) {
     super(parentElement);
 
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
 
     const dpr = window.devicePixelRatio || 1;
-    const bsr =
-      this.ctx.webkitBackingStorePixelRatio ||
-      this.ctx.mozBackingStorePixelRatio ||
-      this.ctx.msBackingStorePixelRatio ||
-      this.ctx.oBackingStorePixelRatio ||
-      this.ctx.backingStorePixelRatio ||
-      1;
-    this.pixelRatio = dpr / bsr;
+    this.pixelRatio = dpr;
     this.ctx.globalCompositeOperation = 'source-over';
 
     parentElement.appendChild(this.canvas);
@@ -32,33 +35,33 @@ export default class CanvasRenderer extends Renderer {
     this.canvas.removeAttribute('height');
 
     const [width, height] = this.getSize();
-    this.canvas.setAttribute('width', width);
-    this.canvas.setAttribute('height', height);
+    this.canvas.setAttribute('width', String(width));
+    this.canvas.setAttribute('height', String(height));
   }
 
-  setColor(color) {
+  setColor(color: ColorValue) {
     this.ctx.strokeStyle = color;
   }
 
-  setLineWidth(width) {
+  setLineWidth(width: number) {
     this.ctx.lineWidth = width;
   }
 
-  setBackground(color) {
+  setBackground(color: ColorValue) {
     this.ctx.globalCompositeOperation = 'destination-over';
     this.ctx.fillStyle = color;
     this.ctx.fillRect(0, 0, ...this.getSize());
     this.ctx.globalCompositeOperation = 'source-over';
   }
 
-  getSize() {
+  getSize(): Dimensions {
     return [
       this.canvas.clientWidth * this.pixelRatio,
       this.canvas.clientHeight * this.pixelRatio,
     ];
   }
 
-  renderLines(startPosition, ...positions) {
+  renderLines(startPosition: Coordinates, ...positions: Array<Coordinates>) {
     this.ctx.beginPath();
     this.ctx.moveTo(...startPosition);
 
@@ -69,7 +72,22 @@ export default class CanvasRenderer extends Renderer {
     this.ctx.stroke();
   }
 
-  renderNails(nails, { color, fontSize, radius, renderNumbers, margin = 0 }) {
+  renderNails(
+    nails: ReadonlyArray<Nail>,
+    {
+      color,
+      fontSize,
+      radius,
+      renderNumbers,
+      margin = 0,
+    }: {
+      color: ColorValue;
+      fontSize: number;
+      radius: number;
+      renderNumbers?: boolean;
+      margin?: number;
+    }
+  ) {
     const centerX = this.canvas.width / 2;
 
     this.ctx.globalCompositeOperation = 'source-over';
@@ -85,7 +103,7 @@ export default class CanvasRenderer extends Renderer {
       if (renderNumbers && number != null) {
         const isRightAlign = x < centerX;
 
-        const numberPosition = [
+        const numberPosition: Coordinates = [
           isRightAlign ? x - nailNumberOffset : x + nailNumberOffset,
           y,
         ];

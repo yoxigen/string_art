@@ -1,19 +1,42 @@
-import { compareObjects } from './object_utils.js';
-import { formatFractionAsPercent } from './string_utils.js';
+import Nails from '../Nails';
+import Renderer from '../renderers/Renderer';
+import {
+  ControlConfig,
+  ControlsConfig,
+  NailsConfig,
+} from '../types/config.types';
+import { Coordinates, Dimensions } from '../types/general.types';
+import { compareObjects } from './object_utils';
+import { formatFractionAsPercent } from './string_utils';
+
+export interface StarShapeConfig {
+  sideNails: number;
+  sides: number;
+  maxCurveSize: number;
+  centerRadius: number;
+  rotation: number;
+  center: Coordinates;
+  size: Dimensions;
+  radius: number;
+}
 
 export default class StarShape {
-  constructor(config) {
+  config: StarShapeConfig;
+  center: Coordinates;
+  calc: ReturnType<typeof StarShape.getCalc>;
+
+  constructor(config: StarShapeConfig) {
     this.setConfig(config);
   }
 
-  #getCalc({
+  static getCalc({
     radius,
     sides,
     sideNails,
     rotation,
     centerRadius: centerRadiusFraction = 0,
     maxCurveSize = 1,
-  }) {
+  }: StarShapeConfig) {
     const centerRadius = radius * centerRadiusFraction;
     const nailSpacing = (radius - centerRadius) / (sideNails - 1); // The distance between nails on the same side, in px
     const sidesAngle = (Math.PI * 2) / sides; // The angle, in radians, between each side
@@ -37,7 +60,7 @@ export default class StarShape {
     };
   }
 
-  getPoint(side = 0, index = 0) {
+  getPoint(side = 0, index = 0): Coordinates {
     const radius = this.calc.centerRadius + index * this.calc.nailSpacing;
     const { sinSideAngle, cosSideAngle } = this.calc.sides[side];
 
@@ -47,7 +70,7 @@ export default class StarShape {
     ];
   }
 
-  setConfig(config) {
+  setConfig(config: StarShapeConfig) {
     if (
       compareObjects(config, this.config, [
         'radius',
@@ -63,19 +86,30 @@ export default class StarShape {
       return;
     }
 
-    const center = config.center ?? config.size.map(v => v / 2);
+    const center =
+      config.center ?? (config.size.map(v => v / 2) as Coordinates);
 
     this.config = config;
     this.center = center;
-    this.calc = this.#getCalc(config);
+    this.calc = StarShape.getCalc(config);
   }
 
   /**
    * Given a Nails instance, uses it to draw the nails of this Circle
-   * @param {Nails} nails
-   * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
    */
-  drawNails(nails, { getNumber, reverseOrder, ...nailsConfig } = {}) {
+  drawNails(
+    nails: Nails,
+    {
+      getNumber,
+      reverseOrder,
+      ...nailsConfig
+    }: Partial<
+      {
+        getNumber: (side: number, sideIndex: number) => string;
+        reverseOrder: boolean;
+      } & NailsConfig
+    > = {}
+  ): void {
     const { sides, sideNails } = this.config;
 
     const groupNails = [];
@@ -102,7 +136,10 @@ export default class StarShape {
   // The threading is: star at the center, then next side at the edge (outtermost nail), then back to the center for the next side,
   // until all sides have been connected both center and edge (for odd-side-count stars) or until all sides have been connected (for odd-side-count)
   // Then move up one nail from the center and start another round.
-  *generateStrings(renderer, { size } = {}) {
+  *generateStrings(
+    renderer: Renderer,
+    { size }: { size?: number } = {}
+  ): Generator<void> {
     const { sideNails: sideNailsConfig, sides } = this.config;
     const { sidesConnectionCount, linesPerRound } = this.calc;
 
@@ -151,13 +188,17 @@ export default class StarShape {
     }
   }
 
-  getStepCount(size) {
+  getStepCount(size: number) {
     return StarShape.getStepCount(this.config, { size });
   }
 
   static getStepCount(
-    { sides, sideNails: sideNailsConfig, maxCurveSize = 1 },
-    { size } = {}
+    {
+      sides,
+      sideNails: sideNailsConfig,
+      maxCurveSize = 1,
+    }: Partial<StarShapeConfig>,
+    { size }: { size?: number } = {}
   ) {
     const sidesConnectionCount = Math.floor(
       Math.min(1, maxCurveSize) * sideNailsConfig
@@ -177,7 +218,7 @@ export default class StarShape {
     return rounds * linesPerRound - (isOdd ? sides : 0);
   }
 
-  static nailsConfig = Object.freeze({
+  static nailsConfig: ControlConfig<StarShapeConfig> = Object.freeze({
     key: 'sideNails',
     label: 'Nails per side',
     defaultValue: 40,
@@ -186,7 +227,7 @@ export default class StarShape {
     isStructural: true,
   });
 
-  static sidesConfig = Object.freeze({
+  static sidesConfig: ControlConfig<StarShapeConfig> = Object.freeze({
     key: 'sides',
     label: 'Sides',
     defaultValue: 3,
@@ -195,7 +236,7 @@ export default class StarShape {
     isStructural: true,
   });
 
-  static maxCurveSize = Object.freeze({
+  static maxCurveSize: ControlConfig<StarShapeConfig> = {
     key: 'maxCurveSize',
     label: 'Max curve size',
     description:
@@ -210,9 +251,9 @@ export default class StarShape {
       step: ({ config: { sideNails } }) => 1 / sideNails,
     },
     isStructural: true,
-  });
+  };
 
-  static centerRadiusConfig = Object.freeze({
+  static centerRadiusConfig: ControlConfig<StarShapeConfig> = {
     key: 'centerRadius',
     label: 'Center radius',
     defaultValue: 0,
@@ -224,9 +265,9 @@ export default class StarShape {
     },
     displayValue: ({ centerRadius }) => formatFractionAsPercent(centerRadius),
     isStructural: true,
-  });
+  };
 
-  static rotationConfig = Object.freeze({
+  static rotationConfig: ControlConfig<StarShapeConfig> = {
     key: 'rotation',
     label: 'Rotation',
     defaultValue: 0,
@@ -237,16 +278,16 @@ export default class StarShape {
       step: 0.01,
       snap: '0.5',
     },
-    displayValue: (config, { key }) => `${Math.round(config[key] * 360)}°`,
+    displayValue: ({ rotation }) => `${Math.round(rotation * 360)}°`,
     isStructural: true,
     affectsStepCount: false,
-  });
+  };
 
-  static StarConfig = Object.freeze([
+  static StarConfig: ControlsConfig<StarShapeConfig> = [
     StarShape.nailsConfig,
     StarShape.sidesConfig,
     StarShape.centerRadiusConfig,
     StarShape.maxCurveSize,
     StarShape.rotationConfig,
-  ]);
+  ];
 }

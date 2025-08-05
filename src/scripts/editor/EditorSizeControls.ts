@@ -1,3 +1,5 @@
+import { Dimensions } from '../types/general.types';
+
 const sizeControls = document.querySelector('#size_controls');
 
 const elements = {
@@ -91,7 +93,9 @@ export default class EditorSizeControls {
 
   _notifyOnChange([width, height] = []) {
     this.element.dispatchEvent(
-      new CustomEvent('sizechange', { detail: { width, height } })
+      new CustomEvent<Dimensions | null>('sizechange', {
+        detail: width && height ? [width, height] : null,
+      })
     );
   }
 

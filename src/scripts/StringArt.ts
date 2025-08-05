@@ -1,12 +1,24 @@
-import Nails from './Nails.js';
-import Renderer from './renderers/Renderer.js';
+import {
+  getConfigDefaultValues,
+  getControlsIndex,
+} from './helpers/config_utils';
+import Nails from './Nails';
+import Renderer from './renderers/Renderer';
+import type {
+  CommonConfig,
+  Config,
+  ControlConfig,
+  ControlsConfig,
+  PrimitiveValue,
+} from './types/config.types';
+import { Coordinates, Dimensions } from './types/general.types';
 
 const COLORS = {
   dark: '#0e0e0e',
   light: '#ffffff',
 };
 
-const COMMON_CONFIG_CONTROLS = [
+const COMMON_CONFIG_CONTROLS: ControlsConfig = [
   {
     key: 'strings',
     label: 'Strings',
@@ -122,8 +134,22 @@ const COMMON_CONFIG_CONTROLS = [
   },
 ];
 
-class StringArt {
-  constructor(renderer) {
+abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
+  renderer: Renderer;
+  controls: ControlsConfig<TConfig>;
+  defaultValues: Config<TConfig>;
+  stepCount: number = null;
+  size: Dimensions = null;
+  center: Coordinates = null;
+  nails: Nails = null;
+  position: number = 0;
+  stringsIterator: Iterator<void>;
+
+  #config: Config<TConfig>;
+  #controlsIndex: { [key: string]: ControlConfig<TConfig> } | null;
+  #defaultConfig: Config<TConfig> | null;
+
+  constructor(renderer: Renderer) {
     if (!renderer) {
       throw new Error('Renderer not specified!');
     }
@@ -135,39 +161,48 @@ class StringArt {
     this.renderer = renderer;
   }
 
-  get configControls() {
-    return (this.controls ?? []).concat(
-      this.mapCommonControls?.(COMMON_CONFIG_CONTROLS) ?? COMMON_CONFIG_CONTROLS
-    );
+  abstract drawNails(): void;
+  abstract generateStrings(): Generator<void>;
+  abstract getStepCount(): number;
+
+  getCommonControls(): ControlsConfig<CommonConfig> {
+    return COMMON_CONFIG_CONTROLS;
   }
 
-  get controlsIndex() {
-    if (!this._controlsIndex) {
-      this._controlsIndex = getControlsIndex(this.controls);
+  get configControls(): ControlsConfig<TConfig> {
+    return (this.controls ?? []).concat(this.getCommonControls());
+  }
+
+  get controlsIndex(): { [key: string]: ControlConfig<TConfig> } {
+    if (!this.#controlsIndex) {
+      this.#controlsIndex = getControlsIndex<TConfig>(this.controls);
     }
 
-    return this._controlsIndex;
+    return this.#controlsIndex;
   }
 
-  get defaultConfig() {
-    if (!this._defaultConfig) {
-      this._defaultConfig = Object.freeze(
-        Object.assign(flattenConfig(this.configControls), this.defaultValues)
+  get defaultConfig(): Config<TConfig> {
+    if (!this.#defaultConfig) {
+      this.#defaultConfig = Object.freeze(
+        Object.assign(
+          getConfigDefaultValues(this.configControls),
+          this.defaultValues
+        ) as Config<TConfig>
       );
     }
 
-    return this._defaultConfig;
+    return this.#defaultConfig;
   }
 
-  get config() {
-    return this._config ?? this.defaultConfig;
+  get config(): Config<TConfig> {
+    return this.#config ?? this.defaultConfig;
   }
 
-  set config(value) {
-    this._config = Object.assign({}, this.defaultConfig, value);
+  set config(value: Config<TConfig>) {
+    this.#config = Object.assign({}, this.defaultConfig, value);
   }
 
-  setConfig(config) {
+  setConfig(config: Config<TConfig>) {
     const currentConfig = this.config;
     this.config = config;
     if (this.onConfigChange) {
@@ -175,18 +210,23 @@ class StringArt {
         key => config[key] !== currentConfig[key]
       );
 
-      this.onConfigChange({
-        controls: changedControlKeys.map(key => ({
+      this.onConfigChange(
+        changedControlKeys.map(key => ({
           control: this.controlsIndex[key],
           value: config[key],
-        })),
-      });
+        }))
+      );
     }
   }
 
   resetStructure() {}
 
-  onConfigChange({ controls }) {
+  onConfigChange(
+    controls: ReadonlyArray<{
+      control: ControlConfig<TConfig>;
+      value: PrimitiveValue | null;
+    }>
+  ) {
     if (controls.some(({ control }) => control.isStructural)) {
       this.resetStructure();
       if (
@@ -202,26 +242,26 @@ class StringArt {
     this.resetStructure();
   }
 
-  setConfigValue(controlKey, value) {
-    if (this._config && this._config[controlKey] === value) {
+  setConfigValue(controlKey: string, value: PrimitiveValue) {
+    if (this.#config && this.#config[controlKey] === value) {
       return;
     }
 
-    this._config = Object.freeze({
-      ...(this._config ?? this.defaultConfig),
+    this.#config = Object.freeze({
+      ...(this.#config ?? this.defaultConfig),
       [controlKey]: value,
     });
 
     if (this.onConfigChange) {
-      this.onConfigChange({
-        controls: [{ control: this.controlsIndex[controlKey], value }].filter(
+      this.onConfigChange(
+        [{ control: this.controlsIndex[controlKey], value }].filter(
           ({ control }) => !!control
-        ),
-      });
+        )
+      );
     }
   }
 
-  getSize() {
+  getSize(): Dimensions {
     return this.renderer.getSize();
   }
 
@@ -230,7 +270,7 @@ class StringArt {
     this.renderer.reset();
     const [width, height] = (this.size = this.getSize());
     Object.assign(this, this.size);
-    this.center = this.size.map(value => value / 2);
+    this.center = this.size.map(value => value / 2) as Coordinates;
 
     if (
       previousSize &&
@@ -259,7 +299,7 @@ class StringArt {
   }
 
   initDraw() {
-    this.setUpDraw(this.config);
+    this.setUpDraw();
     const {
       showNails,
       showNailNumbers,
@@ -289,7 +329,7 @@ class StringArt {
    * Draws the string art
    * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all)
    */
-  draw({ position = Infinity } = {}) {
+  draw({ position = Infinity }: { position?: number } = {}) {
     this.initDraw();
     const { showStrings } = this.config;
 
@@ -302,7 +342,7 @@ class StringArt {
     }
   }
 
-  goto(position) {
+  goto(position: number) {
     if (position === this.position) {
       return;
     }
@@ -314,6 +354,10 @@ class StringArt {
     }
   }
 
+  /**
+   *
+   * @returns Advance the strings iterator by one. If the iterator is done, calls this.afterDraw().
+   */
   drawNext() {
     const result = this.stringsIterator.next();
 
@@ -325,48 +369,6 @@ class StringArt {
 
     return result;
   }
-
-  generateStrings() {
-    throw new Error('generateStrings method not defined!');
-  }
-
-  getStepCount() {
-    throw new Error(
-      `'getStepCount' method not implemented for string art type "${this.name}"`
-    );
-  }
-}
-
-function flattenConfig(configControls) {
-  return configControls.reduce(
-    (config, { key, defaultValue, children }) =>
-      children
-        ? {
-            ...config,
-            ...flattenConfig(children),
-          }
-        : {
-            ...config,
-            [key]: defaultValue,
-          },
-    {}
-  );
-}
-
-function getControlsIndex(configControls) {
-  return configControls.reduce(
-    (controlsIndex, control) =>
-      control.children
-        ? {
-            ...controlsIndex,
-            ...getControlsIndex(control.children),
-          }
-        : {
-            ...controlsIndex,
-            [control.key]: control,
-          },
-    {}
-  );
 }
 
 export default StringArt;

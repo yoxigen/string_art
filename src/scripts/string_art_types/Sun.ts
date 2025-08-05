@@ -1,12 +1,23 @@
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
-import Color from '../helpers/Color.js';
-import StarShape from '../helpers/StarShape.js';
-import { insertAfter } from '../helpers/config_utils.js';
-import { mapKeys } from '../helpers/object_utils.js';
-import { formatFractionAsPercent } from '../helpers/string_utils.js';
+import StringArt from '../StringArt';
+import Circle from '../helpers/Circle';
+import Color from '../helpers/Color';
+import StarShape, { StarShapeConfig } from '../helpers/StarShape';
+import { insertAfter } from '../helpers/config_utils';
+import { mapKeys } from '../helpers/object_utils';
+import { formatFractionAsPercent } from '../helpers/string_utils';
+import type { ControlsConfig } from '../types/config.types';
 
-export default class Sun extends StringArt {
+interface SunConfig extends StarShapeConfig {
+  layers: number;
+  layersSpread: number;
+  starRadius: number;
+  backdropSize: number;
+  backdropRadius: number;
+  backdropShift: number;
+  backdropSkip: boolean;
+}
+
+export default class Sun extends StringArt<SunConfig> {
   name = 'Sun';
   id = 'sun';
   controls = [
@@ -173,8 +184,8 @@ export default class Sun extends StringArt {
     },
   ];
 
-  mapCommonControls(controls) {
-    return insertAfter(controls, 'nailsColor', [
+  getCommonControls(): ControlsConfig {
+    return insertAfter(super.getCommonControls(), 'nailsColor', [
       {
         key: 'backdropNailsColor',
         label: 'Backdrop nails color',

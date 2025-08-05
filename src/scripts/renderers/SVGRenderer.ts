@@ -1,9 +1,21 @@
 import Renderer from './Renderer.js';
 import { PI2 } from '../helpers/math_utils.js';
+import type { ColorValue, Dimensions } from '../types/general.types.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export default class SVGRenderer extends Renderer {
+  svg: SVGElement;
+  backgroundGroup: SVGGElement;
+  background: SVGRectElement = null;
+  linesGroup: SVGGElement;
+  nailsGroup: SVGGElement;
+  nailsCirclesGroup: SVGGElement;
+  nailsTextGroup: SVGGElement;
+  currentColor: ColorValue | null = null;
+  lineWidth: number | string = 1;
+  currentLineGroup: SVGGElement = null;
+
   constructor(parentElement) {
     super(parentElement);
 
@@ -45,19 +57,22 @@ export default class SVGRenderer extends Renderer {
 
     const [width, height] = this.getSize().map(Math.trunc);
     this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
-    this.svg.setAttributeNS(SVG_NS, 'width', width);
-    this.svg.setAttributeNS(SVG_NS, 'height', height);
+    this.svg.setAttributeNS(SVG_NS, 'width', String(width));
+    this.svg.setAttributeNS(SVG_NS, 'height', String(height));
     this.svg.style.width = width + 'px';
     this.svg.style.height = height + 'px';
     this.currentColor = null;
     this.lineWidth = null;
   }
 
-  setColor(color) {
+  setColor(color: ColorValue) {
     if (color !== this.currentColor) {
       this.currentLineGroup = document.createElementNS(SVG_NS, 'g');
       this.currentLineGroup.setAttribute('stroke', color);
-      this.currentLineGroup.setAttribute('stroke-width', this.lineWidth);
+      this.currentLineGroup.setAttribute(
+        'stroke-width',
+        String(this.lineWidth)
+      );
       this.linesGroup.appendChild(this.currentLineGroup);
       this.currentColor = color;
     }
@@ -66,12 +81,14 @@ export default class SVGRenderer extends Renderer {
   setLineWidth(width) {
     this.lineWidth = width ?? '1';
     this.linesGroup.setAttributeNS(SVG_NS, 'stroke-width', width ?? '1');
-    this.linesGroup.childNodes.forEach(group =>
-      group.setAttributeNS(SVG_NS, 'stroke-width', width ?? '1')
-    );
+    this.linesGroup.childNodes.forEach(group => {
+      if (group instanceof SVGGElement) {
+        group.setAttributeNS(SVG_NS, 'stroke-width', width ?? '1');
+      }
+    });
   }
 
-  setBackground(color) {
+  setBackground(color: ColorValue) {
     if (color) {
       if (!this.background) {
         this.background = document.createElementNS(SVG_NS, 'rect');
@@ -87,13 +104,20 @@ export default class SVGRenderer extends Renderer {
     }
   }
 
-  setSize(size) {
-    super.setSize(size);
-    const [width, height] = size.map(Math.trunc);
+  getSize(): Dimensions {
+    return [this.svg.clientWidth, this.svg.clientHeight];
+  }
 
-    this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
-    this.svg.setAttributeNS(SVG_NS, 'width', width);
-    this.svg.setAttributeNS(SVG_NS, 'height', height);
+  setSize(size: Dimensions | null) {
+    super.setSize(size);
+
+    if (size) {
+      const [width, height] = size.map(Math.trunc);
+
+      this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
+      this.svg.setAttributeNS(SVG_NS, 'width', String(width));
+      this.svg.setAttributeNS(SVG_NS, 'height', String(height));
+    }
   }
   renderLines(startPosition, ...positions) {
     let previousPoint = startPosition;
@@ -101,10 +125,10 @@ export default class SVGRenderer extends Renderer {
 
     for (const position of positions) {
       const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('x1', Math.trunc(previousPoint[0]));
-      line.setAttribute('y1', Math.trunc(previousPoint[1]));
-      line.setAttribute('x2', Math.trunc(position[0]));
-      line.setAttribute('y2', Math.trunc(position[1]));
+      line.setAttribute('x1', String(Math.trunc(previousPoint[0])));
+      line.setAttribute('y1', String(Math.trunc(previousPoint[1])));
+      line.setAttribute('x2', String(Math.trunc(position[0])));
+      line.setAttribute('y2', String(Math.trunc(position[1])));
       previousPoint = position;
 
       fragment.appendChild(line);
