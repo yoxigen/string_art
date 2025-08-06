@@ -374,13 +374,15 @@ export default class EditorControls<TConfig> {
 
   renderControls(
     containerEl: HTMLElement | undefined = elements.controls,
-    _configControls?: ControlsConfig<TConfig>
+    _configControls?: ControlsConfig<TConfig>,
+    indexStart?: number
   ) {
     const configControls = _configControls ?? this.pattern.configControls;
     containerEl.innerHTML = '';
     const controlsFragment = document.createDocumentFragment();
+    indexStart = indexStart ?? 1;
 
-    configControls.forEach(controlConfig => {
+    configControls.forEach((controlConfig, controlIndex) => {
       const controlId = `config_${String(controlConfig.key)}`;
 
       let controlEl: HTMLElement;
@@ -417,7 +419,7 @@ export default class EditorControls<TConfig> {
             ? 'string-art-range-input'
             : 'input'
         ) as ControlInputElement;
-
+        inputEl.setAttribute('tabindex', String(controlIndex));
         const inputValue =
           this.pattern.config[controlConfig.key] ??
           this.getConfigValue(controlConfig.defaultValue, this.pattern.config);
@@ -439,7 +441,9 @@ export default class EditorControls<TConfig> {
           controlEl.appendChild(label);
           controlEl.appendChild(inputEl);
         } else {
-          inputEl.setAttribute('type', controlConfig.type);
+          if (controlConfig.type !== 'range') {
+            inputEl.setAttribute('type', controlConfig.type);
+          }
 
           if (controlConfig.type === 'checkbox') {
             (inputEl as HTMLInputElement).checked = !!inputValue;

@@ -170,7 +170,6 @@ export default class Sun extends StringArt<SunConfig> {
             multicolorRange: 39,
             multicolorStart: 0,
             color: '#ffffff',
-            backdropColorCount: 2,
             saturation: 57,
             multicolorByLightness: true,
             minLightness: 20,

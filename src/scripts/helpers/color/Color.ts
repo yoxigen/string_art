@@ -1,6 +1,6 @@
 import { ControlConfig, ControlsConfig } from '../../types/config.types';
-import { mapControls } from '../config_utils';
-import { ColorConfig, ColorValue } from './color.types';
+import { copyConfig, mapControls } from '../config_utils';
+import { ColorConfig, ColorMap, ColorValue } from './color.types';
 import COLOR_CONTROLS from './color_controls';
 
 export default class Color {
@@ -98,7 +98,7 @@ export default class Color {
   }: {
     stepCount: number;
     colorCount: number;
-  }): Map<number, ColorValue> {
+  }): ColorMap {
     if (!colorCount) {
       throw new Error("Can't get color map, no colorCount provided!");
     }
@@ -121,7 +121,7 @@ export default class Color {
   }: Partial<{
     include: Array<keyof ColorConfig>;
     exclude: Array<keyof ColorConfig>;
-    defaults: Partial<ColorConfig & TCustomConfig>;
+    defaults: Partial<ColorConfig>;
     customControls: ControlsConfig<TCustomConfig>;
     propMapper: (
       control: ControlConfig<ColorConfig>
@@ -139,9 +139,9 @@ export default class Color {
     };
 
     function getControls(
-      controlsConfig = COLOR_CONTROLS
+      controlsConfig?: ControlsConfig<ColorConfig>
     ): ControlsConfig<ColorConfig> {
-      return controlsConfig
+      return (controlsConfig ?? copyConfig(COLOR_CONTROLS))
         .filter(
           ({ key }) =>
             (!exclude || !exclude.includes(key)) &&

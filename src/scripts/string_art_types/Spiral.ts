@@ -1,27 +1,40 @@
-import Color from '../helpers/color/Color.js';
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
+import Color from '../helpers/color/Color';
+import StringArt from '../StringArt';
+import Circle from '../helpers/Circle';
+import { ControlsConfig } from '../types/config.types';
+import {
+  ColorConfig,
+  ColorMap,
+  ColorValue,
+} from '../helpers/color/color.types';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
     colorCount: 7,
     color: '#ffbb29',
-    multicolorRange: '21',
+    multicolorRange: 21,
     multicolorStart: 32,
     multicolorByLightness: true,
     minLightness: 36,
     maxLightness: 98,
   },
-  exclude: ['repeatColors', 'mirrorColors'],
 });
 
-export default class Spiral extends StringArt {
+interface SpiralConfig extends ColorConfig {
+  n: number;
+  repetition: number;
+  innerLength: number;
+  rotation: number;
+  distortion: number;
+}
+
+export default class Spiral extends StringArt<SpiralConfig> {
   id = 'spiral';
   name = 'Spiral';
   link =
     'https://www.etsy.com/il-en/listing/840974781/boho-wall-decor-artwork-spiral-round';
-  controls = [
+  controls: ControlsConfig<SpiralConfig> = [
     {
       ...Circle.nailsConfig,
       defaultValue: 200,
@@ -53,12 +66,16 @@ export default class Spiral extends StringArt {
     COLOR_CONFIG,
   ];
 
+  #realRepetition: number;
+  #circle: Circle;
+  #color: Color;
+  #colorMap: ColorMap;
+
   setUpDraw() {
     super.setUpDraw();
-    const { n, rotation, layers, margin, colorCount, repetition, distortion } =
+    const { n, rotation, margin, colorCount, repetition, distortion } =
       this.config;
-    this.layersCount = layers ?? 1;
-    this.realRepetition = repetition * 2 - 1;
+    this.#realRepetition = repetition * 2 - 1;
 
     const circleConfig = {
       size: this.size,
@@ -68,38 +85,41 @@ export default class Spiral extends StringArt {
       distortion,
     };
 
-    if (this.circle) {
-      this.circle.setConfig(circleConfig);
+    if (this.#circle) {
+      this.#circle.setConfig(circleConfig);
     } else {
-      this.circle = new Circle(circleConfig);
+      this.#circle = new Circle(circleConfig);
     }
 
-    this.color = new Color({
+    this.#color = new Color({
       ...this.config,
-      colorCount: layers ?? colorCount,
+      colorCount: colorCount,
     });
 
     if (colorCount) {
-      this.colorMap = this.color.getColorMap({
+      this.#colorMap = this.#color.getColorMap({
         stepCount: this.getStepCount(),
         colorCount,
       });
     }
   }
 
-  *drawSpiral({ shift = 0, color = '#ffffff' } = {}) {
+  *drawSpiral({
+    shift = 0,
+    color = '#ffffff',
+  }: { shift?: number; color?: ColorValue } = {}): Generator<void> {
     const { innerLength, n } = this.config;
 
     let currentInnerLength = Math.round(innerLength * n);
     let repetitionCount = 0;
     this.renderer.setColor(color);
     let prevPointIndex = shift;
-    let prevPoint = this.circle.getPoint(prevPointIndex);
+    let prevPoint = this.#circle.getPoint(prevPointIndex);
     let isPrevPoint = false;
 
     for (let i = 0; currentInnerLength > 0; i++) {
-      if (this.colorMap) {
-        const stepColor = this.colorMap.get(i);
+      if (this.#colorMap) {
+        const stepColor = this.#colorMap.get(i);
         if (stepColor) {
           this.renderer.setColor(stepColor);
         }
@@ -109,7 +129,7 @@ export default class Spiral extends StringArt {
         ? prevPointIndex - currentInnerLength + 1
         : prevPointIndex + currentInnerLength;
 
-      if (repetitionCount === this.realRepetition) {
+      if (repetitionCount === this.#realRepetition) {
         currentInnerLength--;
         repetitionCount = 0;
         prevPointIndex++;
@@ -117,29 +137,29 @@ export default class Spiral extends StringArt {
         repetitionCount++;
       }
 
-      const nextPoint = this.circle.getPoint(prevPointIndex);
+      const nextPoint = this.#circle.getPoint(prevPointIndex);
 
       this.renderer.renderLines(prevPoint, nextPoint);
       prevPoint = nextPoint;
 
-      yield i;
+      yield;
       isPrevPoint = !isPrevPoint;
     }
   }
 
-  *generateStrings() {
+  *generateStrings(): Generator<void> {
     yield* this.drawSpiral({
-      color: this.color.getColor(0),
+      color: this.#color.getColor(0),
     });
   }
 
-  getStepCount() {
-    const { innerLength, repetition, n, layers = 1 } = this.config;
-    return Math.round(layers * n * (innerLength * 2) * repetition);
+  getStepCount(): number {
+    const { innerLength, repetition, n } = this.config;
+    return Math.round(n * (innerLength * 2) * repetition);
   }
 
   drawNails() {
-    this.circle.drawNails(this.nails);
+    this.#circle.drawNails(this.nails);
   }
 
   static thumbnailConfig = {

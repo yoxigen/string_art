@@ -5,6 +5,7 @@ export interface ColorConfig {
   multicolorRange: number;
   colorCount: number;
   multicolorByLightness: boolean;
+  lightness: GroupValue;
   minLightness: number;
   maxLightness: number;
   multicolorStart: number;
@@ -18,3 +19,4 @@ export interface ColorConfig {
 }
 
 export type ColorValue = string;
+export type ColorMap = Map<number, ColorValue>;

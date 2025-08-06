@@ -5,6 +5,9 @@ const TICK_COLOR = 'rgba(0,0,0,.2)';
 const FAR_VALUES_DISTANCE = 0.2; // values are considered far from each other if they are at least a fifth of the width of the input apart
 
 export default class StringArtRangeInput extends HTMLElement {
+  static formAssociated = true;
+  internals: ElementInternals;
+
   min: number;
   max: number;
 
@@ -22,7 +25,7 @@ export default class StringArtRangeInput extends HTMLElement {
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: 'open', delegatesFocus: true });
 
     this.shadowRoot.innerHTML = `
           <style>
@@ -70,6 +73,8 @@ export default class StringArtRangeInput extends HTMLElement {
     this.#backgroundStyle = this.shadowRoot.querySelector('#background');
     this.#snap = DEFAULT_SNAP_DISTANCE;
     this.#prevSnapValue = null;
+
+    this.internals = this.attachInternals();
   }
 
   static get observedAttributes() {
@@ -151,6 +156,8 @@ export default class StringArtRangeInput extends HTMLElement {
       'change',
       () => (this.#snapDisabledTick = null)
     );
+
+    this.tabIndex = 0;
   }
 
   disconnectedCallback() {
@@ -195,9 +202,19 @@ export default class StringArtRangeInput extends HTMLElement {
     return distance >= FAR_VALUES_DISTANCE;
   }
 
+  focus() {
+    this.#input.focus();
+  }
+
+  blur() {
+    this.#input.blur();
+  }
+
   handleInput() {
     const value = Number(this.#input.value);
     const closestTick = this.getClosestTick(value);
+
+    this.internals.setFormValue(this.#input.value);
 
     if (
       closestTick != null &&
