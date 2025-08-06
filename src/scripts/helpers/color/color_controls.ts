@@ -38,8 +38,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
       step: 1,
       background:
         'linear-gradient(90deg in hsl longer hue, hsl(0 100 50), hsl(360deg 100 50))',
-      thumbcolor: ({ config: { multicolorStart } }) =>
-        `hsl(${multicolorStart}deg 100 50)`,
+      thumbcolor: ({ multicolorStart }) => `hsl(${multicolorStart}deg 100 50)`,
     },
     show: ({ isMultiColor }) => isMultiColor,
   },
@@ -52,9 +51,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
       min: 1,
       max: 360,
       step: 1,
-      background: ({
-        config: { multicolorStart, multicolorRange, reverseColors },
-      }) =>
+      background: ({ multicolorStart, multicolorRange, reverseColors }) =>
         `linear-gradient(to ${reverseColors ? 'left' : 'right'} in hsl ${
           multicolorRange > 180 ? 'longer' : 'shorter'
         } hue, hsl(${multicolorStart} 100 50), hsl(${
@@ -100,8 +97,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
           max: 100,
           step: 1,
           snap: '50',
-          thumbcolor: ({ config: { minLightness } }) =>
-            `hsl(0 0 ${minLightness})`,
+          thumbcolor: ({ minLightness }) => `hsl(0 0 ${minLightness})`,
           background: 'linear-gradient(to right, black, white)',
         },
         show: ({ multicolorByLightness, isMultiColor }) =>
@@ -117,8 +113,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
           max: 100,
           step: 1,
           snap: '50',
-          thumbcolor: ({ config: { maxLightness } }) =>
-            `hsl(0 0 ${maxLightness})`,
+          thumbcolor: ({ maxLightness }) => `hsl(0 0 ${maxLightness})`,
           background: 'linear-gradient(to right, black, white)',
         },
         show: ({ multicolorByLightness, isMultiColor }) =>

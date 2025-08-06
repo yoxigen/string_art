@@ -77,11 +77,9 @@ export default class Sun extends StringArt<SunConfig> {
               displayValue: ({ layerSpread, sideNails }) =>
                 Math.ceil(sideNails * layerSpread),
               attr: {
-                min: ({ config: { sideNails, layers } }) =>
-                  1 / (layers * sideNails),
-                max: ({ config: { layers } }) => 1 / (layers - 1) - 0.02,
-                step: ({ config: { sideNails, layers } }) =>
-                  1 / (layers * sideNails),
+                min: ({ sideNails, layers }) => 1 / (layers * sideNails),
+                max: ({ layers }) => 1 / (layers - 1) - 0.02,
+                step: ({ sideNails, layers }) => 1 / (layers * sideNails),
               },
               isStructural: true,
             },
@@ -119,7 +117,7 @@ export default class Sun extends StringArt<SunConfig> {
           attr: {
             min: 0,
             max: 1,
-            step: ({ config: { sideNails } }) => 1 / sideNails,
+            step: ({ sideNails }) => 1 / sideNails,
           },
           isStructural: true,
         },
@@ -148,7 +146,7 @@ export default class Sun extends StringArt<SunConfig> {
           attr: {
             min: 0,
             max: 1,
-            step: ({ config: { sideNails, backdropSize } }) =>
+            step: ({ sideNails, backdropSize }) =>
               (1 / (sideNails * (1 - backdropSize))).toFixed(3),
           },
           isStructural: true,

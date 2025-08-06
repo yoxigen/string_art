@@ -13,7 +13,12 @@ import { downloadFile } from './download/Download';
 import './components/StringArtRangeInput';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
-import StringArt from './StringArt';
+import { Config, PrimitiveValue } from './types/config.types';
+
+interface SetPatternOptions {
+  config?: Record<string, PrimitiveValue>;
+  draw?: boolean;
+}
 
 window.addEventListener('error', function (event) {
   alert('Error: ' + event.message);
@@ -36,7 +41,6 @@ const elements: { [key: string]: HTMLElement } = {
 
 let canvasRenderer: Renderer;
 
-let currentPattern;
 const player = new Player(document.querySelector('#player'));
 const sizeControls = new EditorSizeControls({
   getCurrentSize: () => [
@@ -66,6 +70,8 @@ async function main() {
       : new CanvasRenderer(elements.canvas);
 
   const patterns = patternTypes.map(Pattern => new Pattern(canvasRenderer));
+  type Pattern = typeof patterns[number];
+  let currentPattern: Pattern;
 
   if (history.state?.pattern) {
     updateState(history.state);
@@ -94,7 +100,7 @@ async function main() {
   );
   elements.playerBtn.addEventListener('click', () => {
     document.querySelectorAll('#buttons [data-toggle-for]').forEach(btn => {
-      if (btn.classList.contains('active')) {
+      if (btn instanceof HTMLElement && btn.classList.contains('active')) {
         btn.click();
       }
     });
@@ -134,8 +140,9 @@ async function main() {
   // });
 
   document.body.addEventListener('click', e => {
-    const toggleBtn = e.target.closest('[data-toggle-for]');
-    if (toggleBtn) {
+    const toggleBtn =
+      e.target instanceof HTMLElement && e.target.closest('[data-toggle-for]');
+    if (toggleBtn instanceof HTMLElement && toggleBtn) {
       const dialogId = toggleBtn.dataset.toggleFor;
 
       toggleBtn.classList.toggle('active');
@@ -170,172 +177,178 @@ async function main() {
     }
   }
 
-  function findPatternById(patternId) {
+  function findPatternById(patternId: string): typeof patterns[number] {
     const pattern = patterns.find(({ id }) => id === patternId);
     if (!pattern) {
       throw new Error(`Pattern with id "${patternId}" not found!`);
     }
     return pattern;
   }
-}
 
-async function initPattern() {
-  if (!currentPattern) {
-    throw new Error("Can't init pattern - no current pattern available!");
-  }
-
-  initSize();
-
-  window.addEventListener(
-    'resize',
-    () => currentPattern && currentPattern.draw()
-  );
-
-  elements.downloadBtn.addEventListener('click', downloadCanvas);
-  elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
-  elements.resetBtn.addEventListener('click', reset);
-  const showShare = await isShareSupported({
-    renderer: canvasRenderer,
-    pattern: currentPattern,
-  });
-  if (showShare) {
-    unHide(elements.shareBtn);
-  }
-}
-
-function downloadCanvas() {
-  downloadFile(canvasRenderer.toDataURL(), currentPattern.name + '.png');
-}
-
-function downloadSVG() {
-  downloadPatternAsSVG(currentPattern, canvasRenderer.getSize());
-}
-
-function downloadNailsImage() {
-  const currentConfig = currentPattern.config;
-  currentPattern.config = {
-    darkMode: false,
-    showNails: true,
-    showNailNumbers: true,
-    showStrings: false,
-    nailsColor: '#000000',
-  };
-  currentPattern.draw();
-  downloadCanvas();
-
-  // Reset to the config before the download:
-  currentPattern.config = currentConfig;
-  currentPattern.draw();
-}
-
-function reset() {
-  if (confirm('Are you sure you wish to reset options to defaults?')) {
-    setCurrentPattern(currentPattern, { config: {} });
-  }
-}
-
-function onInputsChange({ withConfig = true } = {}) {
-  player.update(currentPattern);
-  const configQuery = withConfig ? serializeConfig(currentPattern) : null;
-  history.replaceState(
-    {
-      pattern: currentPattern.id,
-      config: configQuery,
-    },
-    currentPattern.name,
-    `?pattern=${currentPattern.id}${
-      withConfig && configQuery
-        ? `&config=${encodeURIComponent(configQuery)}`
-        : ''
-    }`
-  );
-}
-
-function setCurrentPattern(pattern, setPatternOptions) {
-  selectPattern(pattern, setPatternOptions);
-  history.pushState(
-    { pattern: pattern.id },
-    pattern.name,
-    '?pattern=' + pattern.id
-  );
-}
-
-function initSize() {
-  sizeControls.element.addEventListener(
-    'sizechange',
-    ({ detail }: CustomEvent<Dimensions | null>) => {
-      setSize(detail);
+  async function initPattern() {
+    if (!currentPattern) {
+      throw new Error("Can't init pattern - no current pattern available!");
     }
-  );
-}
 
-function setSize(size: Dimensions | null) {
-  if (size && size.length === 2) {
-    canvasRenderer.setSize(size);
-    if (!elements.canvas.classList.contains('overflow')) {
-      elements.canvas.classList.add('overflow');
-    }
-  } else {
-    elements.canvas.classList.remove('overflow');
-    canvasRenderer.setSize(null);
-  }
+    initSize();
 
-  currentPattern.draw();
-}
+    window.addEventListener(
+      'resize',
+      () => currentPattern && currentPattern.draw()
+    );
 
-function selectPattern(pattern, { config, draw = true } = {}) {
-  const isFirstTime = !currentPattern;
-
-  currentPattern = pattern;
-  if (config) {
-    currentPattern.setConfig(config);
-  }
-  if (controls) {
-    controls.destroy();
-  }
-  controls = new EditorControls({ pattern, config });
-  controls.addEventListener('input', () => currentPattern.draw());
-  controls.addEventListener('change', onInputsChange);
-
-  if (pattern.link) {
-    elements.patternLink.setAttribute('href', pattern.link);
-    elements.patternLink.innerText = pattern.linkText ?? 'Example';
-    unHide(elements.patternLink);
-  } else {
-    hide(elements.patternLink);
-  }
-
-  if (draw) {
-    requestAnimationFrame(() => {
-      currentPattern.draw();
+    elements.downloadBtn.addEventListener('click', downloadCanvas);
+    elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
+    elements.resetBtn.addEventListener('click', reset);
+    const showShare = await isShareSupported({
+      renderer: canvasRenderer,
+      pattern: currentPattern,
     });
+    if (showShare) {
+      unHide(elements.shareBtn);
+    }
   }
 
-  player.update(currentPattern, { draw: false });
-  thumbnails.setCurrentPattern(pattern);
-  document.title = `${pattern.name} - String Art Studio`;
-  document.body.setAttribute('data-pattern', pattern.id);
+  function downloadCanvas() {
+    downloadFile(canvasRenderer.toDataURL(), currentPattern.name + '.png');
+  }
 
-  if (isFirstTime) {
-    initPattern();
-    document.body.querySelectorAll('.pattern_only').forEach(unHide);
+  function downloadSVG() {
+    downloadPatternAsSVG(currentPattern, canvasRenderer.getSize());
+  }
+
+  function downloadNailsImage() {
+    const currentConfig = currentPattern.config;
+    currentPattern.config = {
+      darkMode: false,
+      showNails: true,
+      showNailNumbers: true,
+      showStrings: false,
+      nailsColor: '#000000',
+    };
+    currentPattern.draw();
+    downloadCanvas();
+
+    // Reset to the config before the download:
+    currentPattern.config = currentConfig;
+    currentPattern.draw();
+  }
+
+  function reset() {
+    if (confirm('Are you sure you wish to reset options to defaults?')) {
+      setCurrentPattern(currentPattern, { config: {} });
+    }
+  }
+
+  function onInputsChange({ withConfig = true } = {}) {
+    player.update(currentPattern);
+    const configQuery = withConfig ? serializeConfig(currentPattern) : null;
+    history.replaceState(
+      {
+        pattern: currentPattern.id,
+        config: configQuery,
+      },
+      currentPattern.name,
+      `?pattern=${currentPattern.id}${
+        withConfig && configQuery
+          ? `&config=${encodeURIComponent(configQuery)}`
+          : ''
+      }`
+    );
+  }
+
+  function setCurrentPattern(
+    pattern: Pattern,
+    setPatternOptions?: SetPatternOptions
+  ) {
+    selectPattern(pattern, setPatternOptions);
+    history.pushState(
+      { pattern: pattern.id },
+      pattern.name,
+      '?pattern=' + pattern.id
+    );
+  }
+
+  function initSize() {
+    sizeControls.element.addEventListener(
+      'sizechange',
+      ({ detail }: CustomEvent<Dimensions | null>) => {
+        setSize(detail);
+      }
+    );
+  }
+
+  function setSize(size: Dimensions | null) {
+    if (size && size.length === 2) {
+      canvasRenderer.setSize(size);
+      if (!elements.canvas.classList.contains('overflow')) {
+        elements.canvas.classList.add('overflow');
+      }
+    } else {
+      elements.canvas.classList.remove('overflow');
+      canvasRenderer.setSize(null);
+    }
+
+    currentPattern.draw();
+  }
+
+  function selectPattern(
+    pattern: Pattern,
+    { config, draw = true }: SetPatternOptions = {}
+  ) {
+    const isFirstTime = !currentPattern;
+
+    currentPattern = pattern;
+    if (config) {
+      currentPattern.setConfig(config);
+    }
+    if (controls) {
+      controls.destroy();
+    }
+    controls = new EditorControls(pattern);
+    controls.addEventListener('input', () => currentPattern.draw());
+    controls.addEventListener('change', onInputsChange);
+
+    if (pattern.link) {
+      elements.patternLink.setAttribute('href', pattern.link);
+      elements.patternLink.innerText = pattern.linkText ?? 'Example';
+      unHide(elements.patternLink);
+    } else {
+      hide(elements.patternLink);
+    }
+
+    if (draw) {
+      requestAnimationFrame(() => {
+        currentPattern.draw();
+      });
+    }
+
+    player.update(currentPattern, { draw: false });
+    thumbnails.setCurrentPattern(pattern);
+    document.title = `${pattern.name} - String Art Studio`;
+    document.body.setAttribute('data-pattern', pattern.id);
+
+    if (isFirstTime) {
+      initPattern();
+      document.body.querySelectorAll('.pattern_only').forEach(unHide);
+    }
+  }
+
+  function unselectPattern() {
+    currentPattern = null;
+    canvasRenderer.clear();
+    hide(elements.patternLink);
+    thumbnails.setCurrentPattern(null);
+    controls && controls.destroy();
+    document.body.querySelectorAll('.pattern_only').forEach(hide);
+    document.body.removeAttribute('data-pattern');
   }
 }
 
-function unHide(element) {
+function unHide(element: Element) {
   element.removeAttribute('hidden');
 }
 
-function hide(element) {
+function hide(element: Element) {
   element.setAttribute('hidden', 'hidden');
-}
-
-function unselectPattern() {
-  currentPattern = null;
-  canvasRenderer.clear();
-  hide(elements.patternLink);
-  thumbnails.setCurrentPattern(null);
-  controls && controls.destroy();
-  document.body.querySelectorAll('.pattern_only').forEach(hide);
-  document.body.removeAttribute('data-pattern');
 }

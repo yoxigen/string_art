@@ -18,9 +18,9 @@ export default class Wave extends Mandala {
       defaultValue: 0.5,
       type: 'range',
       attr: {
-        min: ({ config: { n } }) => 1 / n,
+        min: ({ n }) => 1 / n,
         max: 1,
-        step: ({ config: { n } }) => 1 / n,
+        step: ({ n }) => 1 / n,
       },
       displayValue: ({ layerFill }) => Math.floor(100 * layerFill) + '%',
     },
@@ -44,7 +44,7 @@ export default class Wave extends Mandala {
       attr: {
         min: 0,
         max: 1,
-        step: ({ config: { n } }) => 1 / n,
+        step: ({ n }) => 1 / n,
       },
       displayValue: ({ layerSpread, n }) => Math.round(layerSpread * n),
     },

@@ -48,7 +48,7 @@ export default class Star extends StringArt<StarConfig> {
       attr: {
         min: 0,
         max: 0.5,
-        step: ({ config: { sideNails, sides } }) => 1 / (sideNails * sides),
+        step: ({ sideNails, sides }) => 1 / (sideNails * sides),
       },
       displayValue: ({ sideNails, sides, ringSize }) =>
         Math.floor(ringSize * sideNails * sides),

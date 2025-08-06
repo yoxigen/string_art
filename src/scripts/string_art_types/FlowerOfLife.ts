@@ -74,7 +74,7 @@ export default class FlowerOfLife extends StringArt {
         max: 30,
         step: 1,
       },
-      displayValue: (config, { key }) => `${config[key]}°`,
+      displayValue: ({ globalRotation }) => `${globalRotation}°`,
       isStructural: true,
       affectsStepCount: false,
     },

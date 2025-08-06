@@ -248,7 +248,7 @@ export default class StarShape {
     attr: {
       min: 0,
       max: 1,
-      step: ({ config: { sideNails } }) => 1 / sideNails,
+      step: ({ sideNails }) => 1 / sideNails,
     },
     isStructural: true,
   };
@@ -260,7 +260,7 @@ export default class StarShape {
     type: 'range',
     attr: {
       min: 0,
-      max: ({ config: { sideNails } }) => (sideNails - 1) / sideNails,
+      max: ({ sideNails }) => (sideNails - 1) / sideNails,
       step: 0.01,
     },
     displayValue: ({ centerRadius }) => formatFractionAsPercent(centerRadius),

@@ -95,7 +95,7 @@ export default class Comet extends StringArt {
       type: 'range',
       attr: {
         min: 1,
-        max: ({ config: { n, layers } }) => Math.floor(n / 2 / layers),
+        max: ({ n, layers }) => Math.floor(n / 2 / layers),
         step: 1,
       },
       defaultValue: 1,

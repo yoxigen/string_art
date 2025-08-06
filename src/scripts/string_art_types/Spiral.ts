@@ -39,9 +39,9 @@ export default class Spiral extends StringArt {
       defaultValue: 0.5,
       type: 'range',
       attr: {
-        min: ({ config: { n } }) => 1 / n,
+        min: ({ n }) => 1 / n,
         max: 1,
-        step: ({ config: { n } }) => 1 / n,
+        step: ({ n }) => 1 / n,
       },
       displayValue: ({ n, innerLength }) => Math.round(n * innerLength),
     },

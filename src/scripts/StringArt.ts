@@ -149,6 +149,11 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   position: number = 0;
   stringsIterator: Iterator<void>;
 
+  id: string;
+  name: string;
+  link: string;
+  linkText: string;
+
   #config: Config<TConfig>;
   #controlsIndex: { [key: string]: ControlConfig<TConfig> } | null;
   #defaultConfig: Config<TConfig> | null;

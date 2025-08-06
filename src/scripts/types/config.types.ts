@@ -45,25 +45,25 @@ export type ConfigFunction<
   TReturn = PrimitiveValue
 > = (config: Config<TConfig>) => TReturn;
 
-export interface ControlConfig<T = Record<string, PrimitiveValue>> {
-  key: keyof T;
+export type ConfigValueOrFunction<TConfig, TValue = PrimitiveValue> =
+  | TValue
+  | ConfigFunction<TConfig, TValue>;
+
+export interface ControlConfig<TConfig = Record<string, PrimitiveValue>> {
+  key: keyof TConfig;
   label: string;
   type: ControlType;
-  defaultValue?: PrimitiveValue | ConfigFunction<T>;
-  displayValue?: ConfigFunction<T>;
+  defaultValue?: ConfigValueOrFunction<TConfig>;
+  displayValue?: ConfigFunction<TConfig>;
   attr?: {
-    [key: string]:
-      | string
-      | number
-      // TODO Use StringArt base type instead
-      | ((pattern: { config: Config<T> }) => PrimitiveValue);
+    [key: string]: ConfigValueOrFunction<TConfig>;
   };
   isStructural?: boolean;
   affectsStepCount?: boolean;
   description?: string;
-  show?: ConfigFunction<T>;
-  children?: ControlsConfig<T>;
-  isDisabled?: ConfigFunction<T>;
+  show?: ConfigFunction<TConfig>;
+  children?: ControlsConfig<TConfig>;
+  isDisabled?: ConfigFunction<TConfig>;
   options?: Array<string | { label: string; value: string }>;
 }
 

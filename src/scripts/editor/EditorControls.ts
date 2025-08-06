@@ -1,17 +1,62 @@
+import StringArtRangeInput from '../components/StringArtRangeInput';
+import StringArt from '../StringArt';
+import {
+  Config,
+  ConfigValueOrFunction,
+  ControlConfig,
+  ControlsConfig,
+  ControlType,
+  PrimitiveValue,
+} from '../types/config.types';
+
 const elements = {
-  controls: document.querySelector('#controls'),
-  controlsPanel: document.querySelector('#controls_panel'),
-  sidebarForm: document.querySelector('#sidebar_form'),
+  controls: document.querySelector('#controls') as HTMLElement,
+  controlsPanel: document.querySelector('#controls_panel') as HTMLElement,
+  sidebarForm: document.querySelector('#sidebar_form') as HTMLElement,
 };
 
 const EVENTS = new Set(['input', 'change']);
 const STATE_LOCAL_STORAGE_KEY = 'controls_state';
 const RANGE_SCROLL_LOCK_TIMEOUT = 120;
 
-let inputTimeout;
+let inputTimeout: number;
 
-export default class EditorControls {
-  constructor({ pattern }) {
+interface EditorState {
+  groups: {
+    [groupId: string]: boolean;
+  };
+}
+
+interface Control {
+  config: any;
+  input: (HTMLInputElement | StringArtRangeInput) & {
+    updateTimeout: number;
+  };
+  control: HTMLElement;
+}
+
+export default class EditorControls<TConfig> {
+  pattern: StringArt<TConfig>;
+  state: EditorState;
+  eventHandlers: {
+    input: Set<string>;
+    change: Set<string>;
+  };
+  controlElements: Partial<Record<keyof TConfig, Control>> = {};
+
+  #postponeRangeInput: boolean = false;
+  #postponeRangeInputTimeout: number;
+  #wrappedOnInput;
+  #wrappedOnTouchStart;
+  #wrappedOnTouchEnd;
+  #wrappedOnRangeScroll;
+  #currentInputRange: StringArtRangeInput;
+  #currentInputRangeValue: number;
+  #rangeLockTimeout: number;
+  #lockRange: boolean = false;
+  #boundToggleFieldset;
+
+  constructor(pattern: StringArt<TConfig>) {
     this.pattern = pattern;
     this.state = this._getState() ?? { groups: {} };
 
@@ -20,58 +65,58 @@ export default class EditorControls {
       change: new Set(),
     };
 
-    this._toggleFieldset = e => {
-      if (e.target.nodeName === 'LEGEND') {
-        e.target.parentElement.classList.toggle('minimized');
-        const groupId = e.target.parentElement.dataset.group;
-        this.state = {
-          ...this.state,
-          groups: {
-            ...this.state.groups,
-            [groupId]: !e.target.parentElement.classList.contains('minimized'),
-          },
-        };
-        this._updateState(this.state);
-      }
-    };
-
-    this._toggleFieldSetOnEnter = e => {
-      if (e.target.nodeName === 'LEGEND' && e.key === 'Enter') {
-        this._toggleFieldset(e);
-      }
-    };
-
-    this._wrappedOnInput = e => this._onInput(e);
-    elements.controls.addEventListener('input', this._wrappedOnInput);
-    this._wrappedOnTouchStart = e => this._onTouchStart(e);
-    this._wrappedOnMouseDown = e => this._onMouseDown(e);
-    elements.controls.addEventListener('touchstart', this._wrappedOnTouchStart);
-    elements.controls.addEventListener('mousedown', this._wrappedOnMouseDown);
-    elements.sidebarForm.addEventListener('click', this._toggleFieldset);
+    this.#wrappedOnInput = this.#onInput.bind(this);
+    elements.controls.addEventListener('input', this.#wrappedOnInput);
+    this.#wrappedOnTouchStart = this.#onTouchStart.bind(this);
+    elements.controls.addEventListener('touchstart', this.#wrappedOnTouchStart);
+    elements.controls.addEventListener('mousedown', this.#onMouseDown);
+    this.#boundToggleFieldset = this.#toggleFieldset.bind(this);
+    elements.sidebarForm.addEventListener('click', this.#boundToggleFieldset);
     elements.sidebarForm.addEventListener(
       'keydown',
-      this._toggleFieldSetOnEnter
+      this.#toggleFieldSetOnEnter
     );
     this.controlElements = {};
     this.renderControls();
   }
 
   destroy() {
-    elements.controls.removeEventListener('input', this._wrappedOnInput);
-    elements.sidebarForm.removeEventListener('click', this._toggleFieldset);
+    elements.controls.removeEventListener('input', this.#wrappedOnInput);
+    elements.sidebarForm.removeEventListener(
+      'click',
+      this.#boundToggleFieldset
+    );
     elements.sidebarForm.removeEventListener(
       'keydown',
-      this._toggleFieldSetOnEnter
+      this.#toggleFieldSetOnEnter
     );
     elements.controls.removeEventListener(
       'touchstart',
-      this._wrappedOnTouchStart
+      this.#wrappedOnTouchStart
     );
-    elements.controls.removeEventListener(
-      'mousedown',
-      this._wrappedOnMouseDown
-    );
+    elements.controls.removeEventListener('mousedown', this.#onMouseDown);
     elements.controls.innerHTML = '';
+  }
+
+  #toggleFieldset(this: EditorControls<TConfig>, e) {
+    if (e.target.nodeName === 'LEGEND') {
+      e.target.parentElement.classList.toggle('minimized');
+      const groupId = e.target.parentElement.dataset.group;
+      this.state = {
+        ...this.state,
+        groups: {
+          ...this.state.groups,
+          [groupId]: !e.target.parentElement.classList.contains('minimized'),
+        },
+      };
+      this._updateState(this.state);
+    }
+  }
+
+  #toggleFieldSetOnEnter(e) {
+    if (e.target.nodeName === 'LEGEND' && e.key === 'Enter') {
+      this.#toggleFieldset(e);
+    }
   }
 
   addEventListener(event, eventHandler) {
@@ -92,7 +137,7 @@ export default class EditorControls {
     }
   }
 
-  _onMouseDown(e) {
+  #onMouseDown() {
     // Clearing selection when starting to click in the controls, do avoid a buggy behavior,
     // when if a control's display value was selected (can happen by mistake), the drag of range input doesn't work.
     const selection = window.getSelection();
@@ -106,74 +151,83 @@ export default class EditorControls {
    * scroll and accidentally touches a range input when intending to scroll.
    * @param {Event} e
    */
-  _onTouchStart(e) {
-    if (e.target.getAttribute('type') === 'range') {
-      this._postponeRangeInput = true;
-      this.currentInputRange = e.target;
-      this.currentInputRangeValue = e.target.value;
-      this._rangeLockTimeout = setTimeout(() => {
-        this._postponeRangeInput = false;
+  #onTouchStart(e: TouchEvent) {
+    if (e.target instanceof StringArtRangeInput) {
+      this.#postponeRangeInput = true;
+      this.#currentInputRange = e.target;
+      this.#currentInputRangeValue = e.target.value;
+      this.#rangeLockTimeout = window.setTimeout(() => {
+        this.#postponeRangeInput = false;
       }, RANGE_SCROLL_LOCK_TIMEOUT);
-      this._wrappedOnTouchEnd = e => this._onTouchEnd(e);
-      document.body.addEventListener('touchend', this._wrappedOnTouchEnd);
-      this._wrappedOnRangeScroll = e => this._onRangeScroll(e);
+      this.#wrappedOnTouchEnd = this.#onTouchEnd.bind(this);
+      document.body.addEventListener('touchend', this.#wrappedOnTouchEnd);
+      this.#wrappedOnRangeScroll = this.#onRangeScroll.bind(this);
       elements.controlsPanel.addEventListener(
         'scroll',
-        this._wrappedOnRangeScroll
+        this.#wrappedOnRangeScroll
       );
     }
   }
 
-  _onTouchEnd() {
-    document.body.removeEventListener('touchend', this._wrappedOnTouchEnd);
+  #onTouchEnd(this: EditorControls<TConfig>) {
+    document.body.removeEventListener('touchend', this.#wrappedOnTouchEnd);
     elements.controlsPanel.removeEventListener(
       'scroll',
-      this._wrappedOnRangeScroll
+      this.#wrappedOnRangeScroll
     );
 
-    if (this._lockRange) {
-      this._lockRange = false;
-      if (this.currentInputRange) {
-        this.currentInputRange.value = this.currentInputRangeValue;
+    if (this.#lockRange) {
+      this.#lockRange = false;
+      if (this.#currentInputRange) {
+        this.#currentInputRange.value = this.#currentInputRangeValue;
       }
     }
 
-    this.currentInputRange = this.currentInputRangeValue = null;
+    this.#currentInputRange = this.#currentInputRangeValue = null;
   }
 
-  _onRangeScroll() {
-    this._lockRange = true;
+  #onRangeScroll(this: EditorControls<TConfig>) {
+    this.#lockRange = true;
   }
 
-  _onInput(e) {
+  #onInput(e: InputEvent) {
     clearTimeout(inputTimeout);
-    clearTimeout(this._postponeRangeInputTimeout);
+    clearTimeout(this.#postponeRangeInputTimeout);
 
-    if (
-      this._postponeRangeInput &&
-      (e.target.getAttribute('type') === 'range' ||
-        e.target.nodeName === 'STRING-ART-RANGE-INPUT')
-    ) {
+    if (this.#postponeRangeInput && e.target instanceof StringArtRangeInput) {
       e.preventDefault();
-      this._postponeRangeInputTimeout = setTimeout(() => {
-        this._onInput(e);
+      this.#postponeRangeInputTimeout = window.setTimeout(() => {
+        this.#onInput(e);
       }, RANGE_SCROLL_LOCK_TIMEOUT);
       return false;
     }
-    if (this._lockRange) {
+    if (this.#lockRange) {
       e.preventDefault();
       return false;
     }
 
-    this.updateInput({
-      inputElement: e.target,
-      originalEvent: e,
-      deferChange: true,
-    });
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof StringArtRangeInput
+    ) {
+      this.updateInput({
+        inputElement: e.target,
+        originalEvent: e,
+        deferChange: true,
+      });
+    }
   }
 
-  updateInput({ inputElement, originalEvent, deferChange = true }) {
-    const inputValue = getInputValue(inputElement.type, inputElement);
+  updateInput({
+    inputElement,
+    originalEvent,
+    deferChange = true,
+  }: {
+    inputElement: HTMLInputElement | StringArtRangeInput;
+    originalEvent: InputEvent;
+    deferChange?: boolean;
+  }) {
+    const inputValue = getInputValue(inputElement);
     const controlKey = inputElement.id.replace(/^config_/, '');
 
     if (this.pattern.config[controlKey] === inputValue) {
@@ -207,13 +261,13 @@ export default class EditorControls {
     this.updateControlsAttributes();
 
     if (deferChange) {
-      inputTimeout = setTimeout(triggerChange, 100);
+      inputTimeout = window.setTimeout(triggerChange, 100);
     } else {
       triggerChange();
     }
   }
 
-  _getState() {
+  _getState(): EditorState | null {
     const state = localStorage.getItem(STATE_LOCAL_STORAGE_KEY);
     if (state) {
       try {
@@ -254,7 +308,7 @@ export default class EditorControls {
                 ) {
                   inputEl.value = newAttrValue;
                   clearTimeout(inputEl.updateTimeout);
-                  inputEl.updateTimeout = setTimeout(() => {
+                  inputEl.updateTimeout = window.setTimeout(() => {
                     this.updateInput({ inputElement: inputEl });
                   }, 100);
                 }
@@ -270,7 +324,7 @@ export default class EditorControls {
   updateControlsVisibility(configControls = this.pattern.configControls) {
     configControls.forEach(control => {
       if (control.show) {
-        const shouldShowControl = control.show(this.pattern.config, control);
+        const shouldShowControl = control.show(this.pattern.config);
         const controlEl = this.controlElements[control.key].control;
         if (controlEl) {
           if (shouldShowControl) {
@@ -315,56 +369,60 @@ export default class EditorControls {
     });
   }
 
-  renderControls(containerEl = elements.controls, _configControls) {
+  renderControls(
+    containerEl: HTMLElement | undefined = elements.controls,
+    _configControls?: ControlsConfig<TConfig>
+  ) {
     const configControls = _configControls ?? this.pattern.configControls;
     containerEl.innerHTML = '';
     const controlsFragment = document.createDocumentFragment();
 
-    configControls.forEach(control => {
-      const controlId = `config_${control.key}`;
-      const controlElements = (this.controlElements[control.key] = {
-        config: control,
+    configControls.forEach(controlConfig => {
+      const controlId = `config_${String(controlConfig.key)}`;
+      const controlElements = (this.controlElements[controlConfig.key] = {
+        config: controlConfig,
       });
 
-      let controlEl;
+      let controlEl: HTMLElement;
 
-      if (control.type === 'group') {
+      if (controlConfig.type === 'group') {
         controlEl = document.createElement('fieldset');
-        controlEl.setAttribute('data-group', control.key);
+        controlEl.setAttribute('data-group', String(controlConfig.key));
         const groupTitleEl = document.createElement('legend');
         groupTitleEl.setAttribute('tabindex', '0');
-        groupTitleEl.innerText = control.label;
+        groupTitleEl.innerText = controlConfig.label;
         controlEl.appendChild(groupTitleEl);
         controlEl.className = 'control control_group';
-        if (control.defaultValue === 'minimized') {
+        if (controlConfig.defaultValue === 'minimized') {
           controlEl.classList.add('minimized');
-          this.state.groups[control.key] = false;
+          this.state.groups[String(controlConfig.key)] = false;
         }
         const childrenContainer = document.createElement('div');
         controlEl.appendChild(childrenContainer);
-        this.renderControls(childrenContainer, control.children);
+        this.renderControls(childrenContainer, controlConfig.children);
       } else {
         controlEl = document.createElement('div');
         controlEl.className = 'control';
 
         const label = document.createElement('label');
-        label.innerHTML = control.label;
+        label.innerHTML = controlConfig.label;
         label.setAttribute('for', controlId);
 
         const inputEl = (controlElements.input = document.createElement(
-          control.type === 'select'
+          controlConfig.type === 'select'
             ? 'select'
-            : control.type === 'range'
+            : controlConfig.type === 'range'
             ? 'string-art-range-input'
             : 'input'
         ));
 
         const inputValue =
-          this.pattern.config[control.key] ?? control.defaultValue;
+          this.pattern.config[controlConfig.key] ??
+          this.getConfigValue(controlConfig.defaultValue, this.pattern.config);
 
-        if (control.type === 'select') {
+        if (controlConfig.type === 'select') {
           const selectOptions = document.createDocumentFragment();
-          control.options.forEach(_option => {
+          controlConfig.options.forEach(_option => {
             const { value, label } =
               typeof _option === 'string'
                 ? { value: _option, label: _option }
@@ -375,14 +433,14 @@ export default class EditorControls {
             selectOptions.appendChild(optionEl);
           });
           inputEl.appendChild(selectOptions);
-          inputEl.value = inputValue;
+          (inputEl as HTMLSelectElement).value = String(inputValue);
           controlEl.appendChild(label);
           controlEl.appendChild(inputEl);
         } else {
-          inputEl.setAttribute('type', control.type);
+          inputEl.setAttribute('type', controlConfig.type);
 
-          if (control.type === 'checkbox') {
-            inputEl.checked = inputValue;
+          if (controlConfig.type === 'checkbox') {
+            (inputEl as HTMLInputElement).checked = !!inputValue;
             controlEl.appendChild(inputEl);
             controlEl.appendChild(label);
           } else {
@@ -393,28 +451,27 @@ export default class EditorControls {
             });
             const inputValueEl = (controlElements.displayValue =
               document.createElement('span'));
-            inputValueEl.id = `config_${control.key}_value`;
-            inputValueEl.innerText = control.displayValue
-              ? control.displayValue(this.pattern.config, control)
+            inputValueEl.id = `config_${String(controlConfig.key)}_value`;
+            inputValueEl.innerText = controlConfig.displayValue
+              ? controlConfig.displayValue(this.pattern.config)
               : inputValue;
             inputValueEl.className = 'control_input_value';
             controlEl.appendChild(inputValueEl);
           }
         }
 
-        if (control.attr) {
-          Object.entries(control.attr).forEach(([attr, value]) => {
-            const realValue =
-              value instanceof Function ? value(this.pattern) : value;
-            inputEl.setAttribute(attr, realValue);
+        if (controlConfig.attr) {
+          Object.entries(controlConfig.attr).forEach(([attr, value]) => {
+            const realValue = this.getConfigValue(value, this.pattern.config);
+            inputEl.setAttribute(attr, String(realValue));
           });
         }
 
         inputEl.id = controlId;
       }
 
-      this.controlElements[control.key].control = controlEl;
-      controlEl.id = `control_${control.key}`;
+      this.controlElements[controlConfig.key].control = controlEl;
+      controlEl.id = `control_${String(controlConfig.key)}`;
       controlsFragment.appendChild(controlEl);
     });
 
@@ -437,21 +494,36 @@ export default class EditorControls {
       }
     });
   }
+
+  getConfigValue(
+    valueOrFn: ConfigValueOrFunction<TConfig>,
+    config: Config<TConfig>
+  ): PrimitiveValue {
+    if (valueOrFn instanceof Function) {
+      return valueOrFn(config);
+    }
+
+    return valueOrFn;
+  }
 }
 
-function getInputValue(type, inputElement) {
-  if (inputElement.nodeName === 'STRING-ART-RANGE-INPUT') {
+function getInputValue(inputElement: EventTarget) {
+  if (inputElement instanceof StringArtRangeInput) {
     return parseFloat(inputElement.value);
   }
 
-  switch (type) {
-    case 'range':
-      return parseFloat(inputElement.value);
-    case 'checkbox':
-      return inputElement.checked;
-    case 'number':
-      return parseFloat(inputElement.value);
-    default:
-      return inputElement.value;
+  if (inputElement instanceof HTMLInputElement) {
+    const type = inputElement.type;
+
+    switch (type) {
+      case 'range':
+        return parseFloat(inputElement.value);
+      case 'checkbox':
+        return inputElement.checked;
+      case 'number':
+        return parseFloat(inputElement.value);
+      default:
+        return inputElement.value;
+    }
   }
 }
