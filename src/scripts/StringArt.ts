@@ -41,7 +41,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         label: 'String width',
         defaultValue: 1,
         type: 'range',
-        attr: { min: 0.2, max: 4, step: 0.1 },
+        attr: { min: 0.2, max: 4, step: 0.1, snap: '1' },
         show: ({ showStrings }) => showStrings,
       },
     ],
@@ -88,7 +88,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         label: 'Nail size',
         defaultValue: 1.5,
         type: 'range',
-        attr: { min: 0.5, max: 5, step: 0.25 },
+        attr: { min: 0.5, max: 5, step: 0.25, snap: '1.5' },
         show: ({ showNails }) => showNails,
       },
       {
@@ -155,7 +155,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   linkText: string;
 
   #config: Config<TConfig>;
-  #controlsIndex: { [key: string]: ControlConfig<TConfig> } | null;
+  #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
 
   constructor(renderer: Renderer) {
@@ -182,7 +182,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     return (this.controls ?? []).concat(this.getCommonControls());
   }
 
-  get controlsIndex(): { [key: string]: ControlConfig<TConfig> } {
+  get controlsIndex(): Record<keyof TConfig, ControlConfig<TConfig>> {
     if (!this.#controlsIndex) {
       this.#controlsIndex = getControlsIndex<TConfig>(this.controls);
     }
@@ -251,7 +251,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     this.resetStructure();
   }
 
-  setConfigValue(controlKey: string, value: PrimitiveValue) {
+  setConfigValue(controlKey: keyof TConfig, value: PrimitiveValue) {
     if (this.#config && this.#config[controlKey] === value) {
       return;
     }

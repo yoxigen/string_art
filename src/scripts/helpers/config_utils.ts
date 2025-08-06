@@ -180,9 +180,9 @@ export function getConfigDefaultValues<T>(
  * @param configControls
  * @returns
  */
-export function getControlsIndex<T>(configControls: ControlsConfig<T>): {
-  [key: string]: ControlConfig<T>;
-} {
+export function getControlsIndex<T>(
+  configControls: ControlsConfig<T>
+): Record<keyof T, ControlConfig<T>> {
   const configIndex = {} as Record<keyof T, ControlConfig<T>>;
   for (const { control } of traverseConfig(configControls)) {
     configIndex[control.key] = control;
