@@ -22,7 +22,7 @@ export default class Wave extends Mandala {
         max: 1,
         step: ({ n }) => 1 / n,
       },
-      displayValue: ({ layerFill }) => Math.floor(100 * layerFill) + '%',
+      displayValue: ({ layerFill, n }) => Math.floor(100 * layerFill) + '%',
     },
     {
       ...Circle.rotationConfig,

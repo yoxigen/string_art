@@ -43,8 +43,8 @@ export default class Assymetry extends StringArt {
                 max: 0.5,
                 step: ({ n }) => 1 / n,
               },
-              displayValue: (config, { key }) =>
-                Math.round(config.n * config[key]),
+              displayValue: config =>
+                Math.round(config.n * config[`size${layer}`]),
               show: config => config[`show${layer}`],
             },
             {
@@ -57,8 +57,8 @@ export default class Assymetry extends StringArt {
                 max: 1,
                 step: ({ n }) => 1 / n,
               },
-              displayValue: (config, { key }) =>
-                Math.round(config.n * config[key]),
+              displayValue: config =>
+                Math.round(config.n * config[`end${layer}`]),
               show: config => config[`show${layer}`],
             },
             {

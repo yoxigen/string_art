@@ -318,6 +318,8 @@ export default class EditorControls<TConfig> {
                 this.pattern.config
               );
               if (newAttrValue != inputEl.getAttribute(name)) {
+                inputEl.setAttribute(name, String(newAttrValue));
+                // If the min or max of the input changed and they're not within the new min/max, update the value of the input
                 if (
                   (name === 'min' && inputEl.value < newAttrValue) ||
                   (name === 'max' && inputEl.value > newAttrValue)
@@ -327,8 +329,9 @@ export default class EditorControls<TConfig> {
                   inputEl.updateTimeout = window.setTimeout(() => {
                     this.updateInput({ inputElement: inputEl });
                   }, 100);
+                } else {
+                  this.updateControlDisplayValue(control.key);
                 }
-                inputEl.setAttribute(name, String(newAttrValue));
               }
             });
           }
@@ -448,7 +451,7 @@ export default class EditorControls<TConfig> {
             setTimeout(() => {
               inputEl.value = String(inputValue);
             });
-            const displayValueElement = document.createElement('span');
+            displayValueElement = document.createElement('span');
             displayValueElement.id = `config_${String(
               controlConfig.key
             )}_value`;
@@ -534,5 +537,7 @@ function getInputValue(inputElement: EventTarget) {
       default:
         return inputElement.value;
     }
+  } else if (inputElement instanceof HTMLSelectElement) {
+    return inputElement.value;
   }
 }
