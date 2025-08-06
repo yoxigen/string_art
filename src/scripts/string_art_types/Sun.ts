@@ -74,11 +74,12 @@ export default class Sun extends StringArt<SunConfig> {
               label: 'Layer spread',
               defaultValue: 0.1625,
               type: 'range',
-              displayValue: ({ layerSpread, sideNails }) =>
-                Math.ceil(sideNails * layerSpread),
+              displayValue: ({ layerSpread, sideNails, layers }) =>
+                Math.ceil(layers * sideNails * layerSpread),
               attr: {
                 min: ({ sideNails, layers }) => 1 / (layers * sideNails),
-                max: ({ layers }) => 1 / (layers - 1) - 0.02,
+                max: ({ layers, sideNails }) =>
+                  1 / (layers - 1) - 1 / sideNails,
                 step: ({ sideNails, layers }) => 1 / (layers * sideNails),
               },
               isStructural: true,

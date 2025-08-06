@@ -5,16 +5,20 @@ const TICK_COLOR = 'rgba(0,0,0,.2)';
 const FAR_VALUES_DISTANCE = 0.2; // values are considered far from each other if they are at least a fifth of the width of the input apart
 
 export default class StringArtRangeInput extends HTMLElement {
-  #input = null;
-  #backgroundStyle = null;
-  #snap = DEFAULT_SNAP_DISTANCE;
-  #prevValue = null;
-  #prevSnapValue = null;
-  #tickValues = null;
-  #snapDistance = null;
-  #background = null;
-  #thumbColor = null;
-  #snapDisabledTick = null;
+  min: number;
+  max: number;
+
+  #input: HTMLInputElement = null;
+  #backgroundStyle: HTMLStyleElement = null;
+  #snap: number = DEFAULT_SNAP_DISTANCE;
+  #prevValue: number = null;
+  #prevSnapValue: number = null;
+  #tickValues: Array<number> = null;
+  #snapDistance: number = null;
+  #background: string = null;
+  #thumbColor: string = null;
+  #snapDisabledTick: number = null;
+  #resizeObserver: ResizeObserver;
 
   constructor() {
     super();
@@ -83,7 +87,7 @@ export default class StringArtRangeInput extends HTMLElement {
       this[name] = Number(newVal);
     }
 
-    let value;
+    let value: number;
     if (name === 'value') {
       value = Number(newVal);
     }
@@ -99,7 +103,7 @@ export default class StringArtRangeInput extends HTMLElement {
     if (this.min != null && this.max != null) {
       if (this.min > this.max) {
         this.max = this.min;
-        this.#input.max = this.min;
+        this.#input.max = String(this.min);
       }
 
       this.#snapDistance =
@@ -116,12 +120,12 @@ export default class StringArtRangeInput extends HTMLElement {
     this.#setStyle();
   }
 
-  get value() {
-    return this.#input.value;
+  get value(): number {
+    return Number(this.#input.value);
   }
 
-  set value(v) {
-    this.#input.value = v;
+  set value(v: string | number) {
+    this.#input.value = String(v);
     this.#setStyle();
   }
 
@@ -133,13 +137,13 @@ export default class StringArtRangeInput extends HTMLElement {
     });
 
     this.#tickValues = this.getTickValues();
-    this.resizeObserver = new ResizeObserver(entries => {
+    this.#resizeObserver = new ResizeObserver(entries => {
       for (let entry of entries) {
         const width = entry.contentRect.width;
         this.#setStyle();
       }
     });
-    this.resizeObserver.observe(this.#input);
+    this.#resizeObserver.observe(this.#input);
 
     this.#input.addEventListener('input', () => this.handleInput());
     this.#input.addEventListener('keydown', e => this.handleKeydown(e));
@@ -150,7 +154,7 @@ export default class StringArtRangeInput extends HTMLElement {
   }
 
   disconnectedCallback() {
-    this.resizeObserver.unobserve(this);
+    this.#resizeObserver.unobserve(this);
   }
 
   getTickValues() {
@@ -186,7 +190,7 @@ export default class StringArtRangeInput extends HTMLElement {
   }
 
   // Checks whether two values are far apart,
-  #areValuesFar(value1, value2) {
+  #areValuesFar(value1: number, value2: number): boolean {
     const distance = Math.abs(value1 - value2) / (this.max - this.min);
     return distance >= FAR_VALUES_DISTANCE;
   }
@@ -205,7 +209,7 @@ export default class StringArtRangeInput extends HTMLElement {
 
     if (closestTick !== this.#snapDisabledTick) {
       if (closestTick !== null) {
-        this.#input.value = closestTick;
+        this.#input.value = String(closestTick);
         if (closestTick !== this.#prevSnapValue) {
           this.#vibrate();
           this.#prevSnapValue = closestTick;
@@ -233,7 +237,8 @@ export default class StringArtRangeInput extends HTMLElement {
     );
   }
 
-  handleKeydown(event) {
+  handleKeydown(event: KeyboardEvent) {
+    event.preventDefault();
     const step = Number(this.#input.step || 1);
     const value = Number(this.#input.value);
 
@@ -262,21 +267,22 @@ export default class StringArtRangeInput extends HTMLElement {
     }
 
     if (newValue != null) {
-      this.#input.value = newValue;
-      this.#setStyle();
+      this.value = newValue;
       this.#prevValue = newValue;
       // emit event and prevent default for arrow keys
       this.dispatchEvent(
-        new InputEvent('input', {
+        new CustomEvent('input', {
           detail: { value: newValue },
           bubbles: true,
           composed: true,
         })
       );
     }
+
+    return false;
   }
 
-  getClosestTick(value) {
+  getClosestTick(value: number): number {
     if (!this.#tickValues || this.#tickValues.length === 0) return null;
 
     for (const tickValue of this.#tickValues) {

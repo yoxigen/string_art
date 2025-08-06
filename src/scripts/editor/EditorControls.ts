@@ -300,7 +300,10 @@ export default class EditorControls<TConfig> {
           const inputEl = this.controlElements[control.key].input;
           if (inputEl) {
             functionAttrs.forEach(([name, attributeValueFn]) => {
-              const newAttrValue = attributeValueFn(this.pattern);
+              const newAttrValue = this.getConfigValue(
+                attributeValueFn,
+                this.pattern.config
+              );
               if (newAttrValue != inputEl.getAttribute(name)) {
                 if (
                   (name === 'min' && inputEl.value < newAttrValue) ||
