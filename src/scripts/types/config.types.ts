@@ -58,6 +58,9 @@ export interface ControlConfig<TConfig = Record<string, PrimitiveValue>> {
   attr?: {
     [key: string]: ConfigValueOrFunction<TConfig>;
   };
+  /** Structural means that changes in this control's value affect the structure of the StringArt and
+   * the method `resetStructure` should be called. Step count may also be recalculated.
+   */
   isStructural?: boolean;
   affectsStepCount?: boolean;
   description?: string;

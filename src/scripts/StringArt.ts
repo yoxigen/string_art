@@ -228,6 +228,9 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
   }
 
+  /**
+   * Child classes can define this method to clear any structural cache when config values for `isStructural=true` controls change.
+   */
   resetStructure() {}
 
   onConfigChange(

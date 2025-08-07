@@ -1,5 +1,7 @@
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
+import StringArt from '../StringArt';
+import Circle, { CircleConfig } from '../helpers/Circle';
+import { ControlsConfig, GroupValue } from '../types/config.types.js';
+import { Coordinates } from '../types/general.types';
 
 const LAYER_DEFAULTS = [
   { size: 0.25, end: 1, color: '#a94fb0' },
@@ -7,12 +9,56 @@ const LAYER_DEFAULTS = [
   { size: 0, end: 0.826, color: '#f08ad5', reverse: true },
 ];
 
-export default class Assymetry extends StringArt {
+interface AssymetryConfig extends CircleConfig {
+  layers: GroupValue;
+  layer1: GroupValue;
+  show1: boolean;
+  size1: number;
+  end1: number;
+  color1: number;
+  reverse1: number;
+
+  layer2: GroupValue;
+  show2: boolean;
+  size2: number;
+  end2: number;
+  color2: number;
+  reverse2: number;
+
+  layer3: GroupValue;
+  show3: boolean;
+  size3: number;
+  end3: number;
+  color3: number;
+  reverse3: number;
+
+  distortion: number;
+}
+
+interface Layer {
+  enable: boolean;
+  size: number;
+  endIndex: number;
+  color: number;
+  isReverse: number;
+}
+
+interface TCalc {
+  circle: Circle;
+  lineSpacing: number;
+  lineNailCount: number;
+  firstCirclePoint: Coordinates;
+  layers: ReadonlyArray<Layer>;
+  totalNailCount: number;
+  totalIndexCount: number;
+}
+
+export default class Assymetry extends StringArt<AssymetryConfig> {
   name = 'Assymetry';
   id = 'assymetry';
   link =
     'https://www.etsy.com/il-en/listing/1018950430/calming-wall-art-in-light-blue-for';
-  controls = [
+  controls: ControlsConfig<AssymetryConfig> = [
     Circle.nailsConfig,
     Circle.rotationConfig,
     Circle.distortionConfig,
@@ -20,6 +66,7 @@ export default class Assymetry extends StringArt {
       key: 'layers',
       label: 'Layers',
       type: 'group',
+      // @ts-expect-error: dynamic key is safe because we know the keys match Layers
       children: LAYER_DEFAULTS.map(({ size, end, color, reverse }, i) => {
         const layer = i + 1;
         return {
@@ -81,16 +128,19 @@ export default class Assymetry extends StringArt {
     },
   ];
 
+  #circle: Circle;
+  #calc: TCalc;
+
   setUpDraw() {
     super.setUpDraw();
-    Object.assign(this, this.getSetUp());
+    this.#calc = this.#getCalc();
   }
 
-  getSetUp() {
+  #getCalc() {
     const { rotation, n, margin = 0, distortion } = this.config;
     const size = this.getSize();
 
-    const circleConfig = {
+    const circleConfig: CircleConfig = {
       size,
       n,
       margin,
@@ -98,10 +148,10 @@ export default class Assymetry extends StringArt {
       distortion,
     };
 
-    let circle;
-    if (this.circle) {
-      circle = this.circle;
-      this.circle.setConfig(circleConfig);
+    let circle: Circle;
+    if (this.#calc?.circle) {
+      circle = this.#calc.circle;
+      this.#calc.circle.setConfig(circleConfig);
     } else {
       circle = new Circle(circleConfig);
     }
@@ -128,7 +178,7 @@ export default class Assymetry extends StringArt {
       totalIndexCount,
     };
 
-    function getLayer(layerIndex) {
+    function getLayer(layerIndex: number): Layer {
       const size =
         Math.round(n * this.config['size' + layerIndex]) + lineNailCount;
       return {
@@ -146,31 +196,30 @@ export default class Assymetry extends StringArt {
 
   /**
    * Returns the position of a point on the line
-   * @param {index of the point in the circle, 0 is the center} index
    */
-  getPoint(index) {
-    if (index < this.lineNailCount || index > this.totalNailCount) {
+  getPoint(index: number): Coordinates {
+    if (index < this.#calc.lineNailCount || index > this.#calc.totalNailCount) {
       const linePosition =
-        index < this.lineNailCount
-          ? this.lineNailCount - index
-          : index - this.totalNailCount;
+        index < this.#calc.lineNailCount
+          ? this.#calc.lineNailCount - index
+          : index - this.#calc.totalNailCount;
 
-      const indexLength = linePosition * this.lineSpacing;
+      const indexLength = linePosition * this.#calc.lineSpacing;
       return [
-        this.firstCirclePoint[0] -
-          indexLength * Math.sin(this.circle.rotationAngle),
-        this.firstCirclePoint[1] -
-          indexLength * Math.cos(this.circle.rotationAngle),
+        this.#calc.firstCirclePoint[0] -
+          indexLength * Math.sin(this.#calc.circle.rotationAngle),
+        this.#calc.firstCirclePoint[1] -
+          indexLength * Math.cos(this.#calc.circle.rotationAngle),
       ];
     } else {
-      const circleIndex = index - this.lineNailCount;
-      return this.circle.getPoint(circleIndex);
+      const circleIndex = index - this.#calc.lineNailCount;
+      return this.#calc.circle.getPoint(circleIndex);
     }
   }
 
-  *drawCircle({ endIndex, color, isReverse, size }) {
-    let prevPoint;
-    let prevPointIndex;
+  *drawCircle({ endIndex, color, isReverse, size }): Generator<void> {
+    let prevPoint: Coordinates;
+    let prevPointIndex: number;
     let isPrevSide = false;
     this.renderer.setColor(color);
     const self = this;
@@ -192,27 +241,29 @@ export default class Assymetry extends StringArt {
       isPrevSide = !isPrevSide;
     }
 
-    function getPointIndex(index) {
-      return isReverse ? self.totalIndexCount - index : index;
+    function getPointIndex(index: number): number {
+      return isReverse ? self.#calc.totalIndexCount - index : index;
     }
   }
 
   *generateStrings() {
-    for (const layer of this.layers) {
+    for (const layer of this.#calc.layers) {
       yield* this.drawCircle(layer);
     }
   }
 
   drawNails() {
-    this.circle.drawNails(this.nails, { nailsNumberStart: this.lineNailCount });
+    this.#calc.circle.drawNails(this.nails, {
+      nailsNumberStart: this.#calc.lineNailCount,
+    });
 
-    for (let i = 0; i < this.lineNailCount; i++) {
+    for (let i = 0; i < this.#calc.lineNailCount; i++) {
       this.nails.addNail({ point: this.getPoint(i), number: i });
     }
   }
 
-  getStepCount() {
-    const { layers } = this.getSetUp();
+  getStepCount(): number {
+    const { layers } = this.#getCalc();
     return layers.reduce(
       (stepCount, layer) => stepCount + layer.endIndex + 1,
       0

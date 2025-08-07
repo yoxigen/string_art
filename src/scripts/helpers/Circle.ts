@@ -11,7 +11,7 @@ export interface CircleConfig {
   n: number;
   size: Dimensions;
   margin?: number;
-  rotation?: number;
+  rotation: number;
   center?: Coordinates;
   radius?: number;
   reverse?: boolean;
@@ -30,6 +30,7 @@ export default class Circle {
   center: Coordinates;
   xyRadius: Dimensions;
   rotationAngle: number = 0;
+  indexAngle: number;
   isReverse: boolean = false;
   radius: number;
 

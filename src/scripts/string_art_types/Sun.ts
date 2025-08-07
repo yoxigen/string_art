@@ -418,7 +418,7 @@ export default class Sun extends StringArt<SunConfig> {
   }
 
   getStepCount() {
-    const { layers, layerSpread, sideNails, sides } = this.config;
+    const { layers, sides } = this.config;
     const { backdropNails } = this.getCalc();
 
     const backdropStepCount = sides * backdropNails * 2;
