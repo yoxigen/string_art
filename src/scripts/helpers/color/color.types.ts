@@ -16,6 +16,7 @@ export interface ColorConfig {
   mirrorColors: boolean;
   isMultiColor: boolean;
   colorGroup: GroupValue;
+  colorOrderGroup: GroupValue;
 }
 
 export type ColorValue = string;

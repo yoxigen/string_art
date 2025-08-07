@@ -1,7 +1,17 @@
-import StringArt from '../StringArt.js';
+import Color from '../helpers/color/Color.js';
+import { ColorConfig, ColorValue } from '../helpers/color/color.types';
+import StringArt from '../StringArt';
+import { Config, ControlsConfig, GroupValue } from '../types/config.types';
+import { Coordinates } from '../types/general.types';
 
-const SIDES = ['left', 'bottom', 'right', 'top'];
-const SIDES_ORDER = ['left', 'bottom', 'right', 'top'];
+type Side = 'left' | 'bottom' | 'right' | 'top';
+const SIDES: [Side, Side, Side, Side] = ['left', 'bottom', 'right', 'top'];
+const SIDES_ORDER: [Side, Side, Side, Side] = [
+  'left',
+  'bottom',
+  'right',
+  'top',
+];
 
 const SIDES_ROTATION = {
   left: 0,
@@ -10,12 +20,32 @@ const SIDES_ROTATION = {
   top: Math.PI * 1.5,
 };
 
-class Eye extends StringArt {
+interface EyeConfig extends ColorConfig {
+  n: number;
+  layers: number;
+  angle: number;
+  colorPerLayer: boolean;
+}
+
+interface Layer {
+  layerAngle: number;
+  layerSize: number;
+  layerStart: Coordinates;
+  layerStringCount: number;
+}
+interface TCalc {
+  maxSize: number;
+  nailSpacing: number;
+  layerAngle: number;
+  layers: ReadonlyArray<Layer>;
+}
+
+class Eye extends StringArt<EyeConfig> {
   name = 'Eye';
   id = 'eye';
   link =
     'https://www.etsy.com/listing/489853161/rose-of-space-string-art-sacred-geometry?ga_order=most_relevant&ga_search_type=all&ga_view_type=gallery&ga_search_query=string+art&ref=sr_gallery_1&epik=dj0yJnU9WXNpM1BDTnNkLVBtcWdCa3AxN1J5QUZRY1FlbkJ5Z18mcD0wJm49ZXdJb2JXZmVpNVVwN1NKQ3lXMy10ZyZ0PUFBQUFBR0ZuUzZv';
-  controls = [
+  controls: ControlsConfig<EyeConfig> = [
     {
       key: 'n',
       label: 'Number of nails per side',
@@ -38,66 +68,114 @@ class Eye extends StringArt {
       type: 'range',
       attr: { min: 0, max: 45, step: 1 },
     },
-    {
-      key: 'color',
-      label: 'Color',
-      type: 'group',
-      children: [
-        {
-          key: 'color1',
-          label: 'String #1 color',
-          defaultValue: '#11e8bd',
-          type: 'color',
-        },
-        {
-          key: 'color2',
-          label: 'String #2 color',
-          defaultValue: '#6fff52',
-          type: 'color',
-        },
+    Color.getConfig({
+      defaults: {
+        isMultiColor: true,
+        color: '#ffffff',
+        multicolorRange: 214,
+        multicolorStart: 226,
+        multicolorByLightness: false,
+        minLightness: 40,
+        maxLightness: 50,
+        colorCount: 2,
+      },
+      customControls: [
         {
           key: 'colorPerLayer',
           label: 'Color per layer',
           defaultValue: false,
           type: 'checkbox',
+          show: ({ isMultiColor }) => isMultiColor,
         },
       ],
-    },
+      exclude: ['colorCount', 'repeatColors'],
+    }),
   ];
+
+  defaultValues: Partial<Config<EyeConfig>> = {
+    nailsColor: '#000000',
+  };
+
+  #calc: TCalc;
+  color: Color;
+
+  getCalc(): TCalc {
+    const { n, angle, layers, margin } = this.config;
+
+    const maxSize = Math.min(...this.size) - 2 * margin;
+    const nailSpacing = maxSize / (n - 1);
+    const layerAngle = (angle * Math.PI) / 180;
+
+    const getLayerProps = (layerIndex: number): Layer => {
+      const layerSize =
+        maxSize /
+        Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layerIndex);
+      const layerStart: Coordinates = [
+        this.center[0] - layerSize / 2,
+        this.center[1] - layerSize / 2,
+      ];
+      const layerStringCount = Math.floor(layerSize / nailSpacing);
+
+      return {
+        layerAngle: layerAngle * layerIndex,
+        layerSize,
+        layerStart,
+        layerStringCount,
+      };
+    };
+
+    return {
+      maxSize,
+      nailSpacing,
+      layerAngle,
+      layers: new Array(layers)
+        .fill(null)
+        .map((_, layerIndex) => getLayerProps(layerIndex)),
+    };
+  }
 
   setUpDraw() {
     super.setUpDraw();
-
-    const { n, angle, layers, margin } = this.config;
-
-    this.maxSize = Math.min(...this.size) - 2 * margin;
-    this.nailSpacing = this.maxSize / (n - 1);
-    this.layerAngle = (angle * Math.PI) / 180;
-
-    this.layers = new Array(layers)
-      .fill(null)
-      .map((_, layerIndex) => this._getLayerProps(layerIndex));
+    this.color = new Color({
+      ...this.config,
+      repeatColors: true,
+      colorCount: 2,
+    });
+    this.#calc = this.getCalc();
   }
 
   // Sides: top, right, bottom, left
-  getPoint({ index, angle, layerStart, rotation }) {
+  getPoint({
+    index,
+    angle,
+    layerStart,
+    rotation,
+  }: {
+    index: number;
+    angle: number;
+    layerStart: Coordinates;
+    rotation: number;
+  }): Coordinates {
     const theta = angle + rotation;
 
-    const point = {
-      x: layerStart.x,
-      y: layerStart.y + this.nailSpacing * index,
-    };
+    const point: Coordinates = [
+      layerStart[0],
+      layerStart[1] + this.#calc.nailSpacing * index,
+    ];
 
-    const pivot = { x: this.center[0], y: this.center[1] };
+    const pivot = this.center;
 
     const cosAngle = Math.cos(theta);
     const sinAngle = Math.sin(theta);
 
-    const position = [
-      cosAngle * (point.x - pivot.x) - sinAngle * (point.y - pivot.y) + pivot.x,
-      sinAngle * (point.x - pivot.x) + cosAngle * (point.y - pivot.y) + pivot.y,
+    return [
+      cosAngle * (point[0] - pivot[0]) -
+        sinAngle * (point[1] - pivot[1]) +
+        pivot[0],
+      sinAngle * (point[0] - pivot[0]) +
+        cosAngle * (point[1] - pivot[1]) +
+        pivot[1],
     ];
-    return position;
   }
 
   *drawSide({
@@ -107,7 +185,14 @@ class Eye extends StringArt {
     size,
     layerStart,
     layerStringCount,
-  }) {
+  }: {
+    side: Side;
+    color: ColorValue;
+    angle: number;
+    size: number;
+    layerStart: Coordinates;
+    layerStringCount: number;
+  }): Generator<void> {
     const sideIndex = SIDES.indexOf(side);
     const nextSide = SIDES[sideIndex === SIDES.length - 1 ? 0 : sideIndex + 1];
     const rotation = SIDES_ROTATION[side];
@@ -118,60 +203,27 @@ class Eye extends StringArt {
 
     for (let i = 0; i <= layerStringCount; i++) {
       this.renderer.renderLines(
-        this.getPoint({ side, index: i, rotation, ...sideProps }),
+        this.getPoint({ index: i, rotation, ...sideProps }),
         this.getPoint({
-          side: nextSide,
           index: i,
           rotation: nextSideRotation,
           ...sideProps,
         })
       );
 
-      yield i;
+      yield;
     }
   }
 
-  _getLayerProps(layerIndex) {
-    const colors = this._getLayerColors(layerIndex);
-    const layerAngle = this.layerAngle * layerIndex;
-    const layerSize =
-      this.maxSize /
-      Math.pow(
-        Math.cos(this.layerAngle) + Math.sin(this.layerAngle),
-        layerIndex
-      );
-    const layerStart = {
-      x: this.center[0] - layerSize / 2,
-      y: this.center[1] - layerSize / 2,
-    };
-    const layerStringCount = Math.floor(layerSize / this.nailSpacing);
+  *drawLayer(layerIndex: number): Generator<void> {
+    const { colorPerLayer } = this.config;
 
-    return {
-      colors,
-      layerAngle,
-      layerSize,
-      layerStart,
-      layerStringCount,
-    };
-  }
-
-  _getLayerColors(layerIndex) {
-    const { color1, color2, colorPerLayer } = this.config;
-    if (colorPerLayer) {
-      const layerColor = layerIndex % 2 ? color1 : color2;
-      return [layerColor, layerColor, layerColor, layerColor];
-    } else {
-      return [color2, color1, color2, color1];
-    }
-  }
-
-  *drawLayer(layerIndex) {
-    const { colors, layerAngle, layerSize, layerStart, layerStringCount } =
-      this.layers[layerIndex];
+    const { layerAngle, layerSize, layerStart, layerStringCount } =
+      this.#calc.layers[layerIndex];
 
     for (let i = 0; i < SIDES.length; i++) {
       yield* this.drawSide({
-        color: colors[i],
+        color: this.color.getColor(colorPerLayer ? layerIndex : i),
         side: SIDES_ORDER[i],
         angle: layerAngle,
         size: layerSize,
@@ -212,7 +264,7 @@ class Eye extends StringArt {
         layerSize: size,
         layerStart,
         layerStringCount,
-      } = this.layers[layer];
+      } = this.#calc.layers[layer];
 
       for (let s = 0; s < SIDES.length; s++) {
         const sideOrder = SIDES_ORDER[s];
@@ -222,7 +274,6 @@ class Eye extends StringArt {
           const sideProps = { layerStringCount, size, layerStart, angle };
           this.nails.addNail({
             point: this.getPoint({
-              sideOrder,
               index: i,
               rotation,
               ...sideProps,

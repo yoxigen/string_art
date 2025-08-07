@@ -138,7 +138,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
       {
         key: 'repeatColors',
         label: 'Repeat colors',
-        defaultValue: false,
+        defaultValue: true,
         type: 'checkbox',
         show: ({ isMultiColor }) => isMultiColor,
       },
