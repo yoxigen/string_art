@@ -10,8 +10,8 @@ import { fitInside, PI2 } from './math_utils';
 export interface CircleConfig {
   n: number;
   size: Dimensions;
-  margin: number;
-  rotation: number;
+  margin?: number;
+  rotation?: number;
   center?: Coordinates;
   radius?: number;
   reverse?: boolean;

@@ -133,9 +133,9 @@ export default class StarShape {
 
   // In this pattern, strings are connected in a "merry-go-round" way, around the star.
   // With even sides count, the strings go around the star once, while with odd sides count, each round goes twice around the star.
-  // The threading is: star at the center, then next side at the edge (outtermost nail), then back to the center for the next side,
-  // until all sides have been connected both center and edge (for odd-side-count stars) or until all sides have been connected (for odd-side-count)
-  // Then move up one nail from the center and start another round.
+  // The threading is: star at the center (or centerRadius, if > 0), then next side at the edge (outtermost nail) or the size param which represents the count of nails to use,
+  // then back to the center for the next side,   // until all sides have been connected both center and edge (for odd-side-count stars) or until all sides have been
+  // connected (for odd-side-count), then move up one nail from the center and start another round.
   *generateStrings(
     renderer: Renderer,
     { size }: { size?: number } = {}

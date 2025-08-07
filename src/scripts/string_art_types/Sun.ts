@@ -1,5 +1,5 @@
 import StringArt from '../StringArt';
-import Circle from '../helpers/Circle';
+import Circle, { CircleConfig } from '../helpers/Circle';
 import Color from '../helpers/color/Color';
 import StarShape, { StarShapeConfig } from '../helpers/StarShape';
 import { insertAfter } from '../helpers/config_utils';
@@ -74,13 +74,12 @@ export default class Sun extends StringArt<SunConfig> {
               label: 'Layer spread',
               defaultValue: 0.1625,
               type: 'range',
-              displayValue: ({ layerSpread, sideNails, layers }) =>
-                Math.ceil(layers * sideNails * layerSpread),
+              displayValue: ({ layerSpread }) =>
+                formatFractionAsPercent(layerSpread),
               attr: {
-                min: ({ sideNails, layers }) => 1 / (layers * sideNails),
-                max: ({ layers, sideNails }) =>
-                  1 / (layers - 1) - 1 / sideNails,
-                step: ({ sideNails, layers }) => 1 / (layers * sideNails),
+                min: 0.01,
+                max: 1,
+                step: 0.02,
               },
               isStructural: true,
             },
@@ -228,7 +227,7 @@ export default class Sun extends StringArt<SunConfig> {
     sideNails: 50,
     sides: 16,
     layers: 4,
-    layerSpread: 9 / 50,
+    layerSpread: 0.77,
     backdropSize: 0.26,
     backdropRadius: 0.9,
     backdropShift: 0.59,
@@ -248,7 +247,7 @@ export default class Sun extends StringArt<SunConfig> {
   };
 
   getCalc(): TCalc {
-    const { sideNails, backdropSize } = this.config;
+    const { sideNails, backdropSize, layers } = this.config;
 
     return {
       backdropNails: Math.floor(sideNails * backdropSize),
@@ -313,7 +312,7 @@ export default class Sun extends StringArt<SunConfig> {
       }),
       colorCount: backdropColorCount,
     });
-    const circleConfig = {
+    const circleConfig: CircleConfig = {
       size: this.size,
       n: sides,
       rotation: -1 / sides / 2 + (rotation ? rotation / sides : 0),
@@ -327,23 +326,23 @@ export default class Sun extends StringArt<SunConfig> {
     }
   }
 
-  *drawStar(size) {
+  *drawStar(size?: number): Generator<void> {
     yield* this.#star.generateStrings(this.renderer, { size });
   }
 
-  *generateLayers() {
+  *generateLayers(): Generator<void> {
     const { sideNails, layerSpread, layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
       const color = this.#color.getColor(layer);
       this.renderer.setColor(color);
 
-      const layerSize = Math.floor(sideNails * (1 - layerSpread * layer));
+      const layerSize = this.#getLayerSize(layer);
       yield* this.drawStar(layerSize);
     }
   }
 
-  *drawBackdrop() {
+  *drawBackdrop(): Generator<void> {
     // For each side, add a nail between two star sides, at the specified backdropRadius.
     // For the backdrop size, connect the nail to the number of points in the star for the two sides near the backdrop nail
 
@@ -408,6 +407,15 @@ export default class Sun extends StringArt<SunConfig> {
     }
   }
 
+  #getLayerSize(layer: number): number {
+    const { layers, layerSpread, sideNails } = this.config;
+    return Math.max(
+      1,
+      sideNails -
+        layer * Math.max(1, Math.floor((sideNails / layers) * layerSpread))
+    );
+  }
+
   getStepCount() {
     const { layers, layerSpread, sideNails, sides } = this.config;
     const { backdropNails } = this.getCalc();
@@ -416,7 +424,8 @@ export default class Sun extends StringArt<SunConfig> {
 
     let stepCount = backdropStepCount;
     for (let layer = 0; layer < layers; layer++) {
-      const layerSize = Math.floor(sideNails * (1 - layerSpread * layer));
+      const layerSize = this.#getLayerSize(layer);
+      console.log('size', layerSize);
       stepCount += StarShape.getStepCount(this.config, { size: layerSize });
     }
 
