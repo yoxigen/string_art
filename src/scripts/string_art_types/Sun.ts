@@ -81,6 +81,7 @@ export default class Sun extends StringArt<SunConfig> {
                 max: 1,
                 step: 0.02,
               },
+              show: ({ layers }) => layers !== 1,
               isStructural: true,
             },
             {
