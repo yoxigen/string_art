@@ -184,7 +184,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
 
   get controlsIndex(): Record<keyof TConfig, ControlConfig<TConfig>> {
     if (!this.#controlsIndex) {
-      this.#controlsIndex = getControlsIndex<TConfig>(this.controls);
+      this.#controlsIndex = getControlsIndex<TConfig>(this.configControls);
     }
 
     return this.#controlsIndex;
