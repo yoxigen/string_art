@@ -15,7 +15,7 @@ export interface CircleConfig {
   center?: Coordinates;
   radius?: number;
   reverse?: boolean;
-  distortion?: number;
+  distortion: number;
   displacement?: GroupValue;
   displacementFunc?: keyof typeof easing;
   displacementMag?: number;

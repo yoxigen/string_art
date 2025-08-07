@@ -1,7 +1,46 @@
 import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
+import Circle, { CircleConfig } from '../helpers/Circle.js';
 import Color from '../helpers/color/Color.js';
+import { ColorConfig } from '../helpers/color/color.types.js';
 import { PI2 } from '../helpers/math_utils.js';
+import { ControlsConfig } from '../types/config.types.js';
+
+type SpreadModeType = 'evenly' | 'distance';
+
+interface CometConfig extends CircleConfig, ColorConfig {
+  layers: number;
+  ringSize: number;
+  layerSpread: SpreadModeType;
+  layerDistance: number;
+  colorPerLayer: boolean;
+}
+
+interface SpreadMode {
+  f: (layerIndex: number, config: CometConfig) => number;
+  name: string;
+}
+
+const spreadModes: Record<SpreadModeType, SpreadMode> = {
+  evenly: {
+    f: (layerIndex, { ringSize, layers, n }) => {
+      const firstLayerDistance = Math.floor(n * ringSize);
+      return Math.floor(((layers - layerIndex) * firstLayerDistance) / layers);
+    },
+    name: 'Evenly',
+  },
+  distance: {
+    f: (layerIndex, { n, ringSize, layerDistance }) => {
+      const firstLayerDistance = Math.floor(n * ringSize);
+
+      if (layerIndex > 0) {
+        return firstLayerDistance - layerIndex * layerDistance;
+      }
+
+      return firstLayerDistance;
+    },
+    name: 'Specific distance',
+  },
+};
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -24,32 +63,10 @@ const COLOR_CONFIG = Color.getConfig({
   ],
 });
 
-const spreadModes = {
-  evenly: {
-    f: (layerIndex, { ringSize, layers, n }) => {
-      const firstLayerDistance = Math.floor(n * ringSize);
-      return Math.floor(((layers - layerIndex) * firstLayerDistance) / layers);
-    },
-    name: 'Evenly',
-  },
-  distance: {
-    f: (layerIndex, { n, ringSize, layerDistance }) => {
-      const firstLayerDistance = Math.floor(n * ringSize);
-
-      if (layerIndex > 0) {
-        return firstLayerDistance - layerIndex * layerDistance;
-      }
-
-      return firstLayerDistance;
-    },
-    name: 'Specific distance',
-  },
-};
-
-export default class Comet extends StringArt {
+export default class Comet extends StringArt<CometConfig> {
   name = 'Comet';
   id = 'comet';
-  controls = [
+  controls: ControlsConfig<CometConfig> = [
     Circle.nailsConfig,
     {
       key: 'layers',
@@ -108,7 +125,7 @@ export default class Comet extends StringArt {
     COLOR_CONFIG,
   ];
 
-  defaultValues = {
+  defaultValues: Partial<CometConfig> = {
     n: 51,
     layers: 11,
     colorPerLayer: true,
@@ -124,15 +141,8 @@ export default class Comet extends StringArt {
     layerDistance: 1,
   };
 
-  resetStructure() {
-    if (this.points) {
-      this.points.clear();
-    }
-
-    if (this.layerRingDistances) {
-      this.layerRingDistances.clear();
-    }
-  }
+  #circle: Circle;
+  color: Color;
 
   setUpDraw() {
     super.setUpDraw();
@@ -147,10 +157,10 @@ export default class Comet extends StringArt {
       displacementFastArea: this.config.displacementFastArea,
     };
 
-    if (this.circle) {
-      this.circle.setConfig(circleConfig);
+    if (this.#circle) {
+      this.#circle.setConfig(circleConfig);
     } else {
-      this.circle = new Circle(circleConfig);
+      this.#circle = new Circle(circleConfig);
     }
 
     if (!this.stepCount) {
@@ -171,20 +181,7 @@ export default class Comet extends StringArt {
     });
   }
 
-  getCalc() {
-    const { n } = this.config;
-    const size = this.getSize();
-
-    return {
-      n,
-      angleRadians: (PI2 * angle) / maxSteps,
-      radius: Math.min(...size) / 2,
-      currentSize: size,
-      rotationAngle: -Math.PI * 2 * rotation,
-    };
-  }
-
-  getLayerRingDistance(layerIndex) {
+  getLayerRingDistance(layerIndex: number): number {
     const spread = spreadModes[this.config.layerSpread];
     if (!spread) {
       throw new Error(`Invalid spread mode, "${this.config.layerSpread}"!`);
@@ -193,30 +190,30 @@ export default class Comet extends StringArt {
     return spread.f(layerIndex, this.config);
   }
 
-  getLayerRingStepCount(layerIndex) {
+  getLayerRingStepCount(layerIndex: number): number {
     const layerRingDistance = this.getLayerRingDistance(layerIndex);
     return (this.config.n - layerRingDistance + 1) * 2 - 1;
   }
 
-  *drawLayer(layerIndex = 0) {
+  *drawLayer(layerIndex = 0): Generator<void> {
     const { n } = this.config;
     const ringDistance = this.getLayerRingDistance(layerIndex);
     const stepCount = n - ringDistance + 1;
 
-    let prevPoint = this.circle.getPoint(0);
+    let prevPoint = this.#circle.getPoint(0);
     let prevPointIndex = 0;
     this.renderer.setColor(this.color.getColor(layerIndex));
 
     for (let i = 0; i < n - ringDistance + 1; i++) {
       const pointIndex = i + ringDistance;
-      const point = this.circle.getPoint(pointIndex);
+      const point = this.#circle.getPoint(pointIndex);
 
       this.renderer.renderLines(prevPoint, point);
       yield;
 
       if (i !== stepCount - 1) {
         prevPointIndex = i + 1;
-        prevPoint = this.circle.getPoint(prevPointIndex);
+        prevPoint = this.#circle.getPoint(prevPointIndex);
 
         this.renderer.renderLines(point, prevPoint);
 
@@ -231,7 +228,7 @@ export default class Comet extends StringArt {
     }
   }
 
-  getStepCount() {
+  getStepCount(): number {
     if (this.stepCount) {
       return this.stepCount;
     }
@@ -247,7 +244,7 @@ export default class Comet extends StringArt {
   }
 
   drawNails() {
-    this.circle.drawNails(this.nails);
+    this.#circle.drawNails(this.nails);
   }
 
   static thumbnailConfig = {
