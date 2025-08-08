@@ -1,7 +1,16 @@
 import StringArt from '../StringArt.js';
 import Circle from '../helpers/Circle.js';
-import Polygon from '../helpers/Polygon.js';
+import Polygon, { PolygonConfig } from '../helpers/Polygon.js';
 import Color from '../helpers/color/Color.js';
+import { ColorConfig, ColorMap } from '../helpers/color/color.types.js';
+import { ControlsConfig } from '../types/config.types.js';
+
+interface PolygonPatternConfig extends ColorConfig {
+  sides: number;
+  n: number;
+  bezier: number;
+  rotation: number;
+}
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -16,10 +25,10 @@ const COLOR_CONFIG = Color.getConfig({
   exclude: ['colorCount'],
 });
 
-export default class PolygonPattern extends StringArt {
+export default class PolygonPattern extends StringArt<PolygonPatternConfig> {
   name = 'Polygon';
   id = 'polygon';
-  controls = [
+  controls: ControlsConfig<PolygonPatternConfig> = [
     {
       key: 'sides',
       label: 'Sides',
@@ -54,7 +63,7 @@ export default class PolygonPattern extends StringArt {
       },
       show: ({ sides }) => sides > 4,
     },
-    Circle.rotationConfig,
+    Polygon.rotationConfig,
     COLOR_CONFIG,
   ];
 
@@ -63,24 +72,28 @@ export default class PolygonPattern extends StringArt {
     nailRadius: 1,
   };
 
+  #polygon: Polygon;
+  color: Color;
+  colorMap: ColorMap;
+
   setUpDraw() {
     super.setUpDraw();
     const { n, rotation, sides, margin, isMultiColor } = this.config;
     const size = this.getSize();
 
-    const polygonConfig = {
+    const polygonConfig: PolygonConfig = {
       sides,
-      rotation,
+      rotation: rotation / (sides * 2),
       margin,
       size,
       nailsSpacing: 1 / n,
       fitSize: true,
     };
 
-    if (this.polygon) {
-      this.polygon.setConfig(polygonConfig);
+    if (this.#polygon) {
+      this.#polygon.setConfig(polygonConfig);
     } else {
-      this.polygon = new Polygon(polygonConfig);
+      this.#polygon = new Polygon(polygonConfig);
     }
 
     this.color = new Color({
@@ -112,10 +125,10 @@ export default class PolygonPattern extends StringArt {
       if (this.colorMap) {
         this.renderer.setColor(this.colorMap.get(step));
       }
-      for (let index = 0; index < this.polygon.nailsPerSide; index++) {
+      for (let index = 0; index < this.#polygon.nailsPerSide; index++) {
         this.renderer.renderLines(
-          this.polygon.getSidePoint({ side, index }),
-          this.polygon.getSidePoint({ side: nextSide, index })
+          this.#polygon.getSidePoint({ side, index }),
+          this.#polygon.getSidePoint({ side: nextSide, index })
         );
 
         yield;
@@ -130,7 +143,7 @@ export default class PolygonPattern extends StringArt {
   }
 
   drawNails() {
-    this.polygon.drawNails(this.nails);
+    this.#polygon.drawNails(this.nails);
   }
 
   static thumbnailConfig = {

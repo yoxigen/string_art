@@ -1,4 +1,15 @@
-export function compareObjects(obj1, obj2, props) {
+/**
+ * Returns true if the two objects have the same values. Deep compares the objects.
+ * @param obj1
+ * @param obj2
+ * @param props An array of keys to compare. If not specified, all keys are compared.
+ * @returns
+ */
+export function compareObjects(
+  obj1: Object,
+  obj2: Object,
+  props?: ReadonlyArray<string>
+): boolean {
   if (obj1 === obj2) {
     return true;
   }

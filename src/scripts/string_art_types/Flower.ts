@@ -1,7 +1,16 @@
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
-import Polygon from '../helpers/Polygon.js';
-import Color from '../helpers/color/Color.js';
+import StringArt from '../StringArt';
+import Circle from '../helpers/Circle';
+import Polygon from '../helpers/Polygon';
+import Color from '../helpers/color/Color';
+import { ColorConfig, ColorMap } from '../helpers/color/color.types';
+import { ControlsConfig } from '../types/config.types.js';
+
+export interface FlowerConfig extends ColorConfig {
+  sides: number;
+  n: number;
+  layers: number;
+  rotation: number;
+}
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -16,11 +25,11 @@ const COLOR_CONFIG = Color.getConfig({
   exclude: ['colorCount'],
 });
 
-export default class Flower extends StringArt {
+export default class Flower extends StringArt<FlowerConfig> {
   name = 'Flower';
   id = 'flower';
   link = 'https://www.sqrt.ch/Buch/fadenmodell4_100.svg';
-  controls = [
+  controls: ControlsConfig<FlowerConfig> = [
     {
       key: 'sides',
       label: 'Sides',
@@ -54,7 +63,7 @@ export default class Flower extends StringArt {
         step: 1,
       },
     },
-    Circle.rotationConfig,
+    Polygon.rotationConfig,
     COLOR_CONFIG,
   ];
 
@@ -64,6 +73,10 @@ export default class Flower extends StringArt {
     stringWidth: 0.5,
   };
 
+  #polygons: ReadonlyArray<Polygon>;
+  color: Color;
+  colorMap: ColorMap;
+
   setUpDraw() {
     super.setUpDraw();
     const { n, rotation, sides, layers, margin, isMultiColor } = this.config;
@@ -71,10 +84,10 @@ export default class Flower extends StringArt {
 
     const layerAngleShift = 1 / (sides * layers);
 
-    this.polygons = new Array(layers).fill(null).map((_, i) => {
+    this.#polygons = new Array(layers).fill(null).map((_, i) => {
       const polygonConfig = {
         sides,
-        rotation: rotation + i * layerAngleShift,
+        rotation: rotation / sides + i * layerAngleShift,
         margin,
         size,
         nailsSpacing: 1 / n,
@@ -106,7 +119,7 @@ export default class Flower extends StringArt {
     this.renderer.setColor(this.color.getColor(0));
 
     for (let layer = 0; layer < layers; layer++) {
-      const polygon = this.polygons[layer];
+      const polygon = this.#polygons[layer];
 
       for (let side = 0; side < sides; side++) {
         const leftSide = side === sides - 1 ? 0 : side + 1;
@@ -140,7 +153,13 @@ export default class Flower extends StringArt {
     }
   }
 
-  getCenterIndexes({ polygon, sideIndex }) {
+  getCenterIndexes({
+    polygon,
+    sideIndex,
+  }: {
+    polygon: Polygon;
+    sideIndex: number;
+  }): [number, number] {
     const extraNailCount = polygon.nailsPerSide - polygon.radiusNailsCount;
 
     return [
@@ -151,13 +170,13 @@ export default class Flower extends StringArt {
     ];
   }
 
-  getStepCount() {
+  getStepCount(): number {
     const { sides, n, layers } = this.config;
     return sides * (n + 1) * layers;
   }
 
   drawNails() {
-    this.polygons.forEach(polygon =>
+    this.#polygons.forEach(polygon =>
       polygon.drawNails(this.nails, { drawCenter: true })
     );
   }
