@@ -160,6 +160,10 @@ export default class Polygon {
     return this.#calc.radiusNailsCount;
   }
 
+  get sideSize(): number {
+    return this.#calc.sideSize;
+  }
+
   getSidePoint({ side, index }): Coordinates {
     const pointsMapIndex = [side, index].join('_');
 
