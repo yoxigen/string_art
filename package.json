@@ -7,8 +7,8 @@
     "dev": "parcel",
     "build": "parcel build",
     "postbuild": "workbox generateSW workbox-config.cjs",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "teast:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
@@ -38,6 +38,9 @@
     "jest-environment-jsdom": "^30.0.5",
     "parcel": "2.15.4",
     "prettier": "2.4.1",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
     "workbox-cli": "^6.4.2"
   },
   "targets": {
