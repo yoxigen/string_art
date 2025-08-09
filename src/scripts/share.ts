@@ -1,4 +1,12 @@
-export async function share(input) {
+import type Renderer from './renderers/Renderer';
+import type StringArt from './StringArt';
+
+export interface ShareInput {
+  renderer: Renderer;
+  pattern: StringArt<any>;
+}
+
+export async function share(input: ShareInput) {
   try {
     navigator.share(await getShareData(input));
   } catch (error) {
@@ -6,7 +14,7 @@ export async function share(input) {
   }
 }
 
-export async function isShareSupported(input) {
+export async function isShareSupported(input: ShareInput) {
   if (!navigator.share) {
     return false;
   }
@@ -15,7 +23,7 @@ export async function isShareSupported(input) {
   return navigator.canShare(shareData);
 }
 
-async function getShareData({ renderer, pattern }) {
+async function getShareData({ renderer, pattern }: ShareInput) {
   const dataUrl = renderer.toDataURL();
   const blob = await (await fetch(dataUrl)).blob();
   const files = [

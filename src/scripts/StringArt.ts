@@ -207,7 +207,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     return this.#config ?? this.defaultConfig;
   }
 
-  set config(value: Config<TConfig>) {
+  set config(value: Partial<Config<TConfig>>) {
     this.#config = Object.assign({}, this.defaultConfig, value);
   }
 

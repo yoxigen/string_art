@@ -2,7 +2,7 @@ import { ColorValue } from '../helpers/color/color.types';
 import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail, NailsRenderOptions } from '../types/stringart.types';
 
-export default class Renderer {
+export default abstract class Renderer {
   parentElement: HTMLElement;
   color?: ColorValue;
   size: Dimensions;
@@ -19,26 +19,24 @@ export default class Renderer {
     throw new Error('element getter not implemented!');
   }
 
-  reset() {}
-
   setColor(color: ColorValue) {
     this.color = color;
   }
 
-  setLineWidth(width: number) {}
+  abstract reset(): void;
+  abstract setLineWidth(width: number): void;
+  abstract renderLines(
+    startPosition: Coordinates,
+    ...positions: Array<Coordinates>
+  ): void;
+  abstract renderNails(
+    nails: ReadonlyArray<Nail>,
+    options: NailsRenderOptions
+  ): void;
+  abstract clear(): void;
+  abstract toDataURL(): string;
 
   setBackground(color: ColorValue) {}
-
-  renderLines(startPosition: Coordinates, ...positions: Array<Coordinates>) {
-    throw new Error('Renderer "renderLines" method not implemented!');
-  }
-
-  /**
-   * Renders the nails for the string art
-   */
-  renderNails(nails: ReadonlyArray<Nail>, options: NailsRenderOptions) {
-    throw new Error('Renderer "renderNails" method not implemented!');
-  }
 
   getSize(): Dimensions {
     const { width, height } = this.parentElement.getBoundingClientRect();
@@ -57,13 +55,5 @@ export default class Renderer {
         this.element.removeAttribute('style');
       }
     }
-  }
-
-  clear() {
-    throw new Error('Renderer "clear" method not implemented!');
-  }
-
-  toDataURL() {
-    throw new Error('Renderer "toDataURL" method not implemented!');
   }
 }

@@ -117,7 +117,7 @@ export default class CanvasRenderer extends Renderer {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  toDataURL() {
+  toDataURL(): string {
     return this.canvas.toDataURL();
   }
 }

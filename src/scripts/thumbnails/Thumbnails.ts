@@ -1,16 +1,25 @@
 import patternTypes from '../pattern_types.js';
 import CanvasRenderer from '../renderers/CanvasRenderer.js';
+import type StringArt from '../StringArt.js';
 
 const THUMBNAIL_WIDTH_PX = '100px';
 const MINIMIZED_CLASS = 'minimized';
 
+type ThumbnailsChangeEventListener = (
+  event: CustomEvent<{ pattern: string }>
+) => any;
+
 export class Thumbnails {
-  elements = {
+  elements: Record<string, HTMLElement> = {
     root: document.querySelector('#pattern_select_panel'),
     thumbnails: document.querySelector('#pattern_select_thumbnails'),
     toggleBtn: document.querySelector('#pattern_select_btn'),
     dropdown: document.querySelector('#pattern_select_dropdown'),
   };
+
+  pattern: StringArt<any>;
+  thumbnailsRendered = false;
+  _onClickOutside: (e: MouseEvent) => void;
 
   constructor() {
     this.elements.toggleBtn.addEventListener('click', () => this.toggle());
@@ -33,7 +42,10 @@ export class Thumbnails {
       }
 
       this._onClickOutside = e => {
-        if (!e.target.closest('#pattern_select_panel')) {
+        if (
+          e.target instanceof HTMLElement &&
+          !e.target.closest('#pattern_select_panel')
+        ) {
           this.toggle();
         }
       };
@@ -50,7 +62,7 @@ export class Thumbnails {
     }
   }
 
-  setCurrentPattern(pattern) {
+  setCurrentPattern(pattern: StringArt<any>) {
     this.pattern = pattern;
     this.elements.toggleBtn.innerText = pattern?.name ?? 'Choose a pattern';
   }
@@ -66,14 +78,12 @@ export class Thumbnails {
       patternLink.style.width = patternLink.style.height = THUMBNAIL_WIDTH_PX;
 
       const pattern = new PatternType(renderer);
-      pattern.config = Object.assign(
-        {
-          margin: 1,
-          enableBackground: false,
-          nailRadius: 0.5,
-        },
-        PatternType.thumbnailConfig
-      );
+      pattern.config = {
+        margin: 1,
+        enableBackground: false,
+        nailRadius: 0.5,
+        ...PatternType.thumbnailConfig,
+      };
 
       patterns.push(pattern);
 
@@ -93,7 +103,9 @@ export class Thumbnails {
       e.preventDefault();
       e.stopPropagation();
 
-      const link = e.target.closest('[data-pattern]');
+      const link =
+        e.target instanceof HTMLElement &&
+        (e.target.closest('[data-pattern]') as HTMLElement);
 
       if (!link) {
         return false;
@@ -108,11 +120,11 @@ export class Thumbnails {
     });
   }
 
-  addOnChangeListener(listener) {
+  addOnChangeListener(listener: ThumbnailsChangeEventListener) {
     this.elements.root.addEventListener('change', listener);
   }
 
-  removeOnChangeListener(listener) {
+  removeOnChangeListener(listener: ThumbnailsChangeEventListener) {
     this.elements.root.removeEventListener('change', listener);
   }
 }

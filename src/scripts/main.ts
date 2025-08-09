@@ -14,6 +14,7 @@ import './components/StringArtRangeInput';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
+import StringArt from './StringArt';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -161,11 +162,12 @@ async function main() {
     });
   }
 
-  function updateState(state) {
+  function updateState(state?: { pattern: string; config: any }) {
     if (state?.pattern) {
       const pattern = findPatternById(state.pattern);
       selectPattern(pattern, {
         draw: false,
+        // @ts-ignore
         config: state.config ? deserializeConfig(pattern, state.config) : {},
       });
 
@@ -219,7 +221,6 @@ async function main() {
 
   function downloadNailsImage() {
     const currentConfig = currentPattern.config;
-    // @ts-ignore this is fine
     currentPattern.config = {
       ...currentConfig,
       darkMode: false,

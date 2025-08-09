@@ -1,6 +1,8 @@
+import StringArt from './StringArt';
+
 const MAX_FLOAT_DECIMALS = 6;
 
-export function serializeConfig(pattern) {
+export function serializeConfig(pattern: StringArt<any>): string {
   const { defaultConfig, config } = pattern;
 
   const nonDefaultConfigValues = Object.entries(config).map(([key, value]) => {
@@ -36,7 +38,10 @@ export function serializeConfig(pattern) {
 const numberRegExp = /^\-?\d+(\.\d+)?$/;
 const booleanRegExp = /^(?:!)([01])$/;
 
-export function deserializeConfig(pattern, serializedCofig) {
+export function deserializeConfig<TConfig>(
+  pattern: StringArt<TConfig>,
+  serializedCofig: string
+): TConfig {
   const serializedConfigValues = serializedCofig
     .replace(/(?:~)(\d+)(?:_)/g, (_, commaCount) =>
       new Array(+commaCount).fill('_').join('')
@@ -68,5 +73,5 @@ export function deserializeConfig(pattern, serializedCofig) {
     }
 
     return config;
-  }, {});
+  }, {} as TConfig);
 }
