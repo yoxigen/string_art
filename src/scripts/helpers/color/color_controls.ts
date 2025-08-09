@@ -53,9 +53,10 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
       step: 1,
       background: ({ multicolorStart, multicolorRange, reverseColors }) =>
         `linear-gradient(to ${reverseColors ? 'left' : 'right'} in hsl ${
-          multicolorRange > 180 ? 'longer' : 'shorter'
+          multicolorRange >= 180 ? 'longer' : 'shorter'
         } hue, hsl(${multicolorStart} 100 50), hsl(${
-          multicolorStart + multicolorRange
+          // Fixes a bug in Chrome, that for a 180 deg hue gradient, it always goes in reverse
+          multicolorStart + (multicolorRange === 180 ? 181 : multicolorRange)
         } 100 50))`,
       thumbcolor: 'white',
     },
