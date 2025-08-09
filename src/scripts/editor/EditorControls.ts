@@ -1,6 +1,5 @@
 import StringArtRangeInput from '../components/StringArtRangeInput';
-import StringArt from '../StringArt';
-import {
+import type {
   Config,
   ConfigValueOrFunction,
   ControlConfig,
@@ -14,7 +13,8 @@ const elements = {
   sidebarForm: document.querySelector('#sidebar_form') as HTMLElement,
 };
 
-const EVENTS = new Set(['input', 'change']);
+type EditorControlsEvent = 'input' | 'change' | 'control';
+const EVENTS = new Set<EditorControlsEvent>(['input', 'change']);
 const STATE_LOCAL_STORAGE_KEY = 'controls_state';
 const RANGE_SCROLL_LOCK_TIMEOUT = 120;
 
@@ -41,8 +41,22 @@ interface Control<TConfig> {
   displayValueElement: HTMLSpanElement;
 }
 
+export type ControlValueChangeEvent<
+  TConfig,
+  TControl extends keyof TConfig = keyof TConfig
+> = {
+  control: TControl;
+  value: TConfig[TControl];
+  originalEvent: Event;
+};
+
+export type OnControlValueChangedEventHandler<TConfig> = (
+  event: ControlValueChangeEvent<TConfig>
+) => any;
+
 export default class EditorControls<TConfig> {
-  pattern: StringArt<TConfig>;
+  config: Config<TConfig>;
+  controlsConfig: ControlsConfig<TConfig>;
   state: EditorState;
   eventHandlers: {
     input: Set<string>;
@@ -62,8 +76,13 @@ export default class EditorControls<TConfig> {
   #lockRange: boolean = false;
   #boundToggleFieldset;
 
-  constructor(pattern: StringArt<TConfig>) {
-    this.pattern = pattern;
+  constructor(
+    controlsConfig: ControlsConfig<TConfig>,
+    config: Config<TConfig>
+  ) {
+    this.config = config;
+    this.controlsConfig = controlsConfig;
+
     this.state = this._getState() ?? { groups: {} };
 
     this.eventHandlers = {
@@ -125,7 +144,10 @@ export default class EditorControls<TConfig> {
     }
   }
 
-  addEventListener(event, eventHandler) {
+  addEventListener(
+    event: EditorControlsEvent,
+    eventHandler: OnControlValueChangedEventHandler<TConfig>
+  ) {
     if (!EVENTS.has(event)) {
       throw new Error(`Unsupported event for EditorControls, "${event}"!`);
     }
@@ -231,7 +253,7 @@ export default class EditorControls<TConfig> {
     ] as Control<TConfig>;
     if (displayValueElement) {
       const formattedValue = config.displayValue
-        ? config.displayValue(this.pattern.config)
+        ? config.displayValue(this.config)
         : input.value;
       displayValueElement.innerText = String(formattedValue);
     }
@@ -249,11 +271,9 @@ export default class EditorControls<TConfig> {
     const inputValue = getInputValue(inputElement);
     const controlKey = inputElement.id.replace(/^config_/, '') as keyof TConfig;
 
-    if (this.pattern.config[controlKey] === inputValue) {
+    if (this.config[controlKey] === inputValue) {
       return;
     }
-
-    this.pattern.setConfigValue(controlKey, inputValue);
 
     this.updateControlDisplayValue(controlKey);
 
@@ -261,7 +281,6 @@ export default class EditorControls<TConfig> {
       control: controlKey,
       value: inputValue,
       originalEvent,
-      pattern: this.pattern,
     });
 
     this._triggerEvent('input', eventData);
@@ -301,8 +320,11 @@ export default class EditorControls<TConfig> {
     }
   }
 
-  updateControlsAttributes(configControls = this.pattern.configControls) {
-    configControls.forEach(control => {
+  updateControlsAttributes(controlsConfig?: ControlsConfig<TConfig>) {
+    if (!controlsConfig) {
+      controlsConfig = this.controlsConfig;
+    }
+    controlsConfig.forEach(control => {
       if (control.type === 'group') {
         this.updateControlsAttributes(control.children);
       } else if (control.attr) {
@@ -315,7 +337,7 @@ export default class EditorControls<TConfig> {
             functionAttrs.forEach(([name, attributeValueFn]) => {
               const newAttrValue = this.getConfigValue(
                 attributeValueFn,
-                this.pattern.config
+                this.config
               );
               if (newAttrValue != inputEl.getAttribute(name)) {
                 inputEl.setAttribute(name, String(newAttrValue));
@@ -340,10 +362,10 @@ export default class EditorControls<TConfig> {
     });
   }
 
-  updateControlsVisibility(configControls?: ControlsConfig<TConfig>) {
-    (configControls ?? this.pattern.configControls).forEach(control => {
+  updateControlsVisibility(controlsConfig?: ControlsConfig<TConfig>) {
+    (controlsConfig ?? this.controlsConfig).forEach(control => {
       if (control.show) {
-        const shouldShowControl = control.show(this.pattern.config);
+        const shouldShowControl = control.show(this.config);
         const controlEl = this.controlElements[control.key].element;
         if (controlEl) {
           if (shouldShowControl) {
@@ -355,7 +377,7 @@ export default class EditorControls<TConfig> {
       }
 
       if (control.isDisabled) {
-        const shouldDisableControl = control.isDisabled(this.pattern.config);
+        const shouldDisableControl = control.isDisabled(this.config);
         const inputEl = this.controlElements[control.key].input;
         if (inputEl) {
           if (shouldDisableControl) {
@@ -374,15 +396,15 @@ export default class EditorControls<TConfig> {
 
   renderControls(
     containerEl: HTMLElement | undefined = elements.controls,
-    _configControls?: ControlsConfig<TConfig>,
+    _controlsConfig?: ControlsConfig<TConfig>,
     indexStart?: number
   ) {
-    const configControls = _configControls ?? this.pattern.configControls;
+    const controlsConfig = _controlsConfig ?? this.controlsConfig;
     containerEl.innerHTML = '';
     const controlsFragment = document.createDocumentFragment();
     indexStart = indexStart ?? 1;
 
-    configControls.forEach((controlConfig, controlIndex) => {
+    controlsConfig.forEach((controlConfig, controlIndex) => {
       const controlId = `config_${String(controlConfig.key)}`;
 
       let controlEl: HTMLElement;
@@ -421,8 +443,8 @@ export default class EditorControls<TConfig> {
         ) as ControlInputElement;
         inputEl.setAttribute('tabindex', String(controlIndex));
         const inputValue =
-          this.pattern.config[controlConfig.key] ??
-          this.getConfigValue(controlConfig.defaultValue, this.pattern.config);
+          this.config[controlConfig.key] ??
+          this.getConfigValue(controlConfig.defaultValue, this.config);
 
         if (controlConfig.type === 'select') {
           const selectOptions = document.createDocumentFragment();
@@ -461,7 +483,7 @@ export default class EditorControls<TConfig> {
             )}_value`;
             displayValueElement.innerText = String(
               controlConfig.displayValue
-                ? controlConfig.displayValue(this.pattern.config)
+                ? controlConfig.displayValue(this.config)
                 : inputValue
             );
             displayValueElement.className = 'control_input_value';
@@ -471,7 +493,7 @@ export default class EditorControls<TConfig> {
 
         if (controlConfig.attr) {
           Object.entries(controlConfig.attr).forEach(([attr, value]) => {
-            const realValue = this.getConfigValue(value, this.pattern.config);
+            const realValue = this.getConfigValue(value, this.config);
             inputEl.setAttribute(attr, String(realValue));
           });
         }
