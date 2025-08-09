@@ -1,7 +1,17 @@
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
-import Color from '../helpers/color/Color.js';
-import { gcd, PI2 } from '../helpers/math_utils.js';
+import StringArt from '../StringArt';
+import Circle from '../helpers/Circle';
+import Color from '../helpers/color/Color';
+import { ColorConfig, ColorMap } from '../helpers/color/color.types';
+import { gcd, PI2 } from '../helpers/math_utils';
+import { ControlsConfig } from '../types/config.types.js';
+import { Coordinates, Dimensions } from '../types/general.types';
+
+export interface MaurerRoseConfig extends ColorConfig {
+  n: number;
+  maxSteps: number;
+  angle: number;
+  rotation: number;
+}
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -17,12 +27,19 @@ const COLOR_CONFIG = Color.getConfig({
   exclude: ['repeatColors', 'mirrorColors'],
 });
 
-export default class MaurerRose extends StringArt {
+interface TCalc {
+  angleRadians: number;
+  radius: number;
+  currentSize: Dimensions;
+  rotationAngle: number;
+}
+
+export default class MaurerRose extends StringArt<MaurerRoseConfig> {
   name = 'Maurer Rose';
   id = 'maurer_rose';
   link = 'https://blog.glitch.land/en/posts/maurer-rose/';
   linkText = 'Learn';
-  controls = [
+  controls: ControlsConfig<MaurerRoseConfig> = [
     {
       key: 'n',
       label: 'N',
@@ -63,6 +80,11 @@ export default class MaurerRose extends StringArt {
     Circle.rotationConfig,
     COLOR_CONFIG,
   ];
+
+  calc: TCalc;
+  points: Map<number, Coordinates>;
+  color: Color;
+  colorMap: ColorMap;
 
   resetStructure() {
     super.resetStructure();
@@ -105,12 +127,11 @@ export default class MaurerRose extends StringArt {
     }
   }
 
-  getCalc() {
-    const { n, angle, rotation, maxSteps } = this.config;
+  getCalc(): TCalc {
+    const { angle, rotation, maxSteps } = this.config;
     const size = this.getSize();
 
     return {
-      n,
       angleRadians: (PI2 * angle) / maxSteps,
       radius: Math.min(...size) / 2,
       currentSize: size,
@@ -118,23 +139,25 @@ export default class MaurerRose extends StringArt {
     };
   }
 
-  getPoint(index) {
+  getPoint(index: number): Coordinates {
+    const { rotationAngle, angleRadians, radius } = this.calc;
+
     if (this.points.has(index)) {
       return this.points.get(index);
     }
 
-    const k = index * this.calc.angleRadians;
-    const r = this.calc.radius * Math.sin(this.calc.n * k);
+    const k = index * angleRadians;
+    const r = radius * Math.sin(this.config.n * k);
 
     const point = [
-      this.center[0] - r * Math.cos(k - this.calc.rotationAngle),
-      this.center[1] - r * Math.sin(k - this.calc.rotationAngle),
-    ];
+      this.center[0] - r * Math.cos(k - rotationAngle),
+      this.center[1] - r * Math.sin(k - rotationAngle),
+    ] as Coordinates;
     this.points.set(index, point);
     return point;
   }
 
-  *generatePoints() {
+  *generatePoints(): Generator<{ point: Coordinates; index: number }> {
     const count = this.stepCount;
 
     for (let i = 0; i < count + 1; i++) {
@@ -142,10 +165,10 @@ export default class MaurerRose extends StringArt {
     }
   }
 
-  *generateStrings() {
+  *generateStrings(): Generator<void> {
     const points = this.generatePoints();
 
-    let prevPoint;
+    let prevPoint: Coordinates;
     this.renderer.setColor(this.color.getColor(0));
 
     for (const { point, index } of points) {
@@ -168,7 +191,7 @@ export default class MaurerRose extends StringArt {
     }
   }
 
-  getStepCount() {
+  getStepCount(): number {
     if (this.stepCount) {
       return this.stepCount;
     }
