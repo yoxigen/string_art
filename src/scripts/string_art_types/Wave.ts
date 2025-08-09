@@ -1,13 +1,19 @@
-import Color from '../helpers/color/Color.js';
-import Circle from '../helpers/Circle.js';
-import Mandala from './Mandala.js';
+import Color from '../helpers/color/Color';
+import Circle from '../helpers/Circle';
+import Mandala, { MandalaConfig } from './Mandala';
+import { ControlsConfig } from '../types/config.types';
+import { formatFractionAsPercent } from '../helpers/string_utils';
 
-export default class Wave extends Mandala {
+export interface WaveConfig {
+  layerSpread: number;
+}
+
+export default class Wave extends Mandala<WaveConfig> {
   id = 'wave';
   name = 'Wave';
   link =
     'https://www.etsy.com/il-en/listing/943140543/personalized-gift-string-art-mandala?ref=sim_rv-5&pro=1';
-  controls = [
+  controls: ControlsConfig<MandalaConfig & WaveConfig> = [
     {
       ...Circle.nailsConfig,
       defaultValue: 200,
@@ -22,7 +28,7 @@ export default class Wave extends Mandala {
         max: 1,
         step: ({ n }) => 1 / n,
       },
-      displayValue: ({ layerFill, n }) => Math.floor(100 * layerFill) + '%',
+      displayValue: ({ layerFill }) => formatFractionAsPercent(layerFill),
     },
     {
       ...Circle.rotationConfig,
@@ -68,22 +74,21 @@ export default class Wave extends Mandala {
     }),
   ];
 
+  defaultValues = {
+    base: 2,
+  };
+
   setUpDraw() {
     super.setUpDraw();
     const { n, layerSpread } = this.config;
-    this.layerShift = Math.round(n * layerSpread);
-    this.base = 2;
+    this.calc.layerShift = Math.round(n * layerSpread);
   }
 
   *generateStrings() {
-    const { layers, reverse } = this.config;
+    const { layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      yield* this.drawTimesTable({
-        color: this.color.getColor(layer),
-        shift: this.layerShift * (reverse ? 1 : -1) * layer,
-        time: layer,
-      });
+      yield* this.drawTimesTable(layer);
     }
   }
 

@@ -1,13 +1,33 @@
-import Color from '../helpers/color/Color.js';
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
+import Color from '../helpers/color/Color';
+import StringArt from '../StringArt';
+import Circle, { CircleConfig } from '../helpers/Circle';
+import { ColorConfig } from '../helpers/color/color.types';
+import { ControlsConfig, PrimitiveValue } from '../types/config.types.js';
 
-export default class Mandala extends StringArt {
+export interface MandalaConfig extends ColorConfig {
+  n: number;
+  base: number;
+  layers: number;
+  rotation: number;
+  distortion: number;
+  layerFill?: number;
+  reverse?: boolean;
+}
+
+interface TCalc {
+  n: number;
+  stringsPerLayer: number;
+  layerShift: number;
+}
+
+export default class Mandala<TCustomConfig = void> extends StringArt<
+  MandalaConfig & TCustomConfig
+> {
   name = 'Mandala';
   id = 'mandala';
   link = 'https://www.youtube.com/watch?v=qhbuKbxJsk8';
   linkText = 'Learn';
-  controls = [
+  controls: ControlsConfig<MandalaConfig & TCustomConfig> = [
     {
       key: 'n',
       label: 'Number of nails',
@@ -42,23 +62,34 @@ export default class Mandala extends StringArt {
     }),
   ];
 
-  get n() {
-    if (!this._n) {
-      const { n, layers } = this.config;
-      const extraNails = n % layers;
-      this._n = n - extraNails; // The number of nails should be a multiple of the layers, so the strings are exactly on the nails.
-    }
+  circle: Circle;
+  color: Color;
+  calc: TCalc;
 
-    return this._n;
+  get n() {
+    return this.calc.n;
+  }
+
+  getCalc(): TCalc {
+    const { n: nConfig, layers, layerFill } = this.config;
+    const extraNails = nConfig % layers;
+    const n = nConfig - extraNails; // The number of nails should be a multiple of the layers, so the strings are exactly on the nails.
+
+    return {
+      n,
+      stringsPerLayer: layerFill ? Math.floor(n * layerFill) : n,
+      layerShift: Math.floor(n / layers),
+    };
   }
 
   setUpDraw() {
-    this._n = null;
     super.setUpDraw();
 
     const { layers, rotation, distortion, margin, layerFill, base, reverse } =
       this.config;
-    const circleConfig = {
+    this.calc = this.getCalc();
+
+    const circleConfig: CircleConfig = {
       size: this.size,
       n: this.n,
       margin,
@@ -66,7 +97,6 @@ export default class Mandala extends StringArt {
       distortion,
       reverse,
     };
-    this.stringsPerLayer = layerFill ? Math.floor(this.n * layerFill) : this.n;
 
     if (this.circle) {
       this.circle.setConfig(circleConfig);
@@ -78,44 +108,37 @@ export default class Mandala extends StringArt {
       ...this.config,
       colorCount: layers,
     });
-
-    this.layerShift = Math.floor(this.n / layers);
-    this.base = base;
   }
 
-  *drawTimesTable({ shift = 0, color = '#f00', time }) {
-    const n = this.n;
+  *drawTimesTable(layerIndex: number): Generator<void> {
+    const { reverse, base } = this.config;
+    const { n, layerShift, stringsPerLayer } = this.calc;
+
+    const shift = layerShift * layerIndex * (reverse ? 1 : -1);
+    const color = this.color.getColor(layerIndex);
     this.renderer.setColor(color);
 
     let point = this.circle.getPoint(shift);
 
-    for (let i = 1; i <= this.stringsPerLayer; i++) {
+    for (let i = 1; i <= stringsPerLayer; i++) {
       const startPoint = point;
       point = this.circle.getPoint(i + shift);
-      const toIndex = (i * this.base) % n;
+      const toIndex = (i * base) % n;
       this.renderer.renderLines(
         startPoint,
         point,
         this.circle.getPoint(toIndex + shift)
       );
 
-      yield {
-        instructions: `${i - 1} → ${i} → ${toIndex} → ${i}`,
-        index: time * n + i,
-      };
+      yield;
     }
   }
 
-  *generateStrings() {
+  *generateStrings(): Generator<void> {
     const { layers } = this.config;
 
-    for (let time = 0; time < layers; time++) {
-      const color = this.color.getColor(time);
-      yield* this.drawTimesTable({
-        time,
-        color,
-        shift: this.layerShift * time,
-      });
+    for (let layer = 0; layer < layers; layer++) {
+      yield* this.drawTimesTable(layer);
     }
   }
 
@@ -123,9 +146,10 @@ export default class Mandala extends StringArt {
     this.circle.drawNails(this.nails);
   }
 
-  getStepCount() {
+  getStepCount(): number {
     const { layers, layerFill } = this.config;
-    const stringsPerLayer = layerFill ? Math.floor(this.n * layerFill) : this.n;
+    const { n } = this.getCalc();
+    const stringsPerLayer = layerFill ? Math.floor(n * layerFill) : n;
     return (layers ?? 1) * stringsPerLayer;
   }
 
