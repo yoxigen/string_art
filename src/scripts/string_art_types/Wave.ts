@@ -63,8 +63,8 @@ export default class Wave extends Mandala<WaveConfig> {
     Color.getConfig({
       defaults: {
         isMultiColor: true,
-        multicolorRange: 216,
-        multicolorStart: 263,
+        multicolorRange: 196,
+        multicolorStart: 273,
         color: '#ffffff',
         multicolorByLightness: true,
         minLightness: 10,

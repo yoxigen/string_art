@@ -28,7 +28,7 @@ export default class Color {
     } = config;
 
     if (isMultiColor) {
-      this.multiColorStep = multicolorRange / colorCount;
+      this.multiColorStep = multicolorRange / (colorCount - 1);
       this.multiColorLightnessStep = multicolorByLightness
         ? (maxLightness - minLightness) / (Math.max(colorCount, 2) - 1)
         : 1;

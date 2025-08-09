@@ -72,7 +72,7 @@ class Eye extends StringArt<EyeConfig> {
       defaults: {
         isMultiColor: true,
         color: '#ffffff',
-        multicolorRange: 214,
+        multicolorRange: 107,
         multicolorStart: 226,
         multicolorByLightness: false,
         minLightness: 40,

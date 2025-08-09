@@ -16,7 +16,7 @@ const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
     color: '#29f1ff',
-    multicolorRange: 264,
+    multicolorRange: 132,
     multicolorStart: 53,
     multicolorByLightness: false,
     minLightness: 30,

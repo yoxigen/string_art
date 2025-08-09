@@ -54,7 +54,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     Color.getConfig({
       defaults: {
         isMultiColor: true,
-        multicolorRange: 180,
+        multicolorRange: 165,
         multicolorStart: 256,
         color: '#ff4d00',
       },

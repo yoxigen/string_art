@@ -167,7 +167,7 @@ export default class Sun extends StringArt<SunConfig> {
         Color.getConfig<SunConfig>({
           defaults: {
             isMultiColor: true,
-            multicolorRange: 39,
+            multicolorRange: 20,
             multicolorStart: 0,
             color: '#ffffff',
             saturation: 57,
@@ -434,5 +434,6 @@ export default class Sun extends StringArt<SunConfig> {
 
   static thumbnailConfig = {
     sideNails: 10,
+    backdropNailsRadius: 0.5,
   };
 }
