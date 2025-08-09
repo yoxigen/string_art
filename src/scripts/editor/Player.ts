@@ -86,12 +86,13 @@ export default class Player {
     const currentPosition = Number(this.elements.playerPosition.value);
 
     this.goto(
-      currentPosition === this.stepCount
-        ? 1
-        : Math.min(
-            this.stepCount,
-            Number(this.elements.playerPosition.value) + value
-          )
+      Math.max(
+        1,
+        Math.min(
+          this.stepCount,
+          Number(this.elements.playerPosition.value) + value
+        )
+      )
     );
   }
 

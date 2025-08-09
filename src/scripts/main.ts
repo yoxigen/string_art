@@ -119,7 +119,8 @@ async function main() {
   });
 
   elements.canvas.addEventListener('wheel', ({ deltaY }) => {
-    const direction = deltaY / Math.abs(deltaY); // Up is -1, down is 1
+    const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
+    player.advance(direction);
   });
   // // If just a click, advance by one. If touch is left, play until removed
   // elements.canvas.addEventListener('mousedown', () => {
