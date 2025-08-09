@@ -426,7 +426,6 @@ export default class Sun extends StringArt<SunConfig> {
     let stepCount = backdropStepCount;
     for (let layer = 0; layer < layers; layer++) {
       const layerSize = this.#getLayerSize(layer);
-      console.log('size', layerSize);
       stepCount += StarShape.getStepCount(this.config, { size: layerSize });
     }
 

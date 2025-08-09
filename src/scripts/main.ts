@@ -118,6 +118,9 @@ async function main() {
     setCurrentPattern(pattern);
   });
 
+  elements.canvas.addEventListener('wheel', ({ deltaY }) => {
+    const direction = deltaY / Math.abs(deltaY); // Up is -1, down is 1
+  });
   // // If just a click, advance by one. If touch is left, play until removed
   // elements.canvas.addEventListener('mousedown', () => {
   //   let timeout;
@@ -328,7 +331,6 @@ async function main() {
       });
     }
 
-    player.update(currentPattern, { draw: false });
     thumbnails.setCurrentPattern(pattern);
     document.title = `${pattern.name} - String Art Studio`;
     document.body.setAttribute('data-pattern', pattern.id);
@@ -337,6 +339,8 @@ async function main() {
       initPattern();
       document.body.querySelectorAll('.pattern_only').forEach(unHide);
     }
+
+    player.update(currentPattern, { draw: false });
   }
 
   function unselectPattern() {

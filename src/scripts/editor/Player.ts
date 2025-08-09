@@ -1,19 +1,41 @@
+import type StringArt from '../StringArt';
+
+/**
+ * Represents the navigation that controls the StringArt when playing
+ */
 export default class Player {
-  constructor(parentEl) {
+  elements: {
+    player: HTMLElement;
+    step: HTMLSpanElement;
+    playerPosition: HTMLInputElement;
+    playBtn: HTMLButtonElement;
+    pauseBtn: HTMLButtonElement;
+    text: HTMLDivElement;
+  };
+  stepCount: number;
+  #isPlaying: boolean;
+  stringArt: StringArt;
+  #renderRafId: number;
+
+  constructor(parentEl: HTMLElement) {
     this.elements = {
       player: parentEl,
       step: parentEl.querySelector('#step'),
       //stepInstructions: parentEl.querySelector('#step_instructions'),
-      playerPosition: parentEl.querySelector('#player_position'),
+      playerPosition: parentEl.querySelector(
+        '#player_position'
+      ) as HTMLInputElement,
       playBtn: parentEl.querySelector('#play_btn'),
       pauseBtn: parentEl.querySelector('#pause_btn'),
       text: parentEl.querySelector('#player_text'),
     };
     this.stepCount = 0;
-    this._isPlaying = false;
+    this.#isPlaying = false;
 
     this.elements.playerPosition.addEventListener('input', ({ target }) => {
-      this.goto(+target.value);
+      if ('value' in target) {
+        this.goto(+target.value);
+      }
     });
 
     this.elements.playBtn.addEventListener('click', () => {
@@ -25,17 +47,17 @@ export default class Player {
     });
   }
 
-  updateStatus(isPlaying) {
-    if (this._isPlaying !== isPlaying) {
+  updateStatus(isPlaying: boolean) {
+    if (this.#isPlaying !== isPlaying) {
       this.elements.player.classList.toggle('playing');
-      this._isPlaying = isPlaying;
+      this.#isPlaying = isPlaying;
     }
   }
 
-  update(stringArt, { draw = true } = {}) {
+  update(stringArt: StringArt<any>, { draw = true } = {}) {
     this.stringArt = stringArt;
     this.stepCount = stringArt.getStepCount();
-    this.elements.playerPosition.setAttribute('max', this.stepCount);
+    this.elements.playerPosition.setAttribute('max', String(this.stepCount));
     this.elements.step.innerText = `${this.stepCount}/${this.stepCount}`;
     this.elements.text.style.removeProperty('width');
     this.elements.text.style.width =
@@ -43,12 +65,16 @@ export default class Player {
     this.goto(this.stepCount, { updateStringArt: draw });
   }
 
-  updatePosition(position) {
+  updatePosition(position: number) {
     this.elements.step.innerText = `${position}/${this.stepCount}`;
-    this.elements.playerPosition.value = position;
+    this.elements.playerPosition.value = String(position);
   }
 
-  goto(position, { updateStringArt = true } = {}) {
+  goto(position: number, { updateStringArt = true } = {}) {
+    if (position > this.stepCount || position < 1) {
+      return;
+    }
+
     this.pause();
     this.updatePosition(position);
     if (updateStringArt) {
@@ -75,7 +101,7 @@ export default class Player {
 
   play() {
     this.updateStatus(true);
-    cancelAnimationFrame(this.renderRafId);
+    cancelAnimationFrame(this.#renderRafId);
 
     if (this.stringArt.position === this.stepCount) {
       this.stringArt.goto(0);
@@ -87,7 +113,7 @@ export default class Player {
 
     function step() {
       if (!self.stringArt.drawNext().done) {
-        self.renderRafId = requestAnimationFrame(step);
+        self.#renderRafId = requestAnimationFrame(step);
       } else {
         self.updateStatus(false);
       }
@@ -96,12 +122,12 @@ export default class Player {
   }
 
   pause() {
-    cancelAnimationFrame(this.renderRafId);
+    cancelAnimationFrame(this.#renderRafId);
     this.updateStatus(false);
   }
 
   toggle() {
-    if (this._isPlaying) {
+    if (this.#isPlaying) {
       this.pause();
     } else {
       this.play();
