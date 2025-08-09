@@ -13,7 +13,7 @@ import { downloadFile } from './download/Download';
 import './components/StringArtRangeInput';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
-import { Config, PrimitiveValue } from './types/config.types';
+import { PrimitiveValue } from './types/config.types';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -51,11 +51,11 @@ const sizeControls = new EditorSizeControls({
 
 const thumbnails = new Thumbnails();
 
-let controls;
-
 window.addEventListener('load', main);
 
 async function main() {
+  let controls: EditorControls<unknown>;
+
   initRouting();
 
   await initServiceWorker();
