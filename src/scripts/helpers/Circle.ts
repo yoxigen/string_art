@@ -302,7 +302,7 @@ export default class Circle {
     ],
   };
 
-  static distortionConfig: ControlConfig<{ distortion: number }> = {
+  static distortionConfig: ControlConfig<{ distortion?: number }> = {
     key: 'distortion',
     label: 'Distortion',
     defaultValue: 0,

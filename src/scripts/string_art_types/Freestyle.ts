@@ -1,12 +1,78 @@
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
+import StringArt from '../StringArt';
+import Circle from '../helpers/Circle';
+import { ColorValue } from '../helpers/color/color.types';
+import {
+  ControlConfig,
+  ControlsConfig,
+  ControlType,
+  GroupValue,
+} from '../types/config.types';
+import { Coordinates } from '../types/general.types';
 
-export default class Freestyle extends StringArt {
+interface FreestyleConfig {
+  n: number;
+  minNailDistance: number;
+  color: ColorValue;
+  layers: GroupValue;
+
+  layer1: GroupValue;
+  show1: boolean;
+  radius1: number;
+  x1: number;
+  y1: number;
+  rotation1: number;
+  reverse1: boolean;
+
+  layer2: GroupValue;
+  show2: boolean;
+  radius2: number;
+  x2: number;
+  y2: number;
+  rotation2: number;
+  reverse2: boolean;
+
+  layer3: GroupValue;
+  show3: boolean;
+  radius3: number;
+  x3: number;
+  y3: number;
+  rotation3: number;
+  reverse3: boolean;
+}
+
+const rotationConfig = {
+  label: 'Rotation',
+  defaultValue: 0,
+  type: 'range' as ControlType,
+  attr: {
+    min: 0,
+    max: 1 + 1 / 360,
+    step: 1 / 360,
+  },
+  isStructural: true,
+  affectsStepCount: false,
+};
+
+interface Layer {
+  circle: Circle;
+  enable: boolean;
+  isReverse: boolean;
+  position: Coordinates;
+  radius: number;
+  rotation: number;
+}
+
+interface TCalc {
+  layers: ReadonlyArray<Layer>;
+  maxShapeNailsCount: number;
+}
+
+export default class Freestyle extends StringArt<FreestyleConfig> {
   name = 'Freestyle';
   id = 'freestyle';
   link =
     'https://www.etsy.com/il-en/listing/1018950430/calming-wall-art-in-light-blue-for';
-  controls = [
+  controls: ControlsConfig<FreestyleConfig> = [
     {
       key: 'n',
       label: 'Circle nails',
@@ -68,9 +134,11 @@ export default class Freestyle extends StringArt {
               show: ({ show1 }) => show1,
             },
             {
-              ...Circle.rotationConfig,
+              ...rotationConfig,
               key: 'rotation1',
               show: ({ show1 }) => show1,
+              displayValue: ({ rotation1 }) =>
+                `${Math.round(rotation1 * 360)}°`,
             },
             {
               key: 'reverse1',
@@ -117,9 +185,11 @@ export default class Freestyle extends StringArt {
               show: ({ show2 }) => show2,
             },
             {
-              ...Circle.rotationConfig,
+              ...rotationConfig,
               key: 'rotation2',
               show: ({ show2 }) => show2,
+              displayValue: ({ rotation2 }) =>
+                `${Math.round(rotation2 * 360)}°`,
             },
             {
               key: 'reverse2',
@@ -166,9 +236,11 @@ export default class Freestyle extends StringArt {
               show: ({ show3 }) => show3,
             },
             {
-              ...Circle.rotationConfig,
+              ...rotationConfig,
               key: 'rotation3',
               show: ({ show3 }) => show3,
+              displayValue: ({ rotation3 }) =>
+                `${Math.round(rotation3 * 360)}°`,
             },
             {
               key: 'reverse3',
@@ -183,12 +255,14 @@ export default class Freestyle extends StringArt {
     },
   ];
 
+  #calc: TCalc;
+
   setUpDraw() {
     super.setUpDraw();
-    Object.assign(this, this.getSetUp());
+    this.#calc = this.getCalc();
   }
 
-  getSetUp() {
+  getCalc(): TCalc {
     const { n, margin = 0, minNailDistance } = this.config;
     const size = this.getSize();
 
@@ -207,13 +281,13 @@ export default class Freestyle extends StringArt {
       maxShapeNailsCount,
     };
 
-    function getLayer(layerIndex) {
-      const prop = prop => this.config[prop + layerIndex];
+    function getLayer(layerIndex: number): Layer {
+      const prop = (prop: string) => this.config[prop + layerIndex];
 
       const props = {
         enable: prop('show'),
         isReverse: prop('reverse'),
-        position: [prop('x'), prop('y')],
+        position: [prop('x'), prop('y')] as Coordinates,
         radius: maxRadius * prop('radius'),
         rotation: prop('rotation'),
       };
@@ -226,10 +300,11 @@ export default class Freestyle extends StringArt {
 
       const circle = new Circle({
         radius: props.radius,
+        size: this.size,
         center: props.position.map(
           (v, i) =>
             props.radius + margin + (size[i] - (props.radius + margin) * 2) * v
-        ),
+        ) as Coordinates,
         n: circleNails,
         rotation: props.rotation,
         reverse: props.isReverse,
@@ -242,36 +317,40 @@ export default class Freestyle extends StringArt {
     }
   }
 
-  getPoint(layer, index) {
+  getPoint(layer: Layer, index: number): Coordinates {
     const { circle } = layer;
     let circleIndex = Math.round(
-      (index * circle.config.n) / this.maxShapeNailsCount
+      (index * circle.config.n) / this.#calc.maxShapeNailsCount
     );
     return circle.getPoint(circleIndex);
   }
 
-  *generateStrings() {
-    const { n, color } = this.config;
+  *generateStrings(): Generator<void> {
+    const { color } = this.config;
 
     this.renderer.setColor(color);
-    let prevCirclePoint;
+    let prevCirclePoint: Coordinates;
 
-    for (let i = 0; i < this.maxShapeNailsCount; i++) {
-      for (let layerIndex = 0; layerIndex < this.layers.length; layerIndex++) {
-        const layer = this.layers[layerIndex];
+    for (let i = 0; i < this.#calc.maxShapeNailsCount; i++) {
+      for (
+        let layerIndex = 0;
+        layerIndex < this.#calc.layers.length;
+        layerIndex++
+      ) {
+        const layer = this.#calc.layers[layerIndex];
         const startPoint = prevCirclePoint ?? this.getPoint(layer, i);
 
-        const positions = [];
+        const positions: Coordinates[] = [];
         if (layerIndex === 0 && i) {
           positions.push(this.getPoint(layer, i));
         }
 
         let nextLayerIndex = layerIndex + 1;
-        if (nextLayerIndex === this.layers.length) {
+        if (nextLayerIndex === this.#calc.layers.length) {
           nextLayerIndex = 0;
         }
 
-        prevCirclePoint = this.getPoint(this.layers[nextLayerIndex], i);
+        prevCirclePoint = this.getPoint(this.#calc.layers[nextLayerIndex], i);
 
         this.renderer.renderLines(startPoint, prevCirclePoint);
         yield;
@@ -280,8 +359,7 @@ export default class Freestyle extends StringArt {
   }
 
   drawNails() {
-    const n = this.config;
-    this.layers.forEach(({ circle }, layerIndex) =>
+    this.#calc.layers.forEach(({ circle }, layerIndex) =>
       circle.drawNails(this.nails, {
         getNumber: i => `${layerIndex + 1}_${i + 1}`,
       })
@@ -289,7 +367,7 @@ export default class Freestyle extends StringArt {
   }
 
   getStepCount() {
-    const { layers, maxShapeNailsCount } = this.getSetUp();
+    const { layers, maxShapeNailsCount } = this.getCalc();
     return layers.length * maxShapeNailsCount - 1;
   }
 
