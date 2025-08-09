@@ -1,14 +1,31 @@
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
-import Color from '../helpers/color/Color.js';
-import { PI2 } from '../helpers/math_utils.js';
+import StringArt from '../StringArt';
+import Circle from '../helpers/Circle';
+import Color from '../helpers/color/Color';
+import { ColorConfig, ColorMap } from '../helpers/color/color.types';
+import { PI2 } from '../helpers/math_utils';
+import { ControlsConfig } from '../types/config.types.js';
+import { Coordinates } from '../types/general.types';
 
-class Spirals extends StringArt {
+interface SpiralsConfig extends ColorConfig {
+  radiusIncrease: number;
+  angleStep: number;
+  nSpirals: number;
+  rotation: number;
+}
+
+interface TCalc {
+  spiralRotations: number[];
+  rotationAngle: number;
+  nailsPerSpiral: number;
+  angleIncrease: number;
+}
+
+class Spirals extends StringArt<SpiralsConfig> {
   name = 'Spirals';
   id = 'spirals';
   link =
     'https://www.etsy.com/il-en/listing/974865185/3d-string-art-spiral-mandala-wall?ref=shop_home_active_10&frs=1';
-  controls = [
+  controls: ControlsConfig<SpiralsConfig> = [
     {
       key: 'radiusIncrease',
       label: 'Radius change',
@@ -49,25 +66,31 @@ class Spirals extends StringArt {
     }),
   ];
 
+  calc: TCalc;
+  color: Color;
+  colorMap: ColorMap;
+
+  getCalc(): TCalc {
+    const { nSpirals, rotation, margin, radiusIncrease, angleStep } =
+      this.config;
+    const maxRadius = Math.min(...this.size) / 2 - margin;
+
+    return {
+      spiralRotations: new Array(nSpirals)
+        .fill(null)
+        .map((_, i) => (i * PI2) / nSpirals),
+      rotationAngle: -PI2 * rotation,
+      nailsPerSpiral: Math.floor(maxRadius / radiusIncrease),
+      angleIncrease: angleStep / (maxRadius / 50),
+    };
+  }
+
   setUpDraw() {
     super.setUpDraw();
 
-    const {
-      nSpirals,
-      rotation,
-      margin,
-      radiusIncrease,
-      angleStep,
-      colorCount,
-    } = this.config;
+    const { colorCount } = this.config;
 
-    this.spiralRotations = new Array(nSpirals)
-      .fill(null)
-      .map((_, i) => (i * PI2) / nSpirals);
-    this.rotationAngle = -PI2 * rotation;
-    const maxRadius = Math.min(...this.size) / 2 - margin;
-    this.nailsPerSpiral = Math.floor(maxRadius / radiusIncrease);
-    this.angleIncrease = angleStep / (maxRadius / 50);
+    this.calc = this.getCalc();
     this.color = new Color(this.config);
     this.colorMap = this.color.getColorMap({
       stepCount: this.getStepCount(),
@@ -78,7 +101,7 @@ class Spirals extends StringArt {
   *generatePoints() {
     const { nSpirals } = this.config;
 
-    for (let i = 0; i < this.nailsPerSpiral; i++) {
+    for (let i = 0; i < this.calc.nailsPerSpiral; i++) {
       for (let s = 0; s < nSpirals; s++) {
         const point = this.getPoint(s, i);
         yield { point, nailNumber: `${s}_${i}` };
@@ -86,14 +109,14 @@ class Spirals extends StringArt {
     }
   }
 
-  getPoint(spiralIndex, index) {
+  getPoint(spiralIndex: number, index: number): Coordinates {
     const [centerx, centery] = this.center;
     const { radiusIncrease } = this.config;
 
     const angle =
-      this.rotationAngle +
-      this.angleIncrease * index +
-      this.spiralRotations[spiralIndex];
+      this.calc.rotationAngle +
+      this.calc.angleIncrease * index +
+      this.calc.spiralRotations[spiralIndex];
     const radius = index * radiusIncrease;
 
     return [
@@ -102,7 +125,7 @@ class Spirals extends StringArt {
     ];
   }
 
-  *generateStrings() {
+  *generateStrings(): Generator<void> {
     const points = this.generatePoints();
     let index = 0;
     this.renderer.setColor(this.color.getColor(0));
@@ -120,11 +143,12 @@ class Spirals extends StringArt {
         this.renderer.renderLines(lastPoint, point);
       }
       lastPoint = point;
-      yield index++;
+      index++;
+      yield;
     }
   }
 
-  getStepCount() {
+  getStepCount(): number {
     const { nSpirals, radiusIncrease, margin } = this.config;
     const maxRadius = Math.min(...this.getSize()) / 2 - margin;
     const n = Math.floor(maxRadius / radiusIncrease);
