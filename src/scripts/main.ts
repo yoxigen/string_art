@@ -219,7 +219,9 @@ async function main() {
 
   function downloadNailsImage() {
     const currentConfig = currentPattern.config;
+    // @ts-ignore this is fine
     currentPattern.config = {
+      ...currentConfig,
       darkMode: false,
       showNails: true,
       showNailNumbers: true,
@@ -300,11 +302,13 @@ async function main() {
 
     currentPattern = pattern;
     if (config) {
+      // @ts-ignore
       currentPattern.setConfig(config);
     }
     if (controls) {
       controls.destroy();
     }
+    // @ts-ignore
     controls = new EditorControls(pattern);
     controls.addEventListener('input', () => currentPattern.draw());
     controls.addEventListener('change', onInputsChange);
