@@ -11,6 +11,7 @@ import SVGRenderer from './renderers/SVGRenderer';
 import { downloadPatternAsSVG } from './download/SVGDownload';
 import { downloadFile } from './download/Download';
 import './components/StringArtRangeInput';
+import './components/StringArtHueInput';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
@@ -314,6 +315,7 @@ async function main() {
     controls.addEventListener('input', ({ control, value }) => {
       // @ts-ignore can't type control perfectly, since we don't have TConfig to set for EditorControls.
       currentPattern.setConfigValue(control, value);
+      controls.config = currentPattern.config;
       currentPattern.draw();
     });
     controls.addEventListener('change', onInputsChange);

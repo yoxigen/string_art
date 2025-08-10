@@ -4,6 +4,7 @@ export type ControlType =
   | 'range'
   | 'checkbox'
   | 'color'
+  | 'hue'
   | 'group'
   | 'select'
   | 'number'

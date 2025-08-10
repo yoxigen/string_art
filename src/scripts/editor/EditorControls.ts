@@ -1,9 +1,11 @@
+import StringArtHueInput from '../components/StringArtHueInput';
 import StringArtRangeInput from '../components/StringArtRangeInput';
 import type {
   Config,
   ConfigValueOrFunction,
   ControlConfig,
   ControlsConfig,
+  ControlType,
   PrimitiveValue,
 } from '../types/config.types';
 
@@ -29,6 +31,7 @@ interface EditorState {
 type ControlInputElement = (
   | HTMLInputElement
   | StringArtRangeInput
+  | StringArtHueInput
   | HTMLSelectElement
 ) & {
   updateTimeout?: number;
@@ -70,7 +73,7 @@ export default class EditorControls<TConfig> {
   #wrappedOnTouchStart;
   #wrappedOnTouchEnd;
   #wrappedOnRangeScroll;
-  #currentInputRange: StringArtRangeInput;
+  #currentInputRange: StringArtRangeInput | StringArtHueInput;
   #currentInputRangeValue: number;
   #rangeLockTimeout: number;
   #lockRange: boolean = false;
@@ -180,7 +183,7 @@ export default class EditorControls<TConfig> {
    * @param {Event} e
    */
   #onTouchStart(e: TouchEvent) {
-    if (e.target instanceof StringArtRangeInput) {
+    if (isRangeInput(e.target)) {
       this.#postponeRangeInput = true;
       this.#currentInputRange = e.target;
       this.#currentInputRangeValue = e.target.value;
@@ -222,7 +225,7 @@ export default class EditorControls<TConfig> {
     clearTimeout(inputTimeout);
     clearTimeout(this.#postponeRangeInputTimeout);
 
-    if (this.#postponeRangeInput && e.target instanceof StringArtRangeInput) {
+    if (this.#postponeRangeInput && isRangeInput(e.target)) {
       e.preventDefault();
       this.#postponeRangeInputTimeout = window.setTimeout(() => {
         this.#onInput(e);
@@ -236,7 +239,7 @@ export default class EditorControls<TConfig> {
 
     if (
       e.target instanceof HTMLInputElement ||
-      e.target instanceof StringArtRangeInput ||
+      isRangeInput(e.target) ||
       e.target instanceof HTMLSelectElement
     ) {
       this.updateInput({
@@ -435,12 +438,11 @@ export default class EditorControls<TConfig> {
         label.setAttribute('for', controlId);
 
         inputEl = document.createElement(
-          controlConfig.type === 'select'
-            ? 'select'
-            : controlConfig.type === 'range'
-            ? 'string-art-range-input'
-            : 'input'
+          getElementTagNameForControlType(controlConfig.type)
         ) as ControlInputElement;
+        if (isRangeInput(inputEl)) {
+          inputEl.classList.add('range-input');
+        }
         inputEl.setAttribute('tabindex', String(controlIndex));
         const inputValue =
           this.config[controlConfig.key] ??
@@ -546,7 +548,7 @@ export default class EditorControls<TConfig> {
 }
 
 function getInputValue(inputElement: EventTarget) {
-  if (inputElement instanceof StringArtRangeInput) {
+  if (isRangeInput(inputElement)) {
     return Number(inputElement.value);
   }
 
@@ -556,6 +558,8 @@ function getInputValue(inputElement: EventTarget) {
     switch (type) {
       case 'range':
         return parseFloat(inputElement.value);
+      case 'hue':
+        return inputElement.value;
       case 'checkbox':
         return inputElement.checked;
       case 'number':
@@ -566,4 +570,26 @@ function getInputValue(inputElement: EventTarget) {
   } else if (inputElement instanceof HTMLSelectElement) {
     return inputElement.value;
   }
+}
+
+function getElementTagNameForControlType(controlType: ControlType): string {
+  switch (controlType) {
+    case 'select':
+      return 'select';
+    case 'range':
+      return 'string-art-range-input';
+    case 'hue':
+      return 'string-art-hue-input';
+    default:
+      return 'input';
+  }
+}
+
+function isRangeInput(
+  element: EventTarget
+): element is StringArtRangeInput | StringArtHueInput {
+  return (
+    element instanceof StringArtRangeInput ||
+    element instanceof StringArtHueInput
+  );
 }

@@ -5,7 +5,11 @@ import StarShape, { StarShapeConfig } from '../helpers/StarShape';
 import { insertAfter } from '../helpers/config_utils';
 import { mapKeys } from '../helpers/object_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
-import type { ControlsConfig, GroupValue } from '../types/config.types';
+import type {
+  ControlConfig,
+  ControlsConfig,
+  GroupValue,
+} from '../types/config.types';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { Coordinates } from '../types/general.types';
 
@@ -177,7 +181,7 @@ export default class Sun extends StringArt<SunConfig> {
           },
           propMapper: ({ key, show }) => {
             const newKey = 'backdrop' + key[0].toUpperCase() + key.slice(1);
-            return {
+            const control: Partial<ControlConfig<any>> = {
               key: 'backdrop' + key[0].toUpperCase() + key.slice(1),
               show: show
                 ? ({ backdropIsMultiColor }) =>
@@ -186,6 +190,14 @@ export default class Sun extends StringArt<SunConfig> {
                       : backdropIsMultiColor
                 : null,
             };
+
+            if (key === 'multicolorRange') {
+              control.attr = {
+                start: ({ backdropMulticolorStart }) => backdropMulticolorStart,
+                type: 'range',
+              };
+            }
+            return control;
           },
           groupLabel: 'Backdrop color',
           maxColorCount: 2,
@@ -306,6 +318,7 @@ export default class Sun extends StringArt<SunConfig> {
       colorCount: layers,
     });
 
+    // @ts-ignore this is fine for now, until the color config is managed in a single control
     this.#backdropColor = new Color({
       ...mapKeys(this.config, key => {
         const match = key.match(/^backdrop(\w)(.+)/);
