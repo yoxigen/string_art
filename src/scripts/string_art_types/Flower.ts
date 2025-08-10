@@ -176,8 +176,13 @@ export default class Flower extends StringArt<FlowerConfig> {
   }
 
   drawNails() {
+    const firstNailIndex =
+      this.#polygons[0].radiusNailsCount - this.#polygons[0].nailsPerSide;
+    const filterCenterNails =
+      firstNailIndex > 0 ? (_, index) => index >= firstNailIndex : null;
+
     this.#polygons.forEach(polygon =>
-      polygon.drawNails(this.nails, { drawCenter: true })
+      polygon.drawNails(this.nails, { drawCenter: true, filterCenterNails })
     );
   }
 

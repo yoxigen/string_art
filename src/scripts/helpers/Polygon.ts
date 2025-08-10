@@ -221,7 +221,18 @@ export default class Polygon {
     };
   }
 
-  drawNails(nails: Nails, { drawCenter = false, drawSides = true } = {}) {
+  drawNails(
+    nails: Nails,
+    {
+      drawCenter = false,
+      drawSides = true,
+      filterCenterNails,
+    }: {
+      drawCenter?: boolean;
+      drawSides?: boolean;
+      filterCenterNails?: (side: number, index: number) => boolean;
+    }
+  ) {
     for (let side = 0; side < this.config.sides; side++) {
       const sideIndexStart = side * this.#calc.nailsPerSide;
 
@@ -236,10 +247,12 @@ export default class Polygon {
 
       if (drawCenter) {
         for (let index = 0; index < this.#calc.radiusNailsCount; index++) {
-          nails.addNail({
-            point: this.getCenterPoint({ side, index }),
-            number: `${side}_${index}`,
-          });
+          if (!filterCenterNails || filterCenterNails(side, index)) {
+            nails.addNail({
+              point: this.getCenterPoint({ side, index }),
+              number: `${side}_${index}`,
+            });
+          }
         }
       }
     }
