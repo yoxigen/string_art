@@ -231,7 +231,7 @@ export default class Polygon {
       drawCenter?: boolean;
       drawSides?: boolean;
       filterCenterNails?: (side: number, index: number) => boolean;
-    }
+    } = {}
   ) {
     for (let side = 0; side < this.config.sides; side++) {
       const sideIndexStart = side * this.#calc.nailsPerSide;
