@@ -5,7 +5,7 @@ import type StringArt from '../StringArt.js';
 const THUMBNAIL_WIDTH_PX = '100px';
 const MINIMIZED_CLASS = 'minimized';
 
-type ThumbnailsChangeEventListener = (
+type ThumbnailsSelectEventListener = (
   event: CustomEvent<{ pattern: string }>
 ) => any;
 
@@ -112,7 +112,7 @@ export class Thumbnails {
       }
 
       this.elements.root.dispatchEvent(
-        new CustomEvent('change', {
+        new CustomEvent('select', {
           detail: { pattern: link.dataset.pattern },
         })
       );
@@ -120,11 +120,11 @@ export class Thumbnails {
     });
   }
 
-  addOnChangeListener(listener: ThumbnailsChangeEventListener) {
-    this.elements.root.addEventListener('change', listener);
+  addOnSelectListener(listener: ThumbnailsSelectEventListener) {
+    this.elements.root.addEventListener('select', listener);
   }
 
-  removeOnChangeListener(listener: ThumbnailsChangeEventListener) {
-    this.elements.root.removeEventListener('change', listener);
+  removeOnSelectListener(listener: ThumbnailsSelectEventListener) {
+    this.elements.root.removeEventListener('select', listener);
   }
 }

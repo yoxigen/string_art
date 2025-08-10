@@ -15,6 +15,7 @@ import './components/StringArtHueInput';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
+import Persistance from './Persistance';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -51,6 +52,7 @@ const sizeControls = new EditorSizeControls({
 });
 
 const thumbnails = new Thumbnails();
+const persistance = new Persistance();
 
 window.addEventListener('load', main);
 
@@ -113,7 +115,7 @@ async function main() {
     unselectPattern();
   });
 
-  thumbnails.addOnChangeListener(({ detail }) => {
+  thumbnails.addOnSelectListener(({ detail }) => {
     const pattern = findPatternById(detail.pattern);
     setCurrentPattern(pattern);
   });
@@ -311,6 +313,8 @@ async function main() {
     if (controls) {
       controls.destroy();
     }
+
+    persistance.setPattern(currentPattern);
     controls = new EditorControls<any>(pattern.configControls, pattern.config);
     controls.addEventListener('input', ({ control, value }) => {
       // @ts-ignore can't type control perfectly, since we don't have TConfig to set for EditorControls.

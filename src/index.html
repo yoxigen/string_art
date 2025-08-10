@@ -82,6 +82,28 @@
           title="View original which inspired this pattern"
           >Example</a
         >
+        <button
+          id="save_btn"
+          class="btn-icon pattern_only"
+          title="Save this pattern"
+        >
+          &#128190;
+        </button>
+        <dialog id="save_dialog">
+          <form method="dialog">
+            <h2>Name this pattern:</h2>
+            <input
+              type="text"
+              id="save_dialog_name"
+              name="patternName"
+              required
+            />
+            <menu>
+              <button type="button" id="save_dialog_cancel">Cancel</button>
+              <button type="submit" value="confirm">Submit</button>
+            </menu>
+          </form>
+        </dialog>
         <div id="pattern_select_dropdown">
           <h3 id="pattern_select_thumbnails_title">Available patterns</h3>
           <ul id="pattern_select_thumbnails"></ul>
