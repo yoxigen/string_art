@@ -11,10 +11,10 @@ import SVGRenderer from './renderers/SVGRenderer';
 import { downloadPatternAsSVG } from './download/SVGDownload';
 import { downloadFile } from './download/Download';
 import './components/StringArtRangeInput';
+import './components/StringArtHueInput';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
-import StringArt from './StringArt';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -55,7 +55,7 @@ const thumbnails = new Thumbnails();
 window.addEventListener('load', main);
 
 async function main() {
-  let controls: EditorControls<unknown>;
+  let controls: EditorControls<any>;
 
   initRouting();
 
@@ -247,9 +247,9 @@ async function main() {
     }
   }
 
-  function onInputsChange({ withConfig = true } = {}) {
+  function onInputsChange() {
     player.update(currentPattern);
-    const configQuery = withConfig ? serializeConfig(currentPattern) : null;
+    const configQuery = serializeConfig(currentPattern);
     history.replaceState(
       {
         pattern: currentPattern.id,
@@ -257,9 +257,7 @@ async function main() {
       },
       currentPattern.name,
       `?pattern=${currentPattern.id}${
-        withConfig && configQuery
-          ? `&config=${encodeURIComponent(configQuery)}`
-          : ''
+        configQuery ? `&config=${encodeURIComponent(configQuery)}` : ''
       }`
     );
   }
@@ -313,9 +311,13 @@ async function main() {
     if (controls) {
       controls.destroy();
     }
-    // @ts-ignore
-    controls = new EditorControls(pattern);
-    controls.addEventListener('input', () => currentPattern.draw());
+    controls = new EditorControls<any>(pattern.configControls, pattern.config);
+    controls.addEventListener('input', ({ control, value }) => {
+      // @ts-ignore can't type control perfectly, since we don't have TConfig to set for EditorControls.
+      currentPattern.setConfigValue(control, value);
+      controls.config = currentPattern.config;
+      currentPattern.draw();
+    });
     controls.addEventListener('change', onInputsChange);
 
     if (pattern.link) {

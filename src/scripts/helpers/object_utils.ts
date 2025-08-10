@@ -1,13 +1,12 @@
 /**
  * Returns true if the two objects have the same values. Deep compares the objects.
- * @param obj1
- * @param obj2
- * @param props An array of keys to compare. If not specified, all keys are compared.
- * @returns
  */
 export function compareObjects(
   obj1: Object,
   obj2: Object,
+  /**
+   * An array of keys to compare. If not specified, all keys are compared.
+   */
   props?: ReadonlyArray<string>
 ): boolean {
   if (obj1 === obj2) {
@@ -50,12 +49,13 @@ export function compareObjects(
 
 /**
  * Maps the keys of an object. The mapped accepts the original key and the value of that property
- * @param {*} obj
- * @param {*} mapper
  * @returns
  */
-export function mapKeys(obj, mapper) {
-  const mappedObj = {};
+export function mapKeys<T extends Record<string, any>, K extends string>(
+  obj: T,
+  mapper: (key: keyof T, value: T[keyof T]) => K
+): Record<K, T[keyof T]> {
+  const mappedObj = {} as Record<K, any>;
   Object.entries(obj).forEach(
     ([key, value]) => (mappedObj[mapper(key, value)] = value)
   );
