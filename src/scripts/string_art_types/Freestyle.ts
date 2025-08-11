@@ -68,6 +68,8 @@ interface TCalc {
 }
 
 export default class Freestyle extends StringArt<FreestyleConfig> {
+  static type = 'freestyle';
+
   name = 'Freestyle';
   id = 'freestyle';
   link =

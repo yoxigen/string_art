@@ -9,6 +9,8 @@ export interface WaveConfig {
 }
 
 export default class Wave extends Mandala<WaveConfig> {
+  static type = 'wave';
+
   id = 'wave';
   name = 'Wave';
   link =

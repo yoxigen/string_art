@@ -23,6 +23,8 @@ interface TCalc {
 export default class Mandala<TCustomConfig = void> extends StringArt<
   MandalaConfig & TCustomConfig
 > {
+  static type = 'mandala';
+
   name = 'Mandala';
   id = 'mandala';
   link = 'https://www.youtube.com/watch?v=qhbuKbxJsk8';

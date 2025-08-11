@@ -26,6 +26,8 @@ const COLOR_CONFIG = Color.getConfig({
 });
 
 export default class PolygonPattern extends StringArt<PolygonPatternConfig> {
+  static type = 'polygon';
+
   name = 'Polygon';
   id = 'polygon';
   controls: ControlsConfig<PolygonPatternConfig> = [

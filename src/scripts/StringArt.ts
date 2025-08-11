@@ -158,6 +158,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
 
+  // TODO: Remove renderer from here, set it only in `draw`. Then StringArt can be instantiated independently of the renderer.
   constructor(renderer: Renderer) {
     if (!renderer) {
       throw new Error('Renderer not specified!');

@@ -20,6 +20,8 @@ interface StarConfig {
 }
 
 export default class Star extends StringArt<StarConfig> {
+  static type = 'star';
+
   name = 'Star';
   id = 'star';
   link =

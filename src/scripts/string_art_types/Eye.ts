@@ -41,6 +41,8 @@ interface TCalc {
 }
 
 class Eye extends StringArt<EyeConfig> {
+  static type = 'eye';
+
   name = 'Eye';
   id = 'eye';
   link =

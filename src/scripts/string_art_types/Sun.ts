@@ -34,6 +34,8 @@ interface TCalc {
 }
 
 export default class Sun extends StringArt<SunConfig> {
+  static type = 'sun';
+
   name = 'Sun';
   id = 'sun';
   controls: ControlsConfig<SunConfig> = [

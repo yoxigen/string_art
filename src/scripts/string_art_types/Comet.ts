@@ -64,6 +64,8 @@ const COLOR_CONFIG = Color.getConfig({
 });
 
 export default class Comet extends StringArt<CometConfig> {
+  static type = 'comet';
+
   name = 'Comet';
   id = 'comet';
   controls: ControlsConfig<CometConfig> = [
