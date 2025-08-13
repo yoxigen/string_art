@@ -26,6 +26,9 @@ export default class CanvasRenderer extends Renderer {
     return this.canvas;
   }
 
+  /**
+   * Clears the canvas and resets the width and height
+   */
   reset() {
     this.ctx.clearRect(0, 0, ...this.getSize());
     this.canvas.removeAttribute('width');

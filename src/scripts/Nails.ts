@@ -3,6 +3,10 @@ import type Renderer from './renderers/Renderer';
 import { NailsConfig } from './types/config.types';
 import { Nail, NailsRenderOptions } from './types/stringart.types';
 
+type NailsGroup = {
+  nails: ReadonlyArray<Nail>;
+  options: Partial<NailsRenderOptions>;
+};
 const NUMBER_MARGIN = 4;
 
 const DEFAULT_OPTIONS: NailsRenderOptions = {
@@ -14,20 +18,18 @@ const DEFAULT_OPTIONS: NailsRenderOptions = {
 };
 
 export default class Nails {
-  nailRadius: number;
-  nailsColor: ColorValue;
-  nailNumbersFontSize: number;
+  nailRadius: number = DEFAULT_OPTIONS.radius;
+  nailsColor: ColorValue = DEFAULT_OPTIONS.color;
+  nailNumbersFontSize: number = DEFAULT_OPTIONS.fontSize;
   nails: Array<Nail>;
   addedPoints: Set<string>;
-  renderer: Renderer;
 
-  #nailGroups = [];
+  #nailGroups: NailsGroup[] = [];
 
-  constructor(renderer: Renderer, config: NailsConfig) {
+  constructor(config: NailsConfig) {
     this.setConfig(config);
     this.nails = [];
     this.addedPoints = new Set();
-    this.renderer = renderer;
   }
 
   setConfig({ nailRadius, nailsColor, nailNumbersFontSize }: NailsConfig) {
@@ -53,14 +55,18 @@ export default class Nails {
     this.#nailGroups.push({ nails, options });
   }
 
-  #render(nails: ReadonlyArray<Nail>, options: NailsRenderOptions) {
-    this.renderer.renderNails(nails, {
+  #render(
+    renderer: Renderer,
+    nails: ReadonlyArray<Nail>,
+    options: NailsRenderOptions
+  ) {
+    renderer.renderNails(nails, {
       ...DEFAULT_OPTIONS,
       ...options,
     });
   }
 
-  fill({ drawNumbers = true } = {}) {
+  draw(renderer: Renderer, { drawNumbers = true } = {}) {
     const options: NailsRenderOptions = {
       color: this.nailsColor,
       fontSize: this.nailNumbersFontSize,
@@ -68,13 +74,13 @@ export default class Nails {
       renderNumbers: drawNumbers,
     };
 
-    this.#render(this.nails, options);
+    this.#render(renderer, this.nails, options);
 
     this.nails = [];
     this.addedPoints.clear();
 
     this.#nailGroups.forEach(({ nails: groupNails, options: groupConfig }) => {
-      this.#render(groupNails, {
+      this.#render(renderer, groupNails, {
         ...options,
         ...groupConfig,
       });

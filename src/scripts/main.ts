@@ -16,6 +16,7 @@ import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
 import Persistance from './Persistance';
+import StringArt from './StringArt';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -28,7 +29,6 @@ window.addEventListener('error', function (event) {
 
 const elements: { [key: string]: HTMLElement } = {
   canvas: document.querySelector('#canvas_panel'),
-  patternLink: document.querySelector('#pattern_link'),
   downloadBtn: document.querySelector('#download_btn'),
   downloadSVGBtn: document.querySelector('#download_svg_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
@@ -41,7 +41,7 @@ const elements: { [key: string]: HTMLElement } = {
   ),
 };
 
-let canvasRenderer: Renderer;
+let currentRenderer: Renderer;
 
 const player = new Player(document.querySelector('#player'));
 const sizeControls = new EditorSizeControls({
@@ -51,8 +51,8 @@ const sizeControls = new EditorSizeControls({
   ],
 });
 
-const thumbnails = new Thumbnails();
 const persistance = new Persistance();
+const thumbnails = new Thumbnails(persistance);
 
 window.addEventListener('load', main);
 
@@ -67,13 +67,13 @@ async function main() {
   unHide(document.querySelector('main'));
 
   const queryParams = new URLSearchParams(document.location.search);
-  canvasRenderer =
+  currentRenderer =
     queryParams.get('renderer') === 'svg'
       ? new SVGRenderer(elements.canvas)
       : new CanvasRenderer(elements.canvas);
 
-  const patterns = patternTypes.map(Pattern => new Pattern(canvasRenderer));
-  type Pattern = typeof patterns[number];
+  const patterns = patternTypes.map(Pattern => new Pattern(currentRenderer));
+  type Pattern = StringArt<any>;
   let currentPattern: Pattern;
 
   if (history.state?.pattern) {
@@ -97,7 +97,7 @@ async function main() {
     'click',
     async () =>
       await share({
-        renderer: canvasRenderer,
+        renderer: currentRenderer,
         pattern: currentPattern,
       })
   );
@@ -115,8 +115,8 @@ async function main() {
     unselectPattern();
   });
 
-  thumbnails.addOnSelectListener(({ detail }) => {
-    const pattern = findPatternById(detail.pattern);
+  thumbnails.addEventListener('select', ({ patternId }) => {
+    const pattern = findPatternById(patternId);
     setCurrentPattern(pattern);
   });
 
@@ -171,10 +171,10 @@ async function main() {
   function updateState(state?: { pattern: string; config: any }) {
     if (state?.pattern) {
       const pattern = findPatternById(state.pattern);
+      pattern.renderer = currentRenderer;
       selectPattern(pattern, {
         draw: false,
-        // @ts-ignore
-        config: state.config ? deserializeConfig(pattern, state.config) : {},
+        config: state.config ? deserializeConfig(pattern, state.config) : null,
       });
 
       thumbnails.close();
@@ -185,8 +185,13 @@ async function main() {
     }
   }
 
-  function findPatternById(patternId: string): typeof patterns[number] {
-    const pattern = patterns.find(({ id }) => id === patternId);
+  function findPatternById(patternId: string): StringArt<any> {
+    let pattern: StringArt<any> = patterns.find(({ id }) => id === patternId);
+
+    if (!pattern) {
+      // Try from persistance
+      pattern = Persistance.getPatternByID(patternId);
+    }
     if (!pattern) {
       throw new Error(`Pattern with id "${patternId}" not found!`);
     }
@@ -209,7 +214,7 @@ async function main() {
     elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
     elements.resetBtn.addEventListener('click', reset);
     const showShare = await isShareSupported({
-      renderer: canvasRenderer,
+      renderer: currentRenderer,
       pattern: currentPattern,
     });
     if (showShare) {
@@ -218,11 +223,11 @@ async function main() {
   }
 
   function downloadCanvas() {
-    downloadFile(canvasRenderer.toDataURL(), currentPattern.name + '.png');
+    downloadFile(currentRenderer.toDataURL(), currentPattern.name + '.png');
   }
 
   function downloadSVG() {
-    downloadPatternAsSVG(currentPattern, canvasRenderer.getSize());
+    downloadPatternAsSVG(currentPattern, currentRenderer.getSize());
   }
 
   function downloadNailsImage() {
@@ -287,13 +292,13 @@ async function main() {
 
   function setSize(size: Dimensions | null) {
     if (size && size.length === 2) {
-      canvasRenderer.setSize(size);
+      currentRenderer.setSize(size);
       if (!elements.canvas.classList.contains('overflow')) {
         elements.canvas.classList.add('overflow');
       }
     } else {
       elements.canvas.classList.remove('overflow');
-      canvasRenderer.setSize(null);
+      currentRenderer.setSize(null);
     }
 
     currentPattern.draw();
@@ -306,6 +311,7 @@ async function main() {
     const isFirstTime = !currentPattern;
 
     currentPattern = pattern;
+    currentPattern.renderer = currentRenderer;
     if (config) {
       // @ts-ignore
       currentPattern.setConfig(config);
@@ -323,14 +329,6 @@ async function main() {
       currentPattern.draw();
     });
     controls.addEventListener('change', onInputsChange);
-
-    if (pattern.link) {
-      elements.patternLink.setAttribute('href', pattern.link);
-      elements.patternLink.innerText = pattern.linkText ?? 'Example';
-      unHide(elements.patternLink);
-    } else {
-      hide(elements.patternLink);
-    }
 
     if (draw) {
       requestAnimationFrame(() => {
@@ -352,7 +350,7 @@ async function main() {
 
   function unselectPattern() {
     currentPattern = null;
-    canvasRenderer.clear();
+    currentRenderer.clear();
     hide(elements.patternLink);
     thumbnails.setCurrentPattern(null);
     controls && controls.destroy();

@@ -1,10 +1,13 @@
+import EventBus from './helpers/EventBus';
 import patternTypes from './pattern_types';
 import StringArt from './StringArt';
 import { AppData, PatternData } from './types/persistance.types';
 
 const APP_DATA_STORAGE_KEY = 'string_art_app_data';
 
-export default class Persistance {
+export default class Persistance extends EventBus<{
+  newPattern: { pattern: StringArt<any> };
+}> {
   elements: {
     saveBtn: HTMLButtonElement;
     saveDialog: HTMLDialogElement;
@@ -14,6 +17,8 @@ export default class Persistance {
   currentPattern: StringArt<any>;
 
   constructor() {
+    super();
+
     this.elements = {
       saveBtn: document.querySelector('#save_btn'),
       saveDialog: document.querySelector('#save_dialog'),
@@ -27,6 +32,7 @@ export default class Persistance {
     document
       .querySelector('#save_dialog_cancel')
       .addEventListener('click', () => {
+        this.elements.saveDialog.returnValue = '';
         this.elements.saveDialog.close();
       });
 
@@ -34,16 +40,13 @@ export default class Persistance {
       if (this.elements.saveDialog.returnValue === 'confirm') {
         const patternName = this.elements.patternNameInput.value;
 
-        const newPattern = this.savePattern({
+        this.savePattern({
           type: this.currentPattern.id,
           config: this.currentPattern.config,
           name: patternName,
         });
-        console.log('Saved pattern:', newPattern);
-        // You can perform further actions with the user's input here
-      } else {
-        console.log('Dialog cancelled or closed without submission.');
       }
+
       // Reset the input field after closing
       this.elements.patternNameInput.value = '';
     });
@@ -53,27 +56,43 @@ export default class Persistance {
     this.currentPattern = pattern;
   }
 
-  static PatternDataToStringArt(patternData: PatternData): StringArt<any> {
-    const Pattern = patternTypes.find(({ type }) => type === patternData.type);
+  static patternDataToStringArt({
+    type: patternType,
+    ...patternData
+  }: PatternData): StringArt<any> {
+    const Pattern = patternTypes.find(({ type }) => type === patternType);
     if (Pattern == null) {
-      throw new Error(`No pattern of type "${patternData.type}" found!`);
+      throw new Error(`No pattern of type "${patternType}" found!`);
     }
 
-    const stringArt = new Pattern();
+    const pattern = new Pattern();
+    Object.assign(pattern, patternData);
+
+    return pattern;
   }
 
   static getSavedPatterns(): StringArt<any>[] {
     const { patterns } = this.loadAppData();
+    return patterns.map(this.patternDataToStringArt);
   }
 
-  static savePattern(patternData: Omit<PatternData, 'id'>): PatternData {
+  static getPatternByID(patternID: string): StringArt<any> | null {
+    const patterns = this.getSavedPatterns();
+    return patterns.find(({ id }) => id === patternID);
+  }
+
+  savePattern(patternData: Omit<PatternData, 'id'>): PatternData {
     const newPatternData: PatternData = {
       ...patternData,
       id: crypto.randomUUID(),
     };
-    const appData = this.loadAppData();
+    const appData = Persistance.loadAppData();
     appData.patterns.push(newPatternData);
     this.saveAppData(appData);
+
+    this.emit('newPattern', {
+      pattern: Persistance.patternDataToStringArt(newPatternData),
+    });
 
     return newPatternData;
   }
@@ -89,7 +108,7 @@ export default class Persistance {
     }
   }
 
-  static saveAppData(appData: AppData): void {
+  saveAppData(appData: AppData): void {
     localStorage.setItem(APP_DATA_STORAGE_KEY, JSON.stringify(appData));
   }
 }
