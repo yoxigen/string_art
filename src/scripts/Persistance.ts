@@ -26,6 +26,9 @@ export default class Persistance extends EventBus<{
     };
 
     this.elements.saveBtn.addEventListener('click', () => {
+      const nextId = this.#getNextAvailableId();
+      this.elements.patternNameInput.value = `Pattern #${nextId}`;
+      this.elements.patternNameInput.select();
       this.elements.saveDialog.showModal();
     });
 
@@ -41,7 +44,7 @@ export default class Persistance extends EventBus<{
         const patternName = this.elements.patternNameInput.value;
 
         this.savePattern({
-          type: this.currentPattern.id,
+          type: (this.currentPattern.constructor as any).type,
           config: this.currentPattern.config,
           name: patternName,
         });
@@ -81,12 +84,24 @@ export default class Persistance extends EventBus<{
     return patterns.find(({ id }) => id === patternID);
   }
 
+  #getNextAvailableId(): string {
+    const appData = Persistance.loadAppData();
+    const lastId = appData?.patterns?.length
+      ? Number(appData.patterns[appData.patterns.length - 1].id)
+      : 0;
+    const nextId = isNaN(lastId) ? 1 : lastId + 1;
+    return String(nextId);
+  }
+
   savePattern(patternData: Omit<PatternData, 'id'>): PatternData {
+    const appData = Persistance.loadAppData();
+    const nextId = this.#getNextAvailableId();
+
     const newPatternData: PatternData = {
       ...patternData,
-      id: crypto.randomUUID(),
+      id: nextId,
     };
-    const appData = Persistance.loadAppData();
+
     appData.patterns.push(newPatternData);
     this.saveAppData(appData);
 
