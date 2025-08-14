@@ -84,16 +84,19 @@
         </button>
         <dialog id="save_dialog">
           <form method="dialog">
-            <h2>Name this pattern:</h2>
+            <h2 class="dialog-title">Name this pattern:</h2>
             <input
               type="text"
               id="save_dialog_name"
+              class="dialog-input"
               name="patternName"
               required
             />
-            <menu>
-              <button type="button" id="save_dialog_cancel">Cancel</button>
-              <button type="submit" value="confirm">Submit</button>
+            <menu class="dialog-menu">
+              <button type="button" class="btn-cancel" id="save_dialog_cancel">
+                Cancel
+              </button>
+              <button type="submit" value="confirm">Save pattern</button>
             </menu>
           </form>
         </dialog>

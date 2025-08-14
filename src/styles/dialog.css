@@ -1,0 +1,76 @@
+dialog {
+  width: 400px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+  background: #222;
+  color: white;
+  border: solid 1px rgba(255, 255, 255, 0.2);
+
+  position: fixed;
+  top: 100px; /* Distance from the top */
+  left: 50%; /* Keep horizontally centered */
+  transform: translateX(-50%); /* Only center horizontally */
+  margin: 0; /* Remove default centering margin */
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+.dialog-title {
+  font-weight: 200;
+  font-size: 1em;
+  margin-top: 0;
+}
+
+.dialog-input {
+  width: 100%;
+  background: transparent;
+  border: solid 1px var(--color-input);
+  border-radius: 4px;
+  height: 40px !important;
+  padding: 4px 8px !important;
+  color: White;
+  outline: none;
+}
+
+.dialog-input:hover,
+.dialog-input:active,
+.dialog-input:focus-visible {
+  border-color: var(--color-input-active);
+}
+
+.dialog-menu {
+  text-align: end;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: end;
+  margin-bottom: 0;
+}
+
+.dialog-menu button {
+  padding: 8px 16px;
+  margin-inline-start: 0.5em;
+  font-size: 1em;
+  border: none;
+  border-radius: 4px;
+  color: White;
+  background: none;
+  cursor: pointer;
+}
+
+.dialog-menu button[type='submit'] {
+  background: var(--color-input);
+}
+
+.dialog-menu button[type='submit']:hover {
+  background: var(--color-input-active);
+}
+
+.dialog-menu .btn-cancel {
+  opacity: 0.5;
+}
+
+.dialog-menu .btn-cancel:hover,
+.dialog-menu .btn-cancel:focus {
+  opacity: 1;
+}
