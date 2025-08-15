@@ -186,6 +186,10 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     return this.#controlsIndex;
   }
 
+  get type(): string {
+    return (this.constructor as typeof StringArt<any>).type;
+  }
+  
   get defaultConfig(): Config<TConfig> {
     if (!this.#defaultConfig) {
       this.#defaultConfig = Object.freeze(

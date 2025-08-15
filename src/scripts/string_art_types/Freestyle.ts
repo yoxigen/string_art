@@ -375,5 +375,6 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
 
   static thumbnailConfig = {
     minNailDistance: 3,
+    n: 40,
   };
 }

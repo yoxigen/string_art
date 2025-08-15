@@ -165,7 +165,7 @@ async function main() {
   });
 
   persistance.addEventListener('deletePattern', ({ pattern }) => {
-    const templatePattern = findPatternById((pattern.constructor as typeof StringArt<any>).type);
+    const templatePattern = findPatternById(pattern.type);
     if (templatePattern) {
       templatePattern.config = pattern.config;
       setCurrentPattern(templatePattern);
@@ -262,9 +262,23 @@ async function main() {
   }
 
   function reset() {
-    if (confirm('Are you sure you wish to reset options to defaults?')) {
-      setCurrentPattern(currentPattern, { config: {} });
+    if (
+      confirm(
+        isPatternTemplate(currentPattern)
+          ? 'Are you sure you wish to reset options to defaults?'
+          : 'Are you sure you wish to reset to the latest saved options?'
+      )
+    ) {
+      const pattern = findPatternById(currentPattern.id);
+      setCurrentPattern(
+        pattern,
+        isPatternTemplate(currentPattern) ? { config: {} } : {}
+      ); // For a template, make sure to reset the config, for saved patterns loading the pattern above gets the latest saved options
     }
+  }
+
+  function isPatternTemplate(pattern: StringArt<any>): boolean {
+    return pattern.type === pattern.id;
   }
 
   function onInputsChange() {

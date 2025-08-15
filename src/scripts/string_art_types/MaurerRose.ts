@@ -215,8 +215,5 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     }
   }
 
-  static thumbnailConfig = {
-    maxSteps: 160,
-    angle: 213,
-  };
+  static thumbnailConfig = {};
 }
