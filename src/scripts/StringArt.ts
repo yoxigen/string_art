@@ -189,7 +189,14 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   get type(): string {
     return (this.constructor as typeof StringArt<any>).type;
   }
-  
+
+  /**
+   * A pattern is considered a template if the id is the same as the type. These are built-in patterns.
+   */
+  get isTemplate(): boolean {
+    return this.type === this.id;
+  }
+
   get defaultConfig(): Config<TConfig> {
     if (!this.#defaultConfig) {
       this.#defaultConfig = Object.freeze(

@@ -119,3 +119,11 @@ a:hover {
 .no_text_break {
   white-space: nowrap;
 }
+
+[data-is-template='true'] .non-template-only {
+  display: none;
+}
+
+[data-is-template='false'] .template-only {
+  display: none;
+}

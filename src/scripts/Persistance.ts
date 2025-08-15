@@ -46,7 +46,7 @@ export default class Persistance extends EventBus<{
         const patternName = this.elements.patternNameInput.value;
 
         this.savePattern({
-          type: (this.currentPattern.constructor as any).type,
+          type: this.currentPattern.type,
           config: this.currentPattern.config,
           name: patternName,
         });

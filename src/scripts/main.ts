@@ -30,6 +30,7 @@ window.addEventListener('error', function (event) {
 });
 
 const elements: { [key: string]: HTMLElement } = {
+  main: document.querySelector('main'),
   canvas: document.querySelector('#canvas_panel'),
   downloadBtn: document.querySelector('#download_btn'),
   downloadSVGBtn: document.querySelector('#download_svg_btn'),
@@ -264,7 +265,7 @@ async function main() {
   function reset() {
     if (
       confirm(
-        isPatternTemplate(currentPattern)
+        currentPattern.isTemplate
           ? 'Are you sure you wish to reset options to defaults?'
           : 'Are you sure you wish to reset to the latest saved options?'
       )
@@ -272,13 +273,9 @@ async function main() {
       const pattern = findPatternById(currentPattern.id);
       setCurrentPattern(
         pattern,
-        isPatternTemplate(currentPattern) ? { config: {} } : {}
+        currentPattern.isTemplate ? { config: {} } : {}
       ); // For a template, make sure to reset the config, for saved patterns loading the pattern above gets the latest saved options
     }
-  }
-
-  function isPatternTemplate(pattern: StringArt<any>): boolean {
-    return pattern.type === pattern.id;
   }
 
   function onInputsChange() {
@@ -373,6 +370,8 @@ async function main() {
     }
 
     player.update(currentPattern, { draw: false });
+
+    elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
   }
 
   function unselectPattern() {
