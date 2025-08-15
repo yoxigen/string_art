@@ -13,6 +13,7 @@ export class Thumbnails extends EventBus<{ select: { patternId: string }}> {
     thumbnails: document.querySelector('#thumbnails'),
     toggleBtn: document.querySelector('#pattern_select_btn'),
     dropdown: document.querySelector('#pattern_select_dropdown'),
+    patternName: document.querySelector('#pattern_name')
   };
 
   pattern: StringArt<any>;
@@ -33,6 +34,14 @@ export class Thumbnails extends EventBus<{ select: { patternId: string }}> {
 
       this.setCurrentPattern(pattern);
       this.emit('select', { patternId: pattern.id })
+    });
+
+    persistance.addEventListener('save', ({ pattern }) => {
+      if (this.isOpen) {
+      this.createThumbnails();
+      } else {
+        this.thumbnailsRendered = false;
+      }
     });
 
     persistance.addEventListener('deletePattern', ({pattern}) => {
@@ -105,7 +114,7 @@ export class Thumbnails extends EventBus<{ select: { patternId: string }}> {
 
   setCurrentPattern(pattern: StringArt<any>) {
     this.pattern = pattern;
-    this.elements.toggleBtn.innerText = pattern?.name ?? 'Choose a pattern';
+    this.elements.patternName.innerText = pattern?.name ?? 'Choose a pattern';
   }
 
   #createThumbnailsSection(title: string, patterns: StringArt<any>[]): void {

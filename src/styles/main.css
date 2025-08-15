@@ -127,3 +127,11 @@ a:hover {
 [data-is-template='false'] .template-only {
   display: none;
 }
+
+[data-is-default-config='true'] .non-default-config-only {
+  display: none;
+}
+
+[data-is-default-config='false'] .default-config-only {
+  display: none;
+}

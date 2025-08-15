@@ -8,6 +8,7 @@ const APP_DATA_STORAGE_KEY = 'string_art_app_data';
 export default class Persistance extends EventBus<{
   newPattern: { pattern: StringArt<any> };
   deletePattern: { pattern: StringArt<any> };
+  save: { pattern: StringArt<any> };
 }> {
   elements: {
     saveDialog: HTMLDialogElement;
@@ -32,6 +33,9 @@ export default class Persistance extends EventBus<{
           break;
         case 'delete':
           this.deletePattern();
+          break;
+        case 'save':
+          this.saveCurrentPattern();
       }
     });
     document
@@ -115,6 +119,31 @@ export default class Persistance extends EventBus<{
     this.saveAppData(appData);
 
     this.emit('newPattern', {
+      pattern: Persistance.patternDataToStringArt(newPatternData),
+    });
+
+    return newPatternData;
+  }
+
+  saveCurrentPattern() {
+    const appData = Persistance.loadAppData();
+
+    const newPatternData: PatternData = {
+      id: this.currentPattern.id,
+      name: this.currentPattern.name,
+      type: this.currentPattern.type,
+      config: this.currentPattern.config,
+    };
+
+    const patternIndex = appData.patterns.findIndex(
+      ({ id }) => id === this.currentPattern.id
+    );
+    if (patternIndex !== -1) {
+      appData.patterns[patternIndex] = newPatternData;
+    }
+    this.saveAppData(appData);
+
+    this.emit('save', {
       pattern: Persistance.patternDataToStringArt(newPatternData),
     });
 

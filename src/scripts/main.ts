@@ -19,6 +19,7 @@ import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
 import Persistance from './Persistance';
 import StringArt from './StringArt';
+import { compareObjects } from './helpers/object_utils';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -173,6 +174,10 @@ async function main() {
     }
   });
 
+  persistance.addEventListener('save', () => {
+    setIsDefaultConfig(false);
+  });
+
   function initRouting() {
     window.addEventListener('popstate', ({ state }) => {
       updateState(state);
@@ -291,6 +296,21 @@ async function main() {
         configQuery ? `&config=${encodeURIComponent(configQuery)}` : ''
       }`
     );
+
+    setIsDefaultConfig();
+  }
+
+  function setIsDefaultConfig(value?: boolean) {
+    // Determine whether the pattern is currently on its last saved (for saved patterns) or default state (for templates):
+    const isDefaultConfig =
+      value ?? currentPattern.isTemplate
+        ? compareObjects(currentPattern.config, currentPattern.defaultConfig)
+        : compareObjects(
+            currentPattern.config,
+            findPatternById(currentPattern.id).config
+          );
+
+    elements.main.dataset.isDefaultConfig = String(isDefaultConfig);
   }
 
   function setCurrentPattern(
@@ -303,6 +323,8 @@ async function main() {
       pattern.name,
       '?pattern=' + pattern.id
     );
+
+    elements.main.dataset.isDefaultConfig = 'true';
   }
 
   function initSize() {
@@ -347,7 +369,6 @@ async function main() {
     persistance.setPattern(currentPattern);
     controls = new EditorControls<any>(pattern.configControls, pattern.config);
     controls.addEventListener('input', ({ control, value }) => {
-      // @ts-ignore can't type control perfectly, since we don't have TConfig to set for EditorControls.
       currentPattern.setConfigValue(control, value);
       controls.config = currentPattern.config;
       currentPattern.draw();
