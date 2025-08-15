@@ -351,7 +351,6 @@ async function main() {
   function unselectPattern() {
     currentPattern = null;
     currentRenderer.clear();
-    hide(elements.patternLink);
     thumbnails.setCurrentPattern(null);
     controls && controls.destroy();
     document.body.querySelectorAll('.pattern_only').forEach(hide);

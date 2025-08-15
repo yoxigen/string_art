@@ -6,7 +6,8 @@
 #pattern_select_panel {
   grid-area: pattern_select;
   position: relative;
-  padding: var(--vertical-padding) var(--horizontal-padding);
+  padding: var(--vertical-padding) 0 var(--vertical-padding)
+    var(--horizontal-padding);
   background: var(--color-gray3);
   border-bottom: var(--border-light);
   border-right: var(--border-light);
@@ -42,7 +43,7 @@
 
 #pattern_select_btn::after {
   font-family: 'string_art_studio';
-  content: '\e90a';
+  content: '\e903';
   display: inline-block;
   margin-inline-start: 4px;
   font-size: 24px;
