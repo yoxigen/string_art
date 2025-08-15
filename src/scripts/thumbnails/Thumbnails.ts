@@ -30,9 +30,18 @@ export class Thumbnails extends EventBus<{ select: { patternId: string }}> {
       } else {
         this.thumbnailsRendered = false;
       }
-      
+
       this.setCurrentPattern(pattern);
       this.emit('select', { patternId: pattern.id })
+    });
+
+    persistance.addEventListener('deletePattern', ({pattern}) => {
+      if (this.isOpen) {
+        const thumbnail = this.elements.thumbnails.querySelector(`[data-pattern="${pattern.id}"]`);
+        thumbnail.remove();
+      } else {
+        this.thumbnailsRendered = false;
+      }
     });
 
     this.elements.thumbnails.addEventListener('click', e => {

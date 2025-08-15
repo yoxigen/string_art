@@ -168,6 +168,8 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   abstract getStepCount(): number;
 
   static thumbnailConfig: Partial<Config>;
+  static type: string;
+
   getCommonControls(): ControlsConfig<Partial<CommonConfig>> {
     return COMMON_CONFIG_CONTROLS;
   }

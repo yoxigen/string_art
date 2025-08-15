@@ -75,16 +75,17 @@
           <i class="icon-hamburger"></i>
         </button>
         <button type="button" id="pattern_select_btn">Choose a pattern</button>
-        <button
-          id="save_btn"
-          class="btn-icon pattern_only"
-          title="Save this pattern"
-        >
-          <i class="icon-menu"></i>
-        </button>
+        <dropdown-menu id="pattern_menu" button-style="padding: 4px 8px">
+          <span slot="label">
+            <i class="icon-menu btn-icon"></i>
+          </span>
+          <dropdown-menu-item value="save_as">Save as</dropdown-menu-item>
+          <dropdown-menu-item value="delete">Delete</dropdown-menu-item>
+        </dropdown-menu>
         <dialog id="save_dialog">
           <form method="dialog">
-            <h2 class="dialog-title">Name this pattern:</h2>
+            <h2 class="dialog-title">Save pattern</h2>
+            <p>Name this pattern:</p>
             <input
               type="text"
               id="save_dialog_name"

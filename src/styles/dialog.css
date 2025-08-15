@@ -1,9 +1,9 @@
 dialog {
   width: 400px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-  background: #222;
+  background: var(--color-dialog-background);
   color: white;
-  border: solid 1px rgba(255, 255, 255, 0.2);
+  border: var(--border-dialog);
 
   position: fixed;
   top: 100px; /* Distance from the top */
@@ -16,9 +16,10 @@ dialog::backdrop {
   background: rgba(0, 0, 0, 0.7);
 }
 .dialog-title {
-  font-weight: 200;
-  font-size: 1em;
+  font-weight: 300;
+  font-size: 1.4em;
   margin-top: 0;
+  color: var(--color-accent);
 }
 
 .dialog-input {
@@ -30,12 +31,23 @@ dialog::backdrop {
   padding: 4px 8px !important;
   color: White;
   outline: none;
+  font-size: 1.1em;
+}
+
+.dialog-input::selection {
+  background: White;
+  color: Black;
 }
 
 .dialog-input:hover,
 .dialog-input:active,
 .dialog-input:focus-visible {
   border-color: var(--color-input-active);
+}
+
+.dialog-input:active,
+.dialog-input:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .dialog-menu {

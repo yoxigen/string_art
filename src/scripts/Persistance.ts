@@ -7,9 +7,9 @@ const APP_DATA_STORAGE_KEY = 'string_art_app_data';
 
 export default class Persistance extends EventBus<{
   newPattern: { pattern: StringArt<any> };
+  deletePattern: { pattern: StringArt<any> };
 }> {
   elements: {
-    saveBtn: HTMLButtonElement;
     saveDialog: HTMLDialogElement;
     patternNameInput: HTMLInputElement;
   };
@@ -20,18 +20,20 @@ export default class Persistance extends EventBus<{
     super();
 
     this.elements = {
-      saveBtn: document.querySelector('#save_btn'),
       saveDialog: document.querySelector('#save_dialog'),
       patternNameInput: document.querySelector('#save_dialog_name'),
     };
 
-    this.elements.saveBtn.addEventListener('click', () => {
-      const nextId = this.#getNextAvailableId();
-      this.elements.patternNameInput.value = `Pattern #${nextId}`;
-      this.elements.patternNameInput.select();
-      this.elements.saveDialog.showModal();
+    document.querySelector('#pattern_menu').addEventListener('select', e => {
+      // @ts-ignore
+      switch (e.detail.value) {
+        case 'save_as':
+          this.#showSaveAsDialog();
+          break;
+        case 'delete':
+          this.deletePattern();
+      }
     });
-
     document
       .querySelector('#save_dialog_cancel')
       .addEventListener('click', () => {
@@ -53,6 +55,13 @@ export default class Persistance extends EventBus<{
       // Reset the input field after closing
       this.elements.patternNameInput.value = '';
     });
+  }
+
+  #showSaveAsDialog() {
+    const nextId = this.#getNextAvailableId();
+    this.elements.patternNameInput.value = `Pattern #${nextId}`;
+    this.elements.patternNameInput.select();
+    this.elements.saveDialog.showModal();
   }
 
   setPattern(pattern: StringArt<any>) {
@@ -110,6 +119,28 @@ export default class Persistance extends EventBus<{
     });
 
     return newPatternData;
+  }
+
+  deletePattern() {
+    if (!window.confirm('Are you sure you wish to delete this pattern?')) {
+      return;
+    }
+    const appData = Persistance.loadAppData();
+    const patternIndex = appData.patterns.findIndex(
+      ({ id }) => id === this.currentPattern.id
+    );
+    if (patternIndex === -1) {
+      throw new Error(
+        `Can't delete pattern with ID "${this.currentPattern.id}", it's not found!`
+      );
+    }
+
+    const pattern = appData.patterns.splice(patternIndex, 1)[0];
+    this.saveAppData(appData);
+
+    this.emit('deletePattern', {
+      pattern: Persistance.patternDataToStringArt(pattern),
+    });
   }
 
   static loadAppData(): AppData {

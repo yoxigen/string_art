@@ -12,6 +12,8 @@ import { downloadPatternAsSVG } from './download/SVGDownload';
 import { downloadFile } from './download/Download';
 import './components/StringArtRangeInput';
 import './components/StringArtHueInput';
+import './components/DropdownMenu';
+import './components/DropdownMenuItem';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
@@ -162,6 +164,14 @@ async function main() {
     }
   });
 
+  persistance.addEventListener('deletePattern', ({ pattern }) => {
+    const templatePattern = findPatternById((pattern.constructor as typeof StringArt<any>).type);
+    if (templatePattern) {
+      templatePattern.config = pattern.config;
+      setCurrentPattern(templatePattern);
+    }
+  });
+
   function initRouting() {
     window.addEventListener('popstate', ({ state }) => {
       updateState(state);
@@ -171,29 +181,32 @@ async function main() {
   function updateState(state?: { pattern: string; config: any }) {
     if (state?.pattern) {
       const pattern = findPatternById(state.pattern);
-      pattern.renderer = currentRenderer;
-      selectPattern(pattern, {
-        draw: false,
-        config: state.config ? deserializeConfig(pattern, state.config) : null,
-      });
+      if (pattern) {
+        pattern.renderer = currentRenderer;
+        selectPattern(pattern, {
+          draw: false,
+          config: state.config
+            ? deserializeConfig(pattern, state.config)
+            : null,
+        });
 
-      thumbnails.close();
-      currentPattern.draw();
+        thumbnails.close();
+        currentPattern.draw();
+      } else {
+        thumbnails.open();
+      }
     } else {
       unselectPattern();
       thumbnails.open();
     }
   }
 
-  function findPatternById(patternId: string): StringArt<any> {
+  function findPatternById(patternId: string): StringArt<any> | null {
     let pattern: StringArt<any> = patterns.find(({ id }) => id === patternId);
 
     if (!pattern) {
       // Try from persistance
       pattern = Persistance.getPatternByID(patternId);
-    }
-    if (!pattern) {
-      throw new Error(`Pattern with id "${patternId}" not found!`);
     }
     return pattern;
   }
