@@ -20,10 +20,18 @@ class DropdownMenuItem extends HTMLElement {
           cursor: pointer;
         }
         li:hover {
-          background: #444;
+          background: rgba(255,255,255,.1);
+        }
+        span:not(:empty) {
+          float: left; 
+          margin-right: .5em;
+          position: relative;
+          left: -4px;
+          top: 1px;
         }
       </style>
       <li role="menuitem">
+        <span id="icon"><slot name="icon"></span>
         <slot></slot>
       </li>
     `;

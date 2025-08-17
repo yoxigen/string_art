@@ -39,6 +39,8 @@
   flex: 1;
   text-align: left;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #pattern_select_btn:hover {
@@ -118,4 +120,12 @@
 #pattern_select_dropdown_instructions a {
   display: block;
   text-align: center;
+}
+
+#pattern_select_panel .btn-icon {
+  opacity: 0.7;
+}
+
+#pattern_select_panel .btn-icon:hover {
+  opacity: 1;
 }

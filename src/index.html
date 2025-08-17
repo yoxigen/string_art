@@ -76,17 +76,32 @@
         </button>
         <button type="button" id="pattern_select_btn">
           <span id="pattern_name">Choose a pattern</span>
-          <span class="non-default-config-only">*</span>
+          <span class="non-default-config-only color-accent">*</span>
         </button>
-        <dropdown-menu id="pattern_menu" button-style="padding: 4px 8px">
+        <button
+          type="button"
+          id="save_btn"
+          class="btn-icon non-default-config-only template-only"
+          style="margin-inline-end: 4px"
+        >
+          <i class="icon-diskette_b"></i>
+        </button>
+        <dropdown-menu
+          id="pattern_menu"
+          button-style="padding: 4px 8px"
+          class="non-template-only"
+        >
           <span slot="label">
             <i class="icon-menu btn-icon"></i>
           </span>
           <dropdown-menu-item
             value="save"
+            icon="diskette_b"
             class="non-default-config-only non-template-only"
-            >Save</dropdown-menu-item
           >
+            <i slot="icon" class="icon-diskette_b"></i>
+            Save
+          </dropdown-menu-item>
           <dropdown-menu-item value="save_as">Save as</dropdown-menu-item>
           <dropdown-menu-item value="delete" class="non-template-only"
             >Delete</dropdown-menu-item

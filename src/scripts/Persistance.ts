@@ -45,6 +45,14 @@ export default class Persistance extends EventBus<{
         this.elements.saveDialog.close();
       });
 
+    document.querySelector('#save_btn').addEventListener('click', () => {
+      if (this.currentPattern.isTemplate) {
+        this.#showSaveAsDialog();
+      } else {
+        this.saveCurrentPattern();
+      }
+    });
+
     this.elements.saveDialog.addEventListener('close', e => {
       if (this.elements.saveDialog.returnValue === 'confirm') {
         const patternName = this.elements.patternNameInput.value;
