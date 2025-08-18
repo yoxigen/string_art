@@ -12,7 +12,7 @@ class DropdownMenuItem extends HTMLElement {
       <style>
         li {
           list-style: none;
-          padding: 12px 32px 12px 20px;
+          padding: 12px 40px 12px 20px;
           color: White;
           text-decoration: none;
           white-space: nowrap;
