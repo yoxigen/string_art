@@ -99,6 +99,7 @@
   -webkit-column-break-inside: avoid;
   page-break-inside: avoid;
   break-inside: avoid;
+  text-align: center;
 }
 
 .pattern_select_thumbnails a {
