@@ -278,7 +278,8 @@ export default class StarShape {
       step: 0.01,
       snap: '0.5',
     },
-    displayValue: ({ rotation }) => `${Math.round(rotation * 360)}°`,
+    displayValue: ({ rotation, sides }) =>
+      `${Math.round((rotation * 360) / sides)}°`,
     isStructural: true,
     affectsStepCount: false,
   };

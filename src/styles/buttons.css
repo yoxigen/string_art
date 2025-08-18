@@ -64,9 +64,9 @@
 }
 
 .circular_btn.active {
-  box-shadow: 1px 1px 7px black inset;
+  background: radial-gradient(circle at center 100%, #5205e7, #220c1b);
   padding: 0;
-  background: rgb(0 0 0 / 30%);
+  box-shadow: inset 0px 4px 6px rgba(0, 0, 0, 0.6);
 }
 
 .circular_btn.active i {

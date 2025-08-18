@@ -105,13 +105,19 @@ async function main() {
         pattern: currentPattern,
       })
   );
-  elements.playerBtn.addEventListener('click', () => {
-    document.querySelectorAll('#buttons [data-toggle-for]').forEach(btn => {
-      if (btn instanceof HTMLElement && btn.classList.contains('active')) {
-        btn.click();
-      }
-    });
-  });
+
+  function deactivateTabs(exclude?: string[]) {
+    document
+      .querySelectorAll('#buttons [data-toggle-for].active')
+      .forEach(btn => {
+        if (
+          btn instanceof HTMLElement &&
+          !exclude?.includes(btn.getAttribute('data-toggle-for'))
+        ) {
+          btn.click();
+        }
+      });
+  }
 
   elements.instructionsLink.addEventListener('click', e => {
     e.preventDefault();
@@ -156,13 +162,16 @@ async function main() {
     if (toggleBtn instanceof HTMLElement && toggleBtn) {
       const dialogId = toggleBtn.dataset.toggleFor;
 
+      deactivateTabs([dialogId]);
       toggleBtn.classList.toggle('active');
 
       const toggledElement = document.querySelector('#' + dialogId);
-      toggledElement.classList.toggle('open');
-      document.body.classList.toggle('dialog_' + dialogId);
-      currentPattern &&
-        currentPattern.draw({ position: currentPattern.position });
+      if (toggledElement) {
+        toggledElement.classList.toggle('open');
+        document.body.classList.toggle('dialog_' + dialogId);
+        currentPattern &&
+          currentPattern.draw({ position: currentPattern.position });
+      }
     }
   });
 
