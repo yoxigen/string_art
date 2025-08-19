@@ -58,7 +58,7 @@
     </script>
   </head>
   <body class="dialog_sidebar_form">
-    <main hidden>
+    <main hidden data-is-template="unknown" data-is-default-config="unknown">
       <header id="main_header">
         <h1>
           <span class="logo1">String Art</span>
@@ -107,30 +107,14 @@
             <i slot="icon" class="icon-plus"></i>
             Save as...</dropdown-menu-item
           >
+          <dropdown-menu-item value="rename">
+            <i slot="icon" class="icon-pencil"></i> Rename</dropdown-menu-item
+          >
           <dropdown-menu-item value="delete" class="non-template-only">
             <i slot="icon" class="icon-trash"></i>
             Delete</dropdown-menu-item
           >
         </dropdown-menu>
-        <dialog id="save_dialog">
-          <form method="dialog">
-            <h2 class="dialog-title">Save pattern</h2>
-            <p>Name this pattern:</p>
-            <input
-              type="text"
-              id="save_dialog_name"
-              class="dialog-input"
-              name="patternName"
-              required
-            />
-            <menu class="dialog-menu">
-              <button type="button" class="btn-cancel" id="save_dialog_cancel">
-                Cancel
-              </button>
-              <button type="submit" value="confirm">Save pattern</button>
-            </menu>
-          </form>
-        </dialog>
         <div id="pattern_select_dropdown">
           <div id="thumbnails"></div>
           <div

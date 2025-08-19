@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'string_art_studio';
   src:
-    url('fonts/string_art_studio.ttf?f0h6a0') format('truetype'),
-    url('fonts/string_art_studio.woff?f0h6a0') format('woff'),
-    url('fonts/string_art_studio.svg?f0h6a0#string_art_studio') format('svg');
+    url('fonts/string_art_studio.ttf?df59t2') format('truetype'),
+    url('fonts/string_art_studio.woff?df59t2') format('woff'),
+    url('fonts/string_art_studio.svg?df59t2#string_art_studio') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,6 +24,9 @@ i {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-pencil:before {
+  content: "\e912";
+}
 .icon-plus:before {
   content: "\e910";
 }

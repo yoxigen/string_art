@@ -42,6 +42,8 @@ export class Thumbnails extends EventBus<{ select: { patternId: string }}> {
       } else {
         this.thumbnailsRendered = false;
       }
+
+      this.setCurrentPattern(pattern);
     });
 
     persistance.addEventListener('deletePattern', ({pattern}) => {

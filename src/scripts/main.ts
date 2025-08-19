@@ -10,16 +10,14 @@ import CanvasRenderer from './renderers/CanvasRenderer';
 import SVGRenderer from './renderers/SVGRenderer';
 import { downloadPatternAsSVG } from './download/SVGDownload';
 import { downloadFile } from './download/Download';
-import './components/StringArtRangeInput';
-import './components/StringArtHueInput';
-import './components/DropdownMenu';
-import './components/DropdownMenuItem';
+import './components/components';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
 import Persistance from './Persistance';
 import StringArt from './StringArt';
 import { compareObjects } from './helpers/object_utils';
+import { confirm } from './helpers/dialogs';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -183,8 +181,8 @@ async function main() {
     }
   });
 
-  persistance.addEventListener('save', () => {
-    setIsDefaultConfig(false);
+  persistance.addEventListener('save', ({ pattern }) => {
+    setCurrentPattern(pattern);
   });
 
   function initRouting() {
@@ -277,19 +275,22 @@ async function main() {
   }
 
   function reset() {
-    if (
-      confirm(
-        currentPattern.isTemplate
-          ? 'Are you sure you wish to reset options to defaults?'
-          : 'Are you sure you wish to reset to the latest saved options?'
-      )
-    ) {
-      const pattern = findPatternById(currentPattern.id);
-      setCurrentPattern(
-        pattern,
-        currentPattern.isTemplate ? { config: {} } : {}
-      ); // For a template, make sure to reset the config, for saved patterns loading the pattern above gets the latest saved options
-    }
+    confirm({
+      title: 'Reset options',
+      description: currentPattern.isTemplate
+        ? 'Are you sure you wish to reset options to defaults?'
+        : 'Are you sure you wish to reset to the latest saved options?',
+      submit: 'Reset',
+    }).then(
+      () => {
+        const pattern = findPatternById(currentPattern.id);
+        setCurrentPattern(
+          pattern,
+          currentPattern.isTemplate ? { config: {} } : {}
+        ); // For a template, make sure to reset the config, for saved patterns loading the pattern above gets the latest saved options
+      },
+      () => {}
+    );
   }
 
   function onInputsChange() {

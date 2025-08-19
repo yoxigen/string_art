@@ -1,7 +1,9 @@
 import EventBus from './helpers/EventBus';
 import patternTypes from './pattern_types';
-import StringArt from './StringArt';
+import StringArt, { Pattern } from './StringArt';
 import { AppData, PatternData } from './types/persistance.types';
+import type InputDialog from './components/dialogs/InputDialog';
+import { confirm, prompt } from './helpers/dialogs';
 
 const APP_DATA_STORAGE_KEY = 'string_art_app_data';
 
@@ -11,8 +13,7 @@ export default class Persistance extends EventBus<{
   save: { pattern: StringArt<any> };
 }> {
   elements: {
-    saveDialog: HTMLDialogElement;
-    patternNameInput: HTMLInputElement;
+    saveDialog: InputDialog;
   };
 
   currentPattern: StringArt<any>;
@@ -22,7 +23,6 @@ export default class Persistance extends EventBus<{
 
     this.elements = {
       saveDialog: document.querySelector('#save_dialog'),
-      patternNameInput: document.querySelector('#save_dialog_name'),
     };
 
     document.querySelector('#pattern_menu').addEventListener('select', e => {
@@ -36,14 +36,12 @@ export default class Persistance extends EventBus<{
           break;
         case 'save':
           this.saveCurrentPattern();
+          break;
+        case 'rename':
+          this.renameCurrentPattern();
+          break;
       }
     });
-    document
-      .querySelector('#save_dialog_cancel')
-      .addEventListener('click', () => {
-        this.elements.saveDialog.returnValue = '';
-        this.elements.saveDialog.close();
-      });
 
     document.querySelector('#save_btn').addEventListener('click', () => {
       if (this.currentPattern.isTemplate) {
@@ -52,28 +50,30 @@ export default class Persistance extends EventBus<{
         this.saveCurrentPattern();
       }
     });
-
-    this.elements.saveDialog.addEventListener('close', e => {
-      if (this.elements.saveDialog.returnValue === 'confirm') {
-        const patternName = this.elements.patternNameInput.value;
-
-        this.savePattern({
-          type: this.currentPattern.type,
-          config: this.currentPattern.config,
-          name: patternName,
-        });
-      }
-
-      // Reset the input field after closing
-      this.elements.patternNameInput.value = '';
-    });
   }
 
   #showSaveAsDialog() {
     const nextId = this.#getNextAvailableId();
-    this.elements.patternNameInput.value = `Pattern #${nextId}`;
-    this.elements.patternNameInput.select();
-    this.elements.saveDialog.showModal();
+    const defaultName = `Pattern #${nextId}`;
+
+    prompt({
+      title: 'Save pattern',
+      description: 'Name this pattern:',
+      submit: 'Save',
+      value: defaultName,
+    }).then(
+      patternName => {
+        this.saveNewPattern({
+          type: this.currentPattern.type,
+          config: this.currentPattern.config,
+          name:
+            patternName == null || patternName === ''
+              ? defaultName
+              : patternName,
+        });
+      },
+      () => {}
+    );
   }
 
   setPattern(pattern: StringArt<any>) {
@@ -100,9 +100,14 @@ export default class Persistance extends EventBus<{
     return patterns.map(this.patternDataToStringArt);
   }
 
-  static getPatternByID(patternID: string): StringArt<any> | null {
-    const patterns = this.getSavedPatterns();
-    return patterns.find(({ id }) => id === patternID);
+  static getPatternByID(patternId: string): StringArt<any> | null {
+    const patternData = this.loadPatternDataById(patternId);
+    return patternData ? this.patternDataToStringArt(patternData) : null;
+  }
+
+  static loadPatternDataById(patternId: string): PatternData | null {
+    const { patterns } = this.loadAppData();
+    return patterns.find(({ id }) => id === patternId);
   }
 
   #getNextAvailableId(): string {
@@ -114,7 +119,7 @@ export default class Persistance extends EventBus<{
     return String(nextId);
   }
 
-  savePattern(patternData: Omit<PatternData, 'id'>): PatternData {
+  saveNewPattern(patternData: Omit<PatternData, 'id'>): PatternData {
     const appData = Persistance.loadAppData();
     const nextId = this.#getNextAvailableId();
 
@@ -133,9 +138,23 @@ export default class Persistance extends EventBus<{
     return newPatternData;
   }
 
-  saveCurrentPattern() {
+  savePattern(patternData: PatternData) {
     const appData = Persistance.loadAppData();
 
+    const patternIndex = appData.patterns.findIndex(
+      ({ id }) => id === this.currentPattern.id
+    );
+    if (patternIndex !== -1) {
+      appData.patterns[patternIndex] = patternData;
+      this.saveAppData(appData);
+
+      this.emit('save', {
+        pattern: Persistance.patternDataToStringArt(patternData),
+      });
+    }
+  }
+
+  saveCurrentPattern() {
     const newPatternData: PatternData = {
       id: this.currentPattern.id,
       name: this.currentPattern.name,
@@ -143,41 +162,55 @@ export default class Persistance extends EventBus<{
       config: this.currentPattern.config,
     };
 
-    const patternIndex = appData.patterns.findIndex(
-      ({ id }) => id === this.currentPattern.id
-    );
-    if (patternIndex !== -1) {
-      appData.patterns[patternIndex] = newPatternData;
-    }
-    this.saveAppData(appData);
-
-    this.emit('save', {
-      pattern: Persistance.patternDataToStringArt(newPatternData),
-    });
-
+    this.savePattern(newPatternData);
     return newPatternData;
   }
 
-  deletePattern() {
-    if (!window.confirm('Are you sure you wish to delete this pattern?')) {
-      return;
-    }
-    const appData = Persistance.loadAppData();
-    const patternIndex = appData.patterns.findIndex(
-      ({ id }) => id === this.currentPattern.id
-    );
-    if (patternIndex === -1) {
-      throw new Error(
-        `Can't delete pattern with ID "${this.currentPattern.id}", it's not found!`
-      );
-    }
+  renameCurrentPattern() {
+    prompt({
+      title: 'Rename',
+      description: 'Name this pattern:',
+      submit: 'Save',
+      value: this.currentPattern.name,
+    }).then(newPatternName => {
+      if (newPatternName !== this.currentPattern.name) {
+        const patternData = Persistance.loadPatternDataById(
+          this.currentPattern.id
+        );
+        patternData.name = newPatternName;
+        this.savePattern(patternData);
+      }
 
-    const pattern = appData.patterns.splice(patternIndex, 1)[0];
-    this.saveAppData(appData);
-
-    this.emit('deletePattern', {
-      pattern: Persistance.patternDataToStringArt(pattern),
+      this.currentPattern.name = newPatternName;
     });
+  }
+
+  deletePattern() {
+    confirm({
+      title: 'Delete pattern',
+      description: 'Are you sure you wish to delete this pattern?',
+      submit: 'Delete',
+    }).then(
+      () => {
+        const appData = Persistance.loadAppData();
+        const patternIndex = appData.patterns.findIndex(
+          ({ id }) => id === this.currentPattern.id
+        );
+        if (patternIndex === -1) {
+          throw new Error(
+            `Can't delete pattern with ID "${this.currentPattern.id}", it's not found!`
+          );
+        }
+
+        const pattern = appData.patterns.splice(patternIndex, 1)[0];
+        this.saveAppData(appData);
+
+        this.emit('deletePattern', {
+          pattern: Persistance.patternDataToStringArt(pattern),
+        });
+      },
+      () => {}
+    );
   }
 
   static loadAppData(): AppData {
