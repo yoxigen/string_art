@@ -1,11 +1,13 @@
 import type InputDialog from '../components/dialogs/InputDialog';
 import type ConfirmDialog from '../components/dialogs/ConfirmDialog';
+import type { ConfirmDialogType } from '../components/dialogs/ConfirmDialog';
 
 export interface ConfirmOptions {
   title: string;
   description?: string;
   submit?: string;
   cancel?: string;
+  type?: ConfirmDialogType;
 }
 export type PromptOptions = ConfirmOptions & {
   value?: string;
@@ -20,7 +22,7 @@ export function prompt({ value, ...options }: PromptOptions): Promise<string> {
     document.body.appendChild(dialog);
   }
 
-  ['title', 'description', 'submit', 'cancel'].forEach(attr => {
+  ['title', 'description', 'submit', 'cancel', 'type'].forEach(attr => {
     if (options[attr] != null && options[attr] !== '') {
       dialog.setAttribute(attr, options[attr]);
     } else {
@@ -41,7 +43,7 @@ export function confirm(options: ConfirmOptions): Promise<void> {
     document.body.appendChild(dialog);
   }
 
-  ['title', 'description', 'submit', 'cancel'].forEach(attr => {
+  ['title', 'description', 'submit', 'cancel', 'type'].forEach(attr => {
     if (options[attr] != null && options[attr] !== '') {
       dialog.setAttribute(attr, options[attr]);
     } else {

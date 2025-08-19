@@ -16,10 +16,15 @@ dialog::backdrop {
   background: rgba(0, 0, 0, 0.7);
 }
 .dialog-title {
-  font-weight: 300;
+  font-weight: 400;
   font-size: 1.4em;
   margin-top: 0;
   color: var(--color-accent);
+  text-shadow: 1px 1px 1px Black;
+}
+
+dialog.error .dialog-title {
+  color: var(--color-error);
 }
 
 .dialog-input {
@@ -74,6 +79,9 @@ dialog::backdrop {
   background: var(--color-input);
 }
 
+dialog.error .dialog-menu button[type='submit'] {
+  background: var(--color-error);
+}
 .dialog-menu button[type='submit']:hover {
   background: var(--color-input-active);
 }
@@ -85,4 +93,8 @@ dialog::backdrop {
 .dialog-menu .btn-cancel:hover,
 .dialog-menu .btn-cancel:focus {
   opacity: 1;
+}
+
+#dialog_contents {
+  display: flex;
 }

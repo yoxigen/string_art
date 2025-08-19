@@ -3,6 +3,8 @@ import * as styles from 'bundle-text:./dialog.css';
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
 
+export type ConfirmDialogType = 'default' | 'error';
+
 export default class ConfirmDialog extends HTMLElement {
   private dialog: HTMLDialogElement;
   private cancelBtn: HTMLButtonElement;
@@ -11,7 +13,7 @@ export default class ConfirmDialog extends HTMLElement {
   private descEl: HTMLElement;
 
   static get observedAttributes() {
-    return ['title', 'description', 'submit', 'cance'];
+    return ['title', 'description', 'submit', 'cance', 'type'];
   }
 
   constructor() {
@@ -25,7 +27,9 @@ export default class ConfirmDialog extends HTMLElement {
         <form method="dialog">
           <h2 class="dialog-title"></h2>
           <p class="dialog-desc"></p>
-          <slot></slot>
+          <div id="dialog_contents">
+            <slot></slot>
+          </div>
           <menu class="dialog-menu">
             <button type="button" class="btn-cancel">Cancel</button>
             <button type="submit" value="confirm" class="btn-submit"></button>
@@ -64,6 +68,12 @@ export default class ConfirmDialog extends HTMLElement {
     }
     this.submitBtn.textContent = this.getAttribute('submit') || 'Submit';
     this.cancelBtn.textContent = this.getAttribute('cancel') || 'Cancel';
+
+    if (this.hasAttribute('type') && this.getAttribute('type') === 'error') {
+      this.dialog.classList.add('error');
+    } else {
+      this.dialog.classList.remove('error');
+    }
   }
 
   /**
@@ -82,6 +92,10 @@ export default class ConfirmDialog extends HTMLElement {
       };
       this.dialog.addEventListener('close', handleClose);
     });
+  }
+
+  submit() {
+    this.submitBtn.click();
   }
 }
 

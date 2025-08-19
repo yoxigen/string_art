@@ -190,6 +190,7 @@ export default class Persistance extends EventBus<{
       title: 'Delete pattern',
       description: 'Are you sure you wish to delete this pattern?',
       submit: 'Delete',
+      type: 'error',
     }).then(
       () => {
         const appData = Persistance.loadAppData();

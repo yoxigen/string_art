@@ -1,18 +1,15 @@
 import * as styles from 'bundle-text:./dialog.css';
+import type ConfirmDialog from './ConfirmDialog';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
 
 export default class InputDialog extends HTMLElement {
-  private dialog: HTMLDialogElement;
+  private dialog: ConfirmDialog;
   private input: HTMLInputElement;
-  private cancelBtn: HTMLButtonElement;
-  private submitBtn: HTMLButtonElement;
-  private titleEl: HTMLElement;
-  private descEl: HTMLElement;
 
   static get observedAttributes() {
-    return ['title', 'description', 'value', 'submit'];
+    return ['title', 'description', 'value', 'submit', 'cancel', 'type'];
   }
 
   constructor() {
@@ -22,39 +19,26 @@ export default class InputDialog extends HTMLElement {
 
     shadow.adoptedStyleSheets = [sheet];
     this.shadowRoot!.innerHTML = `
-      <dialog>
-        <form method="dialog">
-          <h2 class="dialog-title"></h2>
-          <p class="dialog-desc"></p>
-          <input
+      <confirm-dialog>
+        <input
             type="text"
             class="dialog-input"
             name="patternName"
             required
           />
-          <menu class="dialog-menu">
-            <button type="button" class="btn-cancel">Cancel</button>
-            <button type="submit" value="confirm" class="btn-submit"></button>
-          </menu>
-        </form>
-      </dialog>
+      </confirm-dialog>
     `;
 
-    this.dialog = shadow.querySelector('dialog')!;
+    this.dialog = shadow.querySelector('confirm-dialog')!;
     this.input = shadow.querySelector('input')!;
-    this.cancelBtn = shadow.querySelector('.btn-cancel')!;
-    this.submitBtn = shadow.querySelector('.btn-submit')!;
-    this.titleEl = shadow.querySelector('.dialog-title')!;
-    this.descEl = shadow.querySelector('.dialog-desc')!;
+    this.input.addEventListener('keypress', e => {
+      if (e.code === 'Enter') {
+        this.dialog.submit();
+      }
+    });
   }
 
   connectedCallback() {
-    this.cancelBtn.addEventListener('click', () => {
-      this.dialog.returnValue = '';
-      this.dialog.close();
-    });
-
-    // Initialize attributes on first connect
     this.syncAttributes();
   }
 
@@ -63,16 +47,19 @@ export default class InputDialog extends HTMLElement {
   }
 
   private syncAttributes() {
-    if (this.hasAttribute('title')) {
-      this.titleEl.textContent = this.getAttribute('title');
-    }
-    if (this.hasAttribute('description')) {
-      this.descEl.textContent = this.getAttribute('description');
-    }
+    InputDialog.observedAttributes
+      .filter(attr => attr !== 'value')
+      .forEach(attr => {
+        if (this.hasAttribute(attr)) {
+          this.dialog.setAttribute(attr, this.getAttribute(attr));
+        } else {
+          this.dialog.removeAttribute(attr);
+        }
+      });
+
     if (this.hasAttribute('value')) {
       this.input.value = this.getAttribute('value') || '';
     }
-    this.submitBtn.textContent = this.getAttribute('submit') || 'Submit';
   }
 
   /**
@@ -84,19 +71,8 @@ export default class InputDialog extends HTMLElement {
     } else if (this.hasAttribute('value')) {
       this.input.value = this.getAttribute('value') || '';
     }
-    this.dialog.showModal();
     this.input.select();
-    return new Promise((resolve, reject) => {
-      const handleClose = () => {
-        this.dialog.removeEventListener('close', handleClose);
-        if (this.dialog.returnValue) {
-          resolve(this.input.value);
-        } else {
-          reject();
-        }
-      };
-      this.dialog.addEventListener('close', handleClose);
-    });
+    return this.dialog.show().then(() => this.input.value);
   }
 
   /**
