@@ -22,6 +22,7 @@ import { confirm } from './helpers/dialogs';
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
   draw?: boolean;
+  isDefaultConfig?: boolean;
 }
 
 window.addEventListener('error', function (event) {
@@ -177,7 +178,7 @@ async function main() {
     const templatePattern = findPatternById(pattern.type);
     if (templatePattern) {
       templatePattern.config = pattern.config;
-      setCurrentPattern(templatePattern);
+      setCurrentPattern(templatePattern, { isDefaultConfig: false });
     }
   });
 
@@ -334,7 +335,9 @@ async function main() {
       '?pattern=' + pattern.id
     );
 
-    elements.main.dataset.isDefaultConfig = 'true';
+    elements.main.dataset.isDefaultConfig = String(
+      setPatternOptions?.isDefaultConfig !== false
+    );
   }
 
   function initSize() {
