@@ -42,6 +42,8 @@ export function compareObjects(
     if (props && props.some(p => !compareObjects(obj1[p], obj2[p]))) {
       return false;
     }
+
+    return true;
   }
 
   return obj1 === obj2;

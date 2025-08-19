@@ -82,7 +82,7 @@ fieldset.minimized > div {
 
 legend::before {
   font-family: 'string_art_studio';
-  content: '\e90a';
+  content: '\e903';
   display: inline-block;
   margin-inline-end: 2px;
   font-size: 20px;

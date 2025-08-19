@@ -1,3 +1,7 @@
+#thumbnails > section {
+  padding-bottom: 16px;
+}
+
 #pattern_link {
   flex: 0;
   white-space: nowrap;
@@ -6,7 +10,8 @@
 #pattern_select_panel {
   grid-area: pattern_select;
   position: relative;
-  padding: var(--vertical-padding) var(--horizontal-padding);
+  padding: var(--vertical-padding) 0 var(--vertical-padding)
+    var(--horizontal-padding);
   background: var(--color-gray3);
   border-bottom: var(--border-light);
   border-right: var(--border-light);
@@ -33,6 +38,9 @@
   cursor: pointer;
   flex: 1;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #pattern_select_btn:hover {
@@ -41,7 +49,7 @@
 
 #pattern_select_btn::after {
   font-family: 'string_art_studio';
-  content: '\e90a';
+  content: '\e903';
   display: inline-block;
   margin-inline-start: 4px;
   font-size: 24px;
@@ -56,7 +64,7 @@
   position: absolute;
   width: 100%;
   background: var(--color-gray3);
-  z-index: 2;
+  z-index: 12;
   padding: 0 16px 16px;
   box-shadow: -5px 9px 8px rgb(0 0 0 / 50%);
   max-height: calc(
@@ -67,7 +75,7 @@
   top: 100%;
 }
 
-#pattern_select_thumbnails_title {
+.pattern_select_thumbnails_title {
   text-align: center;
   border-top: var(--border-light);
   border-bottom: var(--border-light);
@@ -79,28 +87,28 @@
   margin-top: 0;
 }
 
-#pattern_select_thumbnails {
+.pattern_select_thumbnails {
   list-style: none;
   margin: 0;
   padding: 0;
   column-width: 100px;
 }
 
-#pattern_select_thumbnails li {
-  display: inline-block;
+.pattern_select_thumbnails li {
   margin-bottom: 8px;
   -webkit-column-break-inside: avoid;
   page-break-inside: avoid;
   break-inside: avoid;
+  text-align: center;
 }
 
-#pattern_select_thumbnails a {
+.pattern_select_thumbnails a {
   display: inline-block;
   cursor: pointer;
   transition: transform 200ms ease-out;
 }
 
-#pattern_select_thumbnails a:hover {
+.pattern_select_thumbnails a:hover {
   transform: scale(1.1);
 }
 
@@ -113,4 +121,12 @@
 #pattern_select_dropdown_instructions a {
   display: block;
   text-align: center;
+}
+
+#pattern_select_panel .btn-icon {
+  opacity: 0.7;
+}
+
+#pattern_select_panel .btn-icon:hover {
+  opacity: 1;
 }

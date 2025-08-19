@@ -1,32 +1,84 @@
-import patternTypes from '../pattern_types.js';
-import CanvasRenderer from '../renderers/CanvasRenderer.js';
-import type StringArt from '../StringArt.js';
+import patternTypes from '../pattern_types';
+import CanvasRenderer from '../renderers/CanvasRenderer';
+import type StringArt from '../StringArt';
+import Persistance from '../Persistance';
+import EventBus from '../helpers/EventBus';
 
 const THUMBNAIL_WIDTH_PX = '100px';
 const MINIMIZED_CLASS = 'minimized';
 
-type ThumbnailsChangeEventListener = (
-  event: CustomEvent<{ pattern: string }>
-) => any;
-
-export class Thumbnails {
+export class Thumbnails extends EventBus<{ select: { patternId: string }}> {
   elements: Record<string, HTMLElement> = {
     root: document.querySelector('#pattern_select_panel'),
-    thumbnails: document.querySelector('#pattern_select_thumbnails'),
+    thumbnails: document.querySelector('#thumbnails'),
     toggleBtn: document.querySelector('#pattern_select_btn'),
     dropdown: document.querySelector('#pattern_select_dropdown'),
+    patternName: document.querySelector('#pattern_name')
   };
 
   pattern: StringArt<any>;
   thumbnailsRendered = false;
   _onClickOutside: (e: MouseEvent) => void;
 
-  constructor() {
+  constructor(persistance: Persistance) {
+    super();
+
     this.elements.toggleBtn.addEventListener('click', () => this.toggle());
+
+    persistance.addEventListener('newPattern', ({ pattern }) => {
+      if (this.isOpen) {
+      this.createThumbnails();
+      } else {
+        this.thumbnailsRendered = false;
+      }
+
+      this.setCurrentPattern(pattern);
+      this.emit('select', { patternId: pattern.id })
+    });
+
+    persistance.addEventListener('save', ({ pattern }) => {
+      if (this.isOpen) {
+      this.createThumbnails();
+      } else {
+        this.thumbnailsRendered = false;
+      }
+
+      this.setCurrentPattern(pattern);
+    });
+
+    persistance.addEventListener('deletePattern', ({pattern}) => {
+      if (this.isOpen) {
+        const thumbnail = this.elements.thumbnails.querySelector(`[data-pattern="${pattern.id}"]`);
+        thumbnail.remove();
+      } else {
+        this.thumbnailsRendered = false;
+      }
+    });
+
+    this.elements.thumbnails.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const link =
+        e.target instanceof HTMLElement &&
+        (e.target.closest('[data-pattern]') as HTMLElement);
+
+      if (!link) {
+        return false;
+      }
+
+      this.emit('select', { patternId: link.dataset.pattern });
+     
+      this.toggle();
+    });
+  }
+
+  get isOpen(): boolean {
+    return !this.elements.root.classList.contains(MINIMIZED_CLASS);
   }
 
   toggle() {
-    if (this.elements.root.classList.contains(MINIMIZED_CLASS)) {
+    if (!this.isOpen) {
       this.open();
     } else if (this.pattern) {
       this.close();
@@ -34,7 +86,7 @@ export class Thumbnails {
   }
 
   open() {
-    if (this.elements.root.classList.contains(MINIMIZED_CLASS)) {
+    if (!this.isOpen) {
       this.elements.root.classList.remove(MINIMIZED_CLASS);
       if (!this.thumbnailsRendered) {
         this.createThumbnails();
@@ -55,7 +107,7 @@ export class Thumbnails {
   }
 
   close() {
-    if (!this.elements.root.classList.contains(MINIMIZED_CLASS)) {
+    if (this.isOpen) {
       this.elements.root.classList.add(MINIMIZED_CLASS);
       document.body.removeEventListener('mousedown', this._onClickOutside);
       this._onClickOutside = null;
@@ -64,28 +116,34 @@ export class Thumbnails {
 
   setCurrentPattern(pattern: StringArt<any>) {
     this.pattern = pattern;
-    this.elements.toggleBtn.innerText = pattern?.name ?? 'Choose a pattern';
+    this.elements.patternName.innerText = pattern?.name ?? 'Choose a pattern';
   }
 
-  createThumbnails() {
+  #createThumbnailsSection(title: string, patterns: StringArt<any>[]): void {
+    const section = document.createElement("section");
+    
+    const sectionTitle = document.createElement('h3');
+    sectionTitle.className = 'pattern_select_thumbnails_title';
+    sectionTitle.innerText = title;
+    section.appendChild(sectionTitle);
+    
+    const thumbnailsList = document.createElement("ul");
+    thumbnailsList.className = "pattern_select_thumbnails";
+    section.appendChild(thumbnailsList);
+    
     const thumbnailsFragment = document.createDocumentFragment();
-    const patterns = [];
-
-    patternTypes.forEach(PatternType => {
+    patterns.forEach(pattern => {
       const patternLink = document.createElement('a');
-      const renderer = new CanvasRenderer(patternLink);
 
       patternLink.style.width = patternLink.style.height = THUMBNAIL_WIDTH_PX;
+      pattern.renderer = new CanvasRenderer(patternLink);
 
-      const pattern = new PatternType(renderer);
-      pattern.config = {
+      pattern.assignConfig({
         margin: 1,
         enableBackground: false,
         nailRadius: 0.5,
-        ...PatternType.thumbnailConfig,
-      };
-
-      patterns.push(pattern);
+        ...(pattern.constructor as typeof StringArt<any>).thumbnailConfig,
+      });
 
       const li = document.createElement('li');
       thumbnailsFragment.appendChild(li);
@@ -96,35 +154,21 @@ export class Thumbnails {
       li.appendChild(patternLink);
     });
 
-    this.elements.thumbnails.appendChild(thumbnailsFragment);
+    thumbnailsList.appendChild(thumbnailsFragment);
+
+    this.elements.thumbnails.appendChild(section);
+
     patterns.forEach(pattern => pattern.draw());
-
-    this.elements.thumbnails.addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const link =
-        e.target instanceof HTMLElement &&
-        (e.target.closest('[data-pattern]') as HTMLElement);
-
-      if (!link) {
-        return false;
-      }
-
-      this.elements.root.dispatchEvent(
-        new CustomEvent('change', {
-          detail: { pattern: link.dataset.pattern },
-        })
-      );
-      this.toggle();
-    });
   }
 
-  addOnChangeListener(listener: ThumbnailsChangeEventListener) {
-    this.elements.root.addEventListener('change', listener);
-  }
+  createThumbnails() {
+    this.elements.thumbnails.innerHTML = "";
 
-  removeOnChangeListener(listener: ThumbnailsChangeEventListener) {
-    this.elements.root.removeEventListener('change', listener);
+    const savedPatterns = Persistance.getSavedPatterns();
+    if (savedPatterns.length) {
+      this.#createThumbnailsSection('My Patterns', Persistance.getSavedPatterns());
+    }
+    const patterns = patternTypes.map(PatternType => new PatternType);
+    this.#createThumbnailsSection('Built-in patterns', patterns);
   }
 }

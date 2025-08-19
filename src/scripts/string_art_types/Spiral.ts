@@ -30,6 +30,8 @@ interface SpiralConfig extends ColorConfig {
 }
 
 export default class Spiral extends StringArt<SpiralConfig> {
+  static type = 'spiral';
+
   id = 'spiral';
   name = 'Spiral';
   link =

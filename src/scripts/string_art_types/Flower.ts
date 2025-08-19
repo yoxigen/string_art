@@ -26,6 +26,8 @@ const COLOR_CONFIG = Color.getConfig({
 });
 
 export default class Flower extends StringArt<FlowerConfig> {
+  static type = 'flower';
+
   name = 'Flower';
   id = 'flower';
   link = 'https://www.sqrt.ch/Buch/fadenmodell4_100.svg';

@@ -13,3 +13,5 @@ export interface NailsRenderOptions {
   renderNumbers?: boolean;
   margin?: number;
 }
+
+export type ID = string;

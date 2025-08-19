@@ -19,7 +19,7 @@ const COLORS = {
 };
 
 export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
-  renderer: Renderer
+  renderer?: Renderer
 ) => StringArt<TConfig>;
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -139,10 +139,10 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
 ];
 
 abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
-  renderer: Renderer;
-  controls: ControlsConfig<TConfig>;
-  defaultValues: Partial<Config<TConfig>>;
-  stepCount: number = null;
+  renderer: Renderer | null | undefined;
+  controls: ControlsConfig<TConfig> = [];
+  defaultValues: Partial<Config<TConfig>> = {};
+  stepCount: number | null = null;
   size: Dimensions = null;
   center: Coordinates = null;
   nails: Nails = null;
@@ -158,21 +158,17 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
 
-  constructor(renderer: Renderer) {
-    if (!renderer) {
-      throw new Error('Renderer not specified!');
-    }
-
-    if (!(renderer instanceof Renderer)) {
-      throw new Error('Renderer is not an instance of Renderer!');
-    }
-
+  // TODO: Remove renderer from here, set it only in `draw`. Then StringArt can be instantiated independently of the renderer.
+  constructor(renderer?: Renderer) {
     this.renderer = renderer;
   }
 
   abstract drawNails(): void;
   abstract generateStrings(): Generator<void>;
   abstract getStepCount(): number;
+
+  static thumbnailConfig: Partial<Config>;
+  static type: string;
 
   getCommonControls(): ControlsConfig<Partial<CommonConfig>> {
     return COMMON_CONFIG_CONTROLS;
@@ -188,6 +184,17 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
 
     return this.#controlsIndex;
+  }
+
+  get type(): string {
+    return (this.constructor as typeof StringArt<any>).type;
+  }
+
+  /**
+   * A pattern is considered a template if the id is the same as the type. These are built-in patterns.
+   */
+  get isTemplate(): boolean {
+    return this.type === this.id;
   }
 
   get defaultConfig(): Config<TConfig> {
@@ -211,6 +218,18 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     this.#config = Object.assign({}, this.defaultConfig, value);
   }
 
+  /**
+   * Assigns the partial config to the current configuration of the StringArt
+   * @param config
+   */
+  assignConfig(config: Partial<Config<TConfig>>) {
+    this.#config = Object.assign({}, this.config, config);
+  }
+
+  /**
+   * Sets the config of the StringArt and updates using `onConfigChange`
+   * @param config
+   */
   setConfig(config: Config<TConfig>) {
     const currentConfig = this.config;
     this.config = config;
@@ -274,10 +293,14 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   }
 
   getSize(): Dimensions {
+    this.#withRenderer();
+
     return this.renderer.getSize();
   }
 
   setUpDraw() {
+    this.#withRenderer();
+
     const previousSize = this.size;
     this.renderer.reset();
     const [width, height] = (this.size = this.getSize());
@@ -296,21 +319,25 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     if (this.nails) {
       this.nails.setConfig(this.config);
     } else {
-      this.nails = new Nails(this.renderer, this.config);
+      this.nails = new Nails(this.config);
     }
 
     this.renderer.setLineWidth(this.config.stringWidth);
   }
 
   afterDraw() {
+    this.#withRenderer();
+
     const { showNails, showNailNumbers } = this.config;
     if (showNails) {
       this.drawNails();
-      this.nails.fill({ drawNumbers: showNailNumbers });
+      this.nails.draw(this.renderer, { drawNumbers: showNailNumbers });
     }
   }
 
   initDraw() {
+    this.#withRenderer();
+
     this.setUpDraw();
     const {
       showNails,
@@ -333,7 +360,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
 
     if (showNails) {
       this.drawNails();
-      this.nails.fill({ drawNumbers: showNailNumbers });
+      this.nails.draw(this.renderer, { drawNumbers: showNailNumbers });
     }
   }
 
@@ -342,6 +369,8 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
    * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all)
    */
   draw({ position = Infinity }: { position?: number } = {}) {
+    this.#withRenderer();
+
     this.initDraw();
     const { showStrings } = this.config;
 
@@ -380,6 +409,12 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
 
     return result;
+  }
+
+  #withRenderer(): asserts this is { renderer: Renderer } {
+    if (!this.renderer) {
+      throw new Error('Missing renderer for StringArt!');
+    }
   }
 }
 

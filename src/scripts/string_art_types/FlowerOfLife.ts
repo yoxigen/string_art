@@ -74,6 +74,8 @@ const SIDE_ANGLES = new Array(6)
   .map((_, i) => Math.PI / 2 + ANGLE * i);
 
 export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
+  static type = 'flower_of_life';
+
   name = 'Flower of Life';
   id = 'flower_of_life';
   link =

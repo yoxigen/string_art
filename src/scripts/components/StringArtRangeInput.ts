@@ -32,6 +32,7 @@ export default class StringArtRangeInput extends HTMLElement {
             input[type="range"] {
               width: 100%;
               appearance: none;
+              -webkit-appearance: none; /* remove iOS default */
               background: transparent;
               border: none;
               margin: 2px;
@@ -40,6 +41,7 @@ export default class StringArtRangeInput extends HTMLElement {
 
             input[type="range"]::-webkit-slider-thumb {
               appearance: none;
+              -webkit-appearance: none;
               width: ${THUMB_RADIUS * 2}px;
               height: ${THUMB_RADIUS * 2}px;
               border-radius: 50%;

@@ -119,3 +119,23 @@ a:hover {
 .no_text_break {
   white-space: nowrap;
 }
+
+[data-is-template='true'] .non-template-only,
+[data-is-template='unknown'] .non-template-only {
+  display: none !important;
+}
+
+[data-is-template='false'] .template-only,
+[data-is-template='unknown'] .template-only {
+  display: none !important;
+}
+
+[data-is-default-config='true'] .non-default-config-only,
+[data-is-default-config='unknown'] .non-default-config-only {
+  display: none !important;
+}
+
+[data-is-default-config='false'] .default-config-only,
+[data-is-default-config='unknown'] .default-config-only {
+  display: none !important;
+}

@@ -35,6 +35,8 @@ interface TCalc {
 }
 
 export default class MaurerRose extends StringArt<MaurerRoseConfig> {
+  static type = 'maurer_rose';
+
   name = 'Maurer Rose';
   id = 'maurer_rose';
   link = 'https://blog.glitch.land/en/posts/maurer-rose/';
@@ -213,8 +215,5 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     }
   }
 
-  static thumbnailConfig = {
-    maxSteps: 160,
-    angle: 213,
-  };
+  static thumbnailConfig = {};
 }

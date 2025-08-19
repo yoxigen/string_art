@@ -21,6 +21,8 @@ interface TCalc {
 }
 
 class Spirals extends StringArt<SpiralsConfig> {
+  static type = 'spirals';
+
   name = 'Spirals';
   id = 'spirals';
   link =

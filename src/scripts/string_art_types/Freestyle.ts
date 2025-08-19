@@ -68,6 +68,8 @@ interface TCalc {
 }
 
 export default class Freestyle extends StringArt<FreestyleConfig> {
+  static type = 'freestyle';
+
   name = 'Freestyle';
   id = 'freestyle';
   link =
@@ -373,5 +375,6 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
 
   static thumbnailConfig = {
     minNailDistance: 3,
+    n: 40,
   };
 }

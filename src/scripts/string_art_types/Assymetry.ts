@@ -54,6 +54,8 @@ interface TCalc {
 }
 
 export default class Assymetry extends StringArt<AssymetryConfig> {
+  static type = 'assymetry';
+
   name = 'Assymetry';
   id = 'assymetry';
   link =
