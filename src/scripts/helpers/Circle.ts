@@ -6,6 +6,7 @@ import { Nail } from '../types/stringart.types';
 import { ColorValue } from './color/color.types';
 import easing from './easing';
 import { fitInside, PI2 } from './math_utils';
+import { compareObjects } from './object_utils';
 
 export interface CircleConfig {
   n: number;
@@ -20,10 +21,17 @@ export interface CircleConfig {
   displacementFunc?: keyof typeof easing;
   displacementMag?: number;
   displacementFastArea?: number;
+  /**
+   * The angle at which to start rendering the circle (in radians)
+   */
+  angleStart?: number;
+  /**
+   * The angle at which to end rendering the circle (in radians)
+   */
+  angleEnd?: number;
 }
 
 export default class Circle {
-  serializedConfig: string;
   points: Map<number, Coordinates>;
   easingFunction: Function;
   config: CircleConfig;
@@ -33,6 +41,7 @@ export default class Circle {
   indexAngle: number;
   isReverse: boolean = false;
   radius: number;
+  arc: number = PI2;
 
   constructor(config: CircleConfig) {
     this.setConfig(config);
@@ -46,7 +55,9 @@ export default class Circle {
     }
 
     const angle =
-      this.easingFunction(realIndex / this.config.n) * PI2 + this.rotationAngle;
+      this.easingFunction(realIndex / this.config.n) * this.arc +
+      this.rotationAngle +
+      (this.config.angleStart ?? 0);
 
     const point: Coordinates = [
       this.center[0] + Math.sin(angle) * this.xyRadius[0],
@@ -66,8 +77,7 @@ export default class Circle {
   }
 
   setConfig(config: CircleConfig) {
-    const serializedConfig = this.#serializeConfig(config);
-    if (serializedConfig !== this.serializedConfig) {
+    if (!compareObjects(config, this.config)) {
       const {
         n,
         size,
@@ -76,6 +86,8 @@ export default class Circle {
         center: configCenter,
         radius,
         reverse = false,
+        angleStart,
+        angleEnd,
       } = config;
       const center = configCenter ?? size.map(v => v / 2);
       const clampedRadius = radius ?? Math.min(...center) - margin;
@@ -93,13 +105,20 @@ export default class Circle {
         );
       }
 
+      // Normally, the whole circle is rendered, but if angleStart and angleEnd are configured and valid, and arc between them is rendered:
+      const arc =
+        angleStart && angleEnd && angleEnd > angleStart
+          ? angleEnd - angleStart
+          : PI2;
+
       const props = {
         center,
         radius: clampedRadius,
         xyRadius,
-        indexAngle: PI2 / n,
+        indexAngle: arc / n,
         rotationAngle: -PI2 * rotation,
         isReverse: reverse,
+        arc,
       };
 
       const easingFunction = config.displacementFunc
@@ -118,7 +137,6 @@ export default class Circle {
 
       this.easingFunction = easingFunctionWithParams;
       this.config = config;
-      this.serializedConfig = serializedConfig;
       Object.assign(this, props);
       if (this.points) {
         this.points.clear();
@@ -126,37 +144,6 @@ export default class Circle {
         this.points = new Map();
       }
     }
-  }
-
-  #serializeConfig({
-    n,
-    size,
-    margin = 0,
-    rotation = 0,
-    center,
-    radius,
-    reverse = false,
-    distortion = 0,
-    displacementFunc,
-    displacementMag,
-    displacementFastArea,
-  }: CircleConfig): string {
-    return [
-      size?.join(','),
-      center?.join(','),
-      radius,
-      margin,
-      n,
-      rotation,
-      reverse,
-      distortion,
-    ]
-      .concat(
-        displacementFunc === 'linear'
-          ? []
-          : [displacementFunc, displacementMag, displacementFastArea]
-      )
-      .join('_');
   }
 
   *generateNails({

@@ -6,12 +6,14 @@ import type { ControlsConfig } from '../types/config.types';
 import { ColorConfig } from '../helpers/color/color.types';
 import { Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
+import { PI2 } from '../helpers/math_utils';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
   density: number;
   d: number;
   rotation: number;
+  isPetals: boolean;
 }
 
 interface TCalc {}
@@ -54,7 +56,7 @@ export default class Lotus extends StringArt<LotusConfig> {
         'The distance of the center of the circles that form the lotus from the center of the lotus',
       type: 'range',
       attr: {
-        min: 0.1,
+        min: 0.5,
         max: 2,
         step: 0.01,
       },
@@ -63,6 +65,13 @@ export default class Lotus extends StringArt<LotusConfig> {
       isStructural: true,
     },
     withoutAttribute(Circle.rotationConfig, 'snap'),
+    {
+      key: 'isPetals',
+      label: 'Is petals',
+      type: 'checkbox',
+      defaultValue: false,
+      isStructural: true,
+    },
     Color.getConfig({
       defaults: {
         isMultiColor: true,
@@ -103,7 +112,7 @@ export default class Lotus extends StringArt<LotusConfig> {
   *generateStrings() {}
 
   drawNails() {
-    const { sides, density, d, margin, rotation } = this.config;
+    const { sides, density, d, margin, rotation, isPetals } = this.config;
 
     const radius = (Math.min(...this.size) * d) / 2;
 
@@ -117,15 +126,35 @@ export default class Lotus extends StringArt<LotusConfig> {
     });
 
     const circleNails = density - (density % sides);
+    const sideAngle = PI2 / sides;
+
+    const baseCircleConfig: CircleConfig = {
+      n: circleNails,
+      size: [radius - margin / 2, radius - margin / 2],
+      radius: radius - margin / 2,
+      center: [0, 0],
+      rotation: 0,
+    };
+
+    if (isPetals) {
+      const angleStart = sideAngle;
+      const petalDensity = (density * (PI2 - 2 * angleStart)) / PI2;
+
+      Object.assign(baseCircleConfig, {
+        angleStart,
+        angleEnd: PI2 - angleStart,
+        n: petalDensity - (petalDensity % sides), // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
+      });
+    }
 
     for (let i = 0; i < sides; i++) {
-      const sideCircle = new Circle({
-        n: circleNails,
-        size: [radius - margin / 2, radius - margin / 2],
+      const circleConfig: CircleConfig = {
+        ...baseCircleConfig,
         center: helperCircle.getPoint(i),
-        radius: radius - margin / 2,
-        rotation,
-      });
+        rotation: rotation - i / sides,
+      };
+
+      const sideCircle = new Circle(circleConfig);
 
       sideCircle.drawNails(this.nails, { nailsNumberStart: i * circleNails });
     }
