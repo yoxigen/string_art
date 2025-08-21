@@ -5,11 +5,13 @@ import { formatFractionAsPercent } from '../helpers/string_utils';
 import type { ControlsConfig } from '../types/config.types';
 import { ColorConfig } from '../helpers/color/color.types';
 import { Dimensions } from '../types/general.types';
+import { withoutAttribute } from '../helpers/config_utils';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
   density: number;
   d: number;
+  rotation: number;
 }
 
 interface TCalc {}
@@ -60,6 +62,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       displayValue: ({ d }) => formatFractionAsPercent(d),
       isStructural: true,
     },
+    withoutAttribute(Circle.rotationConfig, 'snap'),
     Color.getConfig({
       defaults: {
         isMultiColor: true,
@@ -90,10 +93,6 @@ export default class Lotus extends StringArt<LotusConfig> {
   setUpDraw() {
     super.setUpDraw();
 
-    const { margin = 0 } = this.config;
-    const center = this.size.map(v => v / 2);
-    const radius = Math.min(...center) - margin;
-
     if (!this.#calc) {
       this.#calc = this.getCalc();
     }
@@ -104,7 +103,7 @@ export default class Lotus extends StringArt<LotusConfig> {
   *generateStrings() {}
 
   drawNails() {
-    const { sides, density, d, margin } = this.config;
+    const { sides, density, d, margin, rotation } = this.config;
 
     const radius = (Math.min(...this.size) * d) / 2;
 
@@ -114,7 +113,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       size: this.size.map(v => v * d - margin) as Dimensions,
       center: this.center,
       radius: radius - margin / 2,
-      rotation: 0,
+      rotation,
     });
 
     const circleNails = density - (density % sides);
@@ -125,10 +124,10 @@ export default class Lotus extends StringArt<LotusConfig> {
         size: [radius - margin / 2, radius - margin / 2],
         center: helperCircle.getPoint(i),
         radius: radius - margin / 2,
-        rotation: 0,
+        rotation,
       });
 
-      sideCircle.drawNails(this.nails);
+      sideCircle.drawNails(this.nails, { nailsNumberStart: i * circleNails });
     }
   }
 
