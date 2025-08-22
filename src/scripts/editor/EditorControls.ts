@@ -278,8 +278,6 @@ export default class EditorControls<TConfig> {
       return;
     }
 
-    this.updateControlDisplayValue(controlKey);
-
     const eventData = Object.freeze({
       control: controlKey,
       value: inputValue,
@@ -294,6 +292,7 @@ export default class EditorControls<TConfig> {
     };
 
     this.updateControlsAttributes();
+    this.updateControlDisplayValue(controlKey);
 
     if (deferChange) {
       inputTimeout = window.setTimeout(triggerChange, 100);
