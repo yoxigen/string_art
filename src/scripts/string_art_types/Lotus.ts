@@ -1,19 +1,19 @@
 import StringArt from '../StringArt';
 import Circle, { CircleConfig } from '../helpers/Circle';
 import Color from '../helpers/color/Color';
-import { formatFractionAsPercent } from '../helpers/string_utils';
 import type { ControlsConfig } from '../types/config.types';
 import { ColorConfig } from '../helpers/color/color.types';
 import { Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { PI2 } from '../helpers/math_utils';
+import { formatFractionAsPercent } from '../helpers/string_utils';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
   density: number;
-  d: number;
   rotation: number;
   isPetals: boolean;
+  removePetals: number;
 }
 
 interface TCalc {}
@@ -49,21 +49,6 @@ export default class Lotus extends StringArt<LotusConfig> {
       },
       isStructural: true,
     },
-    {
-      key: 'd',
-      label: 'Distance',
-      description:
-        'The distance of the center of the circles that form the lotus from the center of the lotus',
-      type: 'range',
-      attr: {
-        min: 0.5,
-        max: 2,
-        step: 0.01,
-      },
-      defaultValue: 0.5,
-      displayValue: ({ d }) => formatFractionAsPercent(d),
-      isStructural: true,
-    },
     withoutAttribute(Circle.rotationConfig, 'snap'),
     {
       key: 'isPetals',
@@ -71,6 +56,20 @@ export default class Lotus extends StringArt<LotusConfig> {
       type: 'checkbox',
       defaultValue: false,
       isStructural: true,
+    },
+    {
+      key: 'removePetals',
+      label: 'Remove petals',
+      type: 'range',
+      attr: {
+        min: 0,
+        max: 1,
+        step: ({ sides }) => 1 / (Math.floor(sides / 2) - 2),
+      },
+      defaultValue: 0,
+      displayValue: ({ removePetals }) => formatFractionAsPercent(removePetals),
+      isStructural: true,
+      show: ({ isPetals }) => isPetals,
     },
     Color.getConfig({
       defaults: {
@@ -112,8 +111,9 @@ export default class Lotus extends StringArt<LotusConfig> {
   *generateStrings() {}
 
   drawNails() {
-    const { sides, density, d, margin, rotation, isPetals } = this.config;
-
+    const { sides, density, margin, rotation, isPetals, removePetals } =
+      this.config;
+    const d = 0.5; // The helper circle's center is right between the pattern center and the edge
     const radius = (Math.min(...this.size) * d) / 2;
 
     // Draw circles around the center point. For this, create a helper Circle, so its points can be used as centers for the lotus circles:
@@ -137,7 +137,13 @@ export default class Lotus extends StringArt<LotusConfig> {
     };
 
     if (isPetals) {
-      const angleStart = sideAngle;
+      const petalSectionCount = Math.floor(sides / 2) - 1;
+      const angleStart =
+        sideAngle *
+        Math.min(
+          petalSectionCount,
+          1 + Math.floor(removePetals * petalSectionCount)
+        );
       const petalDensity = (density * (PI2 - 2 * angleStart)) / PI2;
 
       Object.assign(baseCircleConfig, {
