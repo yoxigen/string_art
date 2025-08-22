@@ -13,6 +13,7 @@ interface LotusConfig extends ColorConfig {
   density: number;
   rotation: number;
   removeSections: number;
+  fit: boolean;
 }
 
 interface TCalc {}
@@ -59,9 +60,17 @@ export default class Lotus extends StringArt<LotusConfig> {
         step: ({ sides }) => 1 / (Math.floor(sides / 2) - (sides % 2 ? 0 : 1)),
       },
       defaultValue: 0,
-      displayValue: ({ removeSections }) =>
-        formatFractionAsPercent(removeSections),
+      displayValue: ({ removeSections, sides }) =>
+        Math.round(
+          removeSections * (Math.floor(sides / 2) - (sides % 2 ? 0 : 1))
+        ),
       isStructural: true,
+    },
+    {
+      key: 'fit',
+      label: 'Fit',
+      type: 'checkbox',
+      defaultValue: true,
     },
     Color.getConfig({
       defaults: {
@@ -103,9 +112,55 @@ export default class Lotus extends StringArt<LotusConfig> {
   *generateStrings() {}
 
   drawNails() {
-    const { sides, density, margin, rotation, removeSections } = this.config;
+    const { sides, density, margin, rotation, removeSections, fit } =
+      this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
-    const radius = (Math.min(...this.size) * d) / 2;
+    let radius = (Math.min(...this.size) * d) / 2;
+
+    const circleNails = density - (density % sides);
+    const sideAngle = PI2 / sides;
+
+    const baseCircleConfig: CircleConfig = {
+      n: circleNails,
+      center: [0, 0],
+      size: [0, 0],
+      radius: 0,
+      rotation: 0,
+    };
+
+    if (removeSections) {
+      const petalSectionCount = Math.ceil(sides / 2);
+      const petalSectionsToRemove = Math.min(
+        petalSectionCount,
+        Math.floor(Math.min(0.99, removeSections) * petalSectionCount)
+      );
+
+      const angleStart = sideAngle * petalSectionsToRemove;
+
+      const petalDensity = (density * (PI2 - 2 * angleStart)) / PI2;
+
+      if (fit) {
+        const topSectionHeight =
+          2 *
+          radius *
+          Math.sin(
+            (angleStart > Math.PI / 2 ? angleStart : Math.PI - angleStart) / 2
+          );
+        // Increase the radius by the inverse relation of the top section height to the original top section height (which the original radius):
+        radius = (radius * (2 * radius - margin)) / topSectionHeight;
+      }
+
+      Object.assign(baseCircleConfig, {
+        angleStart,
+        angleEnd: PI2 - angleStart,
+        n: petalDensity - (petalDensity % sides), // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
+      });
+    }
+
+    Object.assign(baseCircleConfig, {
+      size: [radius - margin / 2, radius - margin / 2],
+      radius: radius - margin / 2,
+    });
 
     // Draw circles around the center point. For this, create a helper Circle, so its points can be used as centers for the lotus circles:
     const helperCircle = new Circle({
@@ -115,35 +170,6 @@ export default class Lotus extends StringArt<LotusConfig> {
       radius: radius - margin / 2,
       rotation,
     });
-
-    const circleNails = density - (density % sides);
-    const sideAngle = PI2 / sides;
-
-    const baseCircleConfig: CircleConfig = {
-      n: circleNails,
-      size: [radius - margin / 2, radius - margin / 2],
-      radius: radius - margin / 2,
-      center: [0, 0],
-      rotation: 0,
-    };
-
-    if (removeSections) {
-      const petalSectionCount = Math.ceil(sides / 2);
-
-      const angleStart =
-        sideAngle *
-        Math.min(
-          petalSectionCount,
-          Math.floor(Math.min(0.99, removeSections) * petalSectionCount)
-        );
-      const petalDensity = (density * (PI2 - 2 * angleStart)) / PI2;
-
-      Object.assign(baseCircleConfig, {
-        angleStart,
-        angleEnd: PI2 - angleStart,
-        n: petalDensity - (petalDensity % sides), // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
-      });
-    }
 
     for (let i = 0; i < sides; i++) {
       const circleConfig: CircleConfig = {
