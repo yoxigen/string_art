@@ -12,8 +12,7 @@ interface LotusConfig extends ColorConfig {
   sides: number;
   density: number;
   rotation: number;
-  isPetals: boolean;
-  removePetals: number;
+  removeSections: number;
 }
 
 interface TCalc {}
@@ -51,25 +50,18 @@ export default class Lotus extends StringArt<LotusConfig> {
     },
     withoutAttribute(Circle.rotationConfig, 'snap'),
     {
-      key: 'isPetals',
-      label: 'Is petals',
-      type: 'checkbox',
-      defaultValue: false,
-      isStructural: true,
-    },
-    {
-      key: 'removePetals',
-      label: 'Remove petals',
+      key: 'removeSections',
+      label: 'Remove sections',
       type: 'range',
       attr: {
         min: 0,
         max: 1,
-        step: ({ sides }) => 1 / (Math.floor(sides / 2) - 2),
+        step: ({ sides }) => 1 / (Math.floor(sides / 2) - (sides % 2 ? 0 : 1)),
       },
       defaultValue: 0,
-      displayValue: ({ removePetals }) => formatFractionAsPercent(removePetals),
+      displayValue: ({ removeSections }) =>
+        formatFractionAsPercent(removeSections),
       isStructural: true,
-      show: ({ isPetals }) => isPetals,
     },
     Color.getConfig({
       defaults: {
@@ -111,8 +103,7 @@ export default class Lotus extends StringArt<LotusConfig> {
   *generateStrings() {}
 
   drawNails() {
-    const { sides, density, margin, rotation, isPetals, removePetals } =
-      this.config;
+    const { sides, density, margin, rotation, removeSections } = this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
     const radius = (Math.min(...this.size) * d) / 2;
 
@@ -136,13 +127,14 @@ export default class Lotus extends StringArt<LotusConfig> {
       rotation: 0,
     };
 
-    if (isPetals) {
-      const petalSectionCount = Math.floor(sides / 2) - 1;
+    if (removeSections) {
+      const petalSectionCount = Math.ceil(sides / 2);
+
       const angleStart =
         sideAngle *
         Math.min(
           petalSectionCount,
-          1 + Math.floor(removePetals * petalSectionCount)
+          Math.floor(Math.min(0.99, removeSections) * petalSectionCount)
         );
       const petalDensity = (density * (PI2 - 2 * angleStart)) / PI2;
 
