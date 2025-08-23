@@ -138,22 +138,25 @@ export default class Lotus extends StringArt<LotusConfig> {
       const angleStart = sideAngle * petalSectionsToRemove;
 
       const petalDensity = (density * (PI2 - 2 * angleStart)) / PI2;
+      // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
+      baseCircleConfig.n = petalDensity - (petalDensity % sides);
 
       if (fit) {
+        // Since we removed sections and now the pattern is smaller than the canvas size, we fit the remaining shape to fit on canvas
+        // this is done by:
+        // 1. Calculating the new outer edge of the shape, after removing sections
+        // 2. Increase the size of the circles that create petals by the inverse ratio of the new to original size
+        // 3. Since the circles are now larger, increase the number of nails in the circles by the size ratio, to maintain density.
         const topSectionHeight =
-          2 *
-          radius *
-          Math.sin(
-            (angleStart > Math.PI / 2 ? angleStart : Math.PI - angleStart) / 2
-          );
-        // Increase the radius by the inverse relation of the top section height to the original top section height (which the original radius):
-        radius = (radius * (2 * radius - margin)) / topSectionHeight;
+          2 * radius * Math.sin((Math.PI - angleStart) / 2);
+        const fitAspectRatio = (2 * radius - margin) / topSectionHeight;
+        baseCircleConfig.n *= fitAspectRatio;
+        radius *= fitAspectRatio;
       }
 
       Object.assign(baseCircleConfig, {
         angleStart,
         angleEnd: PI2 - angleStart,
-        n: petalDensity - (petalDensity % sides), // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
       });
     }
 
