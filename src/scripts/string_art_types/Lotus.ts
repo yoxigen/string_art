@@ -16,7 +16,11 @@ interface LotusConfig extends ColorConfig {
   fit: boolean;
 }
 
-interface TCalc {}
+interface TCalc {
+  circles: ReadonlyArray<Circle>;
+  circleNailsCount: number;
+  sideAngle: number;
+}
 
 export default class Lotus extends StringArt<LotusConfig> {
   static type = 'lotus';
@@ -90,34 +94,12 @@ export default class Lotus extends StringArt<LotusConfig> {
   #color: Color;
 
   getCalc(): TCalc {
-    return {};
-  }
-
-  resetStructure() {
-    super.resetStructure();
-
-    this.#calc = null;
-  }
-
-  setUpDraw() {
-    super.setUpDraw();
-
-    if (!this.#calc) {
-      this.#calc = this.getCalc();
-    }
-
-    this.#color = new Color(this.config);
-  }
-
-  *generateStrings() {}
-
-  drawNails() {
     const { sides, density, margin, rotation, removeSections, fit } =
       this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
     let radius = (Math.min(...this.size) * d) / 2;
 
-    const circleNails = density - (density % sides);
+    const circleNails = density;
     const sideAngle = PI2 / sides;
 
     const baseCircleConfig: CircleConfig = {
@@ -137,9 +119,8 @@ export default class Lotus extends StringArt<LotusConfig> {
 
       const angleStart = sideAngle * petalSectionsToRemove;
 
-      const petalDensity = (density * (PI2 - 2 * angleStart)) / PI2;
       // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
-      baseCircleConfig.n = petalDensity - (petalDensity % sides);
+      baseCircleConfig.n = (density * (PI2 - 2 * angleStart)) / PI2;
 
       if (fit) {
         // Since we removed sections and now the pattern is smaller than the canvas size, we fit the remaining shape to fit on canvas
@@ -174,17 +155,48 @@ export default class Lotus extends StringArt<LotusConfig> {
       rotation,
     });
 
-    for (let i = 0; i < sides; i++) {
-      const circleConfig: CircleConfig = {
-        ...baseCircleConfig,
-        center: helperCircle.getPoint(i),
-        rotation: rotation - i / sides,
-      };
+    baseCircleConfig.n -= baseCircleConfig.n % sides;
 
-      const sideCircle = new Circle(circleConfig);
+    const circles = new Array(sides).fill(null).map(
+      (_, i) =>
+        new Circle({
+          ...baseCircleConfig,
+          center: helperCircle.getPoint(i),
+          rotation: rotation - i / sides,
+        })
+    );
 
-      sideCircle.drawNails(this.nails, { nailsNumberStart: i * circleNails });
+    return {
+      circles,
+      circleNailsCount: baseCircleConfig.n,
+      sideAngle,
+    };
+  }
+
+  resetStructure() {
+    super.resetStructure();
+
+    this.#calc = null;
+  }
+
+  setUpDraw() {
+    super.setUpDraw();
+
+    if (!this.#calc) {
+      this.#calc = this.getCalc();
     }
+
+    this.#color = new Color(this.config);
+  }
+
+  *generateStrings() {}
+
+  drawNails() {
+    const { circles, circleNailsCount } = this.getCalc();
+
+    circles.forEach((circle, i) => {
+      circle.drawNails(this.nails, { nailsNumberStart: i * circleNailsCount });
+    });
   }
 
   getStepCount() {
