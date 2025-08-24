@@ -42,6 +42,7 @@ export default class Circle {
   isReverse: boolean = false;
   radius: number;
   arc: number = PI2;
+  isPartialArc: boolean = false;
 
   constructor(config: CircleConfig) {
     this.setConfig(config);
@@ -55,7 +56,10 @@ export default class Circle {
     }
 
     const angle =
-      this.easingFunction(realIndex / this.config.n) * this.arc +
+      this.easingFunction(
+        realIndex / (this.config.n - (this.isPartialArc ? 1 : 0))
+      ) *
+        this.arc +
       this.rotationAngle +
       (this.config.angleStart ?? 0);
 
@@ -106,16 +110,14 @@ export default class Circle {
       }
 
       // Normally, the whole circle is rendered, but if angleStart and angleEnd are configured and valid, and arc between them is rendered:
-      const arc =
-        angleStart && angleEnd && angleEnd > angleStart
-          ? angleEnd - angleStart
-          : PI2;
+      this.isPartialArc = angleStart && angleEnd && angleEnd > angleStart;
+      const arc = this.isPartialArc ? angleEnd - angleStart : PI2;
 
       const props = {
         center,
         radius: clampedRadius,
         xyRadius,
-        indexAngle: arc / n,
+        indexAngle: arc / (this.isPartialArc ? n - 1 : n),
         rotationAngle: -PI2 * rotation,
         isReverse: reverse,
         arc,
@@ -171,11 +173,16 @@ export default class Circle {
     props: {
       nailsNumberStart?: number;
       getNumber?: (n: number) => number | string;
+      color?: ColorValue;
     } = {}
   ) {
-    for (const nail of this.generateNails(props)) {
-      nails.addNail(nail);
+    const arr = [];
+    const { color, ...restProps } = props;
+
+    for (const nail of this.generateNails(restProps)) {
+      arr.push(nail);
     }
+    nails.addGroup(arr, { color });
   }
 
   *drawRing(

@@ -49,7 +49,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       attr: {
         min: 1,
         max: 500,
-        step: 1,
+        step: ({ sides }) => sides,
       },
       isStructural: true,
     },
@@ -61,13 +61,11 @@ export default class Lotus extends StringArt<LotusConfig> {
       attr: {
         min: 0,
         max: 1,
-        step: ({ sides }) => 1 / (Math.floor(sides / 2) - (sides % 2 ? 0 : 1)),
+        step: ({ sides }) => 1 / getSectionCountToRemove(sides),
       },
       defaultValue: 0,
       displayValue: ({ removeSections, sides }) =>
-        Math.round(
-          removeSections * (Math.floor(sides / 2) - (sides % 2 ? 0 : 1))
-        ),
+        Math.round(removeSections * getSectionCountToRemove(sides)),
       isStructural: true,
     },
     {
@@ -99,11 +97,10 @@ export default class Lotus extends StringArt<LotusConfig> {
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
     let radius = (Math.min(...this.size) * d) / 2;
 
-    const circleNails = density;
     const sideAngle = PI2 / sides;
-
+    const densityNailCount = fixNailsCount(density);
     const baseCircleConfig: CircleConfig = {
-      n: circleNails,
+      n: densityNailCount,
       center: [0, 0],
       size: [0, 0],
       radius: 0,
@@ -111,16 +108,13 @@ export default class Lotus extends StringArt<LotusConfig> {
     };
 
     if (removeSections) {
-      const petalSectionCount = Math.ceil(sides / 2);
+      const maxPetalSectionsToRemove = getSectionCountToRemove(sides);
       const petalSectionsToRemove = Math.min(
-        petalSectionCount,
-        Math.floor(Math.min(0.99, removeSections) * petalSectionCount)
+        maxPetalSectionsToRemove,
+        Math.round(removeSections * maxPetalSectionsToRemove)
       );
 
       const angleStart = sideAngle * petalSectionsToRemove;
-
-      // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
-      baseCircleConfig.n = (density * (PI2 - 2 * angleStart)) / PI2;
 
       if (fit) {
         // Since we removed sections and now the pattern is smaller than the canvas size, we fit the remaining shape to fit on canvas
@@ -131,8 +125,17 @@ export default class Lotus extends StringArt<LotusConfig> {
         const topSectionHeight =
           2 * radius * Math.sin((Math.PI - angleStart) / 2);
         const fitAspectRatio = (2 * radius - margin) / topSectionHeight;
-        baseCircleConfig.n *= fitAspectRatio;
+        baseCircleConfig.n = removeSectionsNailCount(
+          fixNailsCount(density * fitAspectRatio),
+          petalSectionsToRemove
+        );
         radius *= fitAspectRatio;
+      } else {
+        // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
+        baseCircleConfig.n = removeSectionsNailCount(
+          densityNailCount,
+          petalSectionsToRemove
+        );
       }
 
       Object.assign(baseCircleConfig, {
@@ -155,7 +158,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       rotation,
     });
 
-    baseCircleConfig.n -= baseCircleConfig.n % sides;
+    baseCircleConfig.n = Math.floor(baseCircleConfig.n);
 
     const circles = new Array(sides).fill(null).map(
       (_, i) =>
@@ -171,6 +174,19 @@ export default class Lotus extends StringArt<LotusConfig> {
       circleNailsCount: baseCircleConfig.n,
       sideAngle,
     };
+
+    function fixNailsCount(nailsCount: number): number {
+      return Math.max(sides, nailsCount - (nailsCount % sides));
+    }
+
+    function removeSectionsNailCount(
+      fullCircleNailCount: number,
+      sectionsToRemove: number
+    ): number {
+      return Math.round(
+        fullCircleNailCount * (1 - (2 * sectionsToRemove) / sides) + 1
+      );
+    }
   }
 
   resetStructure() {
@@ -195,8 +211,11 @@ export default class Lotus extends StringArt<LotusConfig> {
     const { circles, circleNailsCount } = this.getCalc();
 
     circles.forEach((circle, i) => {
-      circle.drawNails(this.nails, { nailsNumberStart: i * circleNailsCount });
+      circle.drawNails(this.nails, {
+        nailsNumberStart: i * circleNailsCount,
+      });
     });
+    // circles[0].drawNails(this.nails);
   }
 
   getStepCount() {
@@ -204,4 +223,8 @@ export default class Lotus extends StringArt<LotusConfig> {
   }
 
   static thumbnailConfig = {};
+}
+
+function getSectionCountToRemove(sides: number): number {
+  return sides % 2 ? Math.floor(sides / 2) : sides / 2 - 1;
 }
