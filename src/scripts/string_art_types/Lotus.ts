@@ -2,11 +2,10 @@ import StringArt from '../StringArt';
 import Circle, { CircleConfig } from '../helpers/Circle';
 import Color from '../helpers/color/Color';
 import type { ControlsConfig } from '../types/config.types';
-import { ColorConfig } from '../helpers/color/color.types';
-import { Dimensions } from '../types/general.types';
+import { ColorConfig, ColorValue } from '../helpers/color/color.types';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { PI2 } from '../helpers/math_utils';
-import { formatFractionAsPercent } from '../helpers/string_utils';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -20,6 +19,10 @@ interface TCalc {
   circles: ReadonlyArray<Circle>;
   circleNailsCount: number;
   sideAngle: number;
+  sections: number;
+  nailsPerSection: number;
+  nailsPerCircle: number;
+  removedSections: number;
 }
 
 export default class Lotus extends StringArt<LotusConfig> {
@@ -35,7 +38,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       type: 'range',
       defaultValue: 12,
       attr: {
-        min: 3,
+        min: 4,
         max: 64,
         step: 1,
       },
@@ -73,6 +76,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       label: 'Fit',
       type: 'checkbox',
       defaultValue: true,
+      show: ({ removeSections }) => removeSections,
     },
     Color.getConfig({
       defaults: {
@@ -95,7 +99,8 @@ export default class Lotus extends StringArt<LotusConfig> {
     const { sides, density, margin, rotation, removeSections, fit } =
       this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
-    let radius = (Math.min(...this.size) * d) / 2;
+    const size = this.getSize();
+    let radius = (Math.min(...size) * d) / 2;
 
     const sideAngle = PI2 / sides;
     const densityNailCount = fixNailsCount(density);
@@ -107,9 +112,11 @@ export default class Lotus extends StringArt<LotusConfig> {
       rotation: 0,
     };
 
+    let petalSectionsToRemove = 0;
+
     if (removeSections) {
       const maxPetalSectionsToRemove = getSectionCountToRemove(sides);
-      const petalSectionsToRemove = Math.min(
+      petalSectionsToRemove = Math.min(
         maxPetalSectionsToRemove,
         Math.round(removeSections * maxPetalSectionsToRemove)
       );
@@ -152,13 +159,11 @@ export default class Lotus extends StringArt<LotusConfig> {
     // Draw circles around the center point. For this, create a helper Circle, so its points can be used as centers for the lotus circles:
     const helperCircle = new Circle({
       n: sides,
-      size: this.size.map(v => v * d - margin) as Dimensions,
+      size: size.map(v => v * d - margin) as Dimensions,
       center: this.center,
       radius: radius - margin / 2,
       rotation,
     });
-
-    baseCircleConfig.n = Math.floor(baseCircleConfig.n);
 
     const circles = new Array(sides).fill(null).map(
       (_, i) =>
@@ -173,6 +178,10 @@ export default class Lotus extends StringArt<LotusConfig> {
       circles,
       circleNailsCount: baseCircleConfig.n,
       sideAngle,
+      sections: getSectionsCount(sides) - petalSectionsToRemove,
+      removedSections: petalSectionsToRemove,
+      nailsPerSection: baseCircleConfig.n / sides,
+      nailsPerCircle: baseCircleConfig.n,
     };
 
     function fixNailsCount(nailsCount: number): number {
@@ -201,11 +210,75 @@ export default class Lotus extends StringArt<LotusConfig> {
     if (!this.#calc) {
       this.#calc = this.getCalc();
     }
-
+    console.log('CALC', this.#calc);
     this.#color = new Color(this.config);
   }
 
-  *generateStrings() {}
+  #getPatchColor(circleIndex: number, section: number): ColorValue {
+    return this.#color.getColor(circleIndex);
+  }
+
+  *#drawPatch(circleIndex: number, section: number): Generator<void> {
+    const { sides } = this.config;
+    const { circles, sections, nailsPerSection, nailsPerCircle } = this.#calc;
+
+    const color = this.#getPatchColor(circleIndex, section);
+    const circle = circles[circleIndex];
+
+    this.renderer.setColor(color);
+
+    const prevCircle =
+      this.#calc.circles[circleIndex === 0 ? sides - 1 : circleIndex - 1];
+
+    if (section === 0) {
+      // For first section (outtermost): connectPoint is `prevCircle[sideAngle * 2]
+      const connectPoint: Coordinates = prevCircle.getPoint(
+        nailsPerSection * 2
+      );
+      for (let i = nailsPerCircle - nailsPerSection; i <= nailsPerCircle; i++) {
+        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        yield;
+      }
+      for (let i = 0; i <= nailsPerSection; i++) {
+        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        yield;
+      }
+    } else if (section < this.#calc.sections - 1) {
+      // For middle sections, connectPoint is `circleIndex - 1`, (sideAngle * section + 1). Connect circleIndex[section] and `circleIndex + section`[section]
+      const connectPoint: Coordinates = prevCircle.getPoint(
+        nailsPerSection * (section + 2)
+      );
+      const firstCircle = circles[(circleIndex + section) % sides];
+      const firstCircleStart = nailsPerCircle - (section + 1) * nailsPerSection;
+
+      for (let i = 0; i <= nailsPerSection; i++) {
+        this.renderer.renderLines(
+          firstCircle.getPoint(firstCircleStart + i),
+          connectPoint
+        );
+        yield;
+      }
+
+      const startIndex = section * nailsPerSection + 1;
+      for (let i = startIndex; i < startIndex + nailsPerSection; i++) {
+        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        yield;
+      }
+    } else {
+      // If section is max (innermost), strings are between the circleIndex and the last connecting circle, both to the center point of the pattern
+    }
+  }
+
+  *generateStrings(): Generator<void> {
+    const { sections, removedSections } = this.#calc;
+    const { sides } = this.config;
+
+    for (let side = 0; side < sides; side++) {
+      for (let section = removedSections; section < sections; section++) {
+        yield* this.#drawPatch(side, section);
+      }
+    }
+  }
 
   drawNails() {
     const { circles, circleNailsCount } = this.getCalc();
@@ -219,12 +292,19 @@ export default class Lotus extends StringArt<LotusConfig> {
   }
 
   getStepCount() {
-    return 100;
+    const { nailsPerSection, sections } = this.getCalc();
+    const { sides } = this.config;
+
+    return (sides + 1) * (sections - 1) * nailsPerSection * 2;
   }
 
   static thumbnailConfig = {};
 }
 
+function getSectionsCount(sides: number): number {
+  return sides % 2 ? Math.ceil(sides / 2) : sides / 2;
+}
+
 function getSectionCountToRemove(sides: number): number {
-  return sides % 2 ? Math.floor(sides / 2) : sides / 2 - 1;
+  return getSectionsCount(sides) - 1;
 }
