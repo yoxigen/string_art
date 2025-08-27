@@ -233,8 +233,11 @@ export default class Lotus extends StringArt<LotusConfig> {
 
   #getPatchColor(circleIndex: number, section: number): ColorValue {
     const { colorPerLevel } = this.config;
+    const { removedSections } = this.#calc;
 
-    return this.#color.getColor(colorPerLevel ? section : circleIndex);
+    return this.#color.getColor(
+      colorPerLevel ? section - removedSections : circleIndex
+    );
   }
 
   *#drawPatch(circleIndex: number, section: number): Generator<void> {
