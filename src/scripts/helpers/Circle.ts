@@ -31,6 +31,15 @@ export interface CircleConfig {
   angleEnd?: number;
 }
 
+export interface CircleNailsOptions {
+  nailsNumberStart?: number;
+  getNumber?: (n: number) => number | string;
+  /**
+   * Ranges of nails to exclude from the circle
+   */
+  excludedNailRanges?: ReadonlyArray<[number, number]>;
+}
+
 export default class Circle {
   points: Map<number, Coordinates>;
   easingFunction: Function;
@@ -43,6 +52,7 @@ export default class Circle {
   radius: number;
   arc: number = PI2;
   isPartialArc: boolean = false;
+  excludedNailIndexes: ReadonlySet<number>;
 
   constructor(config: CircleConfig) {
     this.setConfig(config);
@@ -151,15 +161,37 @@ export default class Circle {
   *generateNails({
     nailsNumberStart = 0,
     getNumber,
-  }: {
-    nailsNumberStart?: number;
-    getNumber?: (n: number) => number | string;
-  } = {}): Generator<Nail> {
-    for (let i = 0; i < this.config.n; i++) {
-      yield {
-        point: this.getPoint(i),
-        number: getNumber ? getNumber(i) : i + nailsNumberStart,
-      };
+    excludedNailRanges,
+  }: CircleNailsOptions = {}): Generator<Nail> {
+    const { n } = this.config;
+
+    let excludedNailIndexes: Set<number>;
+    if (excludedNailRanges) {
+      excludedNailIndexes = new Set<number>();
+      excludedNailRanges.forEach(([start, end]) => {
+        const max = Math.min(end, n);
+        for (let i = Math.max(0, start); i <= max; i++) {
+          excludedNailIndexes.add(i);
+        }
+      });
+    }
+
+    let i = 0;
+    let j = 0;
+
+    const nailCount = excludedNailIndexes?.size
+      ? this.config.n - excludedNailIndexes.size
+      : this.config.n;
+    while (j < this.config.n) {
+      if (!excludedNailIndexes?.has(j)) {
+        yield {
+          point: this.getPoint(j),
+          number: getNumber ? getNumber(i) : i + nailsNumberStart,
+        };
+
+        i++;
+      }
+      j++;
     }
   }
 
@@ -170,9 +202,7 @@ export default class Circle {
    */
   drawNails(
     nails: Nails,
-    props: {
-      nailsNumberStart?: number;
-      getNumber?: (n: number) => number | string;
+    props: CircleNailsOptions & {
       color?: ColorValue;
     } = {}
   ) {

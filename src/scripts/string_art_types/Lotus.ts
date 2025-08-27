@@ -13,6 +13,8 @@ interface LotusConfig extends ColorConfig {
   rotation: number;
   removeSections: number;
   fit: boolean;
+  renderCenter: boolean;
+  renderCenterNails: boolean;
   colorPerLevel: boolean;
 }
 
@@ -37,7 +39,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       label: 'Sides',
       description: 'How many petals there are in the Lotus',
       type: 'range',
-      defaultValue: 12,
+      defaultValue: 16,
       attr: {
         min: 4,
         max: 64,
@@ -80,16 +82,31 @@ export default class Lotus extends StringArt<LotusConfig> {
       show: ({ removeSections }) => removeSections,
       isStructural: true,
     },
+    {
+      key: 'renderCenter',
+      label: 'Render center',
+      type: 'checkbox',
+      defaultValue: true,
+      isStructural: true,
+    },
+    {
+      key: 'renderCenterNails',
+      label: 'Render center nails',
+      type: 'checkbox',
+      defaultValue: false,
+      isStructural: true,
+      show: ({ renderCenter }) => renderCenter,
+    },
     Color.getConfig({
       defaults: {
         isMultiColor: true,
-        multicolorRange: 1,
-        multicolorStart: 237,
-        color: '#ffffff',
-        saturation: 40,
+        multicolorStart: 20,
+        multicolorRange: 26,
         multicolorByLightness: true,
-        minLightness: 20,
-        maxLightness: 97,
+        minLightness: 32,
+        maxLightness: 85,
+        saturation: 100,
+        colorCount: 8,
       },
       customControls: [
         {
@@ -102,6 +119,10 @@ export default class Lotus extends StringArt<LotusConfig> {
       maxColorCount: 32,
     }),
   ];
+
+  defaultValues = {
+    nailsColor: '#a08346',
+  };
 
   #calc: TCalc;
   #color: Color;
@@ -223,11 +244,17 @@ export default class Lotus extends StringArt<LotusConfig> {
     if (!this.#calc) {
       this.#calc = this.getCalc();
     }
+    let colorCount = this.config.colorPerLevel
+      ? this.#calc.sections - this.#calc.removedSections
+      : this.config.colorCount;
+
+    if (!this.config.renderCenter) {
+      colorCount--;
+    }
+
     this.#color = new Color({
       ...this.config,
-      colorCount: this.config.colorPerLevel
-        ? this.#calc.sections - this.#calc.removedSections
-        : this.config.colorCount,
+      colorCount,
     });
   }
 
@@ -301,24 +328,47 @@ export default class Lotus extends StringArt<LotusConfig> {
 
   *generateStrings(): Generator<void> {
     const { sections, removedSections } = this.#calc;
-    const { sides } = this.config;
+    const { sides, renderCenter } = this.config;
+
+    const lastSection = sections - (renderCenter ? 1 : 2);
 
     for (let side = 0; side < sides; side++) {
-      for (let section = removedSections; section < sections - 1; section++) {
+      for (let section = removedSections; section < lastSection; section++) {
         yield* this.#drawPatch(side, section);
       }
     }
   }
 
   drawNails() {
-    const { circles, circleNailsCount } = this.getCalc();
+    const { renderCenter, renderCenterNails } = this.config;
+    const { circles, circleNailsCount } = this.#calc;
 
     circles.forEach((circle, i) => {
       circle.drawNails(this.nails, {
         nailsNumberStart: i * circleNailsCount,
+        excludedNailRanges: renderCenterNails
+          ? null
+          : this.#getCenterExcludedNails(),
       });
     });
-    // circles[0].drawNails(this.nails);
+
+    if (renderCenter) {
+      this.nails.addNail({ point: this.center, number: 'C' });
+    }
+  }
+
+  #getCenterExcludedNails(): [[number, number]] {
+    const { sides } = this.config;
+    const { sections, nailsPerSection, removedSections } = this.#calc;
+
+    const innerSectionNailsStart =
+      (sections - 1 - removedSections) * nailsPerSection + 1;
+    const innerSectionNailsEnd =
+      innerSectionNailsStart +
+      2 * (sides % 2 ? Math.floor(nailsPerSection / 2) : nailsPerSection) -
+      1;
+
+    return [[innerSectionNailsStart, innerSectionNailsEnd]];
   }
 
   getStepCount() {
