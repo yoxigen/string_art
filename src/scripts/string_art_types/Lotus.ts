@@ -15,7 +15,8 @@ interface LotusConfig extends ColorConfig {
   fit: boolean;
   renderCenter: boolean;
   renderCenterNails: boolean;
-  colorPerLevel: boolean;
+  radialColor: boolean;
+  centerRadius: number;
 }
 
 interface TCalc {
@@ -90,6 +91,19 @@ export default class Lotus extends StringArt<LotusConfig> {
       isStructural: true,
     },
     {
+      key: 'centerRadius',
+      label: 'Center radius',
+      type: 'range',
+      defaultValue: 0,
+      attr: {
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      show: ({ renderCenter }) => renderCenter,
+      isStructural: true,
+    },
+    {
       key: 'renderCenterNails',
       label: 'Render center nails',
       type: 'checkbox',
@@ -110,8 +124,8 @@ export default class Lotus extends StringArt<LotusConfig> {
       },
       customControls: [
         {
-          key: 'colorPerLevel',
-          label: 'Color per level',
+          key: 'radialColor',
+          label: 'Radial color',
           defaultValue: false,
           type: 'checkbox',
         },
@@ -244,11 +258,11 @@ export default class Lotus extends StringArt<LotusConfig> {
     if (!this.#calc) {
       this.#calc = this.getCalc();
     }
-    let colorCount = this.config.colorPerLevel
-      ? this.#calc.sections - this.#calc.removedSections
+    let colorCount = this.config.radialColor
+      ? this.#calc.sections - this.#calc.removedSections - 1
       : this.config.colorCount;
 
-    if (!this.config.renderCenter) {
+    if (!this.config.renderCenter && this.config.radialColor) {
       colorCount--;
     }
 
@@ -259,11 +273,11 @@ export default class Lotus extends StringArt<LotusConfig> {
   }
 
   #getPatchColor(circleIndex: number, section: number): ColorValue {
-    const { colorPerLevel } = this.config;
+    const { radialColor } = this.config;
     const { removedSections } = this.#calc;
 
     return this.#color.getColor(
-      colorPerLevel ? section - removedSections : circleIndex
+      radialColor ? section - removedSections : circleIndex
     );
   }
 
