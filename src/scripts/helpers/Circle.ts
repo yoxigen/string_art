@@ -179,9 +179,6 @@ export default class Circle {
     let i = 0;
     let j = 0;
 
-    const nailCount = excludedNailIndexes?.size
-      ? this.config.n - excludedNailIndexes.size
-      : this.config.n;
     while (j < this.config.n) {
       if (!excludedNailIndexes?.has(j)) {
         yield {

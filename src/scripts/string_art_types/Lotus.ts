@@ -6,6 +6,7 @@ import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { PI2 } from '../helpers/math_utils';
+import { formatFractionAsPercent } from '../helpers/string_utils';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -27,6 +28,7 @@ interface TCalc {
   nailsPerSection: number;
   nailsPerCircle: number;
   removedSections: number;
+  centerCircle?: Circle;
 }
 
 export default class Lotus extends StringArt<LotusConfig> {
@@ -42,7 +44,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       type: 'range',
       defaultValue: 16,
       attr: {
-        min: 4,
+        min: 5,
         max: 64,
         step: 1,
       },
@@ -68,11 +70,14 @@ export default class Lotus extends StringArt<LotusConfig> {
       attr: {
         min: 0,
         max: 1,
-        step: ({ sides }) => 1 / getSectionCountToRemove(sides),
+        step: ({ sides, renderCenter }) =>
+          1 / getSectionCountToRemove(sides, renderCenter),
       },
       defaultValue: 0,
-      displayValue: ({ removeSections, sides }) =>
-        Math.round(removeSections * getSectionCountToRemove(sides)),
+      displayValue: ({ removeSections, sides, renderCenter }) =>
+        Math.round(
+          removeSections * getSectionCountToRemove(sides, renderCenter)
+        ),
       isStructural: true,
     },
     {
@@ -100,6 +105,7 @@ export default class Lotus extends StringArt<LotusConfig> {
         max: 1,
         step: 0.01,
       },
+      displayValue: ({ centerRadius }) => formatFractionAsPercent(centerRadius),
       show: ({ renderCenter }) => renderCenter,
       isStructural: true,
     },
@@ -142,8 +148,16 @@ export default class Lotus extends StringArt<LotusConfig> {
   #color: Color;
 
   getCalc(): TCalc {
-    const { sides, density, margin, rotation, removeSections, fit } =
-      this.config;
+    const {
+      sides,
+      density,
+      margin,
+      rotation,
+      removeSections,
+      fit,
+      centerRadius: centerRadiusPercent,
+      renderCenter,
+    } = this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
     const size = this.getSize();
     let radius = (Math.min(...size) * d) / 2;
@@ -161,7 +175,10 @@ export default class Lotus extends StringArt<LotusConfig> {
     let petalSectionsToRemove = 0;
 
     if (removeSections) {
-      const maxPetalSectionsToRemove = getSectionCountToRemove(sides);
+      const maxPetalSectionsToRemove = getSectionCountToRemove(
+        sides,
+        renderCenter
+      );
       petalSectionsToRemove = Math.min(
         maxPetalSectionsToRemove,
         Math.round(removeSections * maxPetalSectionsToRemove)
@@ -220,7 +237,7 @@ export default class Lotus extends StringArt<LotusConfig> {
         })
     );
 
-    return {
+    const calc: TCalc = {
       circles,
       circleNailsCount: baseCircleConfig.n,
       sideAngle,
@@ -231,6 +248,29 @@ export default class Lotus extends StringArt<LotusConfig> {
       ),
       nailsPerCircle: baseCircleConfig.n,
     };
+
+    if (renderCenter && centerRadiusPercent) {
+      const lastSection = calc.sections - 1 - calc.removedSections;
+      const maxCenterRadiusPoint = circles[0].getPoint(
+        lastSection * calc.nailsPerSection
+      );
+      const maxCenterRadius = Math.floor(
+        Math.sqrt(
+          Math.abs(helperCircle.center[0] - maxCenterRadiusPoint[0]) ** 2 +
+            Math.abs(helperCircle.center[1] - maxCenterRadiusPoint[1]) ** 2
+        )
+      );
+      const centerCircleRadius = centerRadiusPercent * maxCenterRadius;
+      calc.centerCircle = new Circle({
+        n: sides,
+        center: helperCircle.center,
+        size: [centerCircleRadius, centerCircleRadius],
+        radius: centerCircleRadius,
+        rotation: -Math.ceil((sides - 4) / 2) / 2 / sides,
+      });
+    }
+
+    return calc;
 
     function fixNailsCount(nailsCount: number): number {
       return Math.max(sides, nailsCount - (nailsCount % sides));
@@ -314,10 +354,17 @@ export default class Lotus extends StringArt<LotusConfig> {
       }
     } else {
       // For middle sections, connectPoint is `circleIndex - 1`, (sideAngle * section + 1). Connect circleIndex[section] and `circleIndex + section`[section]
-      const connectPoint: Coordinates = prevCircle.getPoint(
-        nailsPerSection * (section + 2 - removedSections) -
-          (sides % 2 && section === sections - 2 ? nailsPerSection / 2 : 0)
-      );
+
+      const isLastSection = section === sections - 2;
+      const connectPoint: Coordinates =
+        isLastSection && this.#calc.centerCircle
+          ? this.#calc.centerCircle.getPoint(circleIndex)
+          : prevCircle.getPoint(
+              nailsPerSection * (section + 2 - removedSections) -
+                (sides % 2 && section === sections - 2
+                  ? nailsPerSection / 2
+                  : 0)
+            );
       const firstCircle = circles[(circleIndex + section) % sides];
       const firstCircleStart =
         nailsPerCircle -
@@ -341,25 +388,39 @@ export default class Lotus extends StringArt<LotusConfig> {
   }
 
   *generateStrings(): Generator<void> {
+    for (const { side, section } of this.#generatePatches()) {
+      yield* this.#drawPatch(side, section);
+    }
+  }
+
+  *#generatePatches(): Generator<{ side: number; section: number }> {
+    const { radialColor, sides, renderCenter } = this.config;
     const { sections, removedSections } = this.#calc;
-    const { sides, renderCenter } = this.config;
 
     const lastSection = sections - (renderCenter ? 1 : 2);
 
-    for (let side = 0; side < sides; side++) {
+    if (radialColor) {
       for (let section = removedSections; section < lastSection; section++) {
-        yield* this.#drawPatch(side, section);
+        for (let side = 0; side < sides; side++) {
+          yield { side, section };
+        }
+      }
+    } else {
+      for (let side = 0; side < sides; side++) {
+        for (let section = removedSections; section < lastSection; section++) {
+          yield { side, section };
+        }
       }
     }
   }
 
   drawNails() {
     const { renderCenter, renderCenterNails } = this.config;
-    const { circles, circleNailsCount } = this.#calc;
+    const { circles, circleNailsCount, centerCircle } = this.#calc;
 
-    circles.forEach((circle, i) => {
+    circles.forEach((circle, circleIndex) => {
       circle.drawNails(this.nails, {
-        nailsNumberStart: i * circleNailsCount,
+        getNumber: i => `${circleIndex + 1}_${i}`,
         excludedNailRanges: renderCenterNails
           ? null
           : this.#getCenterExcludedNails(),
@@ -367,20 +428,24 @@ export default class Lotus extends StringArt<LotusConfig> {
     });
 
     if (renderCenter) {
-      this.nails.addNail({ point: this.center, number: 'C' });
+      if (centerCircle) {
+        centerCircle.drawNails(this.nails, { getNumber: i => `C_${i + 1}` });
+      } else {
+        this.nails.addNail({ point: this.center, number: 'C' });
+      }
     }
   }
 
   #getCenterExcludedNails(): [[number, number]] {
-    const { sides } = this.config;
-    const { sections, nailsPerSection, removedSections } = this.#calc;
+    const { renderCenter } = this.config;
+    const { sections, nailsPerSection, nailsPerCircle, removedSections } =
+      this.#calc;
 
     const innerSectionNailsStart =
-      (sections - 1 - removedSections) * nailsPerSection + 1;
-    const innerSectionNailsEnd =
-      innerSectionNailsStart +
-      2 * (sides % 2 ? Math.floor(nailsPerSection / 2) : nailsPerSection) -
+      (sections - 1 - removedSections - (renderCenter ? 0 : 1)) *
+        nailsPerSection +
       1;
+    const innerSectionNailsEnd = nailsPerCircle - innerSectionNailsStart;
 
     return [[innerSectionNailsStart, innerSectionNailsEnd]];
   }
@@ -402,6 +467,6 @@ function getSectionsCount(sides: number): number {
   return sides % 2 ? Math.ceil(sides / 2) : sides / 2;
 }
 
-function getSectionCountToRemove(sides: number): number {
-  return getSectionsCount(sides) - 1;
+function getSectionCountToRemove(sides: number, renderCenter: boolean): number {
+  return getSectionsCount(sides) - (renderCenter ? 2 : 3);
 }
