@@ -12,6 +12,7 @@ import MaurerRose from './string_art_types/MaurerRose';
 import FlowerOfLife from './string_art_types/FlowerOfLife';
 import Comet from './string_art_types/Comet';
 import Sun from './string_art_types/Sun';
+import Lotus from './string_art_types/Lotus';
 
 const patternTypes = [
   Star,
@@ -28,6 +29,7 @@ const patternTypes = [
   FlowerOfLife,
   Comet,
   Sun,
+  Lotus,
 ];
 
 export default patternTypes;
