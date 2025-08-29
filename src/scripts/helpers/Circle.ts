@@ -176,19 +176,17 @@ export default class Circle {
       });
     }
 
-    let i = 0;
     let j = 0;
 
-    while (j < this.config.n) {
-      if (!excludedNailIndexes?.has(j)) {
+    for (let i = 0; i < this.config.n; i++) {
+      if (!excludedNailIndexes?.has(i)) {
         yield {
-          point: this.getPoint(j),
-          number: getNumber ? getNumber(i) : i + nailsNumberStart,
+          point: this.getPoint(i),
+          number: getNumber ? getNumber(j) : j + nailsNumberStart,
         };
 
-        i++;
+        j++;
       }
-      j++;
     }
   }
 
