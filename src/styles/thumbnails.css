@@ -106,6 +106,7 @@
   display: inline-block;
   cursor: pointer;
   transition: transform 200ms ease-out;
+  position: relative;
 }
 
 .pattern_select_thumbnails a:hover {

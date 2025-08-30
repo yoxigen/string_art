@@ -387,7 +387,7 @@ async function main() {
     controls.addEventListener('input', ({ control, value }) => {
       currentPattern.setConfigValue(control, value);
       controls.config = currentPattern.config;
-      currentPattern.draw();
+      currentPattern.draw({ redrawNails: control.affectsNails !== false });
     });
     controls.addEventListener('change', onInputsChange);
 

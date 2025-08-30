@@ -418,7 +418,7 @@ export default class Lotus extends StringArt<LotusConfig> {
 
   drawNails() {
     const { renderCenter, renderCenterNails } = this.config;
-    const { circles, circleNailsCount, centerCircle } = this.#calc;
+    const { circles, centerCircle } = this.#calc;
 
     circles.forEach((circle, circleIndex) => {
       circle.drawNails(this.nails, {

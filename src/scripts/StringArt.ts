@@ -325,15 +325,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     this.renderer.setLineWidth(this.config.stringWidth);
   }
 
-  afterDraw() {
-    this.#withRenderer();
-
-    const { showNails, showNailNumbers } = this.config;
-    if (showNails) {
-      this.drawNails();
-      this.nails.draw(this.renderer, { drawNumbers: showNailNumbers });
-    }
-  }
+  afterDraw() {}
 
   initDraw() {
     this.#withRenderer();
@@ -368,7 +360,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
    * Draws the string art
    * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all)
    */
-  draw({ position = Infinity }: { position?: number } = {}) {
+  draw({ position = Infinity, redrawNails = true}: { position?: number, redrawNails?: boolean } = {}) {
     this.#withRenderer();
 
     this.initDraw();
