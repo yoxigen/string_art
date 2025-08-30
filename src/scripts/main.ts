@@ -258,6 +258,7 @@ async function main() {
   }
 
   function downloadNailsImage() {
+    currentRenderer.disablePixelRatio();
     const currentConfig = currentPattern.config;
     currentPattern.config = {
       ...currentConfig,
@@ -266,11 +267,13 @@ async function main() {
       showNailNumbers: true,
       showStrings: false,
       nailsColor: '#000000',
+      backgroundColor: '#ffffff',
     };
     currentPattern.draw();
     downloadCanvas();
 
-    // Reset to the config before the download:
+    // Reset to the original config from before the download:
+    currentRenderer.enablePixelRatio();
     currentPattern.config = currentConfig;
     currentPattern.draw();
   }

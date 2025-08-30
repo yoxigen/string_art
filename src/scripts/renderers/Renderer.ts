@@ -6,6 +6,7 @@ export default abstract class Renderer {
   parentElement: HTMLElement;
   color?: ColorValue;
   size: Dimensions;
+  pixelRatio = 1;
 
   constructor(parentElement: HTMLElement) {
     this.parentElement = parentElement;
@@ -55,5 +56,14 @@ export default abstract class Renderer {
         this.element.removeAttribute('style');
       }
     }
+  }
+
+  enablePixelRatio() {
+    const dpr = window.devicePixelRatio || 1;
+    this.pixelRatio = dpr;
+  }
+
+  disablePixelRatio() {
+    this.pixelRatio = 1;
   }
 }

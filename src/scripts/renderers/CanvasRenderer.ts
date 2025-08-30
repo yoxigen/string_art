@@ -7,7 +7,6 @@ import { ColorValue } from '../helpers/color/color.types';
 export default class CanvasRenderer extends Renderer {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  pixelRatio: number;
 
   constructor(parentElement: HTMLElement) {
     super(parentElement);
@@ -15,8 +14,7 @@ export default class CanvasRenderer extends Renderer {
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
 
-    const dpr = window.devicePixelRatio || 1;
-    this.pixelRatio = dpr;
+    this.enablePixelRatio();
     this.ctx.globalCompositeOperation = 'source-over';
 
     parentElement.appendChild(this.canvas);
