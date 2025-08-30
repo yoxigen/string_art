@@ -1,5 +1,6 @@
 import StringArtHueInput from '../components/StringArtHueInput';
 import StringArtRangeInput from '../components/StringArtRangeInput';
+import EventBus from '../helpers/EventBus';
 import type {
   Config,
   ConfigValueOrFunction,
@@ -15,8 +16,6 @@ const elements = {
   sidebarForm: document.querySelector('#sidebar_form') as HTMLElement,
 };
 
-type EditorControlsEvent = 'input' | 'change' | 'control';
-const EVENTS = new Set<EditorControlsEvent>(['input', 'change']);
 const STATE_LOCAL_STORAGE_KEY = 'controls_state';
 const RANGE_SCROLL_LOCK_TIMEOUT = 120;
 
@@ -44,8 +43,8 @@ interface Control<TConfig> {
   displayValueElement: HTMLSpanElement;
 }
 
-export type ControlValueChangeEvent<
-  TConfig,
+export type ControlValueChangeEventData<
+  TConfig extends Config,
   TControl extends keyof TConfig = keyof TConfig
 > = {
   control: TControl;
@@ -53,18 +52,13 @@ export type ControlValueChangeEvent<
   originalEvent: Event;
 };
 
-export type OnControlValueChangedEventHandler<TConfig> = (
-  event: ControlValueChangeEvent<TConfig>
-) => any;
-
-export default class EditorControls<TConfig> {
+export default class EditorControls<TConfig extends Config> extends EventBus<{
+  input: ControlValueChangeEventData<TConfig>;
+  change: ControlValueChangeEventData<TConfig>;
+}> {
   config: Config<TConfig>;
   controlsConfig: ControlsConfig<TConfig>;
   state: EditorState;
-  eventHandlers: {
-    input: Set<string>;
-    change: Set<string>;
-  };
   controlElements: Partial<Record<keyof TConfig, Control<TConfig>>> = {};
 
   #postponeRangeInput: boolean = false;
@@ -83,15 +77,11 @@ export default class EditorControls<TConfig> {
     controlsConfig: ControlsConfig<TConfig>,
     config: Config<TConfig>
   ) {
+    super();
+
     this.config = config;
     this.controlsConfig = controlsConfig;
-
     this.state = this._getState() ?? { groups: {} };
-
-    this.eventHandlers = {
-      input: new Set(),
-      change: new Set(),
-    };
 
     this.#wrappedOnInput = this.#onInput.bind(this);
     elements.controls.addEventListener('input', this.#wrappedOnInput);
@@ -144,27 +134,6 @@ export default class EditorControls<TConfig> {
   #toggleFieldSetOnEnter(e) {
     if (e.target.nodeName === 'LEGEND' && e.key === 'Enter') {
       this.#toggleFieldset(e);
-    }
-  }
-
-  addEventListener(
-    event: EditorControlsEvent,
-    eventHandler: OnControlValueChangedEventHandler<TConfig>
-  ) {
-    if (!EVENTS.has(event)) {
-      throw new Error(`Unsupported event for EditorControls, "${event}"!`);
-    }
-
-    if (!(eventHandler instanceof Function)) {
-      throw new Error('Invalid event handler.');
-    }
-
-    this.eventHandlers[event].add(eventHandler);
-  }
-
-  _triggerEvent(event, eventData) {
-    for (const eventHandler of this.eventHandlers[event]) {
-      eventHandler(eventData);
     }
   }
 
@@ -271,23 +240,25 @@ export default class EditorControls<TConfig> {
     originalEvent?: InputEvent;
     deferChange?: boolean;
   }) {
-    const inputValue = getInputValue(inputElement);
     const controlKey = inputElement.id.replace(/^config_/, '') as keyof TConfig;
+    const inputValue = getInputValue(
+      inputElement
+    ) as TConfig[typeof controlKey];
 
     if (this.config[controlKey] === inputValue) {
       return;
     }
 
-    const eventData = Object.freeze({
+    const eventData: ControlValueChangeEventData<TConfig> = {
       control: controlKey,
       value: inputValue,
       originalEvent,
-    });
+    };
 
-    this._triggerEvent('input', eventData);
+    this.emit('input', eventData);
 
     const triggerChange = () => {
-      this._triggerEvent('change', eventData);
+      this.emit('change', eventData);
       this.updateControlsVisibility();
     };
 
