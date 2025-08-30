@@ -1,65 +1,89 @@
-import Renderer from './Renderer';
+import Renderer, { RendererResetOptions } from './Renderer';
 import { PI2 } from '../helpers/math_utils';
 import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail } from '../types/stringart.types';
 import { ColorValue } from '../helpers/color/color.types';
 
 export default class CanvasRenderer extends Renderer {
-  stringsCanvas: HTMLCanvasElement;
-  nailsCanvas: HTMLCanvasElement;
-
-  stringsCtx: CanvasRenderingContext2D;
-  nailsCtx: CanvasRenderingContext2D;
+  #layers: Record<
+    'strings' | 'nails',
+    { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D }
+  >;
 
   constructor(parentElement: HTMLElement) {
     super(parentElement);
 
-    this.stringsCanvas = document.createElement('canvas');
-    this.stringsCanvas.id = 'CanvasRenderer__strings';
-    this.stringsCtx = this.stringsCanvas.getContext('2d');
+    const stringsCanvas = document.createElement('canvas');
+    const nailsCanvas = document.createElement('canvas');
 
-    this.nailsCanvas = document.createElement('canvas');
-    this.nailsCanvas.id = 'CanvasRenderer__nails';
-    this.nailsCtx = this.nailsCanvas.getContext('2d');
+    this.#layers = {
+      strings: {
+        canvas: stringsCanvas,
+        ctx: stringsCanvas.getContext('2d'),
+      },
+      nails: {
+        canvas: nailsCanvas,
+        ctx: nailsCanvas.getContext('2d'),
+      },
+    };
 
-    this.canvases.forEach(canvas =>
-      canvas.classList.add('CanvasRenderer__canvas')
-    );
+    stringsCanvas.id = 'CanvasRenderer__strings';
+    nailsCanvas.id = 'CanvasRenderer__nails';
+
+    this.canvases.forEach(canvas => {
+      canvas.classList.add('CanvasRenderer__canvas');
+      parentElement.appendChild(canvas);
+    });
     this.enablePixelRatio();
-    this.stringsCtx.globalCompositeOperation = 'source-over';
-    this.nailsCtx.globalCompositeOperation = 'source-over';
-
-    parentElement.appendChild(this.stringsCanvas);
-    parentElement.appendChild(this.nailsCanvas);
+    this.ctxs.forEach(ctx => (ctx.globalCompositeOperation = 'source-over'));
   }
 
   get element() {
-    return this.stringsCanvas;
+    return this.#layers.strings.canvas;
   }
 
   get canvases(): HTMLCanvasElement[] {
-    return [this.stringsCanvas, this.nailsCanvas];
+    return [this.#layers.strings.canvas, this.#layers.nails.canvas];
   }
 
   get ctxs(): CanvasRenderingContext2D[] {
-    return [this.stringsCtx, this.nailsCtx];
+    return [this.#layers.strings.ctx, this.#layers.nails.ctx];
+  }
+
+  get stringsCtx(): CanvasRenderingContext2D {
+    return this.#layers.strings.ctx;
+  }
+
+  get nailsCtx(): CanvasRenderingContext2D {
+    return this.#layers.nails.ctx;
+  }
+
+  get stringsCanvas(): HTMLCanvasElement {
+    return this.#layers.strings.canvas;
+  }
+
+  resetSize(): void {
+    this.canvases.forEach(canvas => {
+      canvas.removeAttribute('width');
+      canvas.removeAttribute('height');
+    });
+
+    const [width, height] = this.getSize();
+    this.canvases.forEach(canvas => {
+      canvas.setAttribute('width', String(width));
+      canvas.setAttribute('height', String(height));
+    });
+  }
+
+  resetStrings(): void {
+    this.stringsCtx.clearRect(0, 0, ...this.getSize());
   }
 
   /**
    * Clears the stringsCanvas and resets the width and height
    */
-  reset() {
-    this.ctxs.forEach(ctx => ctx.clearRect(0, 0, ...this.getSize()));
-    this.canvases.forEach(canvas => canvas.removeAttribute('width'));
-    this.canvases.forEach(canvas => canvas.removeAttribute('height'));
-
-    const [width, height] = this.getSize();
-    this.canvases.forEach(canvas =>
-      canvas.setAttribute('width', String(width))
-    );
-    this.canvases.forEach(canvas =>
-      canvas.setAttribute('height', String(height))
-    );
+  resetNails() {
+    this.#layers.nails.ctx.clearRect(0, 0, ...this.getSize());
   }
 
   setColor(color: ColorValue) {

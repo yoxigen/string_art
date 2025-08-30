@@ -22,6 +22,12 @@ export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
   renderer?: Renderer
 ) => StringArt<TConfig>;
 
+export interface DrawOptions {
+  redrawNails?: boolean;
+  redrawStrings?: boolean;
+  updateSize?: boolean;
+}
+
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
   {
     key: 'strings',
@@ -35,6 +41,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: true,
         type: 'checkbox',
         isDisabled: ({ showNails }) => !showNails,
+        affectsNails: false,
       },
       {
         key: 'stringWidth',
@@ -43,6 +50,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         type: 'range',
         attr: { min: 0.2, max: 4, step: 0.1, snap: '1' },
         show: ({ showStrings }) => showStrings,
+        affectsNails: false,
       },
     ],
   },
@@ -58,6 +66,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: true,
         type: 'checkbox',
         isDisabled: ({ showStrings }) => !showStrings,
+        affectsStrings: false,
       },
       {
         key: 'showNailNumbers',
@@ -65,6 +74,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: false,
         type: 'checkbox',
         show: ({ showNails }) => showNails,
+        affectsStrings: false,
       },
       {
         key: 'nailNumbersFontSize',
@@ -74,6 +84,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         attr: { min: 6, max: 24, step: 0.5 },
         displayValue: ({ nailNumbersFontSize }) => `${nailNumbersFontSize}px`,
         show: ({ showNails, showNailNumbers }) => showNails && showNailNumbers,
+        affectsStrings: false,
       },
       {
         key: 'margin',
@@ -90,6 +101,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         type: 'range',
         attr: { min: 0.5, max: 5, step: 0.25, snap: '1.5' },
         show: ({ showNails }) => showNails,
+        affectsStrings: false,
       },
       {
         key: 'nailsColor',
@@ -97,6 +109,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: '#ffffff',
         type: 'color',
         show: ({ showNails }) => showNails,
+        affectsStrings: false,
       },
     ],
   },
@@ -112,6 +125,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: true,
         type: 'checkbox',
         isDisabled: ({ enableBackground }) => !enableBackground,
+        affectsNails: false,
       },
       {
         key: 'customBackgroundColor',
@@ -119,6 +133,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: false,
         type: 'checkbox',
         isDisabled: ({ enableBackground }) => !enableBackground,
+        affectsNails: false,
       },
       {
         key: 'backgroundColor',
@@ -127,12 +142,14 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         type: 'color',
         show: ({ customBackgroundColor }) => customBackgroundColor,
         isDisabled: ({ enableBackground }) => !enableBackground,
+        affectsNails: false,
       },
       {
         key: 'enableBackground',
         label: 'Enable background',
         defaultValue: true,
         type: 'checkbox',
+        affectsNails: false,
       },
     ],
   },
@@ -187,7 +204,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   }
 
   get type(): string {
-    return (this.constructor as typeof StringArt<any>).type;
+    return (this.constructor as typeof StringArt).type;
   }
 
   /**
@@ -298,11 +315,14 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     return this.renderer.getSize();
   }
 
-  setUpDraw() {
+  setUpDraw() {}
+  afterDraw() {}
+
+  #updateSize() {
     this.#withRenderer();
 
     const previousSize = this.size;
-    this.renderer.reset();
+    this.renderer.resetSize();
     const [width, height] = (this.size = this.getSize());
     Object.assign(this, this.size);
     this.center = this.size.map(value => value / 2) as Coordinates;
@@ -315,6 +335,26 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
         this.onResize();
       }
     }
+  }
+
+  initDraw({
+    redrawNails = true,
+    redrawStrings = true,
+    updateSize = true,
+  }: DrawOptions = {}) {
+    this.#withRenderer();
+
+    if (redrawStrings) {
+      this.renderer.resetStrings();
+    }
+
+    if (redrawNails) {
+      this.renderer.resetNails();
+    }
+
+    if (updateSize || !this.size) {
+      this.#updateSize();
+    }
 
     if (this.nails) {
       this.nails.setConfig(this.config);
@@ -323,12 +363,6 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
 
     this.renderer.setLineWidth(this.config.stringWidth);
-  }
-
-  afterDraw() {}
-
-  initDraw() {
-    this.#withRenderer();
 
     this.setUpDraw();
     const {
@@ -350,7 +384,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       );
     }
 
-    if (showNails) {
+    if (showNails && redrawNails !== false) {
       this.drawNails();
       this.nails.draw(this.renderer, { drawNumbers: showNailNumbers });
     }
@@ -360,18 +394,23 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
    * Draws the string art
    * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all)
    */
-  draw({ position = Infinity, redrawNails = true}: { position?: number, redrawNails?: boolean } = {}) {
+  draw({
+    position = Infinity,
+    ...drawOptions
+  }: { position?: number } & DrawOptions = {}) {
     this.#withRenderer();
 
-    this.initDraw();
-    const { showStrings } = this.config;
+    this.initDraw(drawOptions);
+    if (drawOptions.redrawStrings !== false) {
+      const { showStrings } = this.config;
 
-    if (showStrings) {
-      this.stringsIterator = this.generateStrings();
-      this.position = 0;
+      if (showStrings) {
+        this.stringsIterator = this.generateStrings();
+        this.position = 0;
 
-      while (!this.drawNext().done && this.position < position);
-      this.afterDraw();
+        while (!this.drawNext().done && this.position < position);
+        this.afterDraw();
+      }
     }
   }
 
@@ -383,7 +422,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     if (this.stringsIterator && position > this.position) {
       while (!this.drawNext().done && this.position < position);
     } else {
-      this.draw({ position });
+      this.draw({ position, updateSize: false });
     }
   }
 

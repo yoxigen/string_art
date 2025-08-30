@@ -1,7 +1,8 @@
 import Renderer from './Renderer.js';
 import { PI2 } from '../helpers/math_utils.js';
-import type { Dimensions } from '../types/general.types.js';
+import type { Coordinates, Dimensions } from '../types/general.types.js';
 import { ColorValue } from '../helpers/color/color.types.js';
+import { Nail, NailsRenderOptions } from '../types/stringart.types.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -17,7 +18,7 @@ export default class SVGRenderer extends Renderer {
   lineWidth: number | string = 1;
   currentLineGroup: SVGGElement = null;
 
-  constructor(parentElement) {
+  constructor(parentElement: HTMLElement) {
     super(parentElement);
 
     this.svg = document.createElementNS(SVG_NS, 'svg');
@@ -47,21 +48,26 @@ export default class SVGRenderer extends Renderer {
     parentElement.appendChild(this.svg);
   }
 
-  get element() {
+  get element(): SVGElement {
     return this.svg;
   }
 
-  reset() {
-    this.linesGroup.innerHTML = '';
-    this.nailsCirclesGroup.innerHTML = '';
-    this.nailsTextGroup.innerHTML = '';
-
+  resetSize() {
     const [width, height] = this.getSize().map(Math.trunc);
     this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
     this.svg.setAttributeNS(SVG_NS, 'width', String(width));
     this.svg.setAttributeNS(SVG_NS, 'height', String(height));
     this.svg.style.width = width + 'px';
     this.svg.style.height = height + 'px';
+  }
+
+  resetNails() {
+    this.nailsCirclesGroup.innerHTML = '';
+    this.nailsTextGroup.innerHTML = '';
+  }
+
+  resetStrings() {
+    this.linesGroup.innerHTML = '';
     this.currentColor = null;
     this.lineWidth = null;
   }
@@ -79,12 +85,12 @@ export default class SVGRenderer extends Renderer {
     }
   }
 
-  setLineWidth(width) {
+  setLineWidth(width?: number) {
     this.lineWidth = width ?? '1';
-    this.linesGroup.setAttributeNS(SVG_NS, 'stroke-width', width ?? '1');
+    this.linesGroup.setAttributeNS(SVG_NS, 'stroke-width', String(width ?? 1));
     this.linesGroup.childNodes.forEach(group => {
       if (group instanceof SVGGElement) {
-        group.setAttributeNS(SVG_NS, 'stroke-width', width ?? '1');
+        group.setAttributeNS(SVG_NS, 'stroke-width', String(width ?? 1));
       }
     });
   }
@@ -120,7 +126,10 @@ export default class SVGRenderer extends Renderer {
       this.svg.setAttributeNS(SVG_NS, 'height', String(height));
     }
   }
-  renderLines(startPosition, ...positions) {
+  renderLines(
+    startPosition: Coordinates,
+    ...positions: Array<Coordinates>
+  ): void {
     let previousPoint = startPosition;
     const fragment = document.createDocumentFragment();
 
@@ -138,7 +147,10 @@ export default class SVGRenderer extends Renderer {
     this.currentLineGroup.appendChild(fragment);
   }
 
-  renderNails(nails, { color, fontSize, radius, renderNumbers, margin = 0 }) {
+  renderNails(
+    nails: ReadonlyArray<Nail>,
+    { color, fontSize, radius, renderNumbers, margin = 0 }: NailsRenderOptions
+  ) {
     const centerX = this.getSize()[0] / 2;
     this.nailsCirclesGroup.innerHTML = this.nailsTextGroup.innerHTML = '';
     const circlesFragment = document.createDocumentFragment();
@@ -146,12 +158,12 @@ export default class SVGRenderer extends Renderer {
     this.nailsGroup.setAttribute('fill', color);
     const nailNumberOffset = radius + margin;
 
-    this.nailsTextGroup.style.fontSize = fontSize;
+    this.nailsTextGroup.style.fontSize = String(fontSize);
     nails.forEach(({ point: [x, y], number }) => {
       const circle = document.createElementNS(SVG_NS, 'circle');
-      circle.setAttribute('cx', x);
-      circle.setAttribute('cy', y);
-      circle.setAttribute('r', radius);
+      circle.setAttribute('cx', String(x));
+      circle.setAttribute('cy', String(y));
+      circle.setAttribute('r', String(radius));
       circlesFragment.appendChild(circle);
 
       if (renderNumbers && number != null) {
@@ -164,8 +176,8 @@ export default class SVGRenderer extends Renderer {
 
         const textEl = document.createElementNS(SVG_NS, 'text');
         textEl.innerHTML = String(number);
-        textEl.setAttribute('x', numberPosition[0]);
-        textEl.setAttribute('y', numberPosition[1]);
+        textEl.setAttribute('x', String(numberPosition[0]));
+        textEl.setAttribute('y', String(numberPosition[1]));
         if (isRightAlign) {
           textEl.setAttribute('text-anchor', 'end');
         }

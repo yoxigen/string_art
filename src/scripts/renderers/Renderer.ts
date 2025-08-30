@@ -2,6 +2,12 @@ import { ColorValue } from '../helpers/color/color.types';
 import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail, NailsRenderOptions } from '../types/stringart.types';
 
+export type RendererResetOptions = Partial<{
+  resetStrings: boolean;
+  resetNails: boolean;
+  resetSize: boolean;
+}>;
+
 export default abstract class Renderer {
   parentElement: HTMLElement;
   color?: ColorValue;
@@ -12,8 +18,8 @@ export default abstract class Renderer {
     this.parentElement = parentElement;
   }
 
-  destroy() {
-    this.element.remove();
+  destroy(): void {
+    this.parentElement.innerHTML = '';
   }
 
   get element(): Element {
@@ -24,7 +30,9 @@ export default abstract class Renderer {
     this.color = color;
   }
 
-  abstract reset(): void;
+  abstract resetStrings(): void;
+  abstract resetNails(): void;
+  abstract resetSize(): void;
   abstract setLineWidth(width: number): void;
   abstract renderLines(
     startPosition: Coordinates,

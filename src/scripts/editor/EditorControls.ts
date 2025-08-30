@@ -47,7 +47,7 @@ export type ControlValueChangeEventData<
   TConfig extends Config,
   TControl extends keyof TConfig = keyof TConfig
 > = {
-  control: TControl;
+  control: ControlConfig<TConfig>;
   value: TConfig[TControl];
   originalEvent: Event;
 };
@@ -250,7 +250,7 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
     }
 
     const eventData: ControlValueChangeEventData<TConfig> = {
-      control: controlKey,
+      control: this.controlElements[controlKey].config,
       value: inputValue,
       originalEvent,
     };

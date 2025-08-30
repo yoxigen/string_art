@@ -219,6 +219,7 @@ export default class Sun extends StringArt<SunConfig> {
           type: 'color',
           defaultValue: '#ffffff',
           show: ({ showNails }) => showNails,
+          affectsStrings: false,
         },
         {
           key: 'backdropNailsRadius',
@@ -227,6 +228,7 @@ export default class Sun extends StringArt<SunConfig> {
           defaultValue: 1.5,
           attr: { min: 0.5, max: 5, step: 0.25 },
           show: ({ showNails }) => showNails,
+          affectsStrings: false,
         },
       ]
     );

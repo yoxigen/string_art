@@ -7,6 +7,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
     label: 'Use multiple colors',
     defaultValue: false,
     type: 'checkbox',
+    affectsNails: false,
   },
   {
     key: 'colorCount',
@@ -19,6 +20,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
       step: 1,
     },
     show: ({ isMultiColor }) => isMultiColor,
+    affectsNails: false,
   },
   {
     key: 'color',
@@ -26,6 +28,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
     defaultValue: '#ff4d00',
     type: 'color',
     show: ({ isMultiColor }) => !isMultiColor,
+    affectsNails: false,
   },
   {
     key: 'multicolorStart',
@@ -36,6 +39,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
       colorthumb: true,
     },
     show: ({ isMultiColor }) => isMultiColor,
+    affectsNails: false,
   },
   {
     key: 'multicolorRange',
@@ -47,6 +51,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
       type: 'range',
     },
     show: ({ isMultiColor }) => isMultiColor,
+    affectsNails: false,
   },
   {
     key: 'saturation',
@@ -59,6 +64,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
       step: 1,
     },
     show: ({ isMultiColor }) => isMultiColor,
+    affectsNails: false,
   },
   {
     key: 'lightness',
@@ -73,6 +79,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
         defaultValue: false,
         type: 'checkbox',
         show: ({ isMultiColor }) => isMultiColor,
+        affectsNails: false,
       },
       {
         key: 'minLightness',
@@ -89,6 +96,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
         },
         show: ({ multicolorByLightness, isMultiColor }) =>
           multicolorByLightness && isMultiColor,
+        affectsNails: false,
       },
       {
         key: 'maxLightness',
@@ -105,6 +113,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
         },
         show: ({ multicolorByLightness, isMultiColor }) =>
           multicolorByLightness && isMultiColor,
+        affectsNails: false,
       },
     ],
   },
@@ -121,6 +130,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
         defaultValue: false,
         type: 'checkbox',
         show: ({ isMultiColor }) => isMultiColor,
+        affectsNails: false,
       },
       {
         key: 'repeatColors',
@@ -128,6 +138,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
         defaultValue: true,
         type: 'checkbox',
         show: ({ isMultiColor }) => isMultiColor,
+        affectsNails: false,
       },
       {
         key: 'mirrorColors',
@@ -135,6 +146,7 @@ const COLOR_CONTROLS: ControlsConfig<ColorConfig> = [
         defaultValue: false,
         type: 'checkbox',
         show: ({ isMultiColor, repeatColors }) => isMultiColor && repeatColors,
+        affectsNails: false,
       },
     ],
   },

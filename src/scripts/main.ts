@@ -385,9 +385,13 @@ async function main() {
     persistance.setPattern(currentPattern);
     controls = new EditorControls<any>(pattern.configControls, pattern.config);
     controls.addEventListener('input', ({ control, value }) => {
-      currentPattern.setConfigValue(control, value);
+      currentPattern.setConfigValue(control.key, value);
       controls.config = currentPattern.config;
-      currentPattern.draw({ redrawNails: control.affectsNails !== false });
+      currentPattern.draw({
+        redrawNails: control.affectsNails !== false,
+        redrawStrings: control.affectsStrings !== false,
+        updateSize: false,
+      });
     });
     controls.addEventListener('change', onInputsChange);
 
