@@ -250,6 +250,8 @@ export default class Lotus extends StringArt<LotusConfig> {
     };
 
     if (renderCenter && centerRadiusPercent) {
+      // If a center radius value larger than 0 is configured, the inner section's connect point isn't the center of the pattern,
+      // but points around it, so we create a circle to function as points for the inner section patches to connect to.
       const lastSection = calc.sections - 1 - calc.removedSections;
       const maxCenterRadiusPoint = circles[0].getPoint(
         lastSection * calc.nailsPerSection
@@ -266,7 +268,7 @@ export default class Lotus extends StringArt<LotusConfig> {
         center: helperCircle.center,
         size: [centerCircleRadius, centerCircleRadius],
         radius: centerCircleRadius,
-        rotation: -Math.ceil((sides - 4) / 2) / 2 / sides,
+        rotation: rotation + -Math.ceil((sides - 4) / 2) / 2 / sides,
       });
     }
 
