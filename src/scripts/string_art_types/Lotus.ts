@@ -134,6 +134,7 @@ export default class Lotus extends StringArt<LotusConfig> {
           label: 'Radial color',
           defaultValue: false,
           type: 'checkbox',
+          affectsNails: false,
         },
       ],
       maxColorCount: 32,

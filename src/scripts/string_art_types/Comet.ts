@@ -59,6 +59,7 @@ const COLOR_CONFIG = Color.getConfig({
       label: 'Color per layer',
       defaultValue: true,
       type: 'checkbox',
+      affectsNails: false,
     },
   ],
 });
@@ -96,6 +97,7 @@ export default class Comet extends StringArt<CometConfig> {
       },
       displayValue: ({ ringSize, n }) => Math.floor(n * ringSize),
       isStructural: true,
+      affectsNails: false,
     },
     {
       key: 'layerSpread',
@@ -107,6 +109,7 @@ export default class Comet extends StringArt<CometConfig> {
         label: name,
       })),
       isStructural: true,
+      affectsNails: false,
     },
     {
       key: 'layerDistance',
@@ -120,6 +123,7 @@ export default class Comet extends StringArt<CometConfig> {
       defaultValue: 1,
       isStructural: true,
       show: ({ layerSpread }) => layerSpread !== 'evenly',
+      affectsNails: false,
     },
     Circle.rotationConfig,
     Circle.distortionConfig,

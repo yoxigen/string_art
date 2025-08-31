@@ -88,6 +88,7 @@ class Eye extends StringArt<EyeConfig> {
           defaultValue: false,
           type: 'checkbox',
           show: ({ isMultiColor }) => isMultiColor,
+          affectsNails: false,
         },
       ],
       exclude: ['colorCount', 'repeatColors'],
