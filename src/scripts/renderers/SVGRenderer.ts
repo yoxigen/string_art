@@ -52,16 +52,19 @@ export default class SVGRenderer extends Renderer {
     return this.svg;
   }
 
-  resetSize() {
+  resetSize(): Dimensions {
     this.svg.style.removeProperty('width');
     this.svg.style.removeProperty('height');
 
-    const [width, height] = this.getSize().map(Math.trunc);
+    const newDimensions = this.getSize().map(Math.trunc);
+    const [width, height] = newDimensions;
     this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
     this.svg.setAttributeNS(SVG_NS, 'width', String(width));
     this.svg.setAttributeNS(SVG_NS, 'height', String(height));
     this.svg.style.width = width + 'px';
     this.svg.style.height = height + 'px';
+
+    return newDimensions as Dimensions;
   }
 
   resetNails() {
@@ -119,24 +122,26 @@ export default class SVGRenderer extends Renderer {
   }
 
   setSize(size: Dimensions | null) {
+    if (!size) {
+      return this.resetSize();
+    }
+
     this.svg.removeAttributeNS(SVG_NS, 'width');
     this.svg.removeAttributeNS(SVG_NS, 'height');
 
-    if (size) {
-      this.svg.style.width = `${size[0]}px`;
-      this.svg.style.height = `${size[1]}px`;
-    } else {
-      this.svg.removeAttribute('style');
-    }
+    this.svg.style.width = `${size[0]}px`;
+    this.svg.style.height = `${size[1]}px`;
 
-    if (size) {
-      const [width, height] = size.map(Math.trunc);
+    const realSize = size.map(Math.trunc) as Dimensions;
+    const [width, height] = realSize;
 
-      this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
-      this.svg.setAttributeNS(SVG_NS, 'width', String(width));
-      this.svg.setAttributeNS(SVG_NS, 'height', String(height));
-    }
+    this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
+    this.svg.setAttributeNS(SVG_NS, 'width', String(width));
+    this.svg.setAttributeNS(SVG_NS, 'height', String(height));
+
+    return realSize;
   }
+
   renderLines(
     startPosition: Coordinates,
     ...positions: Array<Coordinates>
@@ -166,10 +171,7 @@ export default class SVGRenderer extends Renderer {
     this.nailsCirclesGroup.innerHTML = this.nailsTextGroup.innerHTML = '';
     const circlesFragment = document.createDocumentFragment();
     const textFragment = document.createDocumentFragment();
-    if (color != null) {
-      this.nailsCirclesGroup.setAttributeNS(SVG_NS, 'fill', color);
-      this.nailsTextGroup.setAttributeNS(SVG_NS, 'fill', color);
-    }
+
     const nailNumberOffset = radius + margin;
 
     this.nailsTextGroup.style.fontSize = String(fontSize);
@@ -201,6 +203,11 @@ export default class SVGRenderer extends Renderer {
 
     this.nailsCirclesGroup.appendChild(circlesFragment);
     this.nailsTextGroup.appendChild(textFragment);
+
+    if (color != null) {
+      this.nailsCirclesGroup.setAttribute('fill', color);
+      this.nailsTextGroup.setAttribute('fill', color);
+    }
   }
 
   clear() {

@@ -62,31 +62,39 @@ export default class CanvasRenderer extends Renderer {
     return this.#layers.strings.canvas;
   }
 
-  resetSize(): void {
+  resetSize(): Dimensions {
     this.canvases.forEach(canvas => {
       canvas.removeAttribute('width');
       canvas.removeAttribute('height');
+      canvas.removeAttribute('style');
+      canvas.style.removeProperty('width');
+      canvas.style.removeProperty('height');
     });
 
-    const [width, height] = this.getSize();
+    const newSize = this.getSize();
     this.canvases.forEach(canvas => {
-      canvas.setAttribute('width', String(width));
-      canvas.setAttribute('height', String(height));
+      canvas.setAttribute('width', String(newSize[0]));
+      canvas.setAttribute('height', String(newSize[1]));
     });
+
+    return newSize;
   }
 
-  setSize(size: Dimensions | null) {
-    this.canvases.forEach(canvas => {
-      canvas.removeAttribute('width');
-      canvas.removeAttribute('height');
+  setSize(size: Dimensions | null): Dimensions {
+    if (!size) {
+      return this.resetSize();
+    }
 
-      if (size) {
-        canvas.style.width = `${size[0]}px`;
-        canvas.style.height = `${size[1]}px`;
-      } else {
-        canvas.removeAttribute('style');
-      }
+    const realSize = size.map(v => v * this.pixelRatio);
+
+    this.canvases.forEach(canvas => {
+      canvas.style.width = `${size[0]}px`;
+      canvas.style.height = `${size[1]}px`;
+      canvas.setAttribute('width', String(realSize[0]));
+      canvas.setAttribute('height', String(realSize[1]));
     });
+
+    return realSize as Dimensions;
   }
 
   resetStrings(): void {

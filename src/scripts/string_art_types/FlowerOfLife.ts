@@ -62,6 +62,7 @@ const COLOR_CONFIG = Color.getConfig({
       label: 'Color per level',
       defaultValue: true,
       type: 'checkbox',
+      affectsNails: false,
     },
   ],
 });
@@ -131,6 +132,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
           defaultValue: true,
           type: 'checkbox',
           isStructural: true,
+          affectsNails: false,
         },
         {
           key: 'fillColor',
@@ -138,6 +140,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
           defaultValue: '#292e29',
           type: 'color',
           show: ({ fill }) => fill,
+          affectsNails: false,
         },
       ],
     },
@@ -201,6 +204,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
           defaultValue: '#e8b564',
           type: 'color',
           show: ({ renderRing }) => renderRing,
+          affectsNails: false,
         },
       ],
     },
@@ -210,6 +214,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
       defaultValue: true,
       type: 'checkbox',
       isStructural: true,
+      affectsNails: false,
     },
     {
       key: 'renderCaps',

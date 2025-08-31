@@ -318,19 +318,34 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   setUpDraw() {}
   afterDraw() {}
 
+  setSize(size: Dimensions | null, updateRenderer = true): boolean {
+    const isReset = size == null;
+    if (isReset) {
+      size = this.renderer.resetSize();
+    } else {
+      if (this.size && size[0] === this.size[0] && size[1] === this.size[1]) {
+        return false;
+      }
+
+      if (updateRenderer) {
+        size = this.renderer.setSize(size);
+      }
+    }
+
+    this.size = size;
+    this.center = size.map(value => value / 2) as Coordinates;
+
+    this.onResize();
+    return true;
+  }
+
   #updateSize() {
     this.#withRenderer();
 
-    const previousSize = this.size;
-    this.renderer.resetSize();
-    const [width, height] = (this.size = this.getSize());
-    Object.assign(this, this.size);
-    this.center = this.size.map(value => value / 2) as Coordinates;
+    const newSize = this.renderer.resetSize();
+    const sizeChanged = this.setSize(newSize, false);
 
-    if (
-      previousSize &&
-      (previousSize[0] !== width || previousSize[1] !== height)
-    ) {
+    if (sizeChanged) {
       if (this.onResize) {
         this.onResize();
       }

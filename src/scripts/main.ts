@@ -304,11 +304,12 @@ async function main() {
       {
         pattern: currentPattern.id,
         config: configQuery,
+        renderer: currentRenderer instanceof SVGRenderer ? 'svg' : undefined,
       },
       currentPattern.name,
       `?pattern=${currentPattern.id}${
         configQuery ? `&config=${encodeURIComponent(configQuery)}` : ''
-      }`
+      }${currentRenderer instanceof SVGRenderer ? '&renderer=svg' : ''}`
     );
 
     setIsDefaultConfig();
@@ -354,16 +355,16 @@ async function main() {
 
   function setSize(size: Dimensions | null) {
     if (size && size.length === 2) {
-      currentRenderer.setSize(size);
+      currentPattern.setSize(size);
       if (!elements.canvas.classList.contains('overflow')) {
         elements.canvas.classList.add('overflow');
       }
     } else {
       elements.canvas.classList.remove('overflow');
-      currentRenderer.setSize(null);
+      currentPattern.setSize(null);
     }
 
-    currentPattern.draw();
+    currentPattern.draw({ updateSize: false });
   }
 
   function selectPattern(

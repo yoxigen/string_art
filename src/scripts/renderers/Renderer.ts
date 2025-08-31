@@ -32,7 +32,7 @@ export default abstract class Renderer {
 
   abstract resetStrings(): void;
   abstract resetNails(): void;
-  abstract resetSize(): void;
+  abstract resetSize(): Dimensions;
   abstract setLineWidth(width: number): void;
   abstract renderLines(
     startPosition: Coordinates,
@@ -44,7 +44,7 @@ export default abstract class Renderer {
   ): void;
   abstract clear(): void;
   abstract toDataURL(): string;
-  abstract setSize(size: Dimensions | null): void;
+  abstract setSize(size: Dimensions | null): Dimensions;
 
   setBackground(color: ColorValue) {}
 
