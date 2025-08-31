@@ -75,6 +75,20 @@ export default class CanvasRenderer extends Renderer {
     });
   }
 
+  setSize(size: Dimensions | null) {
+    this.canvases.forEach(canvas => {
+      canvas.removeAttribute('width');
+      canvas.removeAttribute('height');
+
+      if (size) {
+        canvas.style.width = `${size[0]}px`;
+        canvas.style.height = `${size[1]}px`;
+      } else {
+        canvas.removeAttribute('style');
+      }
+    });
+  }
+
   resetStrings(): void {
     this.stringsCtx.clearRect(0, 0, ...this.getSize());
   }

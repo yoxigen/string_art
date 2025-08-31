@@ -53,6 +53,9 @@ export default class SVGRenderer extends Renderer {
   }
 
   resetSize() {
+    this.svg.style.removeProperty('width');
+    this.svg.style.removeProperty('height');
+
     const [width, height] = this.getSize().map(Math.trunc);
     this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
     this.svg.setAttributeNS(SVG_NS, 'width', String(width));
@@ -116,7 +119,15 @@ export default class SVGRenderer extends Renderer {
   }
 
   setSize(size: Dimensions | null) {
-    super.setSize(size);
+    this.svg.removeAttributeNS(SVG_NS, 'width');
+    this.svg.removeAttributeNS(SVG_NS, 'height');
+
+    if (size) {
+      this.svg.style.width = `${size[0]}px`;
+      this.svg.style.height = `${size[1]}px`;
+    } else {
+      this.svg.removeAttribute('style');
+    }
 
     if (size) {
       const [width, height] = size.map(Math.trunc);
@@ -155,7 +166,10 @@ export default class SVGRenderer extends Renderer {
     this.nailsCirclesGroup.innerHTML = this.nailsTextGroup.innerHTML = '';
     const circlesFragment = document.createDocumentFragment();
     const textFragment = document.createDocumentFragment();
-    this.nailsGroup.setAttribute('fill', color);
+    if (color != null) {
+      this.nailsCirclesGroup.setAttributeNS(SVG_NS, 'fill', color);
+      this.nailsTextGroup.setAttributeNS(SVG_NS, 'fill', color);
+    }
     const nailNumberOffset = radius + margin;
 
     this.nailsTextGroup.style.fontSize = String(fontSize);

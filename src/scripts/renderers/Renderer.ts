@@ -44,26 +44,13 @@ export default abstract class Renderer {
   ): void;
   abstract clear(): void;
   abstract toDataURL(): string;
+  abstract setSize(size: Dimensions | null): void;
 
   setBackground(color: ColorValue) {}
 
   getSize(): Dimensions {
     const { width, height } = this.parentElement.getBoundingClientRect();
     return [width, height];
-  }
-
-  setSize(size: Dimensions | null) {
-    this.element.removeAttribute('width');
-    this.element.removeAttribute('height');
-
-    if (this.element instanceof HTMLElement) {
-      if (size) {
-        this.element.style.width = `${size[0]}px`;
-        this.element.style.height = `${size[1]}px`;
-      } else {
-        this.element.removeAttribute('style');
-      }
-    }
   }
 
   enablePixelRatio() {
