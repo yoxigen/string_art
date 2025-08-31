@@ -161,6 +161,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   defaultValues: Partial<Config<TConfig>> = {};
   stepCount: number | null = null;
   size: Dimensions = null;
+  fixedSize: Dimensions | null;
   center: Coordinates = null;
   nails: Nails = null;
   position: number = 0;
@@ -322,11 +323,9 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     const isReset = size == null;
     if (isReset) {
       size = this.renderer.resetSize();
+      this.fixedSize = null;
     } else {
-      if (this.size && size[0] === this.size[0] && size[1] === this.size[1]) {
-        return false;
-      }
-
+      this.fixedSize = size;
       if (updateRenderer) {
         size = this.renderer.setSize(size);
       }
@@ -344,6 +343,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
 
     const newSize = this.renderer.resetSize();
     const sizeChanged = this.setSize(newSize, false);
+    this.fixedSize = null;
 
     if (sizeChanged) {
       if (this.onResize) {
@@ -367,7 +367,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       this.renderer.resetNails();
     }
 
-    if (updateSize || !this.size) {
+    if (!this.fixedSize && (updateSize || !this.size)) {
       this.#updateSize();
     }
 
@@ -437,7 +437,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     if (this.stringsIterator && position > this.position) {
       while (!this.drawNext().done && this.position < position);
     } else {
-      this.draw({ position, updateSize: false });
+      this.draw({ position, updateSize: false, redrawNails: false });
     }
   }
 

@@ -127,6 +127,14 @@ a:hover {
   white-space: nowrap;
 }
 
+.small_title {
+  font-weight: 400;
+  font-size: 1.2em;
+  margin-top: 0;
+  color: White;
+  text-shadow: 1px 1px 1px Black;
+}
+
 [data-is-template='true'] .non-template-only,
 [data-is-template='unknown'] .non-template-only {
   display: none !important;

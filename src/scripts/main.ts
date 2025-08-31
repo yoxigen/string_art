@@ -35,6 +35,9 @@ const elements: { [key: string]: HTMLElement } = {
   downloadBtn: document.querySelector('#download_btn'),
   downloadSVGBtn: document.querySelector('#download_svg_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
+  downloadNailsNoNumbersBtn: document.querySelector(
+    '#download_nails_no_numbers_btn'
+  ),
   resetBtn: document.querySelector('#reset_btn'),
   shareBtn: document.querySelector('#share_btn'),
   playerBtn: document.querySelector('#player_btn'),
@@ -92,9 +95,14 @@ async function main() {
     }
   }
 
-  elements.downloadBtn.addEventListener('click', downloadCanvas);
+  elements.downloadBtn.addEventListener('click', () => downloadCanvas());
   elements.downloadSVGBtn.addEventListener('click', downloadSVG);
-  elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
+  elements.downloadNailsBtn.addEventListener('click', () =>
+    downloadNailsImage()
+  );
+  elements.downloadNailsNoNumbersBtn.addEventListener('click', () =>
+    downloadNailsImage(false)
+  );
   elements.resetBtn.addEventListener('click', reset);
   elements.shareBtn.addEventListener(
     'click',
@@ -232,13 +240,12 @@ async function main() {
 
     initSize();
 
-    window.addEventListener(
-      'resize',
-      () => currentPattern && currentPattern.draw()
-    );
+    window.addEventListener('resize', () => {
+      if (currentPattern) {
+        currentPattern.draw();
+      }
+    });
 
-    elements.downloadBtn.addEventListener('click', downloadCanvas);
-    elements.downloadNailsBtn.addEventListener('click', downloadNailsImage);
     elements.resetBtn.addEventListener('click', reset);
     const showShare = await isShareSupported({
       renderer: currentRenderer,
@@ -249,31 +256,41 @@ async function main() {
     }
   }
 
-  function downloadCanvas() {
-    downloadFile(currentRenderer.toDataURL(), currentPattern.name + '.png');
+  function downloadCanvas(filename?: string) {
+    currentRenderer.disablePixelRatio();
+    currentPattern.setSize(currentPattern.fixedSize);
+
+    currentPattern.draw();
+
+    downloadFile(
+      currentRenderer.toDataURL(),
+      filename ?? currentPattern.name + '.png'
+    );
+
+    // Reset to the original config from before the download:
+    currentRenderer.enablePixelRatio();
+    currentPattern.setSize(currentPattern.fixedSize);
+    currentPattern.draw();
   }
 
   function downloadSVG() {
     downloadPatternAsSVG(currentPattern, currentRenderer.getSize());
   }
 
-  function downloadNailsImage() {
-    currentRenderer.disablePixelRatio();
+  function downloadNailsImage(withNumbers = true) {
     const currentConfig = currentPattern.config;
     currentPattern.config = {
       ...currentConfig,
       darkMode: false,
       showNails: true,
-      showNailNumbers: true,
+      showNailNumbers: withNumbers,
       showStrings: false,
       nailsColor: '#000000',
       backgroundColor: '#ffffff',
     };
-    currentPattern.draw();
-    downloadCanvas();
 
-    // Reset to the original config from before the download:
-    currentRenderer.enablePixelRatio();
+    downloadCanvas(`${currentPattern.name}_nails_map.png`);
+
     currentPattern.config = currentConfig;
     currentPattern.draw();
   }
@@ -347,8 +364,8 @@ async function main() {
   function initSize() {
     sizeControls.element.addEventListener(
       'sizechange',
-      ({ detail }: CustomEvent<Dimensions | null>) => {
-        setSize(detail);
+      ({ detail: size }: CustomEvent<Dimensions | null>) => {
+        setSize(size);
       }
     );
   }
