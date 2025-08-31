@@ -93,6 +93,12 @@ svg {
   width: 100%;
 }
 
+.CanvasRenderer__canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 a {
   color: var(--color-link);
   font-size: 14px;
@@ -106,6 +112,7 @@ a:hover {
   grid-area: canvas;
   text-align: center;
   overflow: hidden;
+  position: relative;
 }
 #canvas_panel.overflow {
   overflow: auto;
@@ -118,6 +125,14 @@ a:hover {
 
 .no_text_break {
   white-space: nowrap;
+}
+
+.small_title {
+  font-weight: 400;
+  font-size: 1.2em;
+  margin-top: 0;
+  color: White;
+  text-shadow: 1px 1px 1px Black;
 }
 
 [data-is-template='true'] .non-template-only,

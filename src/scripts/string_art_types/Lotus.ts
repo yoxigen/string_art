@@ -134,6 +134,7 @@ export default class Lotus extends StringArt<LotusConfig> {
           label: 'Radial color',
           defaultValue: false,
           type: 'checkbox',
+          affectsNails: false,
         },
       ],
       maxColorCount: 32,
@@ -418,7 +419,7 @@ export default class Lotus extends StringArt<LotusConfig> {
 
   drawNails() {
     const { renderCenter, renderCenterNails } = this.config;
-    const { circles, circleNailsCount, centerCircle } = this.#calc;
+    const { circles, centerCircle } = this.#calc;
 
     circles.forEach((circle, circleIndex) => {
       circle.drawNails(this.nails, {

@@ -64,6 +64,8 @@ export interface ControlConfig<TConfig = Record<string, PrimitiveValue>> {
    */
   isStructural?: boolean;
   affectsStepCount?: boolean;
+  affectsNails?: boolean;
+  affectsStrings?: boolean;
   description?: string;
   show?: ConfigFunction<TConfig>;
   children?: ControlsConfig<TConfig>;

@@ -109,6 +109,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
               displayValue: config =>
                 Math.round(config.n * config[`end${layer}`]),
               show: config => config[`show${layer}`],
+              affectsNails: false,
             },
             {
               key: `color${layer}`,
@@ -116,6 +117,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
               defaultValue: color,
               type: 'color',
               show: config => config[`show${layer}`],
+              affectsNails: false,
             },
             {
               key: `reverse${layer}`,
@@ -123,6 +125,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
               defaultValue: reverse === true,
               type: 'checkbox',
               show: config => config[`show${layer}`],
+              affectsNails: false,
             },
           ],
         };

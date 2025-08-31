@@ -94,6 +94,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
       label: 'Color',
       defaultValue: '#ec6ad0',
       type: 'color',
+      affectsNails: false,
     },
     {
       key: 'layers',
@@ -250,6 +251,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               defaultValue: false,
               type: 'checkbox',
               show: ({ show3 }) => show3,
+              affectsNails: false,
             },
           ],
         },

@@ -3,6 +3,7 @@ import Circle from '../helpers/Circle';
 import Mandala, { MandalaConfig } from './Mandala';
 import { ControlsConfig } from '../types/config.types';
 import { formatFractionAsPercent } from '../helpers/string_utils';
+import { withoutAttribute } from '../helpers/config_utils';
 
 export interface WaveConfig {
   layerSpread: number;
@@ -31,11 +32,9 @@ export default class Wave extends Mandala<WaveConfig> {
         step: ({ n }) => 1 / n,
       },
       displayValue: ({ layerFill }) => formatFractionAsPercent(layerFill),
+      affectsNails: false,
     },
-    {
-      ...Circle.rotationConfig,
-      defaultValue: 176 / 360,
-    },
+    withoutAttribute(Circle.rotationConfig, 'snap'),
     Circle.distortionConfig,
     {
       key: 'layers',
@@ -55,6 +54,7 @@ export default class Wave extends Mandala<WaveConfig> {
         step: ({ n }) => 1 / n,
       },
       displayValue: ({ layerSpread, n }) => Math.round(layerSpread * n),
+      affectsNails: false,
     },
     {
       key: 'reverse',
@@ -78,6 +78,7 @@ export default class Wave extends Mandala<WaveConfig> {
 
   defaultValues = {
     base: 2,
+    rotation: 176 / 360,
   };
 
   setUpDraw() {

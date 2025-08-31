@@ -43,6 +43,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       defaultValue: 2,
       type: 'range',
       attr: { min: 2, max: 99, step: 1 },
+      affectsNails: false,
     },
     {
       key: 'layers',
