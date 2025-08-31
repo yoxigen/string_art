@@ -54,6 +54,7 @@ export default class Star extends StringArt<StarConfig> {
       },
       displayValue: ({ sideNails, sides, ringSize }) =>
         Math.floor(ringSize * sideNails * sides),
+      affectsNails: false,
     },
     withoutAttribute<StarConfig>(Circle.rotationConfig, 'snap'),
     Circle.distortionConfig,

@@ -251,6 +251,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               defaultValue: false,
               type: 'checkbox',
               show: ({ show3 }) => show3,
+              affectsNails: false,
             },
           ],
         },

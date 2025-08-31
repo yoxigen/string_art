@@ -47,6 +47,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
       defaultValue: 5,
       type: 'range',
       attr: { min: 1, max: 20, step: 1 },
+      affectsNails: false,
     },
     {
       key: 'innerLength',
@@ -59,6 +60,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
         step: ({ n }) => 1 / n,
       },
       displayValue: ({ n, innerLength }) => Math.round(n * innerLength),
+      affectsNails: false,
     },
     {
       ...Circle.rotationConfig,

@@ -158,6 +158,7 @@ export default class Sun extends StringArt<SunConfig> {
           },
           isStructural: true,
           affectsStepCount: false,
+          affectsNails: false,
         },
         {
           key: 'backdropSkip',
