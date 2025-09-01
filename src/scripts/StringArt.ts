@@ -175,14 +175,8 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
-  #rendererSizeEventListenerRemove: Function;
 
-  // TODO: Remove renderer from here, set it only in `draw`. Then StringArt can be instantiated independently of the renderer.
-  constructor(renderer?: Renderer) {
-    if (renderer) {
-      this.setRenderer(renderer);
-    }
-  }
+  constructor() {}
 
   abstract drawNails(): void;
   abstract generateStrings(): Generator<void>;
@@ -237,23 +231,6 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
 
   set config(value: Partial<Config<TConfig>>) {
     this.#config = Object.assign({}, this.defaultConfig, value);
-  }
-
-  setRenderer(
-    renderer: Renderer,
-    { updateOnSizeChange = true }: { updateOnSizeChange?: boolean } = {}
-  ) {
-    this.#rendererSizeEventListenerRemove?.();
-    this.renderer = renderer;
-    this.size = renderer.getSize();
-    this.center = this.size.map(value => value / 2) as Coordinates;
-
-    if (updateOnSizeChange) {
-      this.#rendererSizeEventListenerRemove = renderer.addEventListener(
-        'sizeChange',
-        ({ size }) => this.#updateOnSizeChange(size)
-      );
-    }
   }
 
   /**
@@ -350,18 +327,12 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
   }
 
-  #updateOnSizeChange(size: Dimensions) {
-    this.size = size;
-    this.center = size.map(value => value / 2) as Coordinates;
-    this.onResize?.();
-    this.draw({ updateSize: false });
-  }
-
   initDraw({
     redrawNails = true,
     redrawStrings = true,
     updateSize = true,
   }: DrawOptions = {}) {
+    console.log('init', this.name, this.renderer);
     this.#withRenderer();
 
     if (redrawStrings) {
@@ -373,8 +344,13 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
 
     if (!this.fixedSize && (updateSize || !this.size)) {
-      this.renderer.resetSize();
-      this.fixedSize = null;
+      if (!this.size || !this.size[0] || !this.size[1]) {
+        const size = this.renderer.getSize();
+        this.#updateOnSizeChange(size, false);
+      } else {
+        this.renderer.resetSize();
+        this.fixedSize = null;
+      }
     }
 
     if (this.nails) {
@@ -415,10 +391,13 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
    * Draws the string art
    * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all)
    */
-  draw({
-    position = Infinity,
-    ...drawOptions
-  }: { position?: number } & DrawOptions = {}) {
+  draw(
+    renderer: Renderer,
+    {
+      position = Infinity,
+      ...drawOptions
+    }: { position?: number } & DrawOptions = {}
+  ) {
     this.#withRenderer();
 
     this.initDraw(drawOptions);

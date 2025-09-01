@@ -18,6 +18,7 @@ import Persistance from './Persistance';
 import StringArt from './StringArt';
 import { compareObjects } from './helpers/object_utils';
 import { confirm } from './helpers/dialogs';
+import Viewer from './viewer/Viewer';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -31,7 +32,6 @@ window.addEventListener('error', function (event) {
 
 const elements: { [key: string]: HTMLElement } = {
   main: document.querySelector('main'),
-  canvas: document.querySelector('#canvas_panel'),
   downloadBtn: document.querySelector('#download_btn'),
   downloadSVGBtn: document.querySelector('#download_svg_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
@@ -46,8 +46,6 @@ const elements: { [key: string]: HTMLElement } = {
     '#pattern_select_dropdown_instructions'
   ),
 };
-
-let currentRenderer: Renderer;
 
 const player = new Player(document.querySelector('#player'));
 const sizeControls = new EditorSizeControls({
@@ -64,6 +62,7 @@ window.addEventListener('load', main);
 
 async function main() {
   let controls: EditorControls<any>;
+  const viewer = new Viewer();
 
   initRouting();
 
@@ -385,7 +384,7 @@ async function main() {
     const isFirstTime = !currentPattern;
 
     currentPattern = pattern;
-    currentPattern.renderer = currentRenderer;
+    currentPattern.setRenderer(currentRenderer);
     if (config) {
       // @ts-ignore
       currentPattern.setConfig(config);
@@ -407,12 +406,6 @@ async function main() {
     });
     controls.addEventListener('change', onInputsChange);
 
-    if (draw) {
-      requestAnimationFrame(() => {
-        currentPattern.draw();
-      });
-    }
-
     thumbnails.setCurrentPattern(pattern);
     document.title = `${pattern.name} - String Art Studio`;
     document.body.setAttribute('data-pattern', pattern.id);
@@ -421,6 +414,7 @@ async function main() {
       initPattern();
       document.body.querySelectorAll('.pattern_only').forEach(unHide);
     }
+    currentPattern.draw();
 
     player.update(currentPattern, { draw: false });
 
