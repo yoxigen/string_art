@@ -1,4 +1,4 @@
-import Renderer, { RendererResetOptions } from './Renderer';
+import Renderer, { RendererOptions, RendererResetOptions } from './Renderer';
 import { PI2 } from '../helpers/math_utils';
 import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail } from '../types/stringart.types';
@@ -11,8 +11,8 @@ export default class CanvasRenderer extends Renderer {
     { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D }
   >;
 
-  constructor(parentElement: HTMLElement) {
-    super(parentElement);
+  constructor(parentElement: HTMLElement, options?: RendererOptions) {
+    super(parentElement, options);
 
     const stringsCanvas = document.createElement('canvas');
     const nailsCanvas = document.createElement('canvas');
@@ -198,9 +198,7 @@ export default class CanvasRenderer extends Renderer {
   }
 
   clear() {
-    this.ctxs.forEach(ctx =>
-      ctx.clearRect(0, 0, this.stringsCanvas.width, this.stringsCanvas.height)
-    );
+    this.ctxs.forEach(ctx => ctx.clearRect(0, 0, ...this.getSize()));
   }
 
   toDataURL(): string {

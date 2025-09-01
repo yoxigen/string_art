@@ -3,6 +3,7 @@ import StringArt from '../StringArt';
 import Circle, { CircleConfig } from '../helpers/Circle';
 import { ColorConfig } from '../helpers/color/color.types';
 import { ControlsConfig, PrimitiveValue } from '../types/config.types.js';
+import Renderer from '../renderers/Renderer';
 
 export interface MandalaConfig extends ColorConfig {
   n: number;
@@ -113,13 +114,13 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     });
   }
 
-  *drawTimesTable(layerIndex: number): Generator<void> {
+  *drawTimesTable(renderer: Renderer, layerIndex: number): Generator<void> {
     const { reverse, base } = this.config;
     const { n, layerShift, stringsPerLayer } = this.calc;
 
     const shift = layerShift * layerIndex * (reverse ? 1 : -1);
     const color = this.color.getColor(layerIndex);
-    this.renderer.setColor(color);
+    renderer.setColor(color);
 
     let point = this.circle.getPoint(shift);
 
@@ -127,7 +128,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       const startPoint = point;
       point = this.circle.getPoint(i + shift);
       const toIndex = (i * base) % n;
-      this.renderer.renderLines(
+      renderer.renderLines(
         startPoint,
         point,
         this.circle.getPoint(toIndex + shift)
@@ -137,11 +138,11 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     }
   }
 
-  *generateStrings(): Generator<void> {
+  *drawStrings(renderer: Renderer): Generator<void> {
     const { layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      yield* this.drawTimesTable(layer);
+      yield* this.drawTimesTable(renderer, layer);
     }
   }
 

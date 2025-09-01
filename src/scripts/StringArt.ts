@@ -12,6 +12,7 @@ import type {
   PrimitiveValue,
 } from './types/config.types';
 import { Coordinates, Dimensions } from './types/general.types';
+import { CalcOptions } from './types/stringart.types';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -156,7 +157,6 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
 ];
 
 abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
-  renderer: Renderer | null | undefined;
   controls: ControlsConfig<TConfig> = [];
   defaultValues: Partial<Config<TConfig>> = {};
   stepCount: number | null = null;
@@ -179,8 +179,8 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   constructor() {}
 
   abstract drawNails(): void;
-  abstract generateStrings(): Generator<void>;
-  abstract getStepCount(): number;
+  abstract drawStrings(renderer: Renderer): Generator<void>;
+  abstract getStepCount(options: CalcOptions): number;
 
   static thumbnailConfig: Partial<Config>;
   static type: string;
@@ -308,49 +308,29 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   }
 
   getSize(): Dimensions {
-    this.#withRenderer();
-
-    return this.renderer.getSize();
+    return this.size;
   }
 
-  setUpDraw() {}
+  setUpDraw(options?: CalcOptions) {}
   afterDraw() {}
 
-  setSize(size: Dimensions | null): void {
-    const isReset = size == null;
-    if (isReset) {
-      size = this.renderer.resetSize();
-      this.fixedSize = null;
-    } else {
-      this.fixedSize = size;
-      size = this.renderer.setSize(size);
-    }
+  setSize(size: Dimensions): void {
+    this.size = size;
+    this.center = size.map(v => v / 2) as Coordinates;
   }
 
-  initDraw({
-    redrawNails = true,
-    redrawStrings = true,
-    updateSize = true,
-  }: DrawOptions = {}) {
-    console.log('init', this.name, this.renderer);
-    this.#withRenderer();
+  initDraw(
+    renderer: Renderer,
+    { redrawNails = true, redrawStrings = true }: DrawOptions = {}
+  ) {
+    this.setSize(renderer.getSize());
 
     if (redrawStrings) {
-      this.renderer.resetStrings();
+      renderer.resetStrings();
     }
 
     if (redrawNails) {
-      this.renderer.resetNails();
-    }
-
-    if (!this.fixedSize && (updateSize || !this.size)) {
-      if (!this.size || !this.size[0] || !this.size[1]) {
-        const size = this.renderer.getSize();
-        this.#updateOnSizeChange(size, false);
-      } else {
-        this.renderer.resetSize();
-        this.fixedSize = null;
-      }
+      renderer.resetNails();
     }
 
     if (this.nails) {
@@ -359,32 +339,9 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       this.nails = new Nails(this.config);
     }
 
-    this.renderer.setLineWidth(this.config.stringWidth);
+    renderer.setLineWidth(this.config.stringWidth);
 
-    this.setUpDraw();
-    const {
-      showNails,
-      showNailNumbers,
-      darkMode,
-      backgroundColor,
-      customBackgroundColor,
-      enableBackground,
-    } = this.config;
-
-    if (enableBackground) {
-      this.renderer.setBackground(
-        customBackgroundColor
-          ? backgroundColor
-          : darkMode
-          ? COLORS.dark
-          : COLORS.light
-      );
-    }
-
-    if (showNails && redrawNails !== false) {
-      this.drawNails();
-      this.nails.draw(this.renderer, { drawNumbers: showNailNumbers });
-    }
+    this.setUpDraw({ size: this.size });
   }
 
   /**
@@ -398,14 +355,37 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
   ) {
-    this.#withRenderer();
+    this.initDraw(renderer, drawOptions);
 
-    this.initDraw(drawOptions);
+    const {
+      showNails,
+      showNailNumbers,
+      darkMode,
+      backgroundColor,
+      customBackgroundColor,
+      enableBackground,
+    } = this.config;
+
+    if (enableBackground) {
+      renderer.setBackground(
+        customBackgroundColor
+          ? backgroundColor
+          : darkMode
+          ? COLORS.dark
+          : COLORS.light
+      );
+    }
+
+    if (showNails && drawOptions.redrawNails !== false) {
+      this.drawNails();
+      this.nails.draw(renderer, { drawNumbers: showNailNumbers });
+    }
+
     if (drawOptions.redrawStrings !== false) {
       const { showStrings } = this.config;
 
       if (showStrings) {
-        this.stringsIterator = this.generateStrings();
+        this.stringsIterator = this.drawStrings(renderer);
         this.position = 0;
 
         while (!this.drawNext().done && this.position < position);
@@ -414,7 +394,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
   }
 
-  goto(position: number) {
+  goto(renderer: Renderer, position: number) {
     if (position === this.position) {
       return;
     }
@@ -422,7 +402,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     if (this.stringsIterator && position > this.position) {
       while (!this.drawNext().done && this.position < position);
     } else {
-      this.draw({ position, updateSize: false, redrawNails: false });
+      this.draw(renderer, { position, updateSize: false, redrawNails: false });
     }
   }
 
@@ -440,12 +420,6 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
 
     return result;
-  }
-
-  #withRenderer(): asserts this is { renderer: Renderer } {
-    if (!this.renderer) {
-      throw new Error('Missing renderer for StringArt!');
-    }
   }
 }
 

@@ -7,6 +7,8 @@ import { Coordinates, Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
+import Renderer from '../renderers/Renderer';
+import { CalcOptions } from '../types/stringart.types';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -148,7 +150,7 @@ export default class Lotus extends StringArt<LotusConfig> {
   #calc: TCalc;
   #color: Color;
 
-  getCalc(): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const {
       sides,
       density,
@@ -160,7 +162,6 @@ export default class Lotus extends StringArt<LotusConfig> {
       renderCenter,
     } = this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
-    const size = this.getSize();
     let radius = (Math.min(...size) * d) / 2;
 
     const sideAngle = PI2 / sides;
@@ -295,11 +296,11 @@ export default class Lotus extends StringArt<LotusConfig> {
     this.#calc = null;
   }
 
-  setUpDraw() {
-    super.setUpDraw();
+  setUpDraw(options) {
+    super.setUpDraw(options);
 
     if (!this.#calc) {
-      this.#calc = this.getCalc();
+      this.#calc = this.getCalc(options);
     }
     let colorCount = this.config.radialColor
       ? this.#calc.sections - this.#calc.removedSections - 1
@@ -324,7 +325,11 @@ export default class Lotus extends StringArt<LotusConfig> {
     );
   }
 
-  *#drawPatch(circleIndex: number, section: number): Generator<void> {
+  *#drawPatch(
+    renderer: Renderer,
+    circleIndex: number,
+    section: number
+  ): Generator<void> {
     const { sides } = this.config;
     const {
       circles,
@@ -337,7 +342,7 @@ export default class Lotus extends StringArt<LotusConfig> {
     const color = this.#getPatchColor(circleIndex, section);
     const circle = circles[circleIndex];
 
-    this.renderer.setColor(color);
+    renderer.setColor(color);
 
     const prevCircle =
       this.#calc.circles[circleIndex === 0 ? sides - 1 : circleIndex - 1];
@@ -348,11 +353,11 @@ export default class Lotus extends StringArt<LotusConfig> {
         nailsPerSection * 2
       );
       for (let i = nailsPerCircle - nailsPerSection; i < nailsPerCircle; i++) {
-        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLines(circle.getPoint(i), connectPoint);
         yield;
       }
       for (let i = 0; i <= nailsPerSection; i++) {
-        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLines(circle.getPoint(i), connectPoint);
         yield;
       }
     } else {
@@ -375,7 +380,7 @@ export default class Lotus extends StringArt<LotusConfig> {
         (removedSections ? 1 : 0);
 
       for (let i = 0; i <= nailsPerSection; i++) {
-        this.renderer.renderLines(
+        renderer.renderLines(
           firstCircle.getPoint(firstCircleStart + i),
           connectPoint
         );
@@ -384,15 +389,15 @@ export default class Lotus extends StringArt<LotusConfig> {
 
       const startIndex = (section - removedSections) * nailsPerSection + 1;
       for (let i = startIndex; i < startIndex + nailsPerSection; i++) {
-        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLines(circle.getPoint(i), connectPoint);
         yield;
       }
     }
   }
 
-  *generateStrings(): Generator<void> {
+  *drawStrings(renderer: Renderer): Generator<void> {
     for (const { side, section } of this.#generatePatches()) {
-      yield* this.#drawPatch(side, section);
+      yield* this.#drawPatch(renderer, side, section);
     }
   }
 
@@ -453,8 +458,9 @@ export default class Lotus extends StringArt<LotusConfig> {
     return [[innerSectionNailsStart, innerSectionNailsEnd]];
   }
 
-  getStepCount() {
-    const { nailsPerSection, sections, removedSections } = this.getCalc();
+  getStepCount(options: CalcOptions) {
+    const { nailsPerSection, sections, removedSections } =
+      this.getCalc(options);
     const { sides } = this.config;
 
     const patchCount = 2 * nailsPerSection + 1;

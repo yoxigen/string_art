@@ -14,20 +14,33 @@ export async function share(input: ShareInput) {
   }
 }
 
-export async function isShareSupported(input: ShareInput) {
+export async function isShareSupported() {
   if (!navigator.share) {
     return false;
   }
 
-  const shareData = await getShareData(input);
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, 1, 1);
+
+  const dataURL = canvas.toDataURL();
+
+  const shareData = await dataURLToShareData(dataURL, 'test', 'test.jpg');
   return navigator.canShare(shareData);
 }
 
-async function getShareData({ renderer, pattern }: ShareInput) {
-  const dataUrl = renderer.toDataURL();
-  const blob = await (await fetch(dataUrl)).blob();
+async function dataURLToShareData(
+  dataURL: string,
+  text: string,
+  filename: string
+): Promise<ShareData> {
+  const blob = await (await fetch(dataURL)).blob();
   const files = [
-    new File([blob], pattern.name + '.jpg', {
+    new File([blob], filename, {
       type: blob.type,
       lastModified: new Date().getTime(),
     }),
@@ -36,6 +49,18 @@ async function getShareData({ renderer, pattern }: ShareInput) {
     url: window.location.href,
     files,
     title: document.title,
-    text: 'String Art Studio - ' + pattern.name,
+    text,
   };
+}
+
+async function getShareData({
+  renderer,
+  pattern,
+}: ShareInput): Promise<ShareData> {
+  const dataUrl = renderer.toDataURL();
+  return dataURLToShareData(
+    dataUrl,
+    'String Art Studio - ' + pattern.name,
+    pattern.name + '.jpg'
+  );
 }

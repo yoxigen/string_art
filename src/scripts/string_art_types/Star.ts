@@ -3,6 +3,7 @@ import Circle, { CircleConfig } from '../helpers/Circle.js';
 import StarShape, { StarShapeConfig } from '../helpers/StarShape.js';
 import { ColorValue } from '../helpers/color/color.types.js';
 import { withoutAttribute } from '../helpers/config_utils.js';
+import Renderer from '../renderers/Renderer.js';
 import { ControlsConfig, GroupValue } from '../types/config.types.js';
 import { Coordinates } from '../types/general.types.js';
 
@@ -132,16 +133,16 @@ export default class Star extends StringArt<StarConfig> {
     return this.#circle.getPoint(side * this.config.sideNails + sideIndex);
   }
 
-  *drawStar(): Generator<void> {
+  *drawStar(renderer: Renderer): Generator<void> {
     const { innerColor } = this.config;
 
-    this.renderer.setColor(innerColor);
-    yield* this.#star.generateStrings(this.renderer);
+    renderer.setColor(innerColor);
+    yield* this.#star.drawStrings(renderer);
   }
 
-  *drawCircle(): Generator<void> {
+  *drawCircle(renderer: Renderer): Generator<void> {
     const { outerColor, sides, sideNails } = this.config;
-    this.renderer.setColor(outerColor);
+    renderer.setColor(outerColor);
 
     let prevPoint = this.#star.getPoint(0, 0);
     let alternate = false;
@@ -165,7 +166,7 @@ export default class Star extends StringArt<StarConfig> {
           ? this.#star.getPoint(pointPosition.side, pointPosition.sideIndex)
           : this.getArcPoint(pointPosition);
 
-        this.renderer.renderLines(prevPoint, nextPoint);
+        renderer.renderLines(prevPoint, nextPoint);
         prevPoint = nextPoint;
 
         yield;
@@ -180,18 +181,18 @@ export default class Star extends StringArt<StarConfig> {
     }
   }
 
-  *generateStrings(): Generator<void> {
-    yield* this.drawCircle();
+  *drawStrings(renderer: Renderer): Generator<void> {
+    yield* this.drawCircle(renderer);
 
     const { ringSize, ringColor } = this.config;
 
     if (ringSize !== 0) {
-      yield* this.#circle.drawRing(this.renderer, {
+      yield* this.#circle.drawRing(renderer, {
         ringSize,
         color: ringColor,
       });
     }
-    yield* this.drawStar();
+    yield* this.drawStar(renderer);
   }
 
   drawNails(): void {

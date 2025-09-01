@@ -1,9 +1,11 @@
 import type StringArt from '../StringArt';
+import Viewer from '../viewer/Viewer';
 
 /**
  * Represents the navigation that controls the StringArt when playing
  */
 export default class Player {
+  viewer: Viewer;
   elements: {
     player: HTMLElement;
     step: HTMLSpanElement;
@@ -14,10 +16,10 @@ export default class Player {
   };
   stepCount: number;
   #isPlaying: boolean;
-  stringArt: StringArt;
   #renderRafId: number;
 
-  constructor(parentEl: HTMLElement) {
+  constructor(parentEl: HTMLElement, viewer: Viewer) {
+    this.viewer = viewer;
     this.elements = {
       player: parentEl,
       step: parentEl.querySelector('#step'),
@@ -54,9 +56,8 @@ export default class Player {
     }
   }
 
-  update(stringArt: StringArt<any>, { draw = true } = {}) {
-    this.stringArt = stringArt;
-    this.stepCount = stringArt.getStepCount();
+  update(stepCount: number, { draw = true } = {}) {
+    this.stepCount = stepCount;
     this.elements.playerPosition.setAttribute('max', String(this.stepCount));
     this.elements.step.innerText = `${this.stepCount}/${this.stepCount}`;
     this.elements.text.style.removeProperty('width');
@@ -78,7 +79,7 @@ export default class Player {
     this.pause();
     this.updatePosition(position);
     if (updateStringArt) {
-      this.stringArt.goto(position);
+      this.viewer.goto(position);
     }
   }
 
@@ -104,8 +105,8 @@ export default class Player {
     this.updateStatus(true);
     cancelAnimationFrame(this.#renderRafId);
 
-    if (this.stringArt.position === this.stepCount) {
-      this.stringArt.goto(0);
+    if (this.viewer.position === this.stepCount) {
+      this.viewer.goto(0);
     }
 
     const self = this;
@@ -113,12 +114,12 @@ export default class Player {
     step();
 
     function step() {
-      if (!self.stringArt.drawNext().done) {
+      if (!self.viewer.next().done) {
         self.#renderRafId = requestAnimationFrame(step);
       } else {
         self.updateStatus(false);
       }
-      self.updatePosition(self.stringArt.position);
+      self.updatePosition(self.viewer.position);
     }
   }
 

@@ -3,7 +3,9 @@ import Circle, { CircleConfig } from '../helpers/Circle.js';
 import Color from '../helpers/color/Color.js';
 import { ColorConfig } from '../helpers/color/color.types.js';
 import { PI2 } from '../helpers/math_utils.js';
+import Renderer from '../renderers/Renderer.js';
 import { ControlsConfig } from '../types/config.types.js';
+import { CalcOptions } from '../types/stringart.types.js';
 
 type SpreadModeType = 'evenly' | 'distance';
 
@@ -150,10 +152,10 @@ export default class Comet extends StringArt<CometConfig> {
   #circle: Circle;
   color: Color;
 
-  setUpDraw() {
-    super.setUpDraw();
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw(options);
     const circleConfig = {
-      size: this.size,
+      size: options.size,
       n: this.config.n,
       margin: this.config.margin,
       rotation: this.config.rotation,
@@ -201,36 +203,36 @@ export default class Comet extends StringArt<CometConfig> {
     return (this.config.n - layerRingDistance + 1) * 2 - 1;
   }
 
-  *drawLayer(layerIndex = 0): Generator<void> {
+  *drawLayer(renderer: Renderer, layerIndex = 0): Generator<void> {
     const { n } = this.config;
     const ringDistance = this.getLayerRingDistance(layerIndex);
     const stepCount = n - ringDistance + 1;
 
     let prevPoint = this.#circle.getPoint(0);
     let prevPointIndex = 0;
-    this.renderer.setColor(this.color.getColor(layerIndex));
+    renderer.setColor(this.color.getColor(layerIndex));
 
     for (let i = 0; i < n - ringDistance + 1; i++) {
       const pointIndex = i + ringDistance;
       const point = this.#circle.getPoint(pointIndex);
 
-      this.renderer.renderLines(prevPoint, point);
+      renderer.renderLines(prevPoint, point);
       yield;
 
       if (i !== stepCount - 1) {
         prevPointIndex = i + 1;
         prevPoint = this.#circle.getPoint(prevPointIndex);
 
-        this.renderer.renderLines(point, prevPoint);
+        renderer.renderLines(point, prevPoint);
 
         yield;
       }
     }
   }
 
-  *generateStrings() {
+  *drawStrings(renderer: Renderer) {
     for (let layer = 0; layer < this.config.layers; layer++) {
-      yield* this.drawLayer(layer);
+      yield* this.drawLayer(renderer, layer);
     }
   }
 

@@ -121,7 +121,7 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
     this.elements.patternName.innerText = pattern?.name ?? 'Choose a pattern';
   }
 
-  #createThumbnailsSection(title: string, patterns: StringArt<any>[]): void {
+  #createThumbnailsSection(title: string, patterns: StringArt[]): void {
     const section = document.createElement('section');
 
     const sectionTitle = document.createElement('h3');
@@ -134,11 +134,13 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
     section.appendChild(thumbnailsList);
 
     const thumbnailsFragment = document.createDocumentFragment();
+    const patternThumbnails: Record<string, HTMLElement> = {};
+
     patterns.forEach(pattern => {
       const patternLink = document.createElement('a');
 
       patternLink.style.width = patternLink.style.height = THUMBNAIL_WIDTH_PX;
-      pattern.setRenderer(new CanvasRenderer(patternLink));
+      patternThumbnails[pattern.id] = patternLink;
 
       pattern.assignConfig({
         margin: 1,
@@ -160,7 +162,13 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
 
     this.elements.thumbnails.appendChild(section);
 
-    //patterns.forEach(pattern => pattern.draw());
+    patterns.forEach(pattern => {
+      const renderer = new CanvasRenderer(patternThumbnails[pattern.id], {
+        updateOnResize: false,
+      });
+      renderer.setSize([100, 100]);
+      pattern.draw(renderer);
+    });
   }
 
   createThumbnails() {
@@ -174,6 +182,7 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
       );
     }
     const patterns = patternTypes.map(PatternType => new PatternType());
+    // @ts-ignore
     this.#createThumbnailsSection('Built-in patterns', patterns);
   }
 }

@@ -47,7 +47,6 @@ const elements: { [key: string]: HTMLElement } = {
   ),
 };
 
-const player = new Player(document.querySelector('#player'));
 const sizeControls = new EditorSizeControls({
   getCurrentSize: () => [
     elements.canvas.clientWidth,
@@ -62,7 +61,7 @@ window.addEventListener('load', main);
 
 async function main() {
   let controls: EditorControls<any>;
-  const viewer = new Viewer();
+  let currentRenderer: Renderer;
 
   initRouting();
 
@@ -72,12 +71,12 @@ async function main() {
   unHide(document.querySelector('main'));
 
   const queryParams = new URLSearchParams(document.location.search);
-  currentRenderer =
-    queryParams.get('renderer') === 'svg'
-      ? new SVGRenderer(elements.canvas)
-      : new CanvasRenderer(elements.canvas);
+  const viewer = new Viewer(
+    queryParams.get('renderer') === 'svg' ? 'svg' : 'canvas'
+  );
+  const player = new Player(document.querySelector('#player'), viewer);
 
-  const patterns = patternTypes.map(Pattern => new Pattern(currentRenderer));
+  const patterns = patternTypes.map(Pattern => new Pattern());
   type Pattern = StringArt<any>;
   let currentPattern: Pattern;
 
@@ -88,6 +87,7 @@ async function main() {
 
     if (queryPattern) {
       const config = queryParams.get('config');
+      console.log('update state', queryPattern, config);
       updateState({ pattern: queryPattern, config });
     } else {
       thumbnails.toggle();
@@ -136,10 +136,10 @@ async function main() {
     setCurrentPattern(pattern);
   });
 
-  elements.canvas.addEventListener('wheel', ({ deltaY }) => {
-    const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
-    player.advance(direction);
-  });
+  viewer.addEventListener('positionChange', ({ changeBy }) =>
+    player.advance(changeBy)
+  );
+
   // // If just a click, advance by one. If touch is left, play until removed
   // elements.canvas.addEventListener('mousedown', () => {
   //   let timeout;
@@ -175,8 +175,7 @@ async function main() {
       if (toggledElement) {
         toggledElement.classList.toggle('open');
         document.body.classList.toggle('dialog_' + dialogId);
-        currentPattern &&
-          currentPattern.draw({ position: currentPattern.position });
+        currentPattern && viewer.update();
       }
     }
   });
@@ -203,7 +202,7 @@ async function main() {
     if (state?.pattern) {
       const pattern = findPatternById(state.pattern);
       if (pattern) {
-        pattern.setRenderer(currentRenderer);
+        viewer.setPattern(pattern);
         selectPattern(pattern, {
           draw: false,
           config: state.config
@@ -212,7 +211,7 @@ async function main() {
         });
 
         thumbnails.close();
-        currentPattern.draw();
+        viewer.update();
       } else {
         thumbnails.open();
       }
@@ -222,8 +221,9 @@ async function main() {
     }
   }
 
-  function findPatternById(patternId: string): StringArt<any> | null {
-    let pattern: StringArt<any> = patterns.find(({ id }) => id === patternId);
+  function findPatternById(patternId: string): StringArt | null {
+    // @ts-ignore
+    let pattern: StringArt = patterns.find(({ id }) => id === patternId);
 
     if (!pattern) {
       // Try from persistance
@@ -240,10 +240,7 @@ async function main() {
     initSize();
 
     elements.resetBtn.addEventListener('click', reset);
-    const showShare = await isShareSupported({
-      renderer: currentRenderer,
-      pattern: currentPattern,
-    });
+    const showShare = await isShareSupported();
     if (showShare) {
       unHide(elements.shareBtn);
     }
@@ -285,7 +282,8 @@ async function main() {
     downloadCanvas(`${currentPattern.name}_nails_map.png`);
 
     currentPattern.config = currentConfig;
-    currentPattern.draw();
+    //currentPattern.draw();
+    // TODO: create an offline canvas and download it
   }
 
   function reset() {
@@ -308,7 +306,7 @@ async function main() {
   }
 
   function onInputsChange() {
-    player.update(currentPattern);
+    player.update(viewer.getStepCount());
     const configQuery = serializeConfig(currentPattern);
     history.replaceState(
       {
@@ -384,7 +382,7 @@ async function main() {
     const isFirstTime = !currentPattern;
 
     currentPattern = pattern;
-    currentPattern.setRenderer(currentRenderer);
+    viewer.setPattern(pattern);
     if (config) {
       // @ts-ignore
       currentPattern.setConfig(config);
@@ -398,10 +396,9 @@ async function main() {
     controls.addEventListener('input', ({ control, value }) => {
       currentPattern.setConfigValue(control.key, value);
       controls.config = currentPattern.config;
-      currentPattern.draw({
+      viewer.update({
         redrawNails: control.affectsNails !== false,
         redrawStrings: control.affectsStrings !== false,
-        updateSize: false,
       });
     });
     controls.addEventListener('change', onInputsChange);
@@ -412,18 +409,19 @@ async function main() {
 
     if (isFirstTime) {
       initPattern();
-      document.body.querySelectorAll('.pattern_only').forEach(unHide);
     }
-    currentPattern.draw();
+    document.body.querySelectorAll('.pattern_only').forEach(unHide);
+    if (draw) {
+      viewer.update();
+    }
 
-    player.update(currentPattern, { draw: false });
+    player.update(viewer.getStepCount(), { draw: false });
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
   }
 
   function unselectPattern() {
-    currentPattern = null;
-    currentRenderer.clear();
+    viewer.setPattern(null);
     thumbnails.setCurrentPattern(null);
     controls && controls.destroy();
     document.body.querySelectorAll('.pattern_only').forEach(hide);

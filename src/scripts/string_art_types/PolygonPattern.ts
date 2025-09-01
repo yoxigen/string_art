@@ -3,6 +3,7 @@ import Circle from '../helpers/Circle.js';
 import Polygon, { PolygonConfig } from '../helpers/Polygon.js';
 import Color from '../helpers/color/Color.js';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types.js';
+import Renderer from '../renderers/Renderer.js';
 import { ControlsConfig } from '../types/config.types.js';
 
 interface PolygonPatternConfig extends ColorConfig {
@@ -115,21 +116,21 @@ export default class PolygonPattern extends StringArt<PolygonPatternConfig> {
     }
   }
 
-  *generateStrings() {
+  *drawStrings(renderer: Renderer) {
     const { sides, bezier } = this.config;
     const limitedBezier = Math.min(bezier, Math.ceil(sides / 2) - 1);
 
     let step = 0;
-    this.renderer.setColor(this.color.getColor(0));
+    renderer.setColor(this.color.getColor(0));
 
     for (let side = 0; side < sides; side++) {
       const nextSide = (side + limitedBezier) % sides;
 
       if (this.colorMap) {
-        this.renderer.setColor(this.colorMap.get(step));
+        renderer.setColor(this.colorMap.get(step));
       }
       for (let index = 0; index < this.#polygon.nailsPerSide; index++) {
-        this.renderer.renderLines(
+        renderer.renderLines(
           this.#polygon.getSidePoint({ side, index }),
           this.#polygon.getSidePoint({ side: nextSide, index })
         );

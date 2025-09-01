@@ -9,6 +9,14 @@ export type RendererResetOptions = Partial<{
   resetSize: boolean;
 }>;
 
+export type RendererOptions = Partial<{
+  updateOnResize: boolean;
+}>;
+
+const DEFAULT_OPTIONS: RendererOptions = {
+  updateOnResize: true,
+};
+
 export default abstract class Renderer extends EventBus<{
   devicePixelRatioChange: { devicePixelRatio: number };
   sizeChange: { size: Dimensions };
@@ -17,6 +25,8 @@ export default abstract class Renderer extends EventBus<{
   color?: ColorValue;
   size: Dimensions;
   pixelRatio = 1;
+  options: RendererOptions;
+
   /**
    * The current dimensions of the renderer. Should be fixed for device pixel ratio, if used by the renderer!
    */
@@ -25,11 +35,16 @@ export default abstract class Renderer extends EventBus<{
   #removeDevicePixelListener: Function;
   #removeOnResizeListener: typeof ResizeObserver.prototype.disconnect;
 
-  constructor(parentElement: HTMLElement) {
+  constructor(parentElement: HTMLElement, options?: RendererOptions) {
     super();
+    this.options = options ?? DEFAULT_OPTIONS;
+
+    const { updateOnResize = true } = this.options;
 
     this.parentElement = parentElement;
-    this.#setOnResize();
+    if (updateOnResize) {
+      this.#setOnResize();
+    }
   }
 
   #setOnResize() {
@@ -82,22 +97,24 @@ export default abstract class Renderer extends EventBus<{
     const dpr = window.devicePixelRatio || 1;
     this.pixelRatio = dpr;
 
-    const updatePixelRatio = () => {
-      this.#removeDevicePixelListener?.();
-      const mqString = `(resolution: ${dpr}dppx)`;
-      const media = matchMedia(mqString);
-      media.addEventListener('change', updatePixelRatio);
-      this.#removeDevicePixelListener = () => {
-        media.removeEventListener('change', updatePixelRatio);
+    if (this.options.updateOnResize !== false) {
+      const updatePixelRatio = () => {
+        this.#removeDevicePixelListener?.();
+        const mqString = `(resolution: ${dpr}dppx)`;
+        const media = matchMedia(mqString);
+        media.addEventListener('change', updatePixelRatio);
+        this.#removeDevicePixelListener = () => {
+          media.removeEventListener('change', updatePixelRatio);
+        };
+
+        this.pixelRatio = window.devicePixelRatio;
+        this.emit('devicePixelRatioChange', {
+          devicePixelRatio: this.pixelRatio,
+        });
       };
 
-      this.pixelRatio = window.devicePixelRatio;
-      this.emit('devicePixelRatioChange', {
-        devicePixelRatio: this.pixelRatio,
-      });
-    };
-
-    updatePixelRatio();
+      updatePixelRatio();
+    }
   }
 
   disablePixelRatio() {

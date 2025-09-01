@@ -1,5 +1,5 @@
 import { ColorValue } from '../helpers/color/color.types';
-import type { Coordinates } from './general.types';
+import type { Coordinates, Dimensions } from './general.types';
 
 export interface Nail {
   point: Coordinates;
@@ -15,3 +15,7 @@ export interface NailsRenderOptions {
 }
 
 export type ID = string;
+
+export interface CalcOptions {
+  size: Dimensions;
+}

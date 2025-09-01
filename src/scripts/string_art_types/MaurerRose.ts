@@ -3,6 +3,7 @@ import Circle from '../helpers/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { gcd, PI2 } from '../helpers/math_utils';
+import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types.js';
 import { Coordinates, Dimensions } from '../types/general.types';
 
@@ -167,11 +168,11 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     }
   }
 
-  *generateStrings(): Generator<void> {
+  *drawStrings(renderer: Renderer): Generator<void> {
     const points = this.generatePoints();
 
     let prevPoint: Coordinates;
-    this.renderer.setColor(this.color.getColor(0));
+    renderer.setColor(this.color.getColor(0));
 
     for (const { point, index } of points) {
       if (!prevPoint) {
@@ -182,11 +183,11 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
-          this.renderer.setColor(stepColor);
+          renderer.setColor(stepColor);
         }
       }
 
-      this.renderer.renderLines(prevPoint, point);
+      renderer.renderLines(prevPoint, point);
       prevPoint = point;
 
       yield;

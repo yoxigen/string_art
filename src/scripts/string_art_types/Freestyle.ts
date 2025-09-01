@@ -1,6 +1,7 @@
 import StringArt from '../StringArt';
 import Circle from '../helpers/Circle';
 import { ColorValue } from '../helpers/color/color.types';
+import Renderer from '../renderers/Renderer';
 import {
   ControlConfig,
   ControlsConfig,
@@ -329,10 +330,10 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
     return circle.getPoint(circleIndex);
   }
 
-  *generateStrings(): Generator<void> {
+  *drawStrings(renderer: Renderer): Generator<void> {
     const { color } = this.config;
 
-    this.renderer.setColor(color);
+    renderer.setColor(color);
     let prevCirclePoint: Coordinates;
 
     for (let i = 0; i < this.#calc.maxShapeNailsCount; i++) {
@@ -356,7 +357,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
 
         prevCirclePoint = this.getPoint(this.#calc.layers[nextLayerIndex], i);
 
-        this.renderer.renderLines(startPoint, prevCirclePoint);
+        renderer.renderLines(startPoint, prevCirclePoint);
         yield;
       }
     }
