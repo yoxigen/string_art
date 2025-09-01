@@ -3,6 +3,7 @@ import { PI2 } from '../helpers/math_utils';
 import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail } from '../types/stringart.types';
 import { ColorValue } from '../helpers/color/color.types';
+import { areDimensionsEqual } from '../helpers/size_utils';
 
 export default class CanvasRenderer extends Renderer {
   #layers: Record<
@@ -36,6 +37,12 @@ export default class CanvasRenderer extends Renderer {
     });
     this.enablePixelRatio();
     this.ctxs.forEach(ctx => (ctx.globalCompositeOperation = 'source-over'));
+    this.addEventListener('devicePixelRatioChange', () => {
+      this.setSize([
+        this.stringsCanvas.clientWidth,
+        this.stringsCanvas.clientHeight,
+      ]);
+    });
   }
 
   get element() {
@@ -66,9 +73,6 @@ export default class CanvasRenderer extends Renderer {
     this.canvases.forEach(canvas => {
       canvas.removeAttribute('width');
       canvas.removeAttribute('height');
-      canvas.removeAttribute('style');
-      canvas.style.removeProperty('width');
-      canvas.style.removeProperty('height');
     });
 
     const newSize = this.getSize();
@@ -77,24 +81,32 @@ export default class CanvasRenderer extends Renderer {
       canvas.setAttribute('height', String(newSize[1]));
     });
 
+    if (!this.currentSize || !areDimensionsEqual(newSize, this.currentSize)) {
+      this.currentSize = newSize;
+      this.emit('sizeChange', { size: newSize });
+    }
+
     return newSize;
   }
 
-  setSize(size: Dimensions | null): Dimensions {
+  setSize(size?: Dimensions | null): Dimensions {
     if (!size) {
       return this.resetSize();
     }
 
-    const realSize = size.map(v => v * this.pixelRatio);
+    const realSize = size.map(v => v * this.pixelRatio) as Dimensions;
 
     this.canvases.forEach(canvas => {
-      canvas.style.width = `${size[0]}px`;
-      canvas.style.height = `${size[1]}px`;
       canvas.setAttribute('width', String(realSize[0]));
       canvas.setAttribute('height', String(realSize[1]));
     });
 
-    return realSize as Dimensions;
+    if (!this.currentSize || !areDimensionsEqual(realSize, this.currentSize)) {
+      this.currentSize = realSize;
+      this.emit('sizeChange', { size: realSize });
+    }
+
+    return realSize;
   }
 
   resetStrings(): void {

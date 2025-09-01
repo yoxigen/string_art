@@ -204,7 +204,7 @@ async function main() {
     if (state?.pattern) {
       const pattern = findPatternById(state.pattern);
       if (pattern) {
-        pattern.renderer = currentRenderer;
+        pattern.setRenderer(currentRenderer);
         selectPattern(pattern, {
           draw: false,
           config: state.config
@@ -240,12 +240,6 @@ async function main() {
 
     initSize();
 
-    window.addEventListener('resize', () => {
-      if (currentPattern) {
-        currentPattern.draw();
-      }
-    });
-
     elements.resetBtn.addEventListener('click', reset);
     const showShare = await isShareSupported({
       renderer: currentRenderer,
@@ -260,7 +254,7 @@ async function main() {
     currentRenderer.disablePixelRatio();
     currentPattern.setSize(currentPattern.fixedSize);
 
-    currentPattern.draw();
+    //currentPattern.draw({ updateSize: false });
 
     downloadFile(
       currentRenderer.toDataURL(),
@@ -270,7 +264,7 @@ async function main() {
     // Reset to the original config from before the download:
     currentRenderer.enablePixelRatio();
     currentPattern.setSize(currentPattern.fixedSize);
-    currentPattern.draw();
+    //currentPattern.draw({ updateSize: false });
   }
 
   function downloadSVG() {
@@ -381,7 +375,7 @@ async function main() {
       currentPattern.setSize(null);
     }
 
-    currentPattern.draw({ updateSize: false });
+    //currentPattern.draw({ updateSize: false });
   }
 
   function selectPattern(
