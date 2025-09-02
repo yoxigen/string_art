@@ -19,6 +19,7 @@ import StringArt from './StringArt';
 import { compareObjects } from './helpers/object_utils';
 import { confirm } from './helpers/dialogs';
 import Viewer from './viewer/Viewer';
+import { getPatternURL } from './helpers/url_utils';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -274,9 +275,9 @@ async function main() {
         renderer: currentRenderer instanceof SVGRenderer ? 'svg' : undefined,
       },
       currentPattern.name,
-      `?pattern=${currentPattern.id}${
-        configQuery ? `&config=${encodeURIComponent(configQuery)}` : ''
-      }${currentRenderer instanceof SVGRenderer ? '&renderer=svg' : ''}`
+      getPatternURL(currentPattern, {
+        renderer: currentRenderer instanceof SVGRenderer ? 'svg' : 'canvas',
+      })
     );
 
     setIsDefaultConfig();
