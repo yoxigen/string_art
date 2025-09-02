@@ -158,11 +158,18 @@ export default class CanvasRenderer extends Renderer {
     this.stringsCtx.globalCompositeOperation = 'source-over';
   }
 
+  getLogicalSize(): Dimensions {
+    return (
+      this.fixedSize ??
+      ([
+        this.stringsCanvas.clientWidth,
+        this.stringsCanvas.clientHeight,
+      ] as Dimensions)
+    );
+  }
+
   getSize(): Dimensions {
-    return [
-      this.stringsCanvas.clientWidth * this.pixelRatio,
-      this.stringsCanvas.clientHeight * this.pixelRatio,
-    ];
+    return this.getLogicalSize().map(v => v * this.pixelRatio) as Dimensions;
   }
 
   renderLines(startPosition: Coordinates, ...positions: Array<Coordinates>) {

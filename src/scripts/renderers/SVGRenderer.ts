@@ -1,5 +1,4 @@
 import Renderer from './Renderer.js';
-import { PI2 } from '../helpers/math_utils.js';
 import type { Coordinates, Dimensions } from '../types/general.types.js';
 import { ColorValue } from '../helpers/color/color.types.js';
 import { Nail, NailsRenderOptions } from '../types/stringart.types.js';

@@ -27,7 +27,6 @@ export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
 export interface DrawOptions {
   redrawNails?: boolean;
   redrawStrings?: boolean;
-  updateSize?: boolean;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -162,7 +161,6 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   defaultValues: Partial<Config<TConfig>> = {};
   stepCount: number | null = null;
   size: Dimensions = null;
-  fixedSize: Dimensions | null;
   center: Coordinates = null;
   nails: Nails = null;
   position: number = 0;
@@ -416,7 +414,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     if (this.stringsIterator && position > this.position) {
       while (!this.drawNext().done && this.position < position);
     } else {
-      this.draw(renderer, { position, updateSize: false, redrawNails: false });
+      this.draw(renderer, { position, redrawNails: false });
     }
   }
 

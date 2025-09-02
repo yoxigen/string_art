@@ -108,13 +108,22 @@ export default abstract class Renderer extends EventBus<{
   }
 
   /**
+   * Returns the CSS pixel space dimensions of the renderer (as opposed to the device pixels, which uses device pixel ratio)
+   * @returns
+   */
+  getLogicalSize(): Dimensions {
+    return this.getSize();
+  }
+
+  /**
    * Sets a fixed size for the renderer, which doesn't get updates on resize changes
    * A fixed size can be cancelled with `resetSize` or setSize(null).
    */
   setFixedSize(size: Dimensions): void {
     // First setting to null because the `setSize` method won't override an existing fixedSize
     this.fixedSize = null;
-    this.fixedSize = this.setSize(size);
+    this.setSize(size);
+    this.fixedSize = size;
   }
 
   enablePixelRatio() {

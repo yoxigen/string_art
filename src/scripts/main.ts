@@ -6,10 +6,8 @@ import { Thumbnails } from './thumbnails/Thumbnails';
 import { deserializeConfig, serializeConfig } from './Serialize';
 import { isShareSupported, share } from './share';
 import { initServiceWorker } from './pwa';
-import CanvasRenderer from './renderers/CanvasRenderer';
 import SVGRenderer from './renderers/SVGRenderer';
-import { downloadPatternAsSVG } from './download/SVGDownload';
-import { downloadFile } from './download/Download';
+import { downloadPattern } from './download/Download';
 import './components/components';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
@@ -90,8 +88,15 @@ async function main() {
     }
   }
 
-  elements.downloadBtn.addEventListener('click', () => downloadCanvas());
-  elements.downloadSVGBtn.addEventListener('click', downloadSVG);
+  elements.downloadBtn.addEventListener('click', () =>
+    downloadPattern(currentPattern, { size: viewer.renderer.getLogicalSize() })
+  );
+  elements.downloadSVGBtn.addEventListener('click', () =>
+    downloadPattern(currentPattern, {
+      type: 'svg',
+      size: viewer.renderer.getLogicalSize(),
+    })
+  );
   elements.downloadNailsBtn.addEventListener('click', () =>
     downloadNailsImage()
   );
@@ -216,31 +221,12 @@ async function main() {
     }
   }
 
-  function downloadCanvas(filename?: string) {
-    currentRenderer.disablePixelRatio();
-    currentPattern.setSize(currentPattern.fixedSize);
-
-    //currentPattern.draw({ updateSize: false });
-
-    downloadFile(
-      currentRenderer.toDataURL(),
-      filename ?? currentPattern.name + '.png'
-    );
-
-    // Reset to the original config from before the download:
-    currentRenderer.enablePixelRatio();
-    currentPattern.setSize(currentPattern.fixedSize);
-    //currentPattern.draw({ updateSize: false });
-  }
-
-  function downloadSVG() {
-    downloadPatternAsSVG(currentPattern, currentRenderer.getSize());
-  }
-
   function downloadNailsImage(withNumbers = true) {
-    const currentConfig = currentPattern.config;
-    currentPattern.config = {
-      ...currentConfig,
+    // @ts-ignore
+    const patternCopy = new currentPattern.constructor();
+
+    patternCopy.config = {
+      ...patternCopy.config,
       darkMode: false,
       showNails: true,
       showNailNumbers: withNumbers,
@@ -249,11 +235,10 @@ async function main() {
       backgroundColor: '#ffffff',
     };
 
-    downloadCanvas(`${currentPattern.name}_nails_map.png`);
-
-    currentPattern.config = currentConfig;
-    //currentPattern.draw();
-    // TODO: create an offline canvas and download it
+    downloadPattern(patternCopy, {
+      size: viewer.renderer.getLogicalSize(),
+      filename: `${currentPattern.name} - nails map`,
+    });
   }
 
   function reset() {
