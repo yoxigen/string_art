@@ -27,7 +27,7 @@ interface SetPatternOptions {
 }
 
 window.addEventListener('error', function (event) {
-  alert('Error: ' + event.message);
+  alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
 });
 
 const elements: { [key: string]: HTMLElement } = {

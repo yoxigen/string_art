@@ -9,9 +9,9 @@ type RendererType = 'svg' | 'canvas';
 
 export default class Viewer extends EventBus<{
   positionChange: { changeBy: number };
-  click: { position: number };
-  touchStart: { position: number };
-  touchEnd: { position: number };
+  click: void;
+  touchStart: void;
+  touchEnd: void;
 }> {
   element: HTMLElement;
   renderer: Renderer | null;
@@ -29,7 +29,8 @@ export default class Viewer extends EventBus<{
       this.emit('positionChange', { changeBy: direction });
     });
 
-    this.#setTapEvents();
+    // Cancelling this for the moment, as it creates problems on mobile, when doing back with gestures:
+    // this.#setTapEvents();
   }
 
   get position(): number {
@@ -82,7 +83,7 @@ export default class Viewer extends EventBus<{
     let timeout: ReturnType<typeof setTimeout>;
 
     this.element.addEventListener('pointerdown', () => {
-      this.emit('click', { position: this.pattern.position });
+      this.emit('click', null);
 
       const cancelTouch = () => {
         clearTimeout(timeout);
@@ -91,9 +92,9 @@ export default class Viewer extends EventBus<{
 
       timeout = setTimeout(() => {
         this.element.removeEventListener('pointerup', cancelTouch);
-        this.emit('touchStart', { position: this.pattern.position });
+        this.emit('touchStart', null);
         const end = () => {
-          this.emit('touchEnd', { position: this.pattern.position });
+          this.emit('touchEnd', null);
           this.element.removeEventListener('pointerup', end);
         };
         this.element.addEventListener('pointerup', end);
