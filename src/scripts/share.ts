@@ -1,4 +1,6 @@
+import { getPatternURL } from './helpers/url_utils';
 import type Renderer from './renderers/Renderer';
+import SVGRenderer from './renderers/SVGRenderer';
 import type StringArt from './StringArt';
 
 export interface ShareInput {
@@ -36,7 +38,8 @@ export async function isShareSupported() {
 async function dataURLToShareData(
   dataURL: string,
   text: string,
-  filename: string
+  filename: string,
+  url?: string
 ): Promise<ShareData> {
   const blob = await (await fetch(dataURL)).blob();
   const files = [
@@ -46,7 +49,7 @@ async function dataURLToShareData(
     }),
   ];
   return {
-    url: window.location.href,
+    url: url ?? window.location.href,
     files,
     title: document.title,
     text,
@@ -61,6 +64,10 @@ async function getShareData({
   return dataURLToShareData(
     dataUrl,
     'String Art Studio - ' + pattern.name,
-    pattern.name + '.jpg'
+    pattern.name + '.jpg',
+    getPatternURL(pattern, {
+      renderer: renderer instanceof SVGRenderer ? 'svg' : 'canvas',
+      patternAsTemplate: true,
+    })
   );
 }

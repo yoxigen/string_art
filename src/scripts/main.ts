@@ -276,6 +276,7 @@ async function main() {
       currentPattern.name,
       getPatternURL(currentPattern, {
         renderer: viewer.renderer instanceof SVGRenderer ? 'svg' : 'canvas',
+        patternAsTemplate: false,
       })
     );
 
