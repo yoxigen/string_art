@@ -24,6 +24,7 @@ export default abstract class Renderer extends EventBus<{
   parentElement: HTMLElement;
   color?: ColorValue;
   size: Dimensions;
+  fixedSize: Dimensions | null;
   pixelRatio = 1;
   options: RendererOptions;
 
@@ -53,7 +54,9 @@ export default abstract class Renderer extends EventBus<{
     const resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
         if (!this.#isResizeFirstTime) {
-          this.setSize([entry.contentRect.width, entry.contentRect.height]);
+          if (!this.fixedSize) {
+            this.setSize([entry.contentRect.width, entry.contentRect.height]);
+          }
         }
         this.#isResizeFirstTime = false;
       }
@@ -78,7 +81,10 @@ export default abstract class Renderer extends EventBus<{
 
   abstract resetStrings(): void;
   abstract resetNails(): void;
-  abstract resetSize(notifyOnChange?: boolean): Dimensions;
+  resetSize(): void {
+    this.fixedSize = null;
+  }
+
   abstract setLineWidth(width: number): void;
   abstract renderLines(
     startPosition: Coordinates,
@@ -99,6 +105,16 @@ export default abstract class Renderer extends EventBus<{
   getSize(): Dimensions {
     const { width, height } = this.parentElement.getBoundingClientRect();
     return [width, height];
+  }
+
+  /**
+   * Sets a fixed size for the renderer, which doesn't get updates on resize changes
+   * A fixed size can be cancelled with `resetSize` or setSize(null).
+   */
+  setFixedSize(size: Dimensions): void {
+    // First setting to null because the `setSize` method won't override an existing fixedSize
+    this.fixedSize = null;
+    this.fixedSize = this.setSize(size);
   }
 
   enablePixelRatio() {

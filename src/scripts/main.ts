@@ -47,13 +47,6 @@ const elements: { [key: string]: HTMLElement } = {
   ),
 };
 
-const sizeControls = new EditorSizeControls({
-  getCurrentSize: () => [
-    elements.canvas.clientWidth,
-    elements.canvas.clientHeight,
-  ],
-});
-
 const persistance = new Persistance();
 const thumbnails = new Thumbnails(persistance);
 
@@ -76,6 +69,10 @@ async function main() {
   );
   const player = new Player(document.querySelector('#player'), viewer);
 
+  const sizeControls = new EditorSizeControls({
+    getCurrentSize: () => viewer.size,
+  });
+
   const patterns = patternTypes.map(Pattern => new Pattern());
   type Pattern = StringArt<any>;
   let currentPattern: Pattern;
@@ -87,7 +84,6 @@ async function main() {
 
     if (queryPattern) {
       const config = queryParams.get('config');
-      console.log('update state', queryPattern, config);
       updateState({ pattern: queryPattern, config });
     } else {
       thumbnails.toggle();
@@ -135,32 +131,6 @@ async function main() {
     const pattern = findPatternById(patternId);
     setCurrentPattern(pattern);
   });
-
-  viewer.addEventListener('positionChange', ({ changeBy }) =>
-    player.advance(changeBy)
-  );
-
-  // // If just a click, advance by one. If touch is left, play until removed
-  // elements.canvas.addEventListener('mousedown', () => {
-  //   let timeout;
-
-  //   const advance = () => {
-  //     clearTimeout(timeout);
-  //     player.advance();
-  //     elements.canvas.removeEventListener('mouseup', advance);
-  //   };
-
-  //   timeout = setTimeout(() => {
-  //     player.play();
-  //     const stopPlay = () => {
-  //       player.pause();
-  //       elements.canvas.removeEventListener('mouseup', stopPlay);
-  //     };
-  //     elements.canvas.addEventListener('mouseup', stopPlay);
-  //   }, 200);
-
-  //   elements.canvas.addEventListener('mouseup', advance);
-  // });
 
   document.body.addEventListener('click', e => {
     const toggleBtn =
@@ -356,23 +326,9 @@ async function main() {
     sizeControls.element.addEventListener(
       'sizechange',
       ({ detail: size }: CustomEvent<Dimensions | null>) => {
-        setSize(size);
+        viewer.setSize(size);
       }
     );
-  }
-
-  function setSize(size: Dimensions | null) {
-    if (size && size.length === 2) {
-      currentPattern.setSize(size);
-      if (!elements.canvas.classList.contains('overflow')) {
-        elements.canvas.classList.add('overflow');
-      }
-    } else {
-      elements.canvas.classList.remove('overflow');
-      currentPattern.setSize(null);
-    }
-
-    //currentPattern.draw({ updateSize: false });
   }
 
   function selectPattern(

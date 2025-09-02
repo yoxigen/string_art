@@ -9,6 +9,9 @@ type RendererType = 'svg' | 'canvas';
 
 export default class Viewer extends EventBus<{
   positionChange: { changeBy: number };
+  click: { position: number };
+  touchStart: { position: number };
+  touchEnd: { position: number };
 }> {
   element: HTMLElement;
   renderer: Renderer | null;
@@ -25,10 +28,30 @@ export default class Viewer extends EventBus<{
       const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
       this.emit('positionChange', { changeBy: direction });
     });
+
+    this.#setTapEvents();
   }
 
   get position(): number {
     return this.pattern?.position ?? -1;
+  }
+
+  get size(): Dimensions {
+    return [this.element.clientWidth, this.element.clientHeight];
+  }
+
+  setSize(size: Dimensions | null) {
+    this.#withRenderer();
+
+    if (size) {
+      if (!this.element.classList.contains('overflow')) {
+        this.element.classList.add('overflow');
+      }
+      this.renderer.setFixedSize(size);
+    } else {
+      this.element.classList.remove('overflow');
+      this.renderer.resetSize();
+    }
   }
 
   setRenderer(renderer: Renderer) {
@@ -52,6 +75,34 @@ export default class Viewer extends EventBus<{
     }
   }
 
+  /**
+   * Sets up click and touch events for the viewer
+   */
+  #setTapEvents() {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    this.element.addEventListener('pointerdown', () => {
+      this.emit('click', { position: this.pattern.position });
+
+      const cancelTouch = () => {
+        clearTimeout(timeout);
+        this.element.removeEventListener('pointerup', cancelTouch);
+      };
+
+      timeout = setTimeout(() => {
+        this.element.removeEventListener('pointerup', cancelTouch);
+        this.emit('touchStart', { position: this.pattern.position });
+        const end = () => {
+          this.emit('touchEnd', { position: this.pattern.position });
+          this.element.removeEventListener('pointerup', end);
+        };
+        this.element.addEventListener('pointerup', end);
+      }, 200);
+
+      this.element.addEventListener('pointerup', cancelTouch);
+    });
+  }
+
   update(options?: DrawOptions) {
     this.#withRenderer();
     this.pattern?.draw(this.renderer, options);
@@ -73,7 +124,6 @@ export default class Viewer extends EventBus<{
 
   #withRenderer(): asserts this is { renderer: Renderer } {
     if (!this.renderer) {
-      console.log('WITH');
       const RendererType =
         this.rendererType === 'svg' ? SVGRenderer : CanvasRenderer;
       this.setRenderer(new RendererType(this.element));

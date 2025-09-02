@@ -54,6 +54,8 @@ export default class SVGRenderer extends Renderer {
   }
 
   resetSize(): Dimensions {
+    super.resetSize();
+
     this.svg.style.removeProperty('width');
     this.svg.style.removeProperty('height');
 
@@ -133,6 +135,15 @@ export default class SVGRenderer extends Renderer {
   setSize(size: Dimensions | null) {
     if (!size) {
       return this.resetSize();
+    }
+
+    if (this.fixedSize) {
+      console.warn(
+        `Trying to set size for Renderer to [${size.join(
+          ', '
+        )}], but size is fixed to [${this.fixedSize.join(', ')}].`
+      );
+      return this.fixedSize;
     }
 
     this.svg.removeAttributeNS(SVG_NS, 'width');

@@ -74,9 +74,13 @@ export default class CanvasRenderer extends Renderer {
   }
 
   resetSize(notifyOnChange = true): Dimensions {
+    super.resetSize();
+
     this.canvases.forEach(canvas => {
       canvas.removeAttribute('width');
       canvas.removeAttribute('height');
+      canvas.style.removeProperty('width');
+      canvas.style.removeProperty('height');
     });
 
     const newSize = this.getSize();
@@ -100,10 +104,21 @@ export default class CanvasRenderer extends Renderer {
       return this.resetSize();
     }
 
+    if (this.fixedSize) {
+      console.warn(
+        `Trying to set size for Renderer to [${size.join(
+          ', '
+        )}], but size is fixed to [${this.fixedSize.join(', ')}].`
+      );
+      return this.fixedSize;
+    }
+
     const realSize = size.map(v => v * this.pixelRatio) as Dimensions;
     this.canvases.forEach(canvas => {
       canvas.setAttribute('width', String(realSize[0]));
       canvas.setAttribute('height', String(realSize[1]));
+      canvas.style.setProperty('width', `${size[0]}px`);
+      canvas.style.setProperty('height', `${size[1]}px`);
     });
 
     if (!this.currentSize || !areDimensionsEqual(realSize, this.currentSize)) {

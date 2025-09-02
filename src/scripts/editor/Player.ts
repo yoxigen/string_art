@@ -1,5 +1,6 @@
-import type StringArt from '../StringArt';
 import Viewer from '../viewer/Viewer';
+
+const SLOW_PLAY_SPEED = 200;
 
 /**
  * Represents the navigation that controls the StringArt when playing
@@ -16,7 +17,7 @@ export default class Player {
   };
   stepCount: number;
   #isPlaying: boolean;
-  #renderRafId: number;
+  #cancelNextPlayStep: Function;
 
   constructor(parentEl: HTMLElement, viewer: Viewer) {
     this.viewer = viewer;
@@ -41,12 +42,24 @@ export default class Player {
     });
 
     this.elements.playBtn.addEventListener('click', () => {
-      this.play();
+      this.play({ restartIfAtEnd: true });
     });
 
     this.elements.pauseBtn.addEventListener('click', () => {
       this.pause();
     });
+
+    viewer.addEventListener('positionChange', ({ changeBy }) =>
+      this.advance(changeBy)
+    );
+
+    viewer.addEventListener('click', () =>
+      this.#isPlaying ? this.pause() : this.advance()
+    );
+    viewer.addEventListener('touchStart', () =>
+      this.play({ speed: SLOW_PLAY_SPEED })
+    );
+    viewer.addEventListener('touchEnd', () => this.pause());
   }
 
   updateStatus(isPlaying: boolean) {
@@ -84,8 +97,6 @@ export default class Player {
   }
 
   advance(value = 1) {
-    const currentPosition = Number(this.elements.playerPosition.value);
-
     this.goto(
       Math.max(
         1,
@@ -101,30 +112,48 @@ export default class Player {
     // this.elements.stepInstructions.innerText = instructions;
   }
 
-  play() {
-    this.updateStatus(true);
-    cancelAnimationFrame(this.#renderRafId);
+  play({
+    restartIfAtEnd = false,
+    speed,
+  }: {
+    restartIfAtEnd?: boolean;
+    /**
+     * speed is the time between steps when playing, in milliseconds. If not specified, steps are as fast as possible, using `requestAnimationFrame`.
+     */
+    speed?: number;
+  } = {}) {
+    const isAtEnd = this.viewer.position === this.stepCount;
 
-    if (this.viewer.position === this.stepCount) {
+    if (isAtEnd && !restartIfAtEnd) {
+      return;
+    }
+
+    this.updateStatus(true);
+    this.#cancelNextPlayStep?.();
+
+    if (isAtEnd) {
       this.viewer.goto(0);
     }
 
-    const self = this;
-
-    step();
-
-    function step() {
-      if (!self.viewer.next().done) {
-        self.#renderRafId = requestAnimationFrame(step);
+    const step = () => {
+      if (!this.viewer.next().done) {
+        if (speed) {
+          const stepTimeout = setTimeout(step, speed);
+          this.#cancelNextPlayStep = () => clearTimeout(stepTimeout);
+        } else {
+          const stepRafId = requestAnimationFrame(step);
+          this.#cancelNextPlayStep = () => cancelAnimationFrame(stepRafId);
+        }
       } else {
-        self.updateStatus(false);
+        this.updateStatus(false);
       }
-      self.updatePosition(self.viewer.position);
-    }
+      this.updatePosition(this.viewer.position);
+    };
+    step();
   }
 
   pause() {
-    cancelAnimationFrame(this.#renderRafId);
+    this.#cancelNextPlayStep?.();
     this.updateStatus(false);
   }
 

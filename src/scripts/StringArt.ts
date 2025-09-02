@@ -325,6 +325,15 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
   }
 
+  /**
+   * Sets up the pattern for rendering, by:
+   * 1. Clearing strings and nails from the renderer (if required for any of them)
+   * 2. Creates the Nails object
+   * 3. Sets the strings line width
+   * 4. Calls the pattern's `setUpDraw` method.
+   * @param renderer
+   * @param param1
+   */
   initDraw(
     renderer: Renderer,
     { redrawNails = true, redrawStrings = true }: DrawOptions = {}
