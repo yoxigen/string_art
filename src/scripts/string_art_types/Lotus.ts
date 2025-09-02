@@ -7,13 +7,14 @@ import { Coordinates, Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
+import Renderer from '../renderers/Renderer';
+import { CalcOptions } from '../types/stringart.types';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
   density: number;
   rotation: number;
   removeSections: number;
-  fit: boolean;
   renderCenter: boolean;
   renderCenterNails: boolean;
   radialColor: boolean;
@@ -81,14 +82,6 @@ export default class Lotus extends StringArt<LotusConfig> {
       isStructural: true,
     },
     {
-      key: 'fit',
-      label: 'Fit',
-      type: 'checkbox',
-      defaultValue: true,
-      show: ({ removeSections }) => removeSections,
-      isStructural: true,
-    },
-    {
       key: 'renderCenter',
       label: 'Render center',
       type: 'checkbox',
@@ -108,6 +101,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       displayValue: ({ centerRadius }) => formatFractionAsPercent(centerRadius),
       show: ({ renderCenter }) => renderCenter,
       isStructural: true,
+      affectsStepCount: false,
     },
     {
       key: 'renderCenterNails',
@@ -135,6 +129,7 @@ export default class Lotus extends StringArt<LotusConfig> {
           defaultValue: false,
           type: 'checkbox',
           affectsNails: false,
+          affectsStepCount: false,
         },
       ],
       maxColorCount: 32,
@@ -148,19 +143,17 @@ export default class Lotus extends StringArt<LotusConfig> {
   #calc: TCalc;
   #color: Color;
 
-  getCalc(): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const {
       sides,
       density,
       margin,
       rotation,
       removeSections,
-      fit,
       centerRadius: centerRadiusPercent,
       renderCenter,
     } = this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
-    const size = this.getSize();
     let radius = (Math.min(...size) * d) / 2;
 
     const sideAngle = PI2 / sides;
@@ -187,27 +180,19 @@ export default class Lotus extends StringArt<LotusConfig> {
 
       const angleStart = sideAngle * petalSectionsToRemove;
 
-      if (fit) {
-        // Since we removed sections and now the pattern is smaller than the canvas size, we fit the remaining shape to fit on canvas
-        // this is done by:
-        // 1. Calculating the new outer edge of the shape, after removing sections
-        // 2. Increase the size of the circles that create petals by the inverse ratio of the new to original size
-        // 3. Since the circles are now larger, increase the number of nails in the circles by the size ratio, to maintain density.
-        const topSectionHeight =
-          2 * radius * Math.sin((Math.PI - angleStart) / 2);
-        const fitAspectRatio = (2 * radius - margin) / topSectionHeight;
-        baseCircleConfig.n = removeSectionsNailCount(
-          fixNailsCount(density * fitAspectRatio),
-          petalSectionsToRemove
-        );
-        radius *= fitAspectRatio;
-      } else {
-        // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
-        baseCircleConfig.n = removeSectionsNailCount(
-          densityNailCount,
-          petalSectionsToRemove
-        );
-      }
+      // Since we removed sections and now the pattern is smaller than the canvas size, we fit the remaining shape to fit on canvas
+      // this is done by:
+      // 1. Calculating the new outer edge of the shape, after removing sections
+      // 2. Increase the size of the circles that create petals by the inverse ratio of the new to original size
+      // 3. Since the circles are now larger, increase the number of nails in the circles by the size ratio, to maintain density.
+      const topSectionHeight =
+        2 * radius * Math.sin((Math.PI - angleStart) / 2);
+      const fitAspectRatio = (2 * radius - margin) / topSectionHeight;
+      baseCircleConfig.n = removeSectionsNailCount(
+        fixNailsCount(density * fitAspectRatio),
+        petalSectionsToRemove
+      );
+      radius *= fitAspectRatio;
 
       Object.assign(baseCircleConfig, {
         angleStart,
@@ -295,11 +280,11 @@ export default class Lotus extends StringArt<LotusConfig> {
     this.#calc = null;
   }
 
-  setUpDraw() {
-    super.setUpDraw();
+  setUpDraw(options) {
+    super.setUpDraw(options);
 
     if (!this.#calc) {
-      this.#calc = this.getCalc();
+      this.#calc = this.getCalc(options);
     }
     let colorCount = this.config.radialColor
       ? this.#calc.sections - this.#calc.removedSections - 1
@@ -324,7 +309,11 @@ export default class Lotus extends StringArt<LotusConfig> {
     );
   }
 
-  *#drawPatch(circleIndex: number, section: number): Generator<void> {
+  *#drawPatch(
+    renderer: Renderer,
+    circleIndex: number,
+    section: number
+  ): Generator<void> {
     const { sides } = this.config;
     const {
       circles,
@@ -337,7 +326,7 @@ export default class Lotus extends StringArt<LotusConfig> {
     const color = this.#getPatchColor(circleIndex, section);
     const circle = circles[circleIndex];
 
-    this.renderer.setColor(color);
+    renderer.setColor(color);
 
     const prevCircle =
       this.#calc.circles[circleIndex === 0 ? sides - 1 : circleIndex - 1];
@@ -348,11 +337,11 @@ export default class Lotus extends StringArt<LotusConfig> {
         nailsPerSection * 2
       );
       for (let i = nailsPerCircle - nailsPerSection; i < nailsPerCircle; i++) {
-        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLines(circle.getPoint(i), connectPoint);
         yield;
       }
       for (let i = 0; i <= nailsPerSection; i++) {
-        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLines(circle.getPoint(i), connectPoint);
         yield;
       }
     } else {
@@ -375,7 +364,7 @@ export default class Lotus extends StringArt<LotusConfig> {
         (removedSections ? 1 : 0);
 
       for (let i = 0; i <= nailsPerSection; i++) {
-        this.renderer.renderLines(
+        renderer.renderLines(
           firstCircle.getPoint(firstCircleStart + i),
           connectPoint
         );
@@ -384,15 +373,15 @@ export default class Lotus extends StringArt<LotusConfig> {
 
       const startIndex = (section - removedSections) * nailsPerSection + 1;
       for (let i = startIndex; i < startIndex + nailsPerSection; i++) {
-        this.renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLines(circle.getPoint(i), connectPoint);
         yield;
       }
     }
   }
 
-  *generateStrings(): Generator<void> {
+  *drawStrings(renderer: Renderer): Generator<void> {
     for (const { side, section } of this.#generatePatches()) {
-      yield* this.#drawPatch(side, section);
+      yield* this.#drawPatch(renderer, side, section);
     }
   }
 
@@ -453,8 +442,9 @@ export default class Lotus extends StringArt<LotusConfig> {
     return [[innerSectionNailsStart, innerSectionNailsEnd]];
   }
 
-  getStepCount() {
-    const { nailsPerSection, sections, removedSections } = this.getCalc();
+  getStepCount(options: CalcOptions) {
+    const { nailsPerSection, sections, removedSections } =
+      this.getCalc(options);
     const { sides } = this.config;
 
     const patchCount = 2 * nailsPerSection + 1;

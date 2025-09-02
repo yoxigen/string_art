@@ -1,8 +1,10 @@
 import Color from '../helpers/color/Color.js';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
+import Renderer from '../renderers/Renderer.js';
 import StringArt from '../StringArt';
 import { Config, ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types.js';
 
 type Side = 'left' | 'bottom' | 'right' | 'top';
 const SIDES: [Side, Side, Side, Side] = ['left', 'bottom', 'right', 'top'];
@@ -102,10 +104,10 @@ class Eye extends StringArt<EyeConfig> {
   #calc: TCalc;
   color: Color;
 
-  getCalc(): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const { n, angle, layers, margin } = this.config;
 
-    const maxSize = Math.min(...this.size) - 2 * margin;
+    const maxSize = Math.min(...size) - 2 * margin;
     const nailSpacing = maxSize / (n - 1);
     const layerAngle = (angle * Math.PI) / 180;
 
@@ -137,14 +139,14 @@ class Eye extends StringArt<EyeConfig> {
     };
   }
 
-  setUpDraw() {
-    super.setUpDraw();
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw(options);
     this.color = new Color({
       ...this.config,
       repeatColors: true,
       colorCount: 2,
     });
-    this.#calc = this.getCalc();
+    this.#calc = this.getCalc(options);
   }
 
   // Sides: top, right, bottom, left
@@ -181,31 +183,34 @@ class Eye extends StringArt<EyeConfig> {
     ];
   }
 
-  *drawSide({
-    side,
-    color = '#ffffff',
-    angle,
-    size,
-    layerStart,
-    layerStringCount,
-  }: {
-    side: Side;
-    color: ColorValue;
-    angle: number;
-    size: number;
-    layerStart: Coordinates;
-    layerStringCount: number;
-  }): Generator<void> {
+  *drawSide(
+    renderer: Renderer,
+    {
+      side,
+      color = '#ffffff',
+      angle,
+      size,
+      layerStart,
+      layerStringCount,
+    }: {
+      side: Side;
+      color: ColorValue;
+      angle: number;
+      size: number;
+      layerStart: Coordinates;
+      layerStringCount: number;
+    }
+  ): Generator<void> {
     const sideIndex = SIDES.indexOf(side);
     const nextSide = SIDES[sideIndex === SIDES.length - 1 ? 0 : sideIndex + 1];
     const rotation = SIDES_ROTATION[side];
     const nextSideRotation = SIDES_ROTATION[nextSide];
 
     const sideProps = { layerStringCount, size, layerStart, angle };
-    this.renderer.setColor(color);
+    renderer.setColor(color);
 
     for (let i = 0; i <= layerStringCount; i++) {
-      this.renderer.renderLines(
+      renderer.renderLines(
         this.getPoint({ index: i, rotation, ...sideProps }),
         this.getPoint({
           index: i,
@@ -218,14 +223,14 @@ class Eye extends StringArt<EyeConfig> {
     }
   }
 
-  *drawLayer(layerIndex: number): Generator<void> {
+  *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
     const { colorPerLayer } = this.config;
 
     const { layerAngle, layerSize, layerStart, layerStringCount } =
       this.#calc.layers[layerIndex];
 
     for (let i = 0; i < SIDES.length; i++) {
-      yield* this.drawSide({
+      yield* this.drawSide(renderer, {
         color: this.color.getColor(colorPerLayer ? layerIndex : i),
         side: SIDES_ORDER[i],
         angle: layerAngle,
@@ -236,18 +241,18 @@ class Eye extends StringArt<EyeConfig> {
     }
   }
 
-  *generateStrings() {
+  *drawStrings(renderer: Renderer) {
     const { layers } = this.config;
     for (let layer = layers - 1; layer >= 0; layer--) {
-      yield* this.drawLayer(layer);
+      yield* this.drawLayer(renderer, layer);
     }
   }
 
-  getStepCount() {
+  getStepCount({ size }: CalcOptions) {
     let count = 0;
     const { layers, angle, n, margin } = this.config;
     const layerAngle = (angle * Math.PI) / 180;
-    const maxSize = Math.min(...this.renderer.getSize()) - 2 * margin;
+    const maxSize = Math.min(...size) - 2 * margin;
     const nailSpacing = maxSize / (n - 1);
 
     for (let layer = 0; layer < layers; layer++) {

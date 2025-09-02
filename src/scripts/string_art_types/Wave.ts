@@ -4,6 +4,7 @@ import Mandala, { MandalaConfig } from './Mandala';
 import { ControlsConfig } from '../types/config.types';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import { withoutAttribute } from '../helpers/config_utils';
+import Renderer from '../renderers/Renderer';
 
 export interface WaveConfig {
   layerSpread: number;
@@ -87,11 +88,11 @@ export default class Wave extends Mandala<WaveConfig> {
     this.calc.layerShift = Math.round(n * layerSpread);
   }
 
-  *generateStrings() {
+  *drawStrings(renderer: Renderer) {
     const { layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      yield* this.drawTimesTable(layer);
+      yield* this.drawTimesTable(renderer, layer);
     }
   }
 

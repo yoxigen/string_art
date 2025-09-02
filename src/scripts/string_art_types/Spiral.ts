@@ -7,6 +7,7 @@ import {
   ColorMap,
   ColorValue,
 } from '../helpers/color/color.types';
+import Renderer from '../renderers/Renderer';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -108,15 +109,18 @@ export default class Spiral extends StringArt<SpiralConfig> {
     }
   }
 
-  *drawSpiral({
-    shift = 0,
-    color = '#ffffff',
-  }: { shift?: number; color?: ColorValue } = {}): Generator<void> {
+  *drawSpiral(
+    renderer: Renderer,
+    {
+      shift = 0,
+      color = '#ffffff',
+    }: { shift?: number; color?: ColorValue } = {}
+  ): Generator<void> {
     const { innerLength, n } = this.config;
 
     let currentInnerLength = Math.round(innerLength * n);
     let repetitionCount = 0;
-    this.renderer.setColor(color);
+    renderer.setColor(color);
     let prevPointIndex = shift;
     let prevPoint = this.#circle.getPoint(prevPointIndex);
     let isPrevPoint = false;
@@ -125,7 +129,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
       if (this.#colorMap) {
         const stepColor = this.#colorMap.get(i);
         if (stepColor) {
-          this.renderer.setColor(stepColor);
+          renderer.setColor(stepColor);
         }
       }
 
@@ -143,7 +147,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
 
       const nextPoint = this.#circle.getPoint(prevPointIndex);
 
-      this.renderer.renderLines(prevPoint, nextPoint);
+      renderer.renderLines(prevPoint, nextPoint);
       prevPoint = nextPoint;
 
       yield;
@@ -151,8 +155,8 @@ export default class Spiral extends StringArt<SpiralConfig> {
     }
   }
 
-  *generateStrings(): Generator<void> {
-    yield* this.drawSpiral({
+  *drawStrings(renderer: Renderer): Generator<void> {
+    yield* this.drawSpiral(renderer, {
       color: this.#color.getColor(0),
     });
   }

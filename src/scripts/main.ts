@@ -1,15 +1,15 @@
 import Player from './editor/Player';
 import patternTypes from './pattern_types';
-import EditorControls from './editor/EditorControls';
+import EditorControls, {
+  ControlValueChangeEventData,
+} from './editor/EditorControls';
 import EditorSizeControls from './editor/EditorSizeControls';
 import { Thumbnails } from './thumbnails/Thumbnails';
 import { deserializeConfig, serializeConfig } from './Serialize';
 import { isShareSupported, share } from './share';
 import { initServiceWorker } from './pwa';
-import CanvasRenderer from './renderers/CanvasRenderer';
 import SVGRenderer from './renderers/SVGRenderer';
-import { downloadPatternAsSVG } from './download/SVGDownload';
-import { downloadFile } from './download/Download';
+import { downloadPattern } from './download/Download';
 import './components/components';
 import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
@@ -18,6 +18,8 @@ import Persistance from './Persistance';
 import StringArt from './StringArt';
 import { compareObjects } from './helpers/object_utils';
 import { confirm } from './helpers/dialogs';
+import Viewer from './viewer/Viewer';
+import { getPatternURL } from './helpers/url_utils';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -26,12 +28,11 @@ interface SetPatternOptions {
 }
 
 window.addEventListener('error', function (event) {
-  alert('Error: ' + event.message);
+  alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
 });
 
 const elements: { [key: string]: HTMLElement } = {
   main: document.querySelector('main'),
-  canvas: document.querySelector('#canvas_panel'),
   downloadBtn: document.querySelector('#download_btn'),
   downloadSVGBtn: document.querySelector('#download_svg_btn'),
   downloadNailsBtn: document.querySelector('#download_nails_btn'),
@@ -47,16 +48,6 @@ const elements: { [key: string]: HTMLElement } = {
   ),
 };
 
-let currentRenderer: Renderer;
-
-const player = new Player(document.querySelector('#player'));
-const sizeControls = new EditorSizeControls({
-  getCurrentSize: () => [
-    elements.canvas.clientWidth,
-    elements.canvas.clientHeight,
-  ],
-});
-
 const persistance = new Persistance();
 const thumbnails = new Thumbnails(persistance);
 
@@ -64,6 +55,7 @@ window.addEventListener('load', main);
 
 async function main() {
   let controls: EditorControls<any>;
+  let currentRenderer: Renderer;
 
   initRouting();
 
@@ -73,12 +65,16 @@ async function main() {
   unHide(document.querySelector('main'));
 
   const queryParams = new URLSearchParams(document.location.search);
-  currentRenderer =
-    queryParams.get('renderer') === 'svg'
-      ? new SVGRenderer(elements.canvas)
-      : new CanvasRenderer(elements.canvas);
+  const viewer = new Viewer(
+    queryParams.get('renderer') === 'svg' ? 'svg' : 'canvas'
+  );
+  const player = new Player(document.querySelector('#player'), viewer);
 
-  const patterns = patternTypes.map(Pattern => new Pattern(currentRenderer));
+  const sizeControls = new EditorSizeControls({
+    getCurrentSize: () => viewer.size,
+  });
+
+  const patterns = patternTypes.map(Pattern => new Pattern());
   type Pattern = StringArt<any>;
   let currentPattern: Pattern;
 
@@ -95,8 +91,15 @@ async function main() {
     }
   }
 
-  elements.downloadBtn.addEventListener('click', () => downloadCanvas());
-  elements.downloadSVGBtn.addEventListener('click', downloadSVG);
+  elements.downloadBtn.addEventListener('click', () =>
+    downloadPattern(currentPattern, { size: viewer.renderer.getLogicalSize() })
+  );
+  elements.downloadSVGBtn.addEventListener('click', () =>
+    downloadPattern(currentPattern, {
+      type: 'svg',
+      size: viewer.renderer.getLogicalSize(),
+    })
+  );
   elements.downloadNailsBtn.addEventListener('click', () =>
     downloadNailsImage()
   );
@@ -137,32 +140,6 @@ async function main() {
     setCurrentPattern(pattern);
   });
 
-  elements.canvas.addEventListener('wheel', ({ deltaY }) => {
-    const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
-    player.advance(direction);
-  });
-  // // If just a click, advance by one. If touch is left, play until removed
-  // elements.canvas.addEventListener('mousedown', () => {
-  //   let timeout;
-
-  //   const advance = () => {
-  //     clearTimeout(timeout);
-  //     player.advance();
-  //     elements.canvas.removeEventListener('mouseup', advance);
-  //   };
-
-  //   timeout = setTimeout(() => {
-  //     player.play();
-  //     const stopPlay = () => {
-  //       player.pause();
-  //       elements.canvas.removeEventListener('mouseup', stopPlay);
-  //     };
-  //     elements.canvas.addEventListener('mouseup', stopPlay);
-  //   }, 200);
-
-  //   elements.canvas.addEventListener('mouseup', advance);
-  // });
-
   document.body.addEventListener('click', e => {
     const toggleBtn =
       e.target instanceof HTMLElement && e.target.closest('[data-toggle-for]');
@@ -176,8 +153,7 @@ async function main() {
       if (toggledElement) {
         toggledElement.classList.toggle('open');
         document.body.classList.toggle('dialog_' + dialogId);
-        currentPattern &&
-          currentPattern.draw({ position: currentPattern.position });
+        currentPattern && viewer.update();
       }
     }
   });
@@ -204,7 +180,7 @@ async function main() {
     if (state?.pattern) {
       const pattern = findPatternById(state.pattern);
       if (pattern) {
-        pattern.renderer = currentRenderer;
+        viewer.setPattern(pattern);
         selectPattern(pattern, {
           draw: false,
           config: state.config
@@ -213,7 +189,7 @@ async function main() {
         });
 
         thumbnails.close();
-        currentPattern.draw();
+        viewer.update();
       } else {
         thumbnails.open();
       }
@@ -223,8 +199,9 @@ async function main() {
     }
   }
 
-  function findPatternById(patternId: string): StringArt<any> | null {
-    let pattern: StringArt<any> = patterns.find(({ id }) => id === patternId);
+  function findPatternById(patternId: string): StringArt | null {
+    // @ts-ignore
+    let pattern: StringArt = patterns.find(({ id }) => id === patternId);
 
     if (!pattern) {
       // Try from persistance
@@ -240,47 +217,19 @@ async function main() {
 
     initSize();
 
-    window.addEventListener('resize', () => {
-      if (currentPattern) {
-        currentPattern.draw();
-      }
-    });
-
     elements.resetBtn.addEventListener('click', reset);
-    const showShare = await isShareSupported({
-      renderer: currentRenderer,
-      pattern: currentPattern,
-    });
+    const showShare = await isShareSupported();
     if (showShare) {
       unHide(elements.shareBtn);
     }
   }
 
-  function downloadCanvas(filename?: string) {
-    currentRenderer.disablePixelRatio();
-    currentPattern.setSize(currentPattern.fixedSize);
-
-    currentPattern.draw();
-
-    downloadFile(
-      currentRenderer.toDataURL(),
-      filename ?? currentPattern.name + '.png'
-    );
-
-    // Reset to the original config from before the download:
-    currentRenderer.enablePixelRatio();
-    currentPattern.setSize(currentPattern.fixedSize);
-    currentPattern.draw();
-  }
-
-  function downloadSVG() {
-    downloadPatternAsSVG(currentPattern, currentRenderer.getSize());
-  }
-
   function downloadNailsImage(withNumbers = true) {
-    const currentConfig = currentPattern.config;
-    currentPattern.config = {
-      ...currentConfig,
+    // @ts-ignore
+    const patternCopy = new currentPattern.constructor();
+
+    patternCopy.config = {
+      ...patternCopy.config,
       darkMode: false,
       showNails: true,
       showNailNumbers: withNumbers,
@@ -289,10 +238,10 @@ async function main() {
       backgroundColor: '#ffffff',
     };
 
-    downloadCanvas(`${currentPattern.name}_nails_map.png`);
-
-    currentPattern.config = currentConfig;
-    currentPattern.draw();
+    downloadPattern(patternCopy, {
+      size: viewer.renderer.getLogicalSize(),
+      filename: `${currentPattern.name} - nails map`,
+    });
   }
 
   function reset() {
@@ -314,8 +263,10 @@ async function main() {
     );
   }
 
-  function onInputsChange() {
-    player.update(currentPattern);
+  function onInputsChange({ control }: ControlValueChangeEventData<any, any>) {
+    if (control.affectsStepCount !== false) {
+      player.update(viewer.getStepCount());
+    }
     const configQuery = serializeConfig(currentPattern);
     history.replaceState(
       {
@@ -324,9 +275,9 @@ async function main() {
         renderer: currentRenderer instanceof SVGRenderer ? 'svg' : undefined,
       },
       currentPattern.name,
-      `?pattern=${currentPattern.id}${
-        configQuery ? `&config=${encodeURIComponent(configQuery)}` : ''
-      }${currentRenderer instanceof SVGRenderer ? '&renderer=svg' : ''}`
+      getPatternURL(currentPattern, {
+        renderer: currentRenderer instanceof SVGRenderer ? 'svg' : 'canvas',
+      })
     );
 
     setIsDefaultConfig();
@@ -365,23 +316,9 @@ async function main() {
     sizeControls.element.addEventListener(
       'sizechange',
       ({ detail: size }: CustomEvent<Dimensions | null>) => {
-        setSize(size);
+        viewer.setSize(size);
       }
     );
-  }
-
-  function setSize(size: Dimensions | null) {
-    if (size && size.length === 2) {
-      currentPattern.setSize(size);
-      if (!elements.canvas.classList.contains('overflow')) {
-        elements.canvas.classList.add('overflow');
-      }
-    } else {
-      elements.canvas.classList.remove('overflow');
-      currentPattern.setSize(null);
-    }
-
-    currentPattern.draw({ updateSize: false });
   }
 
   function selectPattern(
@@ -391,7 +328,7 @@ async function main() {
     const isFirstTime = !currentPattern;
 
     currentPattern = pattern;
-    currentPattern.renderer = currentRenderer;
+    viewer.setPattern(pattern);
     if (config) {
       // @ts-ignore
       currentPattern.setConfig(config);
@@ -405,19 +342,12 @@ async function main() {
     controls.addEventListener('input', ({ control, value }) => {
       currentPattern.setConfigValue(control.key, value);
       controls.config = currentPattern.config;
-      currentPattern.draw({
+      viewer.update({
         redrawNails: control.affectsNails !== false,
         redrawStrings: control.affectsStrings !== false,
-        updateSize: false,
       });
     });
     controls.addEventListener('change', onInputsChange);
-
-    if (draw) {
-      requestAnimationFrame(() => {
-        currentPattern.draw();
-      });
-    }
 
     thumbnails.setCurrentPattern(pattern);
     document.title = `${pattern.name} - String Art Studio`;
@@ -425,17 +355,19 @@ async function main() {
 
     if (isFirstTime) {
       initPattern();
-      document.body.querySelectorAll('.pattern_only').forEach(unHide);
+    }
+    document.body.querySelectorAll('.pattern_only').forEach(unHide);
+    if (draw) {
+      viewer.update();
     }
 
-    player.update(currentPattern, { draw: false });
+    player.update(viewer.getStepCount(), { draw: false });
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
   }
 
   function unselectPattern() {
-    currentPattern = null;
-    currentRenderer.clear();
+    viewer.setPattern(null);
     thumbnails.setCurrentPattern(null);
     controls && controls.destroy();
     document.body.querySelectorAll('.pattern_only').forEach(hide);

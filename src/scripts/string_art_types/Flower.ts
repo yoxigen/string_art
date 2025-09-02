@@ -3,6 +3,7 @@ import Circle from '../helpers/Circle';
 import Polygon from '../helpers/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
+import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types.js';
 
 export interface FlowerConfig extends ColorConfig {
@@ -114,11 +115,11 @@ export default class Flower extends StringArt<FlowerConfig> {
     }
   }
 
-  *generateStrings() {
+  *drawStrings(renderer: Renderer) {
     const { sides, layers } = this.config;
 
     let step = 0;
-    this.renderer.setColor(this.color.getColor(0));
+    renderer.setColor(this.color.getColor(0));
 
     for (let layer = 0; layer < layers; layer++) {
       const polygon = this.#polygons[layer];
@@ -128,7 +129,7 @@ export default class Flower extends StringArt<FlowerConfig> {
 
         for (let index = 0; index <= polygon.nailsPerSide; index++) {
           if (this.colorMap?.has(step)) {
-            this.renderer.setColor(this.colorMap.get(step));
+            renderer.setColor(this.colorMap.get(step));
           }
 
           const centerIndexes = this.getCenterIndexes({
@@ -136,7 +137,7 @@ export default class Flower extends StringArt<FlowerConfig> {
             sideIndex: index,
           });
 
-          this.renderer.renderLines(
+          renderer.renderLines(
             polygon.getCenterPoint({
               side: side,
               index: centerIndexes[0],

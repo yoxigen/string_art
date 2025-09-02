@@ -1,7 +1,9 @@
 import StringArt from '../StringArt';
 import Circle, { CircleConfig } from '../helpers/Circle';
+import Renderer from '../renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types.js';
 import { Coordinates } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 const LAYER_DEFAULTS = [
   { size: 0.25, end: 1, color: '#a94fb0' },
@@ -133,17 +135,15 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     },
   ];
 
-  #circle: Circle;
   #calc: TCalc;
 
-  setUpDraw() {
+  setUpDraw(options: CalcOptions) {
     super.setUpDraw();
-    this.#calc = this.#getCalc();
+    this.#calc = this.#getCalc(options);
   }
 
-  #getCalc() {
+  #getCalc({ size }: CalcOptions) {
     const { rotation, n, margin = 0, distortion } = this.config;
-    const size = this.getSize();
 
     const circleConfig: CircleConfig = {
       size,
@@ -222,11 +222,14 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     }
   }
 
-  *drawCircle({ endIndex, color, isReverse, size }): Generator<void> {
+  *drawCircle(
+    renderer: Renderer,
+    { endIndex, color, isReverse, size }
+  ): Generator<void> {
     let prevPoint: Coordinates;
     let prevPointIndex: number;
     let isPrevSide = false;
-    this.renderer.setColor(color);
+    renderer.setColor(color);
     const self = this;
     const advance = isReverse ? -1 : 1;
 
@@ -239,7 +242,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
       prevPointIndex = getPointIndex(isPrevSide ? index : index + size);
       positions.push((prevPoint = this.getPoint(prevPointIndex)));
 
-      this.renderer.renderLines(startPoint, ...positions);
+      renderer.renderLines(startPoint, ...positions);
 
       yield;
 
@@ -251,9 +254,9 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     }
   }
 
-  *generateStrings() {
+  *drawStrings(renderer: Renderer) {
     for (const layer of this.#calc.layers) {
-      yield* this.drawCircle(layer);
+      yield* this.drawCircle(renderer, layer);
     }
   }
 
@@ -267,8 +270,8 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     }
   }
 
-  getStepCount(): number {
-    const { layers } = this.#getCalc();
+  getStepCount(options: CalcOptions): number {
+    const { layers } = this.#getCalc(options);
     return layers.reduce(
       (stepCount, layer) => stepCount + layer.endIndex + 1,
       0

@@ -2,6 +2,7 @@ import {
   getConfigDefaultValues,
   getControlsIndex,
 } from './helpers/config_utils';
+import { areDimensionsEqual } from './helpers/size_utils';
 import Nails from './Nails';
 import Renderer from './renderers/Renderer';
 import type {
@@ -12,6 +13,7 @@ import type {
   PrimitiveValue,
 } from './types/config.types';
 import { Coordinates, Dimensions } from './types/general.types';
+import { CalcOptions } from './types/stringart.types';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -25,7 +27,6 @@ export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
 export interface DrawOptions {
   redrawNails?: boolean;
   redrawStrings?: boolean;
-  updateSize?: boolean;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -156,12 +157,10 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
 ];
 
 abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
-  renderer: Renderer | null | undefined;
   controls: ControlsConfig<TConfig> = [];
   defaultValues: Partial<Config<TConfig>> = {};
   stepCount: number | null = null;
   size: Dimensions = null;
-  fixedSize: Dimensions | null;
   center: Coordinates = null;
   nails: Nails = null;
   position: number = 0;
@@ -176,14 +175,11 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
 
-  // TODO: Remove renderer from here, set it only in `draw`. Then StringArt can be instantiated independently of the renderer.
-  constructor(renderer?: Renderer) {
-    this.renderer = renderer;
-  }
+  constructor() {}
 
   abstract drawNails(): void;
-  abstract generateStrings(): Generator<void>;
-  abstract getStepCount(): number;
+  abstract drawStrings(renderer: Renderer): Generator<void>;
+  abstract getStepCount(options: CalcOptions): number;
 
   static thumbnailConfig: Partial<Config>;
   static type: string;
@@ -311,64 +307,43 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   }
 
   getSize(): Dimensions {
-    this.#withRenderer();
-
-    return this.renderer.getSize();
+    return this.size;
   }
 
-  setUpDraw() {}
+  setUpDraw(options?: CalcOptions) {}
   afterDraw() {}
 
-  setSize(size: Dimensions | null, updateRenderer = true): boolean {
-    const isReset = size == null;
-    if (isReset) {
-      size = this.renderer.resetSize();
-      this.fixedSize = null;
-    } else {
-      this.fixedSize = size;
-      if (updateRenderer) {
-        size = this.renderer.setSize(size);
-      }
-    }
-
+  setSize(size: Dimensions): void {
+    const sizeChanged = this.size && !areDimensionsEqual(size, this.size);
     this.size = size;
-    this.center = size.map(value => value / 2) as Coordinates;
-
-    this.onResize();
-    return true;
-  }
-
-  #updateSize() {
-    this.#withRenderer();
-
-    const newSize = this.renderer.resetSize();
-    const sizeChanged = this.setSize(newSize, false);
-    this.fixedSize = null;
+    this.center = size.map(v => v / 2) as Coordinates;
 
     if (sizeChanged) {
-      if (this.onResize) {
-        this.onResize();
-      }
+      this.onResize();
     }
   }
 
-  initDraw({
-    redrawNails = true,
-    redrawStrings = true,
-    updateSize = true,
-  }: DrawOptions = {}) {
-    this.#withRenderer();
+  /**
+   * Sets up the pattern for rendering, by:
+   * 1. Clearing strings and nails from the renderer (if required for any of them)
+   * 2. Creates the Nails object
+   * 3. Sets the strings line width
+   * 4. Calls the pattern's `setUpDraw` method.
+   * @param renderer
+   * @param param1
+   */
+  initDraw(
+    renderer: Renderer,
+    { redrawNails = true, redrawStrings = true }: DrawOptions = {}
+  ) {
+    this.setSize(renderer.getSize());
 
     if (redrawStrings) {
-      this.renderer.resetStrings();
+      renderer.resetStrings();
     }
 
     if (redrawNails) {
-      this.renderer.resetNails();
-    }
-
-    if (!this.fixedSize && (updateSize || !this.size)) {
-      this.#updateSize();
+      renderer.resetNails();
     }
 
     if (this.nails) {
@@ -377,9 +352,23 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       this.nails = new Nails(this.config);
     }
 
-    this.renderer.setLineWidth(this.config.stringWidth);
+    renderer.setLineWidth(this.config.stringWidth);
 
-    this.setUpDraw();
+    this.setUpDraw({ size: this.size });
+  }
+
+  /**
+   * Draws the string art on the renderer
+   */
+  draw(
+    renderer: Renderer,
+    {
+      position = Infinity,
+      ...drawOptions
+    }: { position?: number } & DrawOptions = {}
+  ) {
+    this.initDraw(renderer, drawOptions);
+
     const {
       showNails,
       showNailNumbers,
@@ -390,7 +379,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     } = this.config;
 
     if (enableBackground) {
-      this.renderer.setBackground(
+      renderer.setBackground(
         customBackgroundColor
           ? backgroundColor
           : darkMode
@@ -399,28 +388,16 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       );
     }
 
-    if (showNails && redrawNails !== false) {
+    if (showNails && drawOptions.redrawNails !== false) {
       this.drawNails();
-      this.nails.draw(this.renderer, { drawNumbers: showNailNumbers });
+      this.nails.draw(renderer, { drawNumbers: showNailNumbers });
     }
-  }
 
-  /**
-   * Draws the string art
-   * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all)
-   */
-  draw({
-    position = Infinity,
-    ...drawOptions
-  }: { position?: number } & DrawOptions = {}) {
-    this.#withRenderer();
-
-    this.initDraw(drawOptions);
     if (drawOptions.redrawStrings !== false) {
       const { showStrings } = this.config;
 
       if (showStrings) {
-        this.stringsIterator = this.generateStrings();
+        this.stringsIterator = this.drawStrings(renderer);
         this.position = 0;
 
         while (!this.drawNext().done && this.position < position);
@@ -429,7 +406,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
   }
 
-  goto(position: number) {
+  goto(renderer: Renderer, position: number) {
     if (position === this.position) {
       return;
     }
@@ -437,7 +414,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     if (this.stringsIterator && position > this.position) {
       while (!this.drawNext().done && this.position < position);
     } else {
-      this.draw({ position, updateSize: false, redrawNails: false });
+      this.draw(renderer, { position, redrawNails: false });
     }
   }
 
@@ -455,12 +432,6 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
 
     return result;
-  }
-
-  #withRenderer(): asserts this is { renderer: Renderer } {
-    if (!this.renderer) {
-      throw new Error('Missing renderer for StringArt!');
-    }
   }
 }
 

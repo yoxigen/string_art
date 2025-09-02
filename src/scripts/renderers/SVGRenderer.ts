@@ -1,8 +1,8 @@
 import Renderer from './Renderer.js';
-import { PI2 } from '../helpers/math_utils.js';
 import type { Coordinates, Dimensions } from '../types/general.types.js';
 import { ColorValue } from '../helpers/color/color.types.js';
 import { Nail, NailsRenderOptions } from '../types/stringart.types.js';
+import { areDimensionsEqual } from '../helpers/size_utils.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -53,10 +53,12 @@ export default class SVGRenderer extends Renderer {
   }
 
   resetSize(): Dimensions {
+    super.resetSize();
+
     this.svg.style.removeProperty('width');
     this.svg.style.removeProperty('height');
 
-    const newDimensions = this.getSize().map(Math.trunc);
+    const newDimensions = this.getSize().map(Math.trunc) as Dimensions;
     const [width, height] = newDimensions;
     this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
     this.svg.setAttributeNS(SVG_NS, 'width', String(width));
@@ -64,7 +66,15 @@ export default class SVGRenderer extends Renderer {
     this.svg.style.width = width + 'px';
     this.svg.style.height = height + 'px';
 
-    return newDimensions as Dimensions;
+    if (
+      !this.currentSize ||
+      !areDimensionsEqual(newDimensions, this.currentSize)
+    ) {
+      this.currentSize = newDimensions;
+      this.emit('sizeChange', { size: newDimensions });
+    }
+
+    return newDimensions;
   }
 
   resetNails() {
@@ -126,6 +136,15 @@ export default class SVGRenderer extends Renderer {
       return this.resetSize();
     }
 
+    if (this.fixedSize) {
+      console.warn(
+        `Trying to set size for Renderer to [${size.join(
+          ', '
+        )}], but size is fixed to [${this.fixedSize.join(', ')}].`
+      );
+      return this.fixedSize;
+    }
+
     this.svg.removeAttributeNS(SVG_NS, 'width');
     this.svg.removeAttributeNS(SVG_NS, 'height');
 
@@ -138,6 +157,11 @@ export default class SVGRenderer extends Renderer {
     this.svg.setAttributeNS(SVG_NS, 'viewBox', `0 0 ${width} ${height}`);
     this.svg.setAttributeNS(SVG_NS, 'width', String(width));
     this.svg.setAttributeNS(SVG_NS, 'height', String(height));
+
+    if (!this.currentSize || !areDimensionsEqual(realSize, this.currentSize)) {
+      this.currentSize = realSize;
+      this.emit('sizeChange', { size: realSize });
+    }
 
     return realSize;
   }

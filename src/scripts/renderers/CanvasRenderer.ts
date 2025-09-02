@@ -1,8 +1,11 @@
-import Renderer, { RendererResetOptions } from './Renderer';
+import Renderer, { RendererOptions, RendererResetOptions } from './Renderer';
 import { PI2 } from '../helpers/math_utils';
 import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail } from '../types/stringart.types';
 import { ColorValue } from '../helpers/color/color.types';
+import { areDimensionsEqual } from '../helpers/size_utils';
+
+let lastId = 0;
 
 export default class CanvasRenderer extends Renderer {
   #layers: Record<
@@ -10,12 +13,12 @@ export default class CanvasRenderer extends Renderer {
     { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D }
   >;
 
-  constructor(parentElement: HTMLElement) {
-    super(parentElement);
+  constructor(parentElement: HTMLElement, options?: RendererOptions) {
+    super(parentElement, options);
 
     const stringsCanvas = document.createElement('canvas');
     const nailsCanvas = document.createElement('canvas');
-
+    stringsCanvas.setAttribute('data-id', String(lastId++));
     this.#layers = {
       strings: {
         canvas: stringsCanvas,
@@ -36,6 +39,14 @@ export default class CanvasRenderer extends Renderer {
     });
     this.enablePixelRatio();
     this.ctxs.forEach(ctx => (ctx.globalCompositeOperation = 'source-over'));
+    this.addEventListener('devicePixelRatioChange', () => {
+      this.setSize([
+        this.stringsCanvas.clientWidth,
+        this.stringsCanvas.clientHeight,
+      ]);
+    });
+
+    this.resetSize(false);
   }
 
   get element() {
@@ -62,11 +73,12 @@ export default class CanvasRenderer extends Renderer {
     return this.#layers.strings.canvas;
   }
 
-  resetSize(): Dimensions {
+  resetSize(notifyOnChange = true): Dimensions {
+    super.resetSize();
+
     this.canvases.forEach(canvas => {
       canvas.removeAttribute('width');
       canvas.removeAttribute('height');
-      canvas.removeAttribute('style');
       canvas.style.removeProperty('width');
       canvas.style.removeProperty('height');
     });
@@ -77,24 +89,47 @@ export default class CanvasRenderer extends Renderer {
       canvas.setAttribute('height', String(newSize[1]));
     });
 
+    if (!this.currentSize || !areDimensionsEqual(newSize, this.currentSize)) {
+      this.currentSize = newSize;
+      if (notifyOnChange) {
+        this.emit('sizeChange', { size: newSize });
+      }
+    }
+
     return newSize;
   }
 
-  setSize(size: Dimensions | null): Dimensions {
+  setSize(size?: Dimensions | null, notifyOnChange = true): Dimensions {
     if (!size) {
       return this.resetSize();
     }
 
-    const realSize = size.map(v => v * this.pixelRatio);
+    if (this.fixedSize) {
+      console.warn(
+        `Trying to set size for Renderer to [${size.join(
+          ', '
+        )}], but size is fixed to [${this.fixedSize.join(', ')}].`
+      );
+      return this.fixedSize;
+    }
 
+    const realSize = size.map(v => v * this.pixelRatio) as Dimensions;
     this.canvases.forEach(canvas => {
-      canvas.style.width = `${size[0]}px`;
-      canvas.style.height = `${size[1]}px`;
       canvas.setAttribute('width', String(realSize[0]));
       canvas.setAttribute('height', String(realSize[1]));
+      canvas.style.setProperty('width', `${size[0]}px`);
+      canvas.style.setProperty('height', `${size[1]}px`);
     });
 
-    return realSize as Dimensions;
+    if (!this.currentSize || !areDimensionsEqual(realSize, this.currentSize)) {
+      this.currentSize = realSize;
+
+      if (notifyOnChange) {
+        this.emit('sizeChange', { size: realSize });
+      }
+    }
+
+    return realSize;
   }
 
   resetStrings(): void {
@@ -123,11 +158,18 @@ export default class CanvasRenderer extends Renderer {
     this.stringsCtx.globalCompositeOperation = 'source-over';
   }
 
+  getLogicalSize(): Dimensions {
+    return (
+      this.fixedSize ??
+      ([
+        this.stringsCanvas.clientWidth,
+        this.stringsCanvas.clientHeight,
+      ] as Dimensions)
+    );
+  }
+
   getSize(): Dimensions {
-    return [
-      this.stringsCanvas.clientWidth * this.pixelRatio,
-      this.stringsCanvas.clientHeight * this.pixelRatio,
-    ];
+    return this.getLogicalSize().map(v => v * this.pixelRatio) as Dimensions;
   }
 
   renderLines(startPosition: Coordinates, ...positions: Array<Coordinates>) {
@@ -186,9 +228,7 @@ export default class CanvasRenderer extends Renderer {
   }
 
   clear() {
-    this.ctxs.forEach(ctx =>
-      ctx.clearRect(0, 0, this.stringsCanvas.width, this.stringsCanvas.height)
-    );
+    this.ctxs.forEach(ctx => ctx.clearRect(0, 0, ...this.getSize()));
   }
 
   toDataURL(): string {

@@ -11,6 +11,8 @@ import {
 } from '../helpers/color/color.types';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
+import Renderer from '../renderers/Renderer';
+import { CalcOptions } from '../types/stringart.types';
 
 interface FlowerOfLifeConfig extends ColorConfig {
   levels: number;
@@ -237,7 +239,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
   colorMap: ColorMap;
   #circle: Circle;
 
-  getCalc(): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const {
       levels,
       density,
@@ -253,7 +255,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
       (globalRotation * Math.PI) / 180 + Math.PI / 6;
 
     const radius = renderRing
-      ? Math.min(...(this.size ?? this.getSize()).map(v => v / 2 - margin))
+      ? Math.min(...size.map(v => v / 2 - margin))
       : null;
     const ringDistance = renderRing
       ? Math.floor((ringSize * ringNailCount) / 2)
@@ -264,7 +266,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
 
     const polygon = new Polygon({
       sides: 6,
-      size: this.getSize(),
+      size,
       margin:
         margin +
         ringWidth +
@@ -301,8 +303,8 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     this.#calc = null;
   }
 
-  setUpDraw() {
-    super.setUpDraw();
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw(options);
 
     const {
       isMultiColor,
@@ -316,12 +318,12 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     } = this.config;
 
     if (!this.#calc) {
-      this.#calc = this.getCalc();
+      this.#calc = this.getCalc(options);
     }
 
     if (renderRing && ringSize) {
       const circleConfig: CircleConfig = {
-        size: this.size,
+        size: options.size,
         n: ringNailCount,
         margin: config.margin,
         rotation: config.globalRotation,
@@ -341,7 +343,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     }
 
     if (!this.stepCount) {
-      this.stepCount = this.getStepCount(this.#calc);
+      this.stepCount = this.getStepCount(options);
     }
 
     const realColorCount = isMultiColor
@@ -490,16 +492,19 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     return levelsPoints;
   }
 
-  *generateTriangleStrings({
-    points,
-    level,
-    indexInSide,
-  }: {
-    points: Coordinates[][];
-    level: number;
-    indexInSide: number;
-  }): Generator<void> {
-    this.renderer.setColor(this.color.getColor(level));
+  *generateTriangleStrings(
+    renderer: Renderer,
+    {
+      points,
+      level,
+      indexInSide,
+    }: {
+      points: Coordinates[][];
+      level: number;
+      indexInSide: number;
+    }
+  ): Generator<void> {
+    renderer.setColor(this.color.getColor(level));
     const { density, levels } = this.config;
     const isCapLevel = level === levels;
 
@@ -529,7 +534,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
           );
         }
 
-        this.renderer.renderLines(prevPoint, ...positions);
+        renderer.renderLines(prevPoint, ...positions);
         prevPoint = positions[positions.length - 1];
 
         yield;
@@ -537,26 +542,29 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     }
   }
 
-  *generateStringsBetweenTriangles({
-    triangle1,
-    triangle2,
-    level,
-    triangleIndex,
-    triangleIndexInSide,
-    isNextLevel,
-  }: {
-    triangle1: Coordinates[][];
-    triangle2: Coordinates[][];
-    level: number;
-    triangleIndex: number;
-    triangleIndexInSide: number;
-    isNextLevel?: boolean;
-  }): Generator<void> {
+  *generateStringsBetweenTriangles(
+    renderer: Renderer,
+    {
+      triangle1,
+      triangle2,
+      level,
+      triangleIndex,
+      triangleIndexInSide,
+      isNextLevel,
+    }: {
+      triangle1: Coordinates[][];
+      triangle2: Coordinates[][];
+      level: number;
+      triangleIndex: number;
+      triangleIndexInSide: number;
+      isNextLevel?: boolean;
+    }
+  ): Generator<void> {
     const { density, fillColor } = this.config;
     const levelSideCount = this.#calc.countPerLevelSide[level];
     const angleShift = (triangleIndex % levelSideCount) % 3;
 
-    this.renderer.setColor(fillColor);
+    renderer.setColor(fillColor);
 
     const isLastTriangleInSide = triangleIndexInSide === levelSideCount - 1;
     const firstSide = angleShift;
@@ -578,7 +586,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
       const order = generateOrderInSide.call(this, s);
 
       for (const { pointIndex, triangle1Points, triangle2Points } of order) {
-        this.renderer.renderLines(
+        renderer.renderLines(
           triangle1Points[pointIndex],
           triangle2Points[pointIndex]
         );
@@ -639,7 +647,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     return result;
   }
 
-  *generateStrings(): Generator<void> {
+  *drawStrings(renderer: Renderer): Generator<void> {
     const {
       fill,
       renderTriangles,
@@ -668,7 +676,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
 
         if (fill && !isCapLevel) {
           if (triangleIndex === 0) {
-            yield* this.generateStringsBetweenTriangles({
+            yield* this.generateStringsBetweenTriangles(renderer, {
               triangle1: level[lastIndexInLevel],
               triangle2: triangle,
               level: levelIndex,
@@ -677,7 +685,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
             });
           }
           if (triangleIndex !== lastIndexInLevel) {
-            yield* this.generateStringsBetweenTriangles({
+            yield* this.generateStringsBetweenTriangles(renderer, {
               triangle1: triangle,
               triangle2: level[triangleIndex + 1],
               level: levelIndex,
@@ -696,7 +704,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
             const nextLevelTriangleIndex =
               side * nextLevelSideCount + triangleIndexInSide + 1;
 
-            yield* this.generateStringsBetweenTriangles({
+            yield* this.generateStringsBetweenTriangles(renderer, {
               triangle1: triangle,
               triangle2: triangleLevels[levelIndex + 1][nextLevelTriangleIndex],
               level: levelIndex,
@@ -711,7 +719,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
           triangleIndex % this.#calc.countPerLevelSide[levelIndex];
 
         if (renderTriangles && (!isCapLevel || indexInSide % 2)) {
-          yield* this.generateTriangleStrings({
+          yield* this.generateTriangleStrings(renderer, {
             points: triangle,
             level: levelIndex,
             indexInSide,
@@ -721,21 +729,19 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     }
 
     if (renderRing && ringSize) {
-      yield* this.#circle.drawRing(this.renderer, {
+      yield* this.#circle.drawRing(renderer, {
         ringSize: ringSize / 2,
         color: ringColor,
       });
     }
   }
 
-  getStepCount(calc?: TCalc): number {
+  getStepCount(options: CalcOptions): number {
     if (this.stepCount) {
       return this.stepCount;
     }
 
-    if (!calc) {
-      calc = this.getCalc();
-    }
+    const calc = this.#calc ?? this.getCalc(options);
 
     const {
       levels,

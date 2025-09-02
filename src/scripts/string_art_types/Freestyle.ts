@@ -1,6 +1,7 @@
 import StringArt from '../StringArt';
 import Circle from '../helpers/Circle';
 import { ColorValue } from '../helpers/color/color.types';
+import Renderer from '../renderers/Renderer';
 import {
   ControlConfig,
   ControlsConfig,
@@ -8,6 +9,7 @@ import {
   GroupValue,
 } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 interface FreestyleConfig {
   n: number;
@@ -95,6 +97,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
       defaultValue: '#ec6ad0',
       type: 'color',
       affectsNails: false,
+      affectsStepCount: false,
     },
     {
       key: 'layers',
@@ -229,6 +232,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show3 }) => show3,
+              affectsStepCount: false,
             },
             {
               key: 'y3',
@@ -237,6 +241,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show3 }) => show3,
+              affectsStepCount: false,
             },
             {
               ...rotationConfig,
@@ -244,6 +249,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               show: ({ show3 }) => show3,
               displayValue: ({ rotation3 }) =>
                 `${Math.round(rotation3 * 360)}°`,
+              affectsStepCount: false,
             },
             {
               key: 'reverse3',
@@ -252,6 +258,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'checkbox',
               show: ({ show3 }) => show3,
               affectsNails: false,
+              affectsStepCount: false,
             },
           ],
         },
@@ -261,14 +268,13 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
 
   #calc: TCalc;
 
-  setUpDraw() {
+  setUpDraw(options: CalcOptions) {
     super.setUpDraw();
-    this.#calc = this.getCalc();
+    this.#calc = this.getCalc(options);
   }
 
-  getCalc(): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const { n, margin = 0, minNailDistance } = this.config;
-    const size = this.getSize();
 
     const maxRadius = Math.min(...size.map(v => v - 2 * margin)) / 2;
     const layers = new Array(3)
@@ -329,10 +335,10 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
     return circle.getPoint(circleIndex);
   }
 
-  *generateStrings(): Generator<void> {
+  *drawStrings(renderer: Renderer): Generator<void> {
     const { color } = this.config;
 
-    this.renderer.setColor(color);
+    renderer.setColor(color);
     let prevCirclePoint: Coordinates;
 
     for (let i = 0; i < this.#calc.maxShapeNailsCount; i++) {
@@ -356,7 +362,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
 
         prevCirclePoint = this.getPoint(this.#calc.layers[nextLayerIndex], i);
 
-        this.renderer.renderLines(startPoint, prevCirclePoint);
+        renderer.renderLines(startPoint, prevCirclePoint);
         yield;
       }
     }
@@ -370,8 +376,8 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
     );
   }
 
-  getStepCount() {
-    const { layers, maxShapeNailsCount } = this.getCalc();
+  getStepCount(options: CalcOptions) {
+    const { layers, maxShapeNailsCount } = this.getCalc(options);
     return layers.length * maxShapeNailsCount - 1;
   }
 

@@ -3,8 +3,10 @@ import Circle from '../helpers/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
+import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types.js';
 import { Coordinates } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 interface SpiralsConfig extends ColorConfig {
   radiusIncrease: number;
@@ -87,15 +89,15 @@ class Spirals extends StringArt<SpiralsConfig> {
     };
   }
 
-  setUpDraw() {
-    super.setUpDraw();
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw(options);
 
     const { colorCount } = this.config;
 
     this.calc = this.getCalc();
     this.color = new Color(this.config);
     this.colorMap = this.color.getColorMap({
-      stepCount: this.getStepCount(),
+      stepCount: this.getStepCount(options),
       colorCount,
     });
   }
@@ -127,22 +129,22 @@ class Spirals extends StringArt<SpiralsConfig> {
     ];
   }
 
-  *generateStrings(): Generator<void> {
+  *drawStrings(renderer: Renderer): Generator<void> {
     const points = this.generatePoints();
     let index = 0;
-    this.renderer.setColor(this.color.getColor(0));
+    renderer.setColor(this.color.getColor(0));
     let lastPoint = this.center;
 
     for (const { point } of points) {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
-          this.renderer.setColor(stepColor);
+          renderer.setColor(stepColor);
         }
       }
 
       if (lastPoint) {
-        this.renderer.renderLines(lastPoint, point);
+        renderer.renderLines(lastPoint, point);
       }
       lastPoint = point;
       index++;
@@ -150,9 +152,9 @@ class Spirals extends StringArt<SpiralsConfig> {
     }
   }
 
-  getStepCount(): number {
+  getStepCount({ size }: CalcOptions): number {
     const { nSpirals, radiusIncrease, margin } = this.config;
-    const maxRadius = Math.min(...this.getSize()) / 2 - margin;
+    const maxRadius = Math.min(...size) / 2 - margin;
     const n = Math.floor(maxRadius / radiusIncrease);
     return n * nSpirals;
   }
