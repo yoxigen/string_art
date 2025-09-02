@@ -66,6 +66,7 @@ export default class PolygonPattern extends StringArt<PolygonPatternConfig> {
       },
       show: ({ sides }) => sides > 4,
       affectsNails: false,
+      affectsStepCount: false,
     },
     Polygon.rotationConfig,
     COLOR_CONFIG,

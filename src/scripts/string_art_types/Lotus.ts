@@ -15,7 +15,6 @@ interface LotusConfig extends ColorConfig {
   density: number;
   rotation: number;
   removeSections: number;
-  fit: boolean;
   renderCenter: boolean;
   renderCenterNails: boolean;
   radialColor: boolean;
@@ -83,14 +82,6 @@ export default class Lotus extends StringArt<LotusConfig> {
       isStructural: true,
     },
     {
-      key: 'fit',
-      label: 'Fit',
-      type: 'checkbox',
-      defaultValue: true,
-      show: ({ removeSections }) => removeSections,
-      isStructural: true,
-    },
-    {
       key: 'renderCenter',
       label: 'Render center',
       type: 'checkbox',
@@ -110,6 +101,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       displayValue: ({ centerRadius }) => formatFractionAsPercent(centerRadius),
       show: ({ renderCenter }) => renderCenter,
       isStructural: true,
+      affectsStepCount: false,
     },
     {
       key: 'renderCenterNails',
@@ -137,6 +129,7 @@ export default class Lotus extends StringArt<LotusConfig> {
           defaultValue: false,
           type: 'checkbox',
           affectsNails: false,
+          affectsStepCount: false,
         },
       ],
       maxColorCount: 32,
@@ -157,7 +150,6 @@ export default class Lotus extends StringArt<LotusConfig> {
       margin,
       rotation,
       removeSections,
-      fit,
       centerRadius: centerRadiusPercent,
       renderCenter,
     } = this.config;
@@ -188,27 +180,19 @@ export default class Lotus extends StringArt<LotusConfig> {
 
       const angleStart = sideAngle * petalSectionsToRemove;
 
-      if (fit) {
-        // Since we removed sections and now the pattern is smaller than the canvas size, we fit the remaining shape to fit on canvas
-        // this is done by:
-        // 1. Calculating the new outer edge of the shape, after removing sections
-        // 2. Increase the size of the circles that create petals by the inverse ratio of the new to original size
-        // 3. Since the circles are now larger, increase the number of nails in the circles by the size ratio, to maintain density.
-        const topSectionHeight =
-          2 * radius * Math.sin((Math.PI - angleStart) / 2);
-        const fitAspectRatio = (2 * radius - margin) / topSectionHeight;
-        baseCircleConfig.n = removeSectionsNailCount(
-          fixNailsCount(density * fitAspectRatio),
-          petalSectionsToRemove
-        );
-        radius *= fitAspectRatio;
-      } else {
-        // the `density` config is for a full circle, so making the number of nails on a petal relative to the size of the petal arc relative to a full circle
-        baseCircleConfig.n = removeSectionsNailCount(
-          densityNailCount,
-          petalSectionsToRemove
-        );
-      }
+      // Since we removed sections and now the pattern is smaller than the canvas size, we fit the remaining shape to fit on canvas
+      // this is done by:
+      // 1. Calculating the new outer edge of the shape, after removing sections
+      // 2. Increase the size of the circles that create petals by the inverse ratio of the new to original size
+      // 3. Since the circles are now larger, increase the number of nails in the circles by the size ratio, to maintain density.
+      const topSectionHeight =
+        2 * radius * Math.sin((Math.PI - angleStart) / 2);
+      const fitAspectRatio = (2 * radius - margin) / topSectionHeight;
+      baseCircleConfig.n = removeSectionsNailCount(
+        fixNailsCount(density * fitAspectRatio),
+        petalSectionsToRemove
+      );
+      radius *= fitAspectRatio;
 
       Object.assign(baseCircleConfig, {
         angleStart,

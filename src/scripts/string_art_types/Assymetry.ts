@@ -3,6 +3,7 @@ import Circle, { CircleConfig } from '../helpers/Circle';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types.js';
 import { Coordinates } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 const LAYER_DEFAULTS = [
   { size: 0.25, end: 1, color: '#a94fb0' },
@@ -134,17 +135,15 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     },
   ];
 
-  #circle: Circle;
   #calc: TCalc;
 
-  setUpDraw() {
+  setUpDraw(options: CalcOptions) {
     super.setUpDraw();
-    this.#calc = this.#getCalc();
+    this.#calc = this.#getCalc(options);
   }
 
-  #getCalc() {
+  #getCalc({ size }: CalcOptions) {
     const { rotation, n, margin = 0, distortion } = this.config;
-    const size = this.getSize();
 
     const circleConfig: CircleConfig = {
       size,
@@ -271,8 +270,8 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     }
   }
 
-  getStepCount(): number {
-    const { layers } = this.#getCalc();
+  getStepCount(options: CalcOptions): number {
+    const { layers } = this.#getCalc(options);
     return layers.reduce(
       (stepCount, layer) => stepCount + layer.endIndex + 1,
       0

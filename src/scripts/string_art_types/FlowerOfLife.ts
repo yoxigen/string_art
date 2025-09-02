@@ -239,7 +239,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
   colorMap: ColorMap;
   #circle: Circle;
 
-  getCalc(options: CalcOptions): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const {
       levels,
       density,
@@ -255,7 +255,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
       (globalRotation * Math.PI) / 180 + Math.PI / 6;
 
     const radius = renderRing
-      ? Math.min(...(options.size ?? this.getSize()).map(v => v / 2 - margin))
+      ? Math.min(...size.map(v => v / 2 - margin))
       : null;
     const ringDistance = renderRing
       ? Math.floor((ringSize * ringNailCount) / 2)
@@ -266,7 +266,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
 
     const polygon = new Polygon({
       sides: 6,
-      size: this.getSize(),
+      size,
       margin:
         margin +
         ringWidth +
@@ -343,7 +343,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     }
 
     if (!this.stepCount) {
-      this.stepCount = this.getStepCount(this.#calc);
+      this.stepCount = this.getStepCount(options);
     }
 
     const realColorCount = isMultiColor
@@ -736,14 +736,12 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     }
   }
 
-  getStepCount(calc?: TCalc): number {
+  getStepCount(options: CalcOptions): number {
     if (this.stepCount) {
       return this.stepCount;
     }
 
-    if (!calc) {
-      calc = this.getCalc();
-    }
+    const calc = this.#calc ?? this.getCalc(options);
 
     const {
       levels,

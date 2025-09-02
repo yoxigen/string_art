@@ -70,6 +70,7 @@ export default class Star extends StringArt<StarConfig> {
           defaultValue: '#2ec0ff',
           type: 'color',
           affectsNails: false,
+          affectsStepCount: false,
         },
         {
           key: 'outerColor',
@@ -77,6 +78,7 @@ export default class Star extends StringArt<StarConfig> {
           defaultValue: '#2a82c6',
           type: 'color',
           affectsNails: false,
+          affectsStepCount: false,
         },
         {
           key: 'ringColor',
@@ -84,6 +86,7 @@ export default class Star extends StringArt<StarConfig> {
           defaultValue: '#2ec0ff',
           type: 'color',
           affectsNails: false,
+          affectsStepCount: false,
         },
       ],
     },

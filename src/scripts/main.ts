@@ -1,6 +1,8 @@
 import Player from './editor/Player';
 import patternTypes from './pattern_types';
-import EditorControls from './editor/EditorControls';
+import EditorControls, {
+  ControlValueChangeEventData,
+} from './editor/EditorControls';
 import EditorSizeControls from './editor/EditorSizeControls';
 import { Thumbnails } from './thumbnails/Thumbnails';
 import { deserializeConfig, serializeConfig } from './Serialize';
@@ -260,8 +262,10 @@ async function main() {
     );
   }
 
-  function onInputsChange() {
-    player.update(viewer.getStepCount());
+  function onInputsChange({ control }: ControlValueChangeEventData<any, any>) {
+    if (control.affectsStepCount !== false) {
+      player.update(viewer.getStepCount());
+    }
     const configQuery = serializeConfig(currentPattern);
     history.replaceState(
       {
