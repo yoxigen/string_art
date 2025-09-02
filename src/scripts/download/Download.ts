@@ -72,25 +72,3 @@ function patternToSVGDownloadData(
     filename: filename ?? pattern.name + '.svg',
   };
 }
-
-// function patternToNailsImageData(
-//   pattern,
-//   options: { size: Dimensions; filename?: string }
-// ): DownloadData {
-//   const currentConfig = pattern.config;
-//   pattern.config = {
-//     ...currentConfig,
-//     darkMode: false,
-//     showNails: true,
-//     showNailNumbers: withNumbers,
-//     showStrings: false,
-//     nailsColor: '#000000',
-//     backgroundColor: '#ffffff',
-//   };
-
-//   downloadCanvas(`${currentPattern.name}_nails_map.png`);
-
-//   currentPattern.config = currentConfig;
-//   //currentPattern.draw();
-//   // TODO: create an offline canvas and download it
-// }
