@@ -5,19 +5,21 @@ import SVGRenderer from '../renderers/SVGRenderer';
 import StringArt, { DrawOptions } from '../StringArt';
 import { Dimensions } from '../types/general.types';
 
+type RendererType = 'svg' | 'canvas';
+
 export default class Viewer extends EventBus<{
   positionChange: { changeBy: number };
 }> {
   element: HTMLElement;
-  renderer: Renderer;
+  renderer: Renderer | null;
   pattern: StringArt;
+  rendererType: RendererType;
 
-  constructor(rendererType: 'svg' | 'canvas' = 'canvas') {
+  constructor(rendererType: RendererType = 'canvas') {
     super();
 
-    const RendererType = rendererType === 'svg' ? SVGRenderer : CanvasRenderer;
+    this.rendererType = rendererType;
     this.element = document.querySelector('#canvas_panel');
-    this.setRenderer(new RendererType(this.element));
 
     this.element.addEventListener('wheel', ({ deltaY }) => {
       const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
@@ -39,7 +41,7 @@ export default class Viewer extends EventBus<{
 
   setPattern(pattern: StringArt) {
     this.pattern = pattern;
-    if (!pattern) {
+    if (!pattern && this.renderer) {
       this.renderer.clear();
     }
   }
@@ -51,10 +53,12 @@ export default class Viewer extends EventBus<{
   }
 
   update(options?: DrawOptions) {
+    this.#withRenderer();
     this.pattern?.draw(this.renderer, options);
   }
 
   goto(position: number) {
+    this.#withRenderer();
     this.pattern.goto(this.renderer, position);
   }
 
@@ -63,6 +67,16 @@ export default class Viewer extends EventBus<{
   }
 
   getStepCount(): number {
+    this.#withRenderer();
     return this.pattern.getStepCount({ size: this.renderer.getSize() });
+  }
+
+  #withRenderer(): asserts this is { renderer: Renderer } {
+    if (!this.renderer) {
+      console.log('WITH');
+      const RendererType =
+        this.rendererType === 'svg' ? SVGRenderer : CanvasRenderer;
+      this.setRenderer(new RendererType(this.element));
+    }
   }
 }

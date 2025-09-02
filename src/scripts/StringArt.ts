@@ -2,6 +2,7 @@ import {
   getConfigDefaultValues,
   getControlsIndex,
 } from './helpers/config_utils';
+import { areDimensionsEqual } from './helpers/size_utils';
 import Nails from './Nails';
 import Renderer from './renderers/Renderer';
 import type {
@@ -315,8 +316,13 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   afterDraw() {}
 
   setSize(size: Dimensions): void {
+    const sizeChanged = this.size && !areDimensionsEqual(size, this.size);
     this.size = size;
     this.center = size.map(v => v / 2) as Coordinates;
+
+    if (sizeChanged) {
+      this.onResize();
+    }
   }
 
   initDraw(
@@ -345,8 +351,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   }
 
   /**
-   * Draws the string art
-   * @param { step: number } renderConfig configuration for rendering. Accepts the step to render (leave undefined or null to render all)
+   * Draws the string art on the renderer
    */
   draw(
     renderer: Renderer,

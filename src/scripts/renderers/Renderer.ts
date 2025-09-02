@@ -27,6 +27,8 @@ export default abstract class Renderer extends EventBus<{
   pixelRatio = 1;
   options: RendererOptions;
 
+  #isResizeFirstTime = true;
+
   /**
    * The current dimensions of the renderer. Should be fixed for device pixel ratio, if used by the renderer!
    */
@@ -50,7 +52,10 @@ export default abstract class Renderer extends EventBus<{
   #setOnResize() {
     const resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
-        this.setSize([entry.contentRect.width, entry.contentRect.height]);
+        if (!this.#isResizeFirstTime) {
+          this.setSize([entry.contentRect.width, entry.contentRect.height]);
+        }
+        this.#isResizeFirstTime = false;
       }
     });
     this.#removeOnResizeListener = () => resizeObserver.disconnect();
@@ -73,7 +78,7 @@ export default abstract class Renderer extends EventBus<{
 
   abstract resetStrings(): void;
   abstract resetNails(): void;
-  abstract resetSize(): Dimensions;
+  abstract resetSize(notifyOnChange?: boolean): Dimensions;
   abstract setLineWidth(width: number): void;
   abstract renderLines(
     startPosition: Coordinates,
@@ -85,7 +90,10 @@ export default abstract class Renderer extends EventBus<{
   ): void;
   abstract clear(): void;
   abstract toDataURL(): string;
-  abstract setSize(size?: Dimensions | null): Dimensions;
+  abstract setSize(
+    size?: Dimensions | null,
+    notifyOnChange?: boolean
+  ): Dimensions;
   abstract setBackground(color: ColorValue): void;
 
   getSize(): Dimensions {
