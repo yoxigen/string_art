@@ -55,7 +55,6 @@ window.addEventListener('load', main);
 
 async function main() {
   let controls: EditorControls<any>;
-  let currentRenderer: Renderer;
 
   initRouting();
 
@@ -111,8 +110,8 @@ async function main() {
     'click',
     async () =>
       await share({
-        renderer: currentRenderer,
-        pattern: currentPattern,
+        renderer: viewer.renderer,
+        pattern: viewer.pattern,
       })
   );
 
@@ -272,11 +271,11 @@ async function main() {
       {
         pattern: currentPattern.id,
         config: configQuery,
-        renderer: currentRenderer instanceof SVGRenderer ? 'svg' : undefined,
+        renderer: viewer.renderer instanceof SVGRenderer ? 'svg' : undefined,
       },
       currentPattern.name,
       getPatternURL(currentPattern, {
-        renderer: currentRenderer instanceof SVGRenderer ? 'svg' : 'canvas',
+        renderer: viewer.renderer instanceof SVGRenderer ? 'svg' : 'canvas',
       })
     );
 
