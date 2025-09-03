@@ -1,11 +1,11 @@
 @import '../../forms.css';
 
-form {
+#wrapper {
   width: 100%;
 }
 
 section {
-  margin-bottom: 1.5em;
+  margin-bottom: 1;
 }
 
 label {

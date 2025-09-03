@@ -1,9 +1,19 @@
+fieldset {
+  margin: 0 0 1em;
+  border: none;
+  padding: 0;
+}
+
+fieldset > section {
+  margin-top: 0.5em;
+}
+
 .dialog-input {
   width: 100%;
   background: transparent;
   border: solid 1px var(--color-input);
   border-radius: 4px;
-  height: 40px !important;
+  height: 32px !important;
   padding: 4px 8px !important;
   color: White;
   outline: none;
@@ -36,10 +46,24 @@
 }
 
 .dialog-input option {
-  background-color: black;
-  color: white;
+  background-color: White;
+  color: Black;
 }
 .row {
   display: flex;
   flex-direction: row;
+}
+
+.dialog-lesser-select {
+  border: none;
+  background: transparent;
+  height: 32px !important;
+  padding: 0 !important;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  border-bottom: dotted 1px rgba(255, 255, 255, 0.5);
+}
+
+.dialog-lesser-select option {
+  color: Black;
 }
