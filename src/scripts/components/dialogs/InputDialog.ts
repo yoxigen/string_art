@@ -9,7 +9,7 @@ export default class InputDialog extends HTMLElement {
   private input: HTMLInputElement;
 
   static get observedAttributes() {
-    return ['title', 'description', 'value', 'submit', 'cancel', 'type'];
+    return ['dialog-title', 'description', 'value', 'submit', 'cancel', 'type'];
   }
 
   constructor() {
@@ -22,7 +22,7 @@ export default class InputDialog extends HTMLElement {
       <confirm-dialog>
         <input
             type="text"
-            class="dialog-input"
+            class="dialog-input dialog-input-tall"
             name="patternName"
             required
           />

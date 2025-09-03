@@ -14,7 +14,7 @@ export default class ConfirmDialog extends HTMLElement {
   private descEl: HTMLElement;
 
   static get observedAttributes() {
-    return ['title', 'description', 'submit', 'cancel', 'type'];
+    return ['dialog-title', 'description', 'submit', 'cancel', 'type'];
   }
 
   constructor() {
@@ -47,8 +47,8 @@ export default class ConfirmDialog extends HTMLElement {
   }
 
   private syncAttributes() {
-    if (this.hasAttribute('title')) {
-      this.titleEl.textContent = this.getAttribute('title');
+    if (this.hasAttribute('dialog-title')) {
+      this.titleEl.textContent = this.getAttribute('dialog-title');
     }
     if (this.hasAttribute('description')) {
       this.descEl.textContent = this.getAttribute('description');

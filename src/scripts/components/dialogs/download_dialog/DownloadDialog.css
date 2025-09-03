@@ -1,0 +1,14 @@
+@import '../../forms.css';
+
+form {
+  width: 100%;
+}
+
+section {
+  margin-bottom: 1.5em;
+}
+
+label {
+  display: block;
+  margin-bottom: 4px;
+}

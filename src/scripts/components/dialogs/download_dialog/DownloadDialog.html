@@ -1,21 +1,85 @@
-<confirm-dialog title="Download" submit="Download">
-  <section>
-    <label>Size</label>
-    <select id="size"></select>
-  </section>
-  <section>
-    <label>Format</label>
-    <select id="format">
-      <option value="png">PNG</option>
-      <option value="svg">SVG</option>
-    </select>
-  </section>
-  <section>
-    <label>Type</label>
-    <select id="type">
-      <!-- make radio list? -->
-      <option value="png">Whole pattern</option>
-      <option value="svg">Nails map</option>
-    </select>
-  </section>
+<confirm-dialog dialog-title="Download" submit="Download">
+  <select slot="context-menu" id="size_units">
+    <option value="cm">cm</option>
+    <option value="inch">inch</option>
+  </select>
+  <form>
+    <section>
+      <label>Size</label>
+      <div class="row">
+        <div style="flex: 1">
+          <select id="size" class="dialog-input"></select>
+        </div>
+        <div style="flex: 0; margin-inline-start: 0.5em; white-space: nowrap">
+          @
+          <input
+            type="number"
+            id="dpi"
+            value="300"
+            style="width: 50px"
+            maxlength="4"
+            min="72"
+            max="1600"
+            class="dialog-input"
+          />
+          dpi
+        </div>
+      </div>
+      <section style="margin-top: 0.5em">
+        <input
+          type="number"
+          id="width"
+          style="width: 50px"
+          maxlength="3"
+          min="1"
+          max="200"
+          class="dialog-input"
+        />
+        x
+        <input
+          type="number"
+          id="height"
+          style="width: 50px"
+          maxlength="3"
+          min="1"
+          max="200"
+          class="dialog-input"
+        />
+        <select id="custom_size_unit" class="dialog-input" style="width: 70px">
+          <option value="cm">cm</option>
+          <option value="inch">inch</option>
+          <option value="px">pixels</option>
+        </select>
+      </section>
+    </section>
+    <section>
+      <label>Margin</label>
+      <input
+        type="number"
+        id="margin"
+        value="1"
+        style="width: 70px"
+        maxlength="2"
+        min="0"
+        max="20"
+        step="1"
+        class="dialog-input"
+      />
+    </section>
+    <section>
+      <label>Format</label>
+      <select id="format" class="dialog-input">
+        <option value="png">PNG</option>
+        <option value="svg">SVG</option>
+      </select>
+    </section>
+    <section>
+      <label>Type</label>
+      <select id="type" class="dialog-input">
+        <!-- make radio list? -->
+        <option value="png">Whole pattern</option>
+        <option value="svg">Nails map</option>
+      </select>
+    </section>
+  </form>
 </confirm-dialog>

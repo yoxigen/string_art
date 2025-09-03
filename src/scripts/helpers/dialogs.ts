@@ -24,7 +24,10 @@ export function prompt({ value, ...options }: PromptOptions): Promise<string> {
 
   ['title', 'description', 'submit', 'cancel', 'type'].forEach(attr => {
     if (options[attr] != null && options[attr] !== '') {
-      dialog.setAttribute(attr, options[attr]);
+      dialog.setAttribute(
+        attr === 'title' ? 'dialog-title' : attr,
+        options[attr]
+      );
     } else {
       dialog.removeAttribute(attr);
     }
@@ -45,7 +48,10 @@ export function confirm(options: ConfirmOptions): Promise<void> {
 
   ['title', 'description', 'submit', 'cancel', 'type'].forEach(attr => {
     if (options[attr] != null && options[attr] !== '') {
-      dialog.setAttribute(attr, options[attr]);
+      dialog.setAttribute(
+        attr === 'title' ? 'dialog-title' : attr,
+        options[attr]
+      );
     } else {
       dialog.removeAttribute(attr);
     }

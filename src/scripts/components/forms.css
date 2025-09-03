@@ -1,0 +1,45 @@
+.dialog-input {
+  width: 100%;
+  background: transparent;
+  border: solid 1px var(--color-input);
+  border-radius: 4px;
+  height: 40px !important;
+  padding: 4px 8px !important;
+  color: White;
+  outline: none;
+  font-size: 1.1em;
+  box-sizing: border-box;
+}
+
+.dialog-input-small {
+  width: 50px;
+}
+
+.dialog-input-tall {
+  height: 50px !important;
+}
+
+.dialog-input::selection {
+  background: White;
+  color: Black;
+}
+
+.dialog-input:hover,
+.dialog-input:active,
+.dialog-input:focus-visible {
+  border-color: var(--color-input-active);
+}
+
+.dialog-input:active,
+.dialog-input:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dialog-input option {
+  background-color: black;
+  color: white;
+}
+.row {
+  display: flex;
+  flex-direction: row;
+}

@@ -32,14 +32,9 @@ window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
 });
 
-const elements: { [key: string]: HTMLElement } = {
+const elements = {
   main: document.querySelector('main'),
   downloadBtn: document.querySelector('#download_btn'),
-  downloadSVGBtn: document.querySelector('#download_svg_btn'),
-  downloadNailsBtn: document.querySelector('#download_nails_btn'),
-  downloadNailsNoNumbersBtn: document.querySelector(
-    '#download_nails_no_numbers_btn'
-  ),
   resetBtn: document.querySelector('#reset_btn'),
   shareBtn: document.querySelector('#share_btn'),
   playerBtn: document.querySelector('#player_btn'),
@@ -99,18 +94,18 @@ async function main() {
 
     //downloadPattern(currentPattern, { size: viewer.renderer.getLogicalSize() })
   });
-  elements.downloadSVGBtn.addEventListener('click', () =>
-    downloadPattern(currentPattern, {
-      type: 'svg',
-      size: viewer.renderer.getLogicalSize(),
-    })
-  );
-  elements.downloadNailsBtn.addEventListener('click', () =>
-    downloadNailsImage()
-  );
-  elements.downloadNailsNoNumbersBtn.addEventListener('click', () =>
-    downloadNailsImage(false)
-  );
+  // elements.downloadSVGBtn.addEventListener('click', () =>
+  //   downloadPattern(currentPattern, {
+  //     type: 'svg',
+  //     size: viewer.renderer.getLogicalSize(),
+  //   })
+  // );
+  // elements.downloadNailsBtn.addEventListener('click', () =>
+  //   downloadNailsImage()
+  // );
+  // elements.downloadNailsNoNumbersBtn.addEventListener('click', () =>
+  //   downloadNailsImage(false)
+  // );
   elements.resetBtn.addEventListener('click', reset);
   elements.shareBtn.addEventListener(
     'click',

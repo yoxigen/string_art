@@ -1,3 +1,5 @@
+@import '../forms.css';
+
 dialog {
   width: 400px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
@@ -10,6 +12,9 @@ dialog {
   transform: translateX(-50%); /* Only center horizontally */
   margin: 0; /* Remove default centering margin */
   overflow: hidden;
+  max-width: calc(100vw - 20px);
+  max-height: calc(100vh - 20px);
+  box-sizing: border-box;
 }
 
 dialog::backdrop {
@@ -25,34 +30,6 @@ dialog::backdrop {
 
 dialog.error .dialog-title {
   color: var(--color-error);
-}
-
-.dialog-input {
-  width: 100%;
-  background: transparent;
-  border: solid 1px var(--color-input);
-  border-radius: 4px;
-  height: 40px !important;
-  padding: 4px 8px !important;
-  color: White;
-  outline: none;
-  font-size: 1.1em;
-}
-
-.dialog-input::selection {
-  background: White;
-  color: Black;
-}
-
-.dialog-input:hover,
-.dialog-input:active,
-.dialog-input:focus-visible {
-  border-color: var(--color-input-active);
-}
-
-.dialog-input:active,
-.dialog-input:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 .dialog-menu {
@@ -97,4 +74,11 @@ dialog.error .dialog-menu button[type='submit'] {
 
 #dialog_contents {
   display: flex;
+}
+
+#dialog_context_menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
 }
