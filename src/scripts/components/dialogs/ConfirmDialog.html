@@ -1,0 +1,13 @@
+<dialog>
+  <form method="dialog">
+    <h2 class="dialog-title"></h2>
+    <p class="dialog-desc"></p>
+    <div id="dialog_contents">
+      <slot></slot>
+    </div>
+    <menu class="dialog-menu">
+      <button type="button" class="btn-cancel">Cancel</button>
+      <button type="submit" value="confirm" class="btn-submit"></button>
+    </menu>
+  </form>
+</dialog>

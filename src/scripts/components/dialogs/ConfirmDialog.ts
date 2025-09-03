@@ -1,4 +1,5 @@
 import * as styles from 'bundle-text:./dialog.css';
+import * as html from 'bundle-text:./ConfirmDialog.html';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -13,7 +14,7 @@ export default class ConfirmDialog extends HTMLElement {
   private descEl: HTMLElement;
 
   static get observedAttributes() {
-    return ['title', 'description', 'submit', 'cance', 'type'];
+    return ['title', 'description', 'submit', 'cancel', 'type'];
   }
 
   constructor() {
@@ -22,21 +23,7 @@ export default class ConfirmDialog extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
 
     shadow.adoptedStyleSheets = [sheet];
-    this.shadowRoot!.innerHTML = `
-      <dialog>
-        <form method="dialog">
-          <h2 class="dialog-title"></h2>
-          <p class="dialog-desc"></p>
-          <div id="dialog_contents">
-            <slot></slot>
-          </div>
-          <menu class="dialog-menu">
-            <button type="button" class="btn-cancel">Cancel</button>
-            <button type="submit" value="confirm" class="btn-submit"></button>
-          </menu>
-        </form>
-      </dialog>
-    `;
+    this.shadowRoot!.innerHTML = String(html);
 
     this.dialog = shadow.querySelector('dialog')!;
     this.cancelBtn = shadow.querySelector('.btn-cancel')!;

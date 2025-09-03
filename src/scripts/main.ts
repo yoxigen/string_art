@@ -20,6 +20,7 @@ import { compareObjects } from './helpers/object_utils';
 import { confirm } from './helpers/dialogs';
 import Viewer from './viewer/Viewer';
 import { getPatternURL } from './helpers/url_utils';
+import type DownloadDialog from './components/dialogs/download_dialog/DownloadDialog';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -90,9 +91,14 @@ async function main() {
     }
   }
 
-  elements.downloadBtn.addEventListener('click', () =>
-    downloadPattern(currentPattern, { size: viewer.renderer.getLogicalSize() })
-  );
+  elements.downloadBtn.addEventListener('click', () => {
+    const downloadDialog = document.querySelector(
+      '#download_dialog'
+    ) as DownloadDialog;
+    downloadDialog!.show(viewer.pattern);
+
+    //downloadPattern(currentPattern, { size: viewer.renderer.getLogicalSize() })
+  });
   elements.downloadSVGBtn.addEventListener('click', () =>
     downloadPattern(currentPattern, {
       type: 'svg',

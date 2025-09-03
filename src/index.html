@@ -193,8 +193,8 @@
         </button>
         <button
           type="button"
+          id="download_btn"
           class="circular_btn"
-          data-toggle-for="download"
           title="Download image"
         >
           <i class="icon-download"></i>
@@ -225,15 +225,7 @@
           <i class="icon-refresh"></i>
         </button>
       </footer>
-      <div role="dialog" id="download" class="buttons_dialog pattern_only">
-        <h3 class="small_title">Download</h3>
-        <button id="download_nails_btn" class="btn">🔨 Nails map</button>
-        <button id="download_nails_no_numbers_btn" class="btn">
-          🔨 Nails map (no numbers)
-        </button>
-        <button id="download_btn" class="btn">💾 Image (PNG)</button>
-        <button id="download_svg_btn" class="btn">💾 Image (SVG)</button>
-      </div>
+      <download-dialog id="download_dialog"> </download-dialog>
       <article id="mobile_menu">
         <div id="mobile_menu_contents">
           <header id="mobile_menu_header">
