@@ -6,8 +6,12 @@ import {
   cmDimensionsToInch,
   STANDARD_SIZES_CM,
 } from '../../../helpers/size_utils';
-import { Dimensions, LengthUnit } from '../../../types/general.types';
+import { Dimensions, SizeUnit } from '../../../types/general.types';
 import preferences from '../../../helpers/preferences';
+import {
+  downloadPattern,
+  DownloadPatternOptions,
+} from '../../../download/Download';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -22,8 +26,8 @@ const SIZES = [
   { id: 'custom', name: 'Custom size…', dimensions: null },
 ];
 
-type Units = LengthUnit | 'px';
-const DEFAULT_DIMENSIONS: Dimensions = [1000, 1000];
+type Units = SizeUnit;
+const DEFAULT_DIMENSIONS: Dimensions = [10, 10];
 
 export default class DownloadDialog extends HTMLElement {
   private dialog: ConfirmDialog;
@@ -35,6 +39,8 @@ export default class DownloadDialog extends HTMLElement {
     dpiBlock: HTMLElement;
     width: HTMLInputElement;
     height: HTMLInputElement;
+    widthAndHeight: HTMLElement;
+    widthAndHeightDisplay: HTMLElement;
   };
   private units: Units;
   private customDimensions = DEFAULT_DIMENSIONS;
@@ -57,6 +63,8 @@ export default class DownloadDialog extends HTMLElement {
       dpiBlock: shadow.querySelector('#dpi_block'),
       width: shadow.querySelector('#width'),
       height: shadow.querySelector('#height'),
+      widthAndHeight: shadow.querySelector('#width_and_height'),
+      widthAndHeightDisplay: shadow.querySelector('#width_and_height_display'),
     };
 
     this.#setSizes();
@@ -109,23 +117,29 @@ export default class DownloadDialog extends HTMLElement {
   setSize(id: string) {
     let dimensions: Dimensions = [0, 0];
 
-    if (id === 'screen') {
-      this.setUnits('px');
-      const dpr = window.devicePixelRatio ?? 1;
-      dimensions = [window.screen.width, window.screen.height].map(v =>
-        Math.floor(v * dpr)
-      ) as Dimensions;
-      this.setPixelsOnly(true);
-    } else if (id === 'custom') {
+    if (id === 'custom') {
       dimensions = this.customDimensions;
       this.togglePixels(true);
       this.setPixelsOnly(false);
-    } else {
-      dimensions = SIZES.find(({ id: sizeId }) => sizeId === id)!.dimensions;
+      this.elements.widthAndHeight.classList.add('inputs');
       this.setUnits(preferences.getUserPreferredUnits());
-      this.togglePixels(false);
-      this.setPixelsOnly(false);
+    } else {
+      this.elements.widthAndHeight.classList.remove('inputs');
+      if (id === 'screen') {
+        this.setUnits('px');
+        const dpr = window.devicePixelRatio ?? 1;
+        dimensions = [window.screen.width, window.screen.height].map(v =>
+          Math.floor(v * dpr)
+        ) as Dimensions;
+        this.setPixelsOnly(true);
+      } else {
+        dimensions = SIZES.find(({ id: sizeId }) => sizeId === id)!.dimensions;
+        this.setUnits(preferences.getUserPreferredUnits());
+        this.togglePixels(false);
+        this.setPixelsOnly(false);
+      }
     }
+
     this.dimensions = dimensions;
     this.setDimensions(dimensions);
   }
@@ -139,6 +153,19 @@ export default class DownloadDialog extends HTMLElement {
         pixelsOption!.setAttribute('hidden', 'hidden');
       }
     });
+  }
+
+  #getDimensionsById(id: string): Dimensions {
+    if (id === 'custom') {
+      return this.customDimensions;
+    } else if (id === 'screen') {
+      const dpr = window.devicePixelRatio ?? 1;
+      return [window.screen.width, window.screen.height].map(v =>
+        Math.floor(v * dpr)
+      ) as Dimensions;
+    } else {
+      return SIZES.find(({ id: sizeId }) => sizeId === id)!.dimensions;
+    }
   }
 
   setPixelsOnly(isPixelsOnly: boolean) {
@@ -167,6 +194,7 @@ export default class DownloadDialog extends HTMLElement {
       this.units === 'inch' ? cmDimensionsToInch(dimensions) : dimensions;
     this.elements.width.value = String(displayValue[0]);
     this.elements.height.value = String(displayValue[1]);
+    this.elements.widthAndHeightDisplay.textContent = `${displayValue[0]} × ${displayValue[1]}`;
   }
 
   /**
@@ -177,7 +205,24 @@ export default class DownloadDialog extends HTMLElement {
       const data = new FormData(this.elements.form);
       const values = Object.fromEntries(data.entries());
       console.log('VAL', values);
+      downloadPattern(pattern, this.#formValuesToDownloadOptions(values));
     });
+  }
+
+  #formValuesToDownloadOptions(
+    values: Record<string, FormDataEntryValue>
+  ): DownloadPatternOptions {
+    const options: DownloadPatternOptions = {
+      size: this.#getDimensionsById(values.size as string),
+      type: values.format === 'svg' ? 'svg' : 'canvas',
+      isNailsMap: values.type === 'nails_map',
+      units: (values.unit ?? 'px') as SizeUnit,
+      dpi: Number(values.dpi),
+      margin: Number(values.margin),
+      includeNailNumbers: values.render_numbers === 'on',
+    };
+
+    return options;
   }
 }
 

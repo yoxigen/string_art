@@ -1,4 +1,4 @@
-import { Dimensions } from '../types/general.types';
+import { Dimensions, LengthUnit, SizeUnit } from '../types/general.types';
 
 export interface StandardSize {
   id: string;
@@ -20,8 +20,24 @@ export function cmToInch(cm: number): number {
   return parseFloat((cm / INCH_TO_CM).toFixed(2));
 }
 
+export function inchToPixel(inch: number, dpi: number): number {
+  return inch * dpi;
+}
+
+export function cmToPixel(cm: number, dpi: number): number {
+  return inchToPixel(cmToInch(cm), dpi);
+}
+
 export function inchToCm(inch: number): number {
   return inch * INCH_TO_CM;
+}
+
+export function pixelsToInch(pixels: number, dpi: number): number {
+  return pixels / dpi;
+}
+
+export function pixelsToCm(pixels: number, dpi: number): number {
+  return inchToCm(pixelsToInch(pixels, dpi));
 }
 
 export function cmDimensionsToInch(dimensions: Dimensions): Dimensions {
@@ -30,6 +46,56 @@ export function cmDimensionsToInch(dimensions: Dimensions): Dimensions {
 
 export function inchDimensionsToCm(dimensions: Dimensions): Dimensions {
   return dimensions.map(inchToCm) as Dimensions;
+}
+
+const LENGTH_UNITS: ReadonlySet<string> = new Set(['cm', 'inch']);
+
+export function lengthConvert(
+  value: number,
+  from: SizeUnit,
+  to: SizeUnit,
+  dpi?: number
+): number {
+  if (from === to) {
+    return value;
+  }
+
+  if (LENGTH_UNITS.has(from) !== LENGTH_UNITS.has(to) && !dpi) {
+    throw new Error(`Can't convert from ${from} to ${to} without DPI!`);
+  }
+
+  switch (from) {
+    case 'cm':
+      switch (to) {
+        case 'inch':
+          return cmToInch(value);
+        case 'px':
+          return cmToPixel(value, dpi);
+      }
+    case 'inch':
+      switch (to) {
+        case 'cm':
+          return inchToCm(value);
+        case 'px':
+          return inchToPixel(value, dpi);
+      }
+    case 'px':
+      switch (to) {
+        case 'cm':
+          return pixelsToCm(value, dpi);
+        case 'inch':
+          return pixelsToInch(value, dpi);
+      }
+  }
+}
+
+export function sizeConvert(
+  dimensions: Dimensions,
+  from: SizeUnit,
+  to: SizeUnit,
+  dpi?: number
+): Dimensions {
+  return dimensions.map(v => lengthConvert(v, from, to, dpi)) as Dimensions;
 }
 
 export const STANDARD_SIZES_CM: ReadonlyArray<StandardSize> = [

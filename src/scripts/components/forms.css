@@ -3,13 +3,17 @@
 }
 
 fieldset {
-  margin: 0 0 1em;
+  margin: 0 0 1.3em;
   border: none;
   padding: 0;
 }
 
+fieldset:last-child {
+  margin-bottom: 0;
+}
+
 fieldset > section {
-  margin-top: 0.5em;
+  margin-top: 0.3em;
 }
 
 .dialog-input {

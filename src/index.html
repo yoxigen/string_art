@@ -130,35 +130,32 @@
         <div id="controls_panel" class="pattern_only">
           <div id="controls"></div>
           <div id="size_controls">
-            <fieldset class="minimized" data-group="size">
-              <legend tabindex="0">Size</legend>
-              <div>
-                <select id="size_select"></select>
-                <select id="size_orientation_select" hidden>
-                  <option value="vertical">Vertical</option>
-                  <option value="horizontal">Horizontal</option>
-                </select>
-                <div id="size_custom" hidden>
-                  <div>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="Width"
-                      id="size_custom_width"
-                    />
-                  </div>
-                  <span>x</span>
-                  <div>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="Height"
-                      id="size_custom_height"
-                    />
-                  </div>
+            <expandable-panel legend="Size" minimized data-group="size">
+              <select id="size_select"></select>
+              <select id="size_orientation_select" hidden>
+                <option value="vertical">Vertical</option>
+                <option value="horizontal">Horizontal</option>
+              </select>
+              <div id="size_custom" hidden>
+                <div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Width"
+                    id="size_custom_width"
+                  />
+                </div>
+                <span>x</span>
+                <div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Height"
+                    id="size_custom_height"
+                  />
                 </div>
               </div>
-            </fieldset>
+            </expandable-panel>
           </div>
         </div>
       </form>

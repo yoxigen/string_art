@@ -5,3 +5,5 @@ import './DropdownMenuItem';
 import './dialogs/InputDialog';
 import './dialogs/ConfirmDialog';
 import './dialogs/download_dialog/DownloadDialog';
+import './StringArtCheckbox';
+import './expandable_panel/ExpandablePanel';

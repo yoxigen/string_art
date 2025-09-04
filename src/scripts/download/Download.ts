@@ -1,7 +1,9 @@
+import { lengthConvert, sizeConvert } from '../helpers/size_utils';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import SVGRenderer from '../renderers/SVGRenderer';
 import StringArt from '../StringArt';
-import { Dimensions } from '../types/general.types';
+import { CommonConfig } from '../types/config.types';
+import { Dimensions, LengthUnit, SizeUnit } from '../types/general.types';
 
 interface DownloadData {
   data: string;
@@ -10,9 +12,13 @@ interface DownloadData {
 
 export interface DownloadPatternOptions {
   size: Dimensions;
+  units?: SizeUnit;
+  dpi?: number;
   filename?: string;
-  includeNails?: boolean;
+  isNailsMap?: boolean;
+  includeNailNumbers?: boolean;
   type?: 'svg' | 'canvas';
+  margin?: number;
 }
 
 export function downloadFile({ data, filename }: DownloadData) {
@@ -26,13 +32,55 @@ export function downloadFile({ data, filename }: DownloadData) {
 
 export function downloadPattern(
   pattern: StringArt,
-  { type, includeNails, ...restOptions }: DownloadPatternOptions
+  { type, ...options }: DownloadPatternOptions
 ) {
+  const overridingConfig = getConfigForDownloadOptions(options);
+  if (overridingConfig) {
+    // @ts-ignore
+    pattern = new pattern.constructor();
+    pattern.config = overridingConfig;
+  }
+
+  if (options.units) {
+    options = {
+      ...options,
+      size: sizeConvert(options.size, options.units, 'px', options.dpi),
+    };
+  }
+
   const downloadData =
     type === 'svg'
-      ? patternToSVGDownloadData(pattern, restOptions)
-      : patternToImageDownloadData(pattern, restOptions);
+      ? patternToSVGDownloadData(pattern, options)
+      : patternToImageDownloadData(pattern, options);
   downloadFile(downloadData);
+}
+
+export function getConfigForDownloadOptions(
+  options: DownloadPatternOptions
+): Partial<CommonConfig> | null {
+  const config: Partial<CommonConfig> = {};
+
+  if (options.margin) {
+    config.margin = lengthConvert(
+      options.margin,
+      options.units ?? 'px',
+      'px',
+      options.dpi
+    );
+  }
+
+  if (options.isNailsMap) {
+    Object.assign(config, {
+      darkMode: false,
+      showNails: true,
+      showNailNumbers: options.includeNailNumbers,
+      showStrings: false,
+      nailsColor: '#000000',
+      backgroundColor: '#ffffff',
+    });
+  }
+
+  return Object.keys(config).length === 0 ? null : config;
 }
 
 function patternToImageDownloadData(
