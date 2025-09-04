@@ -41,6 +41,7 @@ export default class DownloadDialog extends HTMLElement {
     height: HTMLInputElement;
     widthAndHeight: HTMLElement;
     widthAndHeightDisplay: HTMLElement;
+    renderNumbersBlock: HTMLElement;
   };
   private units: Units;
   private customDimensions = DEFAULT_DIMENSIONS;
@@ -65,6 +66,7 @@ export default class DownloadDialog extends HTMLElement {
       height: shadow.querySelector('#height'),
       widthAndHeight: shadow.querySelector('#width_and_height'),
       widthAndHeightDisplay: shadow.querySelector('#width_and_height_display'),
+      renderNumbersBlock: shadow.querySelector('#render_numbers_block'),
     };
 
     this.#setSizes();
@@ -86,6 +88,17 @@ export default class DownloadDialog extends HTMLElement {
       if (e.target === this.elements.size) {
         this.setSize(this.elements.size.value);
       }
+
+      if (
+        e.target instanceof HTMLInputElement &&
+        e.target.type === 'radio' &&
+        e.target.name === 'type'
+      ) {
+        const selectedType = this.elements.form.querySelector(
+          'input[name="type"]:checked'
+        )?.value;
+        this.#toggleNailNumbers(selectedType === 'nails_map');
+      }
     });
   }
 
@@ -93,6 +106,14 @@ export default class DownloadDialog extends HTMLElement {
     this.elements.size.innerHTML = SIZES.map(
       ({ id, name }) => `<option value="${id}">${name ?? id}</option>`
     ).join('\n');
+  }
+
+  #toggleNailNumbers(show: boolean) {
+    if (show) {
+      this.elements.renderNumbersBlock.classList.remove('hidden');
+    } else {
+      this.elements.renderNumbersBlock.classList.add('hidden');
+    }
   }
 
   setUnits(units: Units) {
@@ -201,11 +222,11 @@ export default class DownloadDialog extends HTMLElement {
    * Opens the dialog, optionally with an initial value.
    */
   async show(pattern: StringArt): Promise<void> {
-    return this.dialog.show().then(() => {
+    return this.dialog.show().then(async () => {
       const data = new FormData(this.elements.form);
       const values = Object.fromEntries(data.entries());
       console.log('VAL', values);
-      downloadPattern(pattern, this.#formValuesToDownloadOptions(values));
+      await downloadPattern(pattern, this.#formValuesToDownloadOptions(values));
     });
   }
 
@@ -219,7 +240,8 @@ export default class DownloadDialog extends HTMLElement {
       units: (values.unit ?? 'px') as SizeUnit,
       dpi: Number(values.dpi),
       margin: Number(values.margin),
-      includeNailNumbers: values.render_numbers === 'on',
+      includeNailNumbers:
+        values.type === 'nails_map' && values.render_numbers === 'on',
     };
 
     return options;

@@ -235,6 +235,16 @@ export default class CanvasRenderer extends Renderer {
     return this.getComposite().toDataURL();
   }
 
+  async toBlob(type?: string, quality?: number): Promise<Blob> {
+    return new Promise<Blob>((resolve, reject) => {
+      this.getComposite().toBlob(
+        blob => (blob ? resolve(blob) : reject()),
+        type,
+        quality
+      );
+    });
+  }
+
   getComposite(): HTMLCanvasElement {
     const compositeCanvas = document.createElement('canvas');
     compositeCanvas.width = this.stringsCanvas.width;

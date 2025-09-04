@@ -30,10 +30,10 @@ export function downloadFile({ data, filename }: DownloadData) {
   document.body.removeChild(downloadLink);
 }
 
-export function downloadPattern(
+export async function downloadPattern(
   pattern: StringArt,
   { type, ...options }: DownloadPatternOptions
-) {
+): Promise<void> {
   const overridingConfig = getConfigForDownloadOptions(options);
   if (overridingConfig) {
     // @ts-ignore
@@ -51,8 +51,10 @@ export function downloadPattern(
   const downloadData =
     type === 'svg'
       ? patternToSVGDownloadData(pattern, options)
-      : patternToImageDownloadData(pattern, options);
+      : await patternToImageDownloadData(pattern, options);
   downloadFile(downloadData);
+
+  URL.revokeObjectURL(downloadData.data);
 }
 
 export function getConfigForDownloadOptions(
@@ -83,10 +85,10 @@ export function getConfigForDownloadOptions(
   return Object.keys(config).length === 0 ? null : config;
 }
 
-function patternToImageDownloadData(
+async function patternToImageDownloadData(
   pattern: StringArt,
   { size, filename }: { size: Dimensions; filename?: string }
-): DownloadData {
+): Promise<DownloadData> {
   const parentElement = document.createElement('article');
   const renderer = new CanvasRenderer(parentElement, { updateOnResize: false });
 
@@ -96,7 +98,8 @@ function patternToImageDownloadData(
   pattern.draw(renderer);
 
   return {
-    data: renderer.toDataURL(),
+    // TODO: Set type and quality!!
+    data: URL.createObjectURL(await renderer.toBlob()),
     filename: filename ?? pattern.name + '.png',
   };
 }
