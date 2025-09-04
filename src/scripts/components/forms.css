@@ -1,3 +1,7 @@
+.hidden {
+  display: none;
+}
+
 fieldset {
   margin: 0 0 1em;
   border: none;
@@ -9,7 +13,6 @@ fieldset > section {
 }
 
 .dialog-input {
-  width: 100%;
   background: transparent;
   border: solid 1px var(--color-input);
   border-radius: 4px;
@@ -17,7 +20,6 @@ fieldset > section {
   padding: 4px 8px !important;
   color: White;
   outline: none;
-  font-size: 1.1em;
   box-sizing: border-box;
 }
 
@@ -27,6 +29,8 @@ fieldset > section {
 
 .dialog-input-tall {
   height: 50px !important;
+  font-size: 1.1em;
+  width: 100%;
 }
 
 .dialog-input::selection {
@@ -66,4 +70,27 @@ fieldset > section {
 
 .dialog-lesser-select option {
   color: Black;
+}
+
+.radio-list {
+  border: solid 1px var(--color-input);
+  border-radius: 4px;
+  height: 32px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.radio-list input[type='radio'] {
+  margin: 0 4px 0 0;
+}
+
+input[type='radio'] + label {
+  display: inline-block;
+  margin-bottom: 0;
+}
+
+input[type='radio'] + label:not(:last-child) {
+  margin-inline-end: 1.5em;
 }

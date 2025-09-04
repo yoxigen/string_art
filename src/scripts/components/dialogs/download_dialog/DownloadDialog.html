@@ -1,43 +1,55 @@
-<confirm-dialog dialog-title="Download" submit="Download">
-  <div id="wrapper">
+<confirm-dialog dialog-title="Download" submit="Download" centered>
+  <form id="wrapper">
+     <fieldset>
+      <label for="type">Type</label>
+      <div class="radio-list">
+      <input type="radio" name="type" id="type_all" value="all" checked />
+      <label for="type_all">Image</label>
+        <input type="radio" name="type" id="type_nails_map" value="nails_map" />
+      <label for="type_nails_map">Nails map 🔨</label>
+      </div>
+    </fieldset>
     <fieldset>
       <label for="size">Size</label>
       <section class="row">
         <div style="flex: 1">
-          <select id="size" class="dialog-input" style="width: auto"></select>
+          <select id="size" class="dialog-input" style="width: auto" name="size"></select>
         </div>
         <div style="flex: 0; white-space: nowrap;">
             <div style="margin-bottom: .5em">
           <input
             type="number"
             id="width"
-            style="width: 50px"
+            style="width: 80px"
             maxlength="3"
             min="1"
             max="200"
             class="dialog-input"
+            name="width"
           />
           x
           <input
             type="number"
             id="height"
-            style="width: 50px"
+            style="width: 80px"
             maxlength="3"
             min="1"
             max="200"
             class="dialog-input"
+            name="height"
           />
           <select
             id="custom_size_unit"
             class="dialog-lesser-select unit-select"
+            name="unit"
           >
             <option value="cm">cm</option>
             <option value="inch">inch</option>
             <option value="px">px</option>
           </select>
         </div>
-        <div>
-          <select id="dpi" value="300" class="dialog-input" style="width: 80px">
+        <div id="dpi_block">
+          <select id="dpi" value="300" class="dialog-input" style="width: 80px" name="dpi">
             <option value="72">72</option>
             <option value="150">150</option>
             <option value="200">200</option>
@@ -65,8 +77,9 @@
         max="20"
         step="1"
         class="dialog-input"
+        name="margin"
       />
-      <select id="margin_unit" class="dialog-lesser-select unit-select">
+      <select id="margin_unit" class="dialog-lesser-select unit-select" name="unit">
         <option value="cm">cm</option>
         <option value="inch">inch</option>
         <option value="px">px</option>
@@ -74,18 +87,10 @@
     </fieldset>
     <fieldset>
       <label for="format">Format</label>
-      <select id="format" class="dialog-input">
+      <select id="format" class="dialog-input" name="format">
         <option value="png">PNG</option>
         <option value="svg">SVG</option>
       </select>
     </fieldset>
-    <fieldset>
-      <label for="type">Type</label>
-      <select id="type" class="dialog-input">
-        <!-- make radio list? -->
-        <option value="png">Whole pattern</option>
-        <option value="svg">Nails map</option>
-      </select>
-    </fieldset>
-  </div>
+  </form>
 </confirm-dialog>

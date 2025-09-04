@@ -7,14 +7,19 @@ dialog {
   color: white;
   border: var(--border-dialog);
   position: fixed;
-  top: 100px; /* Distance from the top */
-  left: 50%; /* Keep horizontally centered */
-  transform: translateX(-50%); /* Only center horizontally */
-  margin: 0; /* Remove default centering margin */
-  overflow: hidden;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  overflow: auto;
   max-width: calc(100vw - 20px);
   max-height: calc(100vh - 20px);
   box-sizing: border-box;
+}
+
+dialog.centered {
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
 }
 
 dialog::backdrop {

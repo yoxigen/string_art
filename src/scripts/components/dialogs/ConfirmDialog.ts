@@ -14,7 +14,14 @@ export default class ConfirmDialog extends HTMLElement {
   private descEl: HTMLElement;
 
   static get observedAttributes() {
-    return ['dialog-title', 'description', 'submit', 'cancel', 'type'];
+    return [
+      'dialog-title',
+      'description',
+      'submit',
+      'cancel',
+      'type',
+      'centered',
+    ];
   }
 
   constructor() {
@@ -60,6 +67,15 @@ export default class ConfirmDialog extends HTMLElement {
       this.dialog.classList.add('error');
     } else {
       this.dialog.classList.remove('error');
+    }
+
+    if (
+      this.hasAttribute('centered') &&
+      this.getAttribute('centered') !== 'false'
+    ) {
+      this.dialog.classList.add('centered');
+    } else {
+      this.dialog.classList.remove('centered');
     }
   }
 

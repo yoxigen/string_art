@@ -2,6 +2,7 @@ import { Dimensions } from '../types/general.types';
 
 export interface StandardSize {
   id: string;
+  name?: string;
   dimensions: Dimensions;
 }
 
@@ -13,6 +14,22 @@ export function areDimensionsEqual(d1: Dimensions, d2: Dimensions): boolean {
 
 export function cmToPixels(cm: number, dpi = 300): number {
   return Math.floor((cm / INCH_TO_CM) * dpi);
+}
+
+export function cmToInch(cm: number): number {
+  return parseFloat((cm / INCH_TO_CM).toFixed(2));
+}
+
+export function inchToCm(inch: number): number {
+  return inch * INCH_TO_CM;
+}
+
+export function cmDimensionsToInch(dimensions: Dimensions): Dimensions {
+  return dimensions.map(cmToInch) as Dimensions;
+}
+
+export function inchDimensionsToCm(dimensions: Dimensions): Dimensions {
+  return dimensions.map(inchToCm) as Dimensions;
 }
 
 export const STANDARD_SIZES_CM: ReadonlyArray<StandardSize> = [
