@@ -10,6 +10,7 @@ interface DownloadData {
   filename: string;
 }
 
+export type ImageType = 'png' | 'jpeg' | 'webp';
 export interface DownloadPatternOptions {
   size: Dimensions;
   units?: SizeUnit;
@@ -18,6 +19,7 @@ export interface DownloadPatternOptions {
   isNailsMap?: boolean;
   includeNailNumbers?: boolean;
   type?: 'svg' | 'canvas';
+  imageType?: ImageType;
   margin?: number;
 }
 
@@ -89,7 +91,11 @@ export function getConfigForDownloadOptions(
 
 async function patternToImageDownloadData(
   pattern: StringArt,
-  { size, filename }: { size: Dimensions; filename?: string }
+  {
+    size,
+    filename,
+    imageType,
+  }: { size: Dimensions; filename?: string; imageType?: ImageType }
 ): Promise<DownloadData> {
   const parentElement = document.createElement('article');
   const renderer = new CanvasRenderer(parentElement, { updateOnResize: false });
@@ -100,8 +106,8 @@ async function patternToImageDownloadData(
   pattern.draw(renderer);
 
   return {
-    data: await renderer.toBlob(),
-    filename: filename ?? pattern.name + '.png',
+    data: await renderer.toBlob(imageType),
+    filename: `${filename ?? pattern.name}.${imageType ?? 'png'}`,
   };
 }
 

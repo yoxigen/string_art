@@ -11,19 +11,55 @@ import preferences from '../../../helpers/preferences';
 import {
   downloadPattern,
   DownloadPatternOptions,
+  ImageType,
 } from '../../../download/Download';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
 
-const SIZES = [
-  ...STANDARD_SIZES_CM,
+const SMALL_SCREEN_DIMENSION = Math.min(screen.width, screen.height);
+
+const SIZES: ReadonlyArray<{
+  id: string;
+  name?: string;
+  dimensions?:
+    | Dimensions
+    | ((options: { customDimensions: Dimensions | null }) => Dimensions | null);
+  units?: SizeUnit[];
+  aspectRatio?: number;
+  allowSizeEdit?: boolean;
+  defaultUnits?: SizeUnit;
+}> = [
+  {
+    id: 'square',
+    name: 'Square',
+    dimensions: [SMALL_SCREEN_DIMENSION, SMALL_SCREEN_DIMENSION],
+    units: ['px', 'cm', 'inch'],
+    defaultUnits: 'px',
+    aspectRatio: 1,
+    allowSizeEdit: true,
+  },
   {
     id: 'screen',
     name: 'Screen size',
-    dimensions: null,
+    dimensions: () => {
+      const dpr = window.devicePixelRatio ?? 1;
+      return [window.screen.width, window.screen.height].map(v =>
+        Math.floor(v * dpr)
+      ) as Dimensions;
+    },
+    units: ['px'],
   },
-  { id: 'custom', name: 'Custom size…', dimensions: null },
+  ...STANDARD_SIZES_CM.map(size => ({
+    ...size,
+    units: ['cm', 'inch'] as SizeUnit[],
+  })),
+  {
+    id: 'custom',
+    name: 'Custom size…',
+    dimensions: ({ customDimensions }) => customDimensions,
+    allowSizeEdit: true,
+  },
 ];
 
 type Units = SizeUnit;
@@ -46,6 +82,7 @@ export default class DownloadDialog extends HTMLElement {
   private units: Units;
   private customDimensions = DEFAULT_DIMENSIONS;
   private dimensions: Dimensions;
+  private aspectRatio: number;
 
   constructor() {
     super();
@@ -77,6 +114,15 @@ export default class DownloadDialog extends HTMLElement {
       this.setUnits(units);
     });
 
+    shadow.addEventListener('focusin', e => {
+      if (
+        e.target instanceof HTMLInputElement &&
+        (e.target.type === 'text' || e.target.type === 'number')
+      ) {
+        e.target.select();
+      }
+    });
+
     shadow.addEventListener('change', e => {
       if (
         e.target instanceof HTMLSelectElement &&
@@ -94,10 +140,26 @@ export default class DownloadDialog extends HTMLElement {
         e.target.type === 'radio' &&
         e.target.name === 'type'
       ) {
-        const selectedType = this.elements.form.querySelector(
-          'input[name="type"]:checked'
+        const selectedType = (
+          this.elements.form.querySelector(
+            'input[name="type"]:checked'
+          ) as HTMLInputElement
         )?.value;
         this.#toggleNailNumbers(selectedType === 'nails_map');
+      }
+    });
+
+    shadow.addEventListener('input', e => {
+      if (this.aspectRatio) {
+        if (e.target === this.elements.width) {
+          this.elements.height.value = String(
+            Number(this.elements.width.value) * this.aspectRatio
+          );
+        } else if (e.target === this.elements.height) {
+          this.elements.width.value = String(
+            Number(this.elements.height.value) / this.aspectRatio
+          );
+        }
       }
     });
   }
@@ -117,6 +179,8 @@ export default class DownloadDialog extends HTMLElement {
   }
 
   setUnits(units: Units) {
+    const prevUnits = this.units;
+
     this.units = units;
 
     this.elements.unitSelect.forEach(unitSelect => {
@@ -130,36 +194,42 @@ export default class DownloadDialog extends HTMLElement {
       this.elements.dpiBlock.classList.add('hidden');
     }
 
+    // Convert sizes to new units
+
+    // Can be removed?
     if (this.dimensions) {
       this.setDimensions(this.dimensions);
     }
   }
 
   setSize(id: string) {
-    let dimensions: Dimensions = [0, 0];
+    const {
+      units,
+      dimensions: sizeDimensions,
+      aspectRatio,
+      allowSizeEdit,
+      defaultUnits,
+    } = SIZES.find(({ id: sizeId }) => sizeId === id);
 
-    if (id === 'custom') {
-      dimensions = this.customDimensions;
-      this.togglePixels(true);
-      this.setPixelsOnly(false);
+    this.aspectRatio = aspectRatio;
+    const dimensions: Dimensions =
+      sizeDimensions instanceof Function
+        ? sizeDimensions({ customDimensions: this.customDimensions })
+        : sizeDimensions;
+
+    if (allowSizeEdit) {
       this.elements.widthAndHeight.classList.add('inputs');
-      this.setUnits(preferences.getUserPreferredUnits());
     } else {
       this.elements.widthAndHeight.classList.remove('inputs');
-      if (id === 'screen') {
-        this.setUnits('px');
-        const dpr = window.devicePixelRatio ?? 1;
-        dimensions = [window.screen.width, window.screen.height].map(v =>
-          Math.floor(v * dpr)
-        ) as Dimensions;
-        this.setPixelsOnly(true);
-      } else {
-        dimensions = SIZES.find(({ id: sizeId }) => sizeId === id)!.dimensions;
-        this.setUnits(preferences.getUserPreferredUnits());
-        this.togglePixels(false);
-        this.setPixelsOnly(false);
-      }
     }
+
+    const isPixelsOnly = units && units.length === 1 && units[0] === 'px';
+    this.togglePixels(!units || units.includes('px'));
+    this.setPixelsOnly(isPixelsOnly);
+    this.setUnits(
+      defaultUnits ??
+        (isPixelsOnly ? 'px' : preferences.getUserPreferredUnits())
+    );
 
     this.dimensions = dimensions;
     this.setDimensions(dimensions);
@@ -177,16 +247,11 @@ export default class DownloadDialog extends HTMLElement {
   }
 
   #getDimensionsById(id: string): Dimensions {
-    if (id === 'custom') {
-      return this.customDimensions;
-    } else if (id === 'screen') {
-      const dpr = window.devicePixelRatio ?? 1;
-      return [window.screen.width, window.screen.height].map(v =>
-        Math.floor(v * dpr)
-      ) as Dimensions;
-    } else {
-      return SIZES.find(({ id: sizeId }) => sizeId === id)!.dimensions;
-    }
+    const { dimensions } = SIZES.find(({ id: sizeId }) => sizeId === id);
+
+    return dimensions instanceof Function
+      ? dimensions({ customDimensions: this.customDimensions })
+      : dimensions;
   }
 
   setPixelsOnly(isPixelsOnly: boolean) {
@@ -236,6 +301,7 @@ export default class DownloadDialog extends HTMLElement {
     const options: DownloadPatternOptions = {
       size: this.#getDimensionsById(values.size as string),
       type: values.format === 'svg' ? 'svg' : 'canvas',
+      imageType: values.format === 'svg' ? null : (values.format as ImageType),
       isNailsMap: values.type === 'nails_map',
       units: (values.unit ?? 'px') as SizeUnit,
       dpi: Number(values.dpi),

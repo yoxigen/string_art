@@ -38,7 +38,7 @@
                 maxlength="3"
                 min="1"
                 max="200"
-                class="dialog-input"
+                class="dialog-input size-input"
                 name="width"
               />
               &times;
@@ -49,7 +49,7 @@
                 maxlength="3"
                 min="1"
                 max="200"
-                class="dialog-input"
+                class="dialog-input size-input"
                 name="height"
               />
             </span>
@@ -69,6 +69,7 @@
       <div style="margin-top: 1.5em">
         <expandable-panel legend="More options" minimized>
           <fieldset id="dpi_block">
+            <label for="dpi">Print resolution</label>
             <select
               id="dpi"
               value="300"
@@ -100,7 +101,7 @@
               min="0"
               max="20"
               step="1"
-              class="dialog-input"
+              class="dialog-input size-input"
               name="margin"
             />
             <select
@@ -114,9 +115,11 @@
             </select>
           </fieldset>
           <fieldset>
-            <label for="format">Format</label>
+            <label for="format">Image type</label>
             <select id="format" class="dialog-input" name="format">
               <option value="png">PNG</option>
+              <option value="jpeg">JPEG</option>
+              <option value="webp">WEBP</option>
               <option value="svg">SVG</option>
             </select>
           </fieldset>

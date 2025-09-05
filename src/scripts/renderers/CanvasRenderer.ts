@@ -233,12 +233,15 @@ export default class CanvasRenderer extends Renderer {
     return this.getComposite().toDataURL();
   }
 
-  async toBlob(type = 'png'): Promise<Blob> {
+  async toBlob(
+    type: 'jpeg' | 'png' | 'webp' = 'png',
+    quality = 1
+  ): Promise<Blob> {
     return new Promise<Blob>((resolve, reject) => {
       this.getComposite().toBlob(
         blob => (blob ? resolve(blob) : reject()),
-        type,
-        1
+        `image/${type}`,
+        Math.max(0, Math.min(quality, 1))
       );
     });
   }
