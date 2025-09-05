@@ -4,6 +4,7 @@ import type ConfirmDialog from '../ConfirmDialog';
 import type StringArt from '../../../StringArt';
 import {
   cmDimensionsToInch,
+  sizeConvert,
   STANDARD_SIZES_CM,
 } from '../../../helpers/size_utils';
 import { Dimensions, SizeUnit } from '../../../types/general.types';
@@ -18,6 +19,7 @@ const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
 
 const SMALL_SCREEN_DIMENSION = Math.min(screen.width, screen.height);
+const DEFAULT_DPI = 300;
 
 const SIZES: ReadonlyArray<{
   id: string;
@@ -109,9 +111,10 @@ export default class DownloadDialog extends HTMLElement {
     this.#setSizes();
     this.setSize(SIZES[0].id);
 
-    this.units = preferences.getUserPreferredUnits();
     preferences.addEventListener('unitsChange', units => {
-      this.setUnits(units);
+      if (this.units !== 'px') {
+        this.setUnits(units);
+      }
     });
 
     shadow.addEventListener('focusin', e => {
@@ -179,8 +182,11 @@ export default class DownloadDialog extends HTMLElement {
   }
 
   setUnits(units: Units) {
-    const prevUnits = this.units;
+    if (units === this.units) {
+      return;
+    }
 
+    const prevUnits = this.units;
     this.units = units;
 
     this.elements.unitSelect.forEach(unitSelect => {
@@ -194,9 +200,16 @@ export default class DownloadDialog extends HTMLElement {
       this.elements.dpiBlock.classList.add('hidden');
     }
 
-    // Convert sizes to new units
+    // If changing from length unit to px or vice-versa, need to convert dimensions
+    if (prevUnits && this.dimensions) {
+      this.dimensions = sizeConvert(
+        this.dimensions,
+        prevUnits,
+        units,
+        Number(this.elements.dpi.value ?? DEFAULT_DPI)
+      );
+    }
 
-    // Can be removed?
     if (this.dimensions) {
       this.setDimensions(this.dimensions);
     }
@@ -231,7 +244,6 @@ export default class DownloadDialog extends HTMLElement {
         (isPixelsOnly ? 'px' : preferences.getUserPreferredUnits())
     );
 
-    this.dimensions = dimensions;
     this.setDimensions(dimensions);
   }
 
@@ -276,11 +288,9 @@ export default class DownloadDialog extends HTMLElement {
 
   setDimensions(dimensions: Dimensions) {
     this.dimensions = dimensions;
-    const displayValue =
-      this.units === 'inch' ? cmDimensionsToInch(dimensions) : dimensions;
-    this.elements.width.value = String(displayValue[0]);
-    this.elements.height.value = String(displayValue[1]);
-    this.elements.widthAndHeightDisplay.textContent = `${displayValue[0]} × ${displayValue[1]}`;
+    this.elements.width.value = String(dimensions[0]);
+    this.elements.height.value = String(dimensions[1]);
+    this.elements.widthAndHeightDisplay.textContent = `${dimensions[0]} × ${dimensions[1]}`;
   }
 
   /**

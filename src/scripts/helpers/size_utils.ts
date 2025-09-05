@@ -8,6 +8,15 @@ export interface StandardSize {
 
 const INCH_TO_CM = 2.54;
 
+Object.defineProperty(Number.prototype, 'toFixedPrecision', {
+  value: function (this: number, fractionDigits: number): number {
+    return parseFloat(this.toFixed(fractionDigits));
+  },
+  writable: true,
+  configurable: true,
+  enumerable: false, // Recommended for prototype extensions
+});
+
 export function areDimensionsEqual(d1: Dimensions, d2: Dimensions): boolean {
   return d1[0] === d2[0] && d1[1] === d2[1];
 }
@@ -17,7 +26,7 @@ export function cmToPixels(cm: number, dpi = 300): number {
 }
 
 export function cmToInch(cm: number): number {
-  return parseFloat((cm / INCH_TO_CM).toFixed(2));
+  return (cm / INCH_TO_CM).toFixedPrecision(2);
 }
 
 export function inchToPixel(inch: number, dpi: number): number {
@@ -33,7 +42,7 @@ export function inchToCm(inch: number): number {
 }
 
 export function pixelsToInch(pixels: number, dpi: number): number {
-  return pixels / dpi;
+  return (pixels / dpi).toFixedPrecision(2);
 }
 
 export function pixelsToCm(pixels: number, dpi: number): number {
