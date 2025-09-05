@@ -99,7 +99,7 @@ export default class CanvasRenderer extends Renderer {
     return newSize;
   }
 
-  setSize(size?: Dimensions | null, notifyOnChange = true): Dimensions {
+  setSize(size?: Dimensions | null): Dimensions {
     if (!size) {
       return this.resetSize();
     }
@@ -124,9 +124,7 @@ export default class CanvasRenderer extends Renderer {
     if (!this.currentSize || !areDimensionsEqual(realSize, this.currentSize)) {
       this.currentSize = realSize;
 
-      if (notifyOnChange) {
-        this.emit('sizeChange', { size: realSize });
-      }
+      this.emit('sizeChange', { size: realSize });
     }
 
     return realSize;
@@ -235,12 +233,12 @@ export default class CanvasRenderer extends Renderer {
     return this.getComposite().toDataURL();
   }
 
-  async toBlob(type?: string, quality?: number): Promise<Blob> {
+  async toBlob(type = 'png'): Promise<Blob> {
     return new Promise<Blob>((resolve, reject) => {
       this.getComposite().toBlob(
         blob => (blob ? resolve(blob) : reject()),
         type,
-        quality
+        1
       );
     });
   }

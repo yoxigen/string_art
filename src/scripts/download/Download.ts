@@ -6,7 +6,7 @@ import { CommonConfig } from '../types/config.types';
 import { Dimensions, LengthUnit, SizeUnit } from '../types/general.types';
 
 interface DownloadData {
-  data: string;
+  data: Blob;
   filename: string;
 }
 
@@ -22,12 +22,16 @@ export interface DownloadPatternOptions {
 }
 
 export function downloadFile({ data, filename }: DownloadData) {
+  const dataUrl = URL.createObjectURL(data);
+
   const downloadLink = document.createElement('a');
-  downloadLink.href = data;
+  downloadLink.href = dataUrl;
   downloadLink.download = filename;
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
+
+  URL.revokeObjectURL(dataUrl);
 }
 
 export async function downloadPattern(
@@ -53,8 +57,6 @@ export async function downloadPattern(
       ? patternToSVGDownloadData(pattern, options)
       : await patternToImageDownloadData(pattern, options);
   downloadFile(downloadData);
-
-  URL.revokeObjectURL(downloadData.data);
 }
 
 export function getConfigForDownloadOptions(
@@ -98,8 +100,7 @@ async function patternToImageDownloadData(
   pattern.draw(renderer);
 
   return {
-    // TODO: Set type and quality!!
-    data: URL.createObjectURL(await renderer.toBlob()),
+    data: await renderer.toBlob(),
     filename: filename ?? pattern.name + '.png',
   };
 }
@@ -119,7 +120,7 @@ function patternToSVGDownloadData(
   const svgData = renderer.svg.outerHTML;
   const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
   return {
-    data: URL.createObjectURL(svgBlob),
+    data: svgBlob,
     filename: filename ?? pattern.name + '.svg',
   };
 }
