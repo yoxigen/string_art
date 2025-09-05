@@ -3,7 +3,7 @@ import * as html from 'bundle-text:./DownloadDialog.html';
 import type ConfirmDialog from '../ConfirmDialog';
 import type StringArt from '../../../StringArt';
 import {
-  cmDimensionsToInch,
+  mapDimensions,
   sizeConvert,
   STANDARD_SIZES_CM,
 } from '../../../helpers/size_utils';
@@ -18,8 +18,8 @@ import {
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
 
-const SMALL_SCREEN_DIMENSION = Math.min(screen.width, screen.height);
 const DEFAULT_DPI = 300;
+const DEFAULT_DIMENSIONS: Dimensions = [10, 10];
 
 const SIZES: ReadonlyArray<{
   id: string;
@@ -31,11 +31,22 @@ const SIZES: ReadonlyArray<{
   aspectRatio?: number;
   allowSizeEdit?: boolean;
   defaultUnits?: SizeUnit;
+  inUnits?: SizeUnit;
 }> = [
   {
     id: 'square',
     name: 'Square',
-    dimensions: [SMALL_SCREEN_DIMENSION, SMALL_SCREEN_DIMENSION],
+    dimensions: ({ customDimensions }) => {
+      if (customDimensions) {
+        const smallestSize = Math.min(...customDimensions);
+        return [smallestSize, smallestSize];
+      }
+      const SMALL_SCREEN_DIMENSION = Math.min(screen.width, screen.height);
+      const dpr = window.devicePixelRatio ?? 1;
+      return [SMALL_SCREEN_DIMENSION, SMALL_SCREEN_DIMENSION].map(v =>
+        Math.floor(v * dpr)
+      ) as Dimensions;
+    },
     units: ['px', 'cm', 'inch'],
     defaultUnits: 'px',
     aspectRatio: 1,
@@ -55,17 +66,18 @@ const SIZES: ReadonlyArray<{
   ...STANDARD_SIZES_CM.map(size => ({
     ...size,
     units: ['cm', 'inch'] as SizeUnit[],
+    inUnits: 'cm' as SizeUnit,
   })),
   {
     id: 'custom',
     name: 'Custom size…',
-    dimensions: ({ customDimensions }) => customDimensions,
+    dimensions: ({ customDimensions }) =>
+      customDimensions ?? DEFAULT_DIMENSIONS,
     allowSizeEdit: true,
   },
 ];
 
 type Units = SizeUnit;
-const DEFAULT_DIMENSIONS: Dimensions = [10, 10];
 
 export default class DownloadDialog extends HTMLElement {
   private dialog: ConfirmDialog;
@@ -82,7 +94,7 @@ export default class DownloadDialog extends HTMLElement {
     renderNumbersBlock: HTMLElement;
   };
   private units: Units;
-  private customDimensions = DEFAULT_DIMENSIONS;
+  private customDimensions: Dimensions;
   private dimensions: Dimensions;
   private aspectRatio: number;
 
@@ -153,15 +165,25 @@ export default class DownloadDialog extends HTMLElement {
     });
 
     shadow.addEventListener('input', e => {
-      if (this.aspectRatio) {
-        if (e.target === this.elements.width) {
-          this.elements.height.value = String(
-            Number(this.elements.width.value) * this.aspectRatio
-          );
-        } else if (e.target === this.elements.height) {
-          this.elements.width.value = String(
-            Number(this.elements.height.value) / this.aspectRatio
-          );
+      if (e.target === this.elements.width) {
+        const width = Number(this.elements.width.value);
+        if (this.customDimensions) {
+          this.customDimensions[0] = width;
+        }
+        if (this.aspectRatio) {
+          const height = width * this.aspectRatio;
+          this.customDimensions[1] = height;
+          this.elements.height.value = String(height);
+        }
+      } else if (e.target === this.elements.height) {
+        const height = Number(this.elements.height.value);
+        if (this.customDimensions) {
+          this.customDimensions[1] = height;
+        }
+        if (this.aspectRatio) {
+          const width = height / this.aspectRatio;
+          this.customDimensions[1] = width;
+          this.elements.width.value = String(width / this.aspectRatio);
         }
       }
     });
@@ -202,11 +224,14 @@ export default class DownloadDialog extends HTMLElement {
 
     // If changing from length unit to px or vice-versa, need to convert dimensions
     if (prevUnits && this.dimensions) {
-      this.dimensions = sizeConvert(
-        this.dimensions,
-        prevUnits,
-        units,
-        Number(this.elements.dpi.value ?? DEFAULT_DPI)
+      this.dimensions = mapDimensions(
+        sizeConvert(
+          this.dimensions,
+          prevUnits,
+          units,
+          Number(this.elements.dpi.value ?? DEFAULT_DPI)
+        ),
+        v => v.toFixedPrecision(1)
       );
     }
 
@@ -222,16 +247,18 @@ export default class DownloadDialog extends HTMLElement {
       aspectRatio,
       allowSizeEdit,
       defaultUnits,
+      inUnits,
     } = SIZES.find(({ id: sizeId }) => sizeId === id);
 
     this.aspectRatio = aspectRatio;
-    const dimensions: Dimensions =
+    let dimensions: Dimensions =
       sizeDimensions instanceof Function
         ? sizeDimensions({ customDimensions: this.customDimensions })
         : sizeDimensions;
 
     if (allowSizeEdit) {
       this.elements.widthAndHeight.classList.add('inputs');
+      this.customDimensions = dimensions;
     } else {
       this.elements.widthAndHeight.classList.remove('inputs');
     }
@@ -239,11 +266,26 @@ export default class DownloadDialog extends HTMLElement {
     const isPixelsOnly = units && units.length === 1 && units[0] === 'px';
     this.togglePixels(!units || units.includes('px'));
     this.setPixelsOnly(isPixelsOnly);
-    this.setUnits(
+    const newUnits =
       defaultUnits ??
-        (isPixelsOnly ? 'px' : preferences.getUserPreferredUnits())
-    );
+      (isPixelsOnly
+        ? 'px'
+        : units && !units.includes(this.units)
+        ? preferences.getUserPreferredUnits()
+        : this.units);
 
+    this.setUnits(newUnits);
+    if (inUnits && inUnits !== newUnits) {
+      dimensions = mapDimensions(
+        sizeConvert(
+          dimensions,
+          inUnits,
+          newUnits,
+          Number(this.elements.dpi.value)
+        ),
+        v => v.toFixedPrecision(1)
+      );
+    }
     this.setDimensions(dimensions);
   }
 
@@ -301,12 +343,16 @@ export default class DownloadDialog extends HTMLElement {
       const data = new FormData(this.elements.form);
       const values = Object.fromEntries(data.entries());
       console.log('VAL', values);
-      await downloadPattern(pattern, this.#formValuesToDownloadOptions(values));
+      await downloadPattern(
+        pattern,
+        this.#formValuesToDownloadOptions(values, pattern)
+      );
     });
   }
 
   #formValuesToDownloadOptions(
-    values: Record<string, FormDataEntryValue>
+    values: Record<string, FormDataEntryValue>,
+    pattern: StringArt
   ): DownloadPatternOptions {
     const options: DownloadPatternOptions = {
       size: this.#getDimensionsById(values.size as string),
@@ -318,6 +364,10 @@ export default class DownloadDialog extends HTMLElement {
       margin: Number(values.margin),
       includeNailNumbers:
         values.type === 'nails_map' && values.render_numbers === 'on',
+      filename:
+        values.type === 'nails_map'
+          ? `${pattern.name} - nail map`
+          : pattern.name,
     };
 
     return options;

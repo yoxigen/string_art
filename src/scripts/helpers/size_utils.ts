@@ -1,4 +1,4 @@
-import { Dimensions, LengthUnit, SizeUnit } from '../types/general.types';
+import { Dimensions, SizeUnit } from '../types/general.types';
 
 export interface StandardSize {
   id: string;
@@ -26,7 +26,7 @@ export function cmToPixels(cm: number, dpi = 300): number {
 }
 
 export function cmToInch(cm: number): number {
-  return (cm / INCH_TO_CM).toFixedPrecision(2);
+  return cm / INCH_TO_CM;
 }
 
 export function inchToPixel(inch: number, dpi: number): number {
@@ -42,7 +42,7 @@ export function inchToCm(inch: number): number {
 }
 
 export function pixelsToInch(pixels: number, dpi: number): number {
-  return (pixels / dpi).toFixedPrecision(2);
+  return pixels / dpi;
 }
 
 export function pixelsToCm(pixels: number, dpi: number): number {
@@ -58,6 +58,13 @@ export function inchDimensionsToCm(dimensions: Dimensions): Dimensions {
 }
 
 const LENGTH_UNITS: ReadonlySet<string> = new Set(['cm', 'inch']);
+
+export function mapDimensions(
+  dimensions: Dimensions,
+  mapper: (dimension: number) => number
+): Dimensions {
+  return dimensions.map(mapper) as Dimensions;
+}
 
 export function lengthConvert(
   value: number,
@@ -104,7 +111,7 @@ export function sizeConvert(
   to: SizeUnit,
   dpi?: number
 ): Dimensions {
-  return dimensions.map(v => lengthConvert(v, from, to, dpi)) as Dimensions;
+  return mapDimensions(dimensions, v => lengthConvert(v, from, to, dpi));
 }
 
 export const STANDARD_SIZES_CM: ReadonlyArray<StandardSize> = [
