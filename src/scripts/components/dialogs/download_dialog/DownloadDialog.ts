@@ -3,6 +3,7 @@ import * as html from 'bundle-text:./DownloadDialog.html';
 import type ConfirmDialog from '../ConfirmDialog';
 import type StringArt from '../../../StringArt';
 import {
+  fitInside,
   mapDimensions,
   sizeConvert,
   STANDARD_SIZES_CM,
@@ -14,6 +15,7 @@ import {
   DownloadPatternOptions,
   ImageType,
 } from '../../../download/Download';
+import type DimensionsInput from '../../inputs/DimensionsInput';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -92,11 +94,14 @@ export default class DownloadDialog extends HTMLElement {
     widthAndHeight: HTMLElement;
     widthAndHeightDisplay: HTMLElement;
     renderNumbersBlock: HTMLElement;
+    patternSize: DimensionsInput;
   };
   private units: Units;
   private customDimensions: Dimensions;
   private dimensions: Dimensions;
   private aspectRatio: number;
+  private margin = 0;
+  private patternAspectRatio = 1;
 
   constructor() {
     super();
@@ -118,6 +123,7 @@ export default class DownloadDialog extends HTMLElement {
       widthAndHeight: shadow.querySelector('#width_and_height'),
       widthAndHeightDisplay: shadow.querySelector('#width_and_height_display'),
       renderNumbersBlock: shadow.querySelector('#render_numbers_block'),
+      patternSize: shadow.querySelector('#pattern_size'),
     };
 
     this.#setSizes();
@@ -169,21 +175,25 @@ export default class DownloadDialog extends HTMLElement {
         const width = Number(this.elements.width.value);
         if (this.customDimensions) {
           this.customDimensions[0] = width;
+          this.elements.patternSize.width = width - this.margin;
         }
         if (this.aspectRatio) {
           const height = width * this.aspectRatio;
           this.customDimensions[1] = height;
           this.elements.height.value = String(height);
+          this.elements.patternSize.height = height - this.margin;
         }
       } else if (e.target === this.elements.height) {
         const height = Number(this.elements.height.value);
         if (this.customDimensions) {
           this.customDimensions[1] = height;
+          this.elements.patternSize.height = height - this.margin;
         }
         if (this.aspectRatio) {
           const width = height / this.aspectRatio;
           this.customDimensions[1] = width;
           this.elements.width.value = String(width / this.aspectRatio);
+          this.elements.patternSize.width = width - this.margin;
         }
       }
     });
@@ -333,12 +343,35 @@ export default class DownloadDialog extends HTMLElement {
     this.elements.width.value = String(dimensions[0]);
     this.elements.height.value = String(dimensions[1]);
     this.elements.widthAndHeightDisplay.textContent = `${dimensions[0]} × ${dimensions[1]}`;
+
+    const patternDimensions = this.#getPatternDimensions();
+    this.elements.patternSize.width = patternDimensions[0];
+    this.elements.patternSize.height = patternDimensions[1];
+  }
+
+  #getPatternDimensions(): Dimensions {
+    const width = this.dimensions[0] - this.margin;
+
+    const patternDimensions = [
+      width,
+      width / this.patternAspectRatio,
+    ] as Dimensions;
+    return fitInside(
+      patternDimensions,
+      mapDimensions(this.dimensions, v => v - this.margin)
+    );
   }
 
   /**
    * Opens the dialog, optionally with an initial value.
    */
   async show(pattern: StringArt): Promise<void> {
+    this.patternAspectRatio = pattern.getAspectRatio({ size: this.dimensions });
+    this.elements.patternSize.setAttribute(
+      'aspect-ratio',
+      String(this.patternAspectRatio)
+    );
+
     return this.dialog.show().then(async () => {
       const data = new FormData(this.elements.form);
       const values = Object.fromEntries(data.entries());
