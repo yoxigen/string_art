@@ -245,7 +245,7 @@ export default class Circle {
 
   *drawRing(
     renderer: Renderer,
-    { ringSize, color }: { ringSize: number; color: ColorValue }
+    { ringSize, color }: { ringSize: number; color?: ColorValue }
   ): Generator<void> {
     const { n } = this.config;
     const ringDistance = Math.floor(ringSize * n);
@@ -253,7 +253,9 @@ export default class Circle {
     let prevPoint: Coordinates;
     let prevPointIndex = 0;
     let isPrevSide = false;
-    renderer.setColor(color);
+    if (color) {
+      renderer.setColor(color);
+    }
 
     for (let i = 0; i < n; i++) {
       if (!prevPoint) {

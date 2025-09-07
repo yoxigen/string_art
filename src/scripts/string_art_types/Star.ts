@@ -19,6 +19,8 @@ interface StarConfig {
   outerColor: ColorValue;
   ringColor: ColorValue;
   colorGroup: GroupValue;
+  isSingleColor: boolean;
+  singleColor: ColorValue;
 }
 
 type TCalc = {
@@ -73,12 +75,30 @@ export default class Star extends StringArt<StarConfig> {
       type: 'group',
       children: [
         {
+          key: 'isSingleColor',
+          label: 'Is single color',
+          type: 'checkbox',
+          defaultValue: false,
+          affectsNails: false,
+          affectsStepCount: false,
+        },
+        {
+          key: 'singleColor',
+          label: 'Color',
+          defaultValue: '#2ec0ff',
+          type: 'color',
+          affectsNails: false,
+          affectsStepCount: false,
+          show: ({ isSingleColor }) => isSingleColor,
+        },
+        {
           key: 'innerColor',
           label: 'Star color',
           defaultValue: '#2ec0ff',
           type: 'color',
           affectsNails: false,
           affectsStepCount: false,
+          show: ({ isSingleColor }) => !isSingleColor,
         },
         {
           key: 'outerColor',
@@ -87,6 +107,7 @@ export default class Star extends StringArt<StarConfig> {
           type: 'color',
           affectsNails: false,
           affectsStepCount: false,
+          show: ({ isSingleColor }) => !isSingleColor,
         },
         {
           key: 'ringColor',
@@ -95,6 +116,7 @@ export default class Star extends StringArt<StarConfig> {
           type: 'color',
           affectsNails: false,
           affectsStepCount: false,
+          show: ({ isSingleColor }) => !isSingleColor,
         },
       ],
     },
@@ -154,16 +176,19 @@ export default class Star extends StringArt<StarConfig> {
   }
 
   *drawStar(renderer: Renderer): Generator<void> {
-    const { innerColor } = this.config;
+    const { innerColor, isSingleColor } = this.config;
 
-    renderer.setColor(innerColor);
+    if (!isSingleColor) {
+      renderer.setColor(innerColor);
+    }
     yield* this.calc.star.drawStrings(renderer);
   }
 
   *drawCircle(renderer: Renderer): Generator<void> {
-    const { outerColor, sides, sideNails } = this.config;
-    renderer.setColor(outerColor);
-
+    const { outerColor, sides, sideNails, isSingleColor } = this.config;
+    if (!isSingleColor) {
+      renderer.setColor(outerColor);
+    }
     let prevPoint = this.calc.star.getPoint(0, 0);
     let alternate = false;
     let isStar = false;
@@ -202,14 +227,17 @@ export default class Star extends StringArt<StarConfig> {
   }
 
   *drawStrings(renderer: Renderer): Generator<void> {
-    yield* this.drawCircle(renderer);
+    const { ringSize, ringColor, isSingleColor, singleColor } = this.config;
+    if (isSingleColor) {
+      renderer.setColor(singleColor);
+    }
 
-    const { ringSize, ringColor } = this.config;
+    yield* this.drawCircle(renderer);
 
     if (ringSize !== 0) {
       yield* this.calc.circle.drawRing(renderer, {
         ringSize,
-        color: ringColor,
+        color: isSingleColor ? null : ringColor,
       });
     }
     yield* this.drawStar(renderer);
