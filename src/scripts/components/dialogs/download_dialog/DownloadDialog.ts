@@ -28,7 +28,10 @@ const SIZES: ReadonlyArray<{
   name?: string;
   dimensions?:
     | Dimensions
-    | ((options: { customDimensions: Dimensions | null }) => Dimensions | null);
+    | ((options: {
+        customDimensions: Dimensions | null;
+        currentDimensions: Dimensions | null;
+      }) => Dimensions | null);
   units?: SizeUnit[];
   aspectRatio?: number;
   allowSizeEdit?: boolean;
@@ -73,8 +76,8 @@ const SIZES: ReadonlyArray<{
   {
     id: 'custom',
     name: 'Custom size…',
-    dimensions: ({ customDimensions }) =>
-      customDimensions ?? DEFAULT_DIMENSIONS,
+    dimensions: ({ customDimensions, currentDimensions }) =>
+      currentDimensions ?? customDimensions ?? DEFAULT_DIMENSIONS,
     allowSizeEdit: true,
   },
 ];
@@ -175,25 +178,25 @@ export default class DownloadDialog extends HTMLElement {
         const width = Number(this.elements.width.value);
         if (this.customDimensions) {
           this.customDimensions[0] = width;
+          this.elements.patternSize.maxWidth = width - this.margin;
           this.elements.patternSize.width = width - this.margin;
         }
         if (this.aspectRatio) {
-          const height = width * this.aspectRatio;
+          const height = width / this.aspectRatio;
           this.customDimensions[1] = height;
           this.elements.height.value = String(height);
-          this.elements.patternSize.height = height - this.margin;
         }
       } else if (e.target === this.elements.height) {
         const height = Number(this.elements.height.value);
         if (this.customDimensions) {
           this.customDimensions[1] = height;
+          this.elements.patternSize.maxHeight = height - this.margin;
           this.elements.patternSize.height = height - this.margin;
         }
         if (this.aspectRatio) {
-          const width = height / this.aspectRatio;
+          const width = height * this.aspectRatio;
           this.customDimensions[1] = width;
           this.elements.width.value = String(width / this.aspectRatio);
-          this.elements.patternSize.width = width - this.margin;
         }
       }
     });
@@ -228,8 +231,10 @@ export default class DownloadDialog extends HTMLElement {
     if (units === 'cm' || units === 'inch') {
       preferences.setUserPreferredUnits(units);
       this.elements.dpiBlock.classList.remove('hidden');
+      this.elements.patternSize.setFloatingPoints(1);
     } else {
       this.elements.dpiBlock.classList.add('hidden');
+      this.elements.patternSize.setFloatingPoints(0);
     }
 
     // If changing from length unit to px or vice-versa, need to convert dimensions
@@ -263,7 +268,10 @@ export default class DownloadDialog extends HTMLElement {
     this.aspectRatio = aspectRatio;
     let dimensions: Dimensions =
       sizeDimensions instanceof Function
-        ? sizeDimensions({ customDimensions: this.customDimensions })
+        ? sizeDimensions({
+            customDimensions: this.customDimensions,
+            currentDimensions: this.dimensions,
+          })
         : sizeDimensions;
 
     if (allowSizeEdit) {
@@ -314,7 +322,10 @@ export default class DownloadDialog extends HTMLElement {
     const { dimensions } = SIZES.find(({ id: sizeId }) => sizeId === id);
 
     return dimensions instanceof Function
-      ? dimensions({ customDimensions: this.customDimensions })
+      ? dimensions({
+          customDimensions: this.customDimensions,
+          currentDimensions: this.dimensions,
+        })
       : dimensions;
   }
 
@@ -347,6 +358,8 @@ export default class DownloadDialog extends HTMLElement {
     const patternDimensions = this.#getPatternDimensions();
     this.elements.patternSize.width = patternDimensions[0];
     this.elements.patternSize.height = patternDimensions[1];
+    this.elements.patternSize.maxWidth = patternDimensions[0];
+    this.elements.patternSize.maxHeight = patternDimensions[1];
   }
 
   #getPatternDimensions(): Dimensions {

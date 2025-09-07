@@ -13,10 +13,10 @@ export default class DimensionsInput extends HTMLElement {
   #width: number;
   #height: number;
   aspectRatio: number | null;
-  maxWidth: number;
-  maxHeight: number;
+  #maxWidth: number;
+  #maxHeight: number;
   isReadonly = false;
-
+  floatingPoints: number;
   #widthElement: HTMLInputElement;
   #heightElement: HTMLInputElement;
   #connectorElement: HTMLSpanElement;
@@ -67,7 +67,12 @@ export default class DimensionsInput extends HTMLElement {
       'readonly',
       'default-width',
       'default-height',
+      'floating-points',
     ];
+  }
+
+  get inputs(): HTMLInputElement[] {
+    return [this.#widthElement, this.#heightElement];
   }
 
   get width(): number {
@@ -75,21 +80,25 @@ export default class DimensionsInput extends HTMLElement {
   }
 
   set width(value: number) {
+    if (this.floatingPoints != null) {
+      value = value.toFixedPrecision(this.floatingPoints);
+    }
+
     if (value === this.#width) {
       return;
     }
     if (isNaN(value)) {
       console.warn('Attempting to set a NaN value to DimensionsInput width.');
     } else {
-      if (this.maxWidth) {
-        value = Math.min(value, this.maxWidth);
+      if (this.#maxWidth) {
+        value = Math.min(value, this.#maxWidth);
       }
       this.#width = value;
+      this.#widthElement.value = String(value);
+
       if (this.aspectRatio) {
         this.height = value / this.aspectRatio;
       }
-
-      this.#widthElement.value = String(value);
     }
   }
 
@@ -98,22 +107,26 @@ export default class DimensionsInput extends HTMLElement {
   }
 
   set height(value: number) {
+    if (this.floatingPoints != null) {
+      value = value.toFixedPrecision(this.floatingPoints);
+    }
+
     if (value === this.#height) {
       return;
     }
     if (isNaN(value)) {
       console.warn('Attempting to set a NaN value to DimensionsInput height.');
     } else {
-      if (this.maxHeight) {
-        value = Math.min(value, this.maxHeight);
+      if (this.#maxHeight) {
+        value = Math.min(value, this.#maxHeight);
       }
 
       this.#height = value;
+      this.#heightElement.value = String(value);
+
       if (this.aspectRatio) {
         this.width = value * this.aspectRatio;
       }
-
-      this.#heightElement.value = String(value);
     }
   }
 
@@ -126,11 +139,51 @@ export default class DimensionsInput extends HTMLElement {
     this.height = height;
   }
 
+  get maxWidth(): number | null {
+    return this.#maxWidth;
+  }
+
+  get maxHeight(): number | null {
+    return this.#maxHeight;
+  }
+
+  set maxWidth(value: number | string) {
+    value = Number(value);
+    this.#maxWidth = isNaN(value) ? null : value;
+    if (this.#maxWidth) {
+      if (this.#width && this.#width > value) {
+        this.width = value;
+      }
+      this.#widthElement.setAttribute('max', String(this.maxWidth));
+    } else {
+      this.#widthElement.removeAttribute('max');
+    }
+  }
+
+  set maxHeight(value: number | string) {
+    value = Number(value);
+    this.#maxHeight = isNaN(value) ? null : value;
+    if (this.maxHeight) {
+      if (this.#height && this.#height > value) {
+        this.height = value;
+      }
+
+      this.#heightElement.setAttribute('max', String(this.maxHeight));
+    } else {
+      this.#heightElement.removeAttribute('max');
+    }
+  }
+
   attributeChangedCallback(name: string, oldVal: string, newVal: string) {
     if (name === 'aspect-ratio') {
       const value = Number(newVal);
       this.aspectRatio = isNaN(value) ? null : value;
     } else if (name === 'max-width') {
+      this.maxWidth = newVal;
+    } else if (name === 'max-height') {
+      this.maxHeight = newVal;
+    } else if (name === 'floating-points') {
+      this.setFloatingPoints(Number(newVal));
     }
   }
 
@@ -179,19 +232,11 @@ export default class DimensionsInput extends HTMLElement {
     }
 
     if (this.hasAttribute('max-width')) {
-      this.maxWidth = Number(this.getAttribute('max-width'));
-      if (isNaN(this.maxWidth)) {
-        this.maxWidth = null;
-      }
-      this.#widthElement.setAttribute('max', String(this.maxWidth));
+      this.maxWidth = this.getAttribute('max-width');
     }
 
     if (this.hasAttribute('max-height')) {
-      this.maxHeight = Number(this.getAttribute('max-height'));
-      if (isNaN(this.maxHeight)) {
-        this.maxHeight = null;
-      }
-      this.#heightElement.setAttribute('max', String(this.maxHeight));
+      this.maxHeight = this.getAttribute('max-height');
     }
 
     if (this.hasAttribute('width')) {
@@ -228,6 +273,30 @@ export default class DimensionsInput extends HTMLElement {
       this.#connectorElement.textContent = '🔗';
     } else {
       this.#connectorElement.textContent = '×';
+    }
+
+    if (this.hasAttribute('floating-points')) {
+      const value = Number(this.getAttribute('floating-points'));
+      this.setFloatingPoints(isNaN(value) ? null : value);
+    }
+  }
+
+  setFloatingPoints(value: number) {
+    if (value != null && !isNaN(value)) {
+      this.floatingPoints = value;
+      this.inputs.forEach(input =>
+        input.setAttribute('step', String(1 / 10 ** this.floatingPoints))
+      );
+      if (this.width) {
+        this.width = this.width.toFixedPrecision(value);
+      }
+
+      if (this.height) {
+        this.height = this.height.toFixedPrecision(value);
+      }
+    } else {
+      this.floatingPoints = null;
+      this.inputs.forEach(input => input.removeAttribute('step'));
     }
   }
 }
