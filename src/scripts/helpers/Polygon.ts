@@ -7,6 +7,7 @@ import {
 } from '../types/general.types.js';
 import { PI2 } from './math_utils.js';
 import { compareObjects } from './object_utils.js';
+import { getBoundingRectAspectRatio } from './size_utils.js';
 
 export interface PolygonConfig {
   size: Dimensions;
@@ -214,6 +215,10 @@ export default class Polygon {
       height: boundingRect.bottom - boundingRect.top,
       width: boundingRect.right - boundingRect.left,
     };
+  }
+
+  getAspectRatio(): number {
+    return getBoundingRectAspectRatio(this.getBoundingRect());
   }
 
   drawNails(

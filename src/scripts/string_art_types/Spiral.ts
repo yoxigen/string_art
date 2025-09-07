@@ -8,6 +8,7 @@ import {
   ColorValue,
 } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
+import { CalcOptions } from '../types/stringart.types';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -30,6 +31,11 @@ interface SpiralConfig extends ColorConfig {
   distortion: number;
 }
 
+type TCalc = {
+  circle: Circle;
+  realRepetition: number;
+};
+
 export default class Spiral extends StringArt<SpiralConfig> {
   static type = 'spiral';
 
@@ -49,6 +55,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
       type: 'range',
       attr: { min: 1, max: 20, step: 1 },
       affectsNails: false,
+      isStructural: true,
     },
     {
       key: 'innerLength',
@@ -71,29 +78,38 @@ export default class Spiral extends StringArt<SpiralConfig> {
     COLOR_CONFIG,
   ];
 
-  #realRepetition: number;
-  #circle: Circle;
   #color: Color;
   #colorMap: ColorMap;
 
-  setUpDraw() {
-    super.setUpDraw();
-    const { n, rotation, margin, colorCount, repetition, distortion } =
-      this.config;
-    this.#realRepetition = repetition * 2 - 1;
+  calc: TCalc;
+
+  getCalc({ size }: CalcOptions): TCalc {
+    const { n, rotation, margin, repetition, distortion } = this.config;
 
     const circleConfig = {
-      size: this.size,
+      size,
       n,
       margin,
       rotation,
       distortion,
     };
 
-    if (this.#circle) {
-      this.#circle.setConfig(circleConfig);
-    } else {
-      this.#circle = new Circle(circleConfig);
+    return {
+      circle: new Circle(circleConfig),
+      realRepetition: repetition * 2 - 1,
+    };
+  }
+
+  resetStructure(): void {
+    this.calc = null;
+  }
+
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw();
+    const { colorCount } = this.config;
+
+    if (!this.calc) {
+      this.calc = this.getCalc(options);
     }
 
     this.#color = new Color({
@@ -109,6 +125,11 @@ export default class Spiral extends StringArt<SpiralConfig> {
     }
   }
 
+  getAspectRatio(options: CalcOptions): number {
+    const { circle } = this.getCalc(options);
+    return circle.aspectRatio;
+  }
+
   *drawSpiral(
     renderer: Renderer,
     {
@@ -122,7 +143,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
     let repetitionCount = 0;
     renderer.setColor(color);
     let prevPointIndex = shift;
-    let prevPoint = this.#circle.getPoint(prevPointIndex);
+    let prevPoint = this.calc.circle.getPoint(prevPointIndex);
     let isPrevPoint = false;
 
     for (let i = 0; currentInnerLength > 0; i++) {
@@ -137,7 +158,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
         ? prevPointIndex - currentInnerLength + 1
         : prevPointIndex + currentInnerLength;
 
-      if (repetitionCount === this.#realRepetition) {
+      if (repetitionCount === this.calc.realRepetition) {
         currentInnerLength--;
         repetitionCount = 0;
         prevPointIndex++;
@@ -145,7 +166,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
         repetitionCount++;
       }
 
-      const nextPoint = this.#circle.getPoint(prevPointIndex);
+      const nextPoint = this.calc.circle.getPoint(prevPointIndex);
 
       renderer.renderLines(prevPoint, nextPoint);
       prevPoint = nextPoint;
@@ -167,7 +188,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
   }
 
   drawNails() {
-    this.#circle.drawNails(this.nails);
+    this.calc.circle.drawNails(this.nails);
   }
 
   static thumbnailConfig = {

@@ -1,11 +1,13 @@
 import StringArt from '../StringArt';
 import Circle from '../helpers/Circle';
+import Polygon from '../helpers/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { gcd, PI2 } from '../helpers/math_utils';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types.js';
 import { Coordinates, Dimensions } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 export interface MaurerRoseConfig extends ColorConfig {
   n: number;
@@ -49,7 +51,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
       defaultValue: 4,
       type: 'range',
       attr: {
-        min: 1,
+        min: 2,
         max: 12,
         step: 1,
       },
@@ -128,6 +130,22 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     } else {
       this.colorMap = null;
     }
+  }
+
+  getAspectRatio({ size }: CalcOptions): number {
+    const { n, rotation } = this.config;
+
+    // Use a Polygon and getBoundingRect to calculate the aspectRatio
+    const polygon = new Polygon({
+      size,
+      sides: n % 2 ? n : n * 2,
+      nailsSpacing: 0.1,
+      margin: 0,
+      rotation,
+      center: size.map(v => v / 2) as Dimensions,
+    });
+
+    return polygon.getAspectRatio();
   }
 
   getCalc(): TCalc {

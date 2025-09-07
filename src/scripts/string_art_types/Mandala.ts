@@ -16,7 +16,7 @@ export interface MandalaConfig extends ColorConfig {
   reverse?: boolean;
 }
 
-interface TCalc {
+export interface MandalaCalc {
   n: number;
   stringsPerLayer: number;
   layerShift: number;
@@ -71,7 +71,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
   ];
 
   color: Color;
-  calc: TCalc;
+  calc: MandalaCalc;
 
   get n() {
     return this.calc.n;
@@ -81,7 +81,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     this.calc = null;
   }
 
-  getCalc({ size }: CalcOptions): TCalc {
+  getCalc({ size }: CalcOptions): MandalaCalc {
     const {
       n: nConfig,
       layers,

@@ -9,7 +9,10 @@ import { PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import Renderer from '../renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
-import { combineBoundingRects } from '../helpers/size_utils';
+import {
+  combineBoundingRects,
+  getBoundingRectAspectRatio,
+} from '../helpers/size_utils';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -307,7 +310,7 @@ export default class Lotus extends StringArt<LotusConfig> {
     const boundingRect = combineBoundingRects(
       ...calc.circles.map(c => c.getBoundingRect())
     );
-    return boundingRect[0] / boundingRect[1];
+    return getBoundingRectAspectRatio(boundingRect);
   }
 
   #getPatchColor(circleIndex: number, section: number): ColorValue {

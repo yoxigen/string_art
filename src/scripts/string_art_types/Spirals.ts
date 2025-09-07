@@ -102,6 +102,13 @@ class Spirals extends StringArt<SpiralsConfig> {
     });
   }
 
+  /**
+   * TODO: The aspect ratio isn't really 1, but it's hard to calculate. Will tackle it in the future
+   */
+  getAspectRatio(): number {
+    return 1;
+  }
+
   *generatePoints() {
     const { nSpirals } = this.config;
 

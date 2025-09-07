@@ -7,6 +7,7 @@ import { ColorValue } from './color/color.types';
 import easing from './easing';
 import { fitInside, PI2 } from './math_utils';
 import { compareObjects } from './object_utils';
+import Polygon from './Polygon';
 
 export interface CircleConfig {
   n: number;
@@ -99,15 +100,21 @@ export default class Circle {
     return aspectRatio[0] / aspectRatio[1];
   }
 
+  /**
+   * The bounding rect of the Circle is not just [diameter, diameter], because a 3 nail circle is a triangle, for example,
+   * in which case the bounding rect won't take that fill rect. Using a Polygon instead, which is more precise.
+   */
   getBoundingRect(): BoundingRect {
-    return {
-      top: this.center[1] - this.radius,
-      right: this.center[0] + this.radius,
-      bottom: this.center[1] + this.radius,
-      left: this.center[0] - this.radius,
-      width: this.radius * 2,
-      height: this.radius * 2,
-    };
+    const { n, rotation } = this.config;
+
+    const polygon = new Polygon({
+      sides: n,
+      rotation,
+      size: [this.radius * 2, this.radius * 2],
+      nailsSpacing: 1,
+    });
+
+    return polygon.getBoundingRect();
   }
 
   static distortionToAspectRatio(distortion: number): [number, number] {

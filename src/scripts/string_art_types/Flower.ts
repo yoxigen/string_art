@@ -3,7 +3,10 @@ import Circle from '../helpers/Circle';
 import Polygon from '../helpers/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
-import { combineBoundingRects } from '../helpers/size_utils';
+import {
+  combineBoundingRects,
+  getBoundingRectAspectRatio,
+} from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
 import { Config, ControlsConfig } from '../types/config.types.js';
 import { BoundingRect, Dimensions } from '../types/general.types';
@@ -143,7 +146,7 @@ export default class Flower extends StringArt<FlowerConfig> {
     const boundingRect = combineBoundingRects(
       ...calc.polygons.map(p => p.getBoundingRect())
     );
-    return boundingRect.width / boundingRect.height;
+    return getBoundingRectAspectRatio(boundingRect);
   }
 
   *drawStrings(renderer: Renderer) {
