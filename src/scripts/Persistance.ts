@@ -4,6 +4,7 @@ import StringArt, { Pattern } from './StringArt';
 import { AppData, PatternData } from './types/persistance.types';
 import type InputDialog from './components/dialogs/InputDialog';
 import { confirm, prompt } from './helpers/dialogs';
+import { getQueryParams } from './helpers/url_utils';
 
 const APP_DATA_STORAGE_KEY = 'string_art_app_data';
 
@@ -54,7 +55,7 @@ export default class Persistance extends EventBus<{
 
   #showSaveAsDialog() {
     const nextId = this.#getNextAvailableId();
-    const defaultName = `Pattern #${nextId}`;
+    const defaultName = getQueryParams().name ?? `Pattern #${nextId}`;
 
     prompt({
       title: 'Save pattern',

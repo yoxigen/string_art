@@ -43,7 +43,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       label: 'Sides',
       description: 'How many petals there are in the Lotus',
       type: 'range',
-      defaultValue: 16,
+      defaultValue: 18,
       attr: {
         min: 5,
         max: 64,
@@ -55,7 +55,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       key: 'density',
       label: 'Density',
       type: 'range',
-      defaultValue: 144,
+      defaultValue: 222,
       attr: {
         min: 1,
         max: 500,
@@ -74,7 +74,7 @@ export default class Lotus extends StringArt<LotusConfig> {
         step: ({ sides, renderCenter }) =>
           1 / getSectionCountToRemove(sides, renderCenter),
       },
-      defaultValue: 0,
+      defaultValue: 4 / 7,
       displayValue: ({ removeSections, sides, renderCenter }) =>
         Math.round(
           removeSections * getSectionCountToRemove(sides, renderCenter)
@@ -92,7 +92,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       key: 'centerRadius',
       label: 'Center radius',
       type: 'range',
-      defaultValue: 0,
+      defaultValue: 1,
       attr: {
         min: 0,
         max: 1,
@@ -120,7 +120,8 @@ export default class Lotus extends StringArt<LotusConfig> {
         minLightness: 32,
         maxLightness: 85,
         saturation: 100,
-        colorCount: 8,
+        colorCount: 6,
+        mirrorColors: true,
       },
       customControls: [
         {

@@ -11,7 +11,6 @@ import { initServiceWorker } from './pwa';
 import SVGRenderer from './renderers/SVGRenderer';
 import { downloadPattern } from './download/Download';
 import './components/components';
-import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
 import Persistance from './Persistance';
@@ -19,7 +18,7 @@ import StringArt from './StringArt';
 import { compareObjects } from './helpers/object_utils';
 import { confirm } from './helpers/dialogs';
 import Viewer from './viewer/Viewer';
-import { getPatternURL } from './helpers/url_utils';
+import { getPatternURL, getQueryParams } from './helpers/url_utils';
 import type DownloadDialog from './components/dialogs/download_dialog/DownloadDialog';
 
 interface SetPatternOptions {
@@ -59,10 +58,8 @@ async function main() {
   document.body.querySelectorAll('.pattern_only').forEach(hide);
   unHide(document.querySelector('main'));
 
-  const queryParams = new URLSearchParams(document.location.search);
-  const viewer = new Viewer(
-    queryParams.get('renderer') === 'svg' ? 'svg' : 'canvas'
-  );
+  const queryParams = getQueryParams();
+  const viewer = new Viewer(queryParams.renderer === 'svg' ? 'svg' : 'canvas');
   const player = new Player(document.querySelector('#player'), viewer);
 
   const sizeControls = new EditorSizeControls({
@@ -76,11 +73,15 @@ async function main() {
   if (history.state?.pattern) {
     updateState(history.state);
   } else {
-    const queryPattern = queryParams.get('pattern');
+    const queryPattern = queryParams.pattern;
 
     if (queryPattern) {
-      const config = queryParams.get('config');
-      updateState({ pattern: queryPattern, config });
+      const config = queryParams.config;
+      updateState({
+        patternId: queryPattern,
+        config,
+        patternName: queryParams.name,
+      });
     } else {
       thumbnails.toggle();
     }
@@ -176,16 +177,25 @@ async function main() {
     });
   }
 
-  function updateState(state?: { pattern: string; config: any }) {
-    if (state?.pattern) {
-      const pattern = findPatternById(state.pattern);
+  function updateState({
+    patternId,
+    config,
+    patternName,
+  }: {
+    patternId?: string;
+    config?: any;
+    patternName?: string;
+  } = {}) {
+    if (patternId) {
+      const pattern = findPatternById(patternId);
       if (pattern) {
+        if (patternName) {
+          pattern.name = patternName;
+        }
         viewer.setPattern(pattern);
         selectPattern(pattern, {
           draw: false,
-          config: state.config
-            ? deserializeConfig(pattern, state.config)
-            : null,
+          config: config ? deserializeConfig(pattern, config) : null,
         });
 
         thumbnails.close();
@@ -333,6 +343,7 @@ async function main() {
     if (config) {
       // @ts-ignore
       currentPattern.setConfig(config);
+      setIsDefaultConfig();
     }
     if (controls) {
       controls.destroy();
