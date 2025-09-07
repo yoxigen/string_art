@@ -1,11 +1,10 @@
-import StringArt from '../StringArt.js';
-import Circle from '../helpers/Circle.js';
-import Polygon, { PolygonConfig } from '../helpers/Polygon.js';
-import Color from '../helpers/color/Color.js';
-import { ColorConfig, ColorMap } from '../helpers/color/color.types.js';
-import Renderer from '../renderers/Renderer.js';
-import { ControlsConfig } from '../types/config.types.js';
-import { CalcOptions } from '../types/stringart.types.js';
+import StringArt from '../StringArt';
+import Polygon, { PolygonConfig } from '../helpers/Polygon';
+import Color from '../helpers/color/Color';
+import { ColorConfig, ColorMap } from '../helpers/color/color.types';
+import Renderer from '../renderers/Renderer';
+import { ControlsConfig } from '../types/config.types';
+import { CalcOptions } from '../types/stringart.types';
 
 interface PolygonPatternConfig extends ColorConfig {
   sides: number;

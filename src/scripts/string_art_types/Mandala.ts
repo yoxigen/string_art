@@ -2,7 +2,7 @@ import Color from '../helpers/color/Color';
 import StringArt from '../StringArt';
 import Circle, { CircleConfig } from '../helpers/Circle';
 import { ColorConfig } from '../helpers/color/color.types';
-import { ControlsConfig, PrimitiveValue } from '../types/config.types.js';
+import { ControlsConfig } from '../types/config.types';
 import Renderer from '../renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 

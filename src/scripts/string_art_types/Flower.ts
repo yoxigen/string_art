@@ -1,5 +1,4 @@
 import StringArt from '../StringArt';
-import Circle from '../helpers/Circle';
 import Polygon from '../helpers/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
@@ -8,8 +7,7 @@ import {
   getBoundingRectAspectRatio,
 } from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
-import { Config, ControlsConfig } from '../types/config.types.js';
-import { BoundingRect, Dimensions } from '../types/general.types';
+import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 
 export interface FlowerConfig extends ColorConfig {

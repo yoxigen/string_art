@@ -1,12 +1,12 @@
-import StringArt from '../StringArt.js';
-import Circle, { CircleConfig } from '../helpers/Circle.js';
-import StarShape, { StarShapeConfig } from '../helpers/StarShape.js';
-import { ColorValue } from '../helpers/color/color.types.js';
-import { withoutAttribute } from '../helpers/config_utils.js';
-import Renderer from '../renderers/Renderer.js';
-import { ControlsConfig, GroupValue } from '../types/config.types.js';
-import { Coordinates } from '../types/general.types.js';
-import { CalcOptions } from '../types/stringart.types.js';
+import StringArt from '../StringArt';
+import Circle, { CircleConfig } from '../helpers/Circle';
+import StarShape, { StarShapeConfig } from '../helpers/StarShape';
+import { ColorValue } from '../helpers/color/color.types';
+import { withoutAttribute } from '../helpers/config_utils';
+import Renderer from '../renderers/Renderer';
+import { ControlsConfig, GroupValue } from '../types/config.types';
+import { Coordinates } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 interface StarConfig {
   sides: number;

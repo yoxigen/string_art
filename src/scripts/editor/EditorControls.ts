@@ -1,6 +1,6 @@
-import StringArtCheckbox from '../components/StringArtCheckbox';
-import StringArtHueInput from '../components/StringArtHueInput';
-import StringArtRangeInput from '../components/StringArtRangeInput';
+import StringArtCheckbox from '../components/inputs/StringArtCheckbox';
+import StringArtHueInput from '../components/inputs/StringArtHueInput';
+import StringArtRangeInput from '../components/inputs/StringArtRangeInput';
 import EventBus from '../helpers/EventBus';
 import type {
   Config,

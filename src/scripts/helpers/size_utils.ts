@@ -170,3 +170,13 @@ export function combineBoundingRects(
 export function getBoundingRectAspectRatio(boundingRect: BoundingRect): number {
   return boundingRect.width / boundingRect.height;
 }
+
+/**
+ * Fits the first size inside size2
+ * @param {[number, number]} size1
+ * @param {[number, number]} size2
+ */
+export function fitInside(size1: Dimensions, size2: Dimensions): Dimensions {
+  const ratio = Math.min(size2[0] / size1[0], size2[1] / size1[1]);
+  return mapDimensions(size1, v => v * ratio);
+}

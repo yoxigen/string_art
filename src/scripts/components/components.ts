@@ -1,9 +1,9 @@
-import './StringArtRangeInput';
-import './StringArtHueInput';
+import './inputs/StringArtRangeInput';
+import './inputs/StringArtHueInput';
 import './DropdownMenu';
 import './DropdownMenuItem';
 import './dialogs/InputDialog';
 import './dialogs/ConfirmDialog';
 import './dialogs/download_dialog/DownloadDialog';
-import './StringArtCheckbox';
+import './inputs/StringArtCheckbox';
 import './expandable_panel/ExpandablePanel';

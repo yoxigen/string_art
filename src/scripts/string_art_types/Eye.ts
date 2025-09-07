@@ -1,10 +1,10 @@
-import Color from '../helpers/color/Color.js';
+import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
-import Renderer from '../renderers/Renderer.js';
+import Renderer from '../renderers/Renderer';
 import StringArt from '../StringArt';
-import { Config, ControlsConfig, GroupValue } from '../types/config.types';
+import { Config, ControlsConfig } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
-import { CalcOptions } from '../types/stringart.types.js';
+import { CalcOptions } from '../types/stringart.types';
 
 type Side = 'left' | 'bottom' | 'right' | 'top';
 const SIDES: [Side, Side, Side, Side] = ['left', 'bottom', 'right', 'top'];

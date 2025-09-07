@@ -1,8 +1,8 @@
 import StringArt from '../StringArt';
 import Circle, { CircleConfig } from '../helpers/Circle';
 import Renderer from '../renderers/Renderer';
-import { Config, ControlsConfig, GroupValue } from '../types/config.types.js';
-import { Coordinates, Dimensions } from '../types/general.types';
+import { ControlsConfig, GroupValue } from '../types/config.types';
+import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 
 const LAYER_DEFAULTS = [

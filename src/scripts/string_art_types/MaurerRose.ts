@@ -5,7 +5,7 @@ import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { gcd, PI2 } from '../helpers/math_utils';
 import Renderer from '../renderers/Renderer';
-import { ControlsConfig } from '../types/config.types.js';
+import { ControlsConfig } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 

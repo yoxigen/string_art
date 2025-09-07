@@ -5,9 +5,10 @@ import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { Nail } from '../types/stringart.types';
 import { ColorValue } from './color/color.types';
 import easing from './easing';
-import { fitInside, PI2 } from './math_utils';
+import { PI2 } from './math_utils';
 import { compareObjects } from './object_utils';
 import Polygon from './Polygon';
+import { fitInside } from './size_utils';
 
 export interface CircleConfig {
   n: number;
@@ -142,10 +143,12 @@ export default class Circle {
 
       if (config.distortion) {
         const aspectRatio = Circle.distortionToAspectRatio(config.distortion);
-        const distortedBox = aspectRatio.map(v => clampedRadius * v);
+        const distortedBox = aspectRatio.map(
+          v => clampedRadius * v
+        ) as Dimensions;
         xyRadius = fitInside(
           distortedBox,
-          center.map(v => v - margin)
+          center.map(v => v - margin) as Dimensions
         );
       }
 

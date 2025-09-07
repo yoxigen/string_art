@@ -1,11 +1,10 @@
-import StringArt from '../StringArt.js';
-import Circle, { CircleConfig } from '../helpers/Circle.js';
-import Color from '../helpers/color/Color.js';
-import { ColorConfig } from '../helpers/color/color.types.js';
-import { PI2 } from '../helpers/math_utils.js';
-import Renderer from '../renderers/Renderer.js';
-import { ControlsConfig } from '../types/config.types.js';
-import { CalcOptions } from '../types/stringart.types.js';
+import StringArt from '../StringArt';
+import Circle, { CircleConfig } from '../helpers/Circle';
+import Color from '../helpers/color/Color';
+import { ColorConfig } from '../helpers/color/color.types';
+import Renderer from '../renderers/Renderer';
+import { ControlsConfig } from '../types/config.types';
+import { CalcOptions } from '../types/stringart.types';
 
 type SpreadModeType = 'evenly' | 'distance';
 
