@@ -4,6 +4,7 @@ import Circle, { CircleConfig } from '../helpers/Circle';
 import { ColorConfig } from '../helpers/color/color.types';
 import { ControlsConfig, PrimitiveValue } from '../types/config.types.js';
 import Renderer from '../renderers/Renderer';
+import { CalcOptions } from '../types/stringart.types';
 
 export interface MandalaConfig extends ColorConfig {
   n: number;
@@ -19,6 +20,7 @@ interface TCalc {
   n: number;
   stringsPerLayer: number;
   layerShift: number;
+  circle: Circle;
 }
 
 export default class Mandala<TCustomConfig = void> extends StringArt<
@@ -37,6 +39,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       defaultValue: 180,
       type: 'range',
       attr: { min: 3, max: 240, step: 1 },
+      isStructural: true,
     },
     {
       key: 'base',
@@ -52,6 +55,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       defaultValue: 7,
       type: 'range',
       attr: { min: 1, max: 20, step: 1 },
+      isStructural: true,
     },
     Circle.rotationConfig,
     Circle.distortionConfig,
@@ -66,7 +70,6 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     }),
   ];
 
-  circle: Circle;
   color: Color;
   calc: TCalc;
 
@@ -74,24 +77,47 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     return this.calc.n;
   }
 
-  getCalc(): TCalc {
-    const { n: nConfig, layers, layerFill } = this.config;
+  resetStructure(): void {
+    this.calc = null;
+  }
+
+  getCalc({ size }: CalcOptions): TCalc {
+    const {
+      n: nConfig,
+      layers,
+      layerFill,
+      rotation,
+      distortion,
+      margin,
+      reverse,
+    } = this.config;
     const extraNails = nConfig % layers;
     const n = nConfig - extraNails; // The number of nails should be a multiple of the layers, so the strings are exactly on the nails.
+
+    const circleConfig: CircleConfig = {
+      size,
+      n,
+      margin,
+      rotation,
+      distortion,
+      reverse,
+    };
 
     return {
       n,
       stringsPerLayer: layerFill ? Math.floor(n * layerFill) : n,
       layerShift: Math.floor(n / layers),
+      circle: new Circle(circleConfig),
     };
   }
 
-  setUpDraw() {
+  setUpDraw(options: CalcOptions) {
     super.setUpDraw();
 
-    const { layers, rotation, distortion, margin, layerFill, base, reverse } =
-      this.config;
-    this.calc = this.getCalc();
+    const { layers, rotation, distortion, margin, reverse } = this.config;
+    if (!this.calc) {
+      this.calc = this.getCalc(options);
+    }
 
     const circleConfig: CircleConfig = {
       size: this.size,
@@ -102,16 +128,15 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       reverse,
     };
 
-    if (this.circle) {
-      this.circle.setConfig(circleConfig);
-    } else {
-      this.circle = new Circle(circleConfig);
-    }
-
     this.color = new Color({
       ...this.config,
       colorCount: layers,
     });
+  }
+
+  getAspectRatio(options: CalcOptions): number {
+    const calc = this.getCalc(options);
+    return calc.circle.aspectRatio;
   }
 
   *drawTimesTable(renderer: Renderer, layerIndex: number): Generator<void> {
@@ -122,16 +147,16 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     const color = this.color.getColor(layerIndex);
     renderer.setColor(color);
 
-    let point = this.circle.getPoint(shift);
+    let point = this.calc.circle.getPoint(shift);
 
     for (let i = 1; i <= stringsPerLayer; i++) {
       const startPoint = point;
-      point = this.circle.getPoint(i + shift);
+      point = this.calc.circle.getPoint(i + shift);
       const toIndex = (i * base) % n;
       renderer.renderLines(
         startPoint,
         point,
-        this.circle.getPoint(toIndex + shift)
+        this.calc.circle.getPoint(toIndex + shift)
       );
 
       yield;
@@ -147,12 +172,12 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
   }
 
   drawNails() {
-    this.circle.drawNails(this.nails);
+    this.calc.circle.drawNails(this.nails);
   }
 
-  getStepCount(): number {
+  getStepCount(options: CalcOptions): number {
     const { layers, layerFill } = this.config;
-    const { n } = this.getCalc();
+    const { n } = this.getCalc(options);
     const stringsPerLayer = layerFill ? Math.floor(n * layerFill) : n;
     return (layers ?? 1) * stringsPerLayer;
   }

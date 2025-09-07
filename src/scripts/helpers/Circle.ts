@@ -1,7 +1,7 @@
 import Nails from '../Nails';
 import Renderer from '../renderers/Renderer';
 import { ControlConfig, GroupValue } from '../types/config.types';
-import { Coordinates, Dimensions } from '../types/general.types';
+import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { Nail } from '../types/stringart.types';
 import { ColorValue } from './color/color.types';
 import easing from './easing';
@@ -12,7 +12,7 @@ export interface CircleConfig {
   n: number;
   size: Dimensions;
   margin?: number;
-  rotation: number;
+  rotation?: number;
   center?: Coordinates;
   radius?: number;
   reverse?: boolean;
@@ -90,6 +90,32 @@ export default class Circle {
     return realIndex;
   }
 
+  get aspectRatio(): number {
+    if (!this.config.distortion) {
+      return 1;
+    }
+
+    const aspectRatio = Circle.distortionToAspectRatio(this.config.distortion);
+    return aspectRatio[0] / aspectRatio[1];
+  }
+
+  getBoundingRect(): BoundingRect {
+    return {
+      top: this.center[1] - this.radius,
+      right: this.center[0] + this.radius,
+      bottom: this.center[1] + this.radius,
+      left: this.center[0] - this.radius,
+      width: this.radius * 2,
+      height: this.radius * 2,
+    };
+  }
+
+  static distortionToAspectRatio(distortion: number): [number, number] {
+    return distortion < 0
+      ? [1 - Math.abs(distortion), 1]
+      : [1 / (1 - distortion), 1];
+  }
+
   setConfig(config: CircleConfig) {
     if (!compareObjects(config, this.config)) {
       const {
@@ -108,11 +134,8 @@ export default class Circle {
       let xyRadius = [clampedRadius, clampedRadius];
 
       if (config.distortion) {
-        const distortedBox =
-          config.distortion < 0
-            ? [clampedRadius * (1 - Math.abs(config.distortion)), clampedRadius]
-            : [clampedRadius / (1 - config.distortion), clampedRadius];
-
+        const aspectRatio = Circle.distortionToAspectRatio(config.distortion);
+        const distortedBox = aspectRatio.map(v => clampedRadius * v);
         xyRadius = fitInside(
           distortedBox,
           center.map(v => v - margin)
@@ -246,7 +269,7 @@ export default class Circle {
     }
   }
 
-  static rotationConfig: ControlConfig<{ rotation: number }> = {
+  static rotationConfig: ControlConfig<{ rotation?: number }> = {
     key: 'rotation',
     label: 'Rotation',
     defaultValue: 0,
@@ -257,7 +280,7 @@ export default class Circle {
       step: 1 / 360,
       snap: '0.25, 0.5, 0.75',
     },
-    displayValue: ({ rotation }) => `${Math.round(rotation * 360)}°`,
+    displayValue: ({ rotation }) => `${Math.round((rotation ?? 0) * 360)}°`,
     isStructural: true,
     affectsStepCount: false,
   };

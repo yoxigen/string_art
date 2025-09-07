@@ -149,6 +149,10 @@ class Eye extends StringArt<EyeConfig> {
     this.#calc = this.getCalc(options);
   }
 
+  getAspectRatio(): number {
+    return 1;
+  }
+
   // Sides: top, right, bottom, left
   getPoint({
     index,

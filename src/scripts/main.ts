@@ -70,7 +70,7 @@ async function main() {
   type Pattern = StringArt<any>;
   let currentPattern: Pattern;
 
-  if (history.state?.pattern) {
+  if (history.state?.patternId) {
     updateState(history.state);
   } else {
     const queryPattern = queryParams.pattern;
@@ -132,7 +132,7 @@ async function main() {
 
   elements.instructionsLink.addEventListener('click', e => {
     e.preventDefault();
-    history.pushState({ pattern: null }, 'String Art Studio', './');
+    history.pushState({ patternId: null }, 'String Art Studio', './');
     unselectPattern();
   });
 
@@ -280,7 +280,7 @@ async function main() {
     const configQuery = serializeConfig(currentPattern);
     history.replaceState(
       {
-        pattern: currentPattern.id,
+        patternId: currentPattern.id,
         config: configQuery,
         renderer: viewer.renderer instanceof SVGRenderer ? 'svg' : undefined,
       },
@@ -313,7 +313,7 @@ async function main() {
   ) {
     selectPattern(pattern, setPatternOptions);
     history.pushState(
-      { pattern: pattern.id },
+      { patternId: pattern.id },
       pattern.name,
       '?pattern=' + pattern.id
     );

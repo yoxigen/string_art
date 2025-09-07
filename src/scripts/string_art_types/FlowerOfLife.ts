@@ -368,6 +368,10 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     }
   }
 
+  getAspectRatio(): number {
+    return 1;
+  }
+
   getTrianglePoints({
     center,
     rotation,

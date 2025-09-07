@@ -1,8 +1,8 @@
 import StringArt from '../StringArt';
 import Circle, { CircleConfig } from '../helpers/Circle';
 import Renderer from '../renderers/Renderer';
-import { ControlsConfig, GroupValue } from '../types/config.types.js';
-import { Coordinates } from '../types/general.types';
+import { Config, ControlsConfig, GroupValue } from '../types/config.types.js';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 
 const LAYER_DEFAULTS = [
@@ -140,6 +140,11 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
   setUpDraw(options: CalcOptions) {
     super.setUpDraw();
     this.#calc = this.#getCalc(options);
+  }
+
+  getAspectRatio(calcOptions: CalcOptions): number {
+    const calc = this.#getCalc(calcOptions);
+    return calc.circle.aspectRatio;
   }
 
   #getCalc({ size }: CalcOptions) {

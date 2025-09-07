@@ -1,4 +1,4 @@
-import { Dimensions, SizeUnit } from '../types/general.types';
+import { BoundingRect, Dimensions, SizeUnit } from '../types/general.types';
 
 export interface StandardSize {
   id: string;
@@ -132,3 +132,37 @@ export const STANDARD_SIZES_CM: ReadonlyArray<StandardSize> = [
     dimensions: [59.4, 84.1],
   },
 ];
+
+/**
+ *
+ * @param boundingRects Given multiple BoundingRects, returns a single BoundingRect that is like one ret bounding all rects
+ */
+export function combineBoundingRects(
+  ...boundingRects: BoundingRect[]
+): BoundingRect {
+  return boundingRects.reduce(
+    (box: BoundingRect, boundingRect: BoundingRect) => {
+      const newBox = {
+        ...box,
+        left: !box.left
+          ? boundingRect.left
+          : Math.min(box.left, boundingRect.left),
+        right: !box.right
+          ? boundingRect.right
+          : Math.max(box.right, boundingRect.right),
+        top: !box.top ? boundingRect.top : Math.min(box.top, boundingRect.top),
+        bottom: !boundingRect.bottom
+          ? box.bottom
+          : Math.max(box.bottom, boundingRect.bottom),
+      };
+
+      Object.assign(newBox, {
+        width: newBox.right - newBox.left,
+        height: newBox.bottom - newBox.top,
+      });
+
+      return newBox;
+    },
+    { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 }
+  );
+}

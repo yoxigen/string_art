@@ -180,6 +180,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   abstract drawNails(): void;
   abstract drawStrings(renderer: Renderer): Generator<void>;
   abstract getStepCount(options: CalcOptions): number;
+  abstract getAspectRatio(options: CalcOptions): number;
 
   static thumbnailConfig: Partial<Config>;
   static type: string;
