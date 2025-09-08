@@ -179,24 +179,27 @@ export default class DownloadDialog extends HTMLElement {
         if (this.customDimensions) {
           this.customDimensions[0] = width;
           this.elements.patternSize.maxWidth = width - this.margin;
+          if (this.aspectRatio) {
+            const height = width / this.aspectRatio;
+            this.customDimensions[1] = height;
+            this.elements.height.value = String(height);
+            this.elements.patternSize.maxHeight = height - this.margin;
+          }
+
           this.elements.patternSize.width = width - this.margin;
-        }
-        if (this.aspectRatio) {
-          const height = width / this.aspectRatio;
-          this.customDimensions[1] = height;
-          this.elements.height.value = String(height);
         }
       } else if (e.target === this.elements.height) {
         const height = Number(this.elements.height.value);
         if (this.customDimensions) {
           this.customDimensions[1] = height;
           this.elements.patternSize.maxHeight = height - this.margin;
+          if (this.aspectRatio) {
+            const width = height * this.aspectRatio;
+            this.customDimensions[1] = width;
+            this.elements.width.value = String(width / this.aspectRatio);
+            this.elements.patternSize.maxWidth = width - this.margin;
+          }
           this.elements.patternSize.height = height - this.margin;
-        }
-        if (this.aspectRatio) {
-          const width = height * this.aspectRatio;
-          this.customDimensions[1] = width;
-          this.elements.width.value = String(width / this.aspectRatio);
         }
       }
     });
@@ -355,6 +358,10 @@ export default class DownloadDialog extends HTMLElement {
     this.elements.height.value = String(dimensions[1]);
     this.elements.widthAndHeightDisplay.textContent = `${dimensions[0]} × ${dimensions[1]}`;
 
+    this.updatePatternDimensions();
+  }
+
+  updatePatternDimensions() {
     const patternDimensions = this.#getPatternDimensions();
     this.elements.patternSize.width = patternDimensions[0];
     this.elements.patternSize.height = patternDimensions[1];
@@ -385,6 +392,7 @@ export default class DownloadDialog extends HTMLElement {
       String(this.patternAspectRatio)
     );
 
+    this.updatePatternDimensions();
     return this.dialog.show().then(async () => {
       const data = new FormData(this.elements.form);
       const values = Object.fromEntries(data.entries());

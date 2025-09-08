@@ -4,21 +4,28 @@ import * as styles from 'bundle-text:./DimensionsInput.css';
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
 
+interface DimensionProps {
+  element: HTMLInputElement;
+  value: number;
+  max: number | null;
+  defaultValue: number | null;
+}
+
+type Dimension = 'width' | 'height';
+const DIMENSIONS: ReadonlyArray<Dimension> = ['width', 'height'];
+
 export default class DimensionsInput extends HTMLElement {
   static formAssociated = true;
   internals: ElementInternals;
 
-  defaultWidth = 0;
-  defaultHeight = 0;
-  #width: number;
-  #height: number;
-  aspectRatio: number | null;
-  #maxWidth: number;
-  #maxHeight: number;
+  #dimensions: {
+    width: DimensionProps;
+    height: DimensionProps;
+  };
+
+  #aspectRatio: number | null;
   isReadonly = false;
   floatingPoints: number;
-  #widthElement: HTMLInputElement;
-  #heightElement: HTMLInputElement;
   #connectorElement: HTMLSpanElement;
 
   constructor() {
@@ -31,7 +38,6 @@ export default class DimensionsInput extends HTMLElement {
         <input
           type="number"
           id="width"
-          style="width: 80px"
           maxlength="3"
           min="1"
           class="dialog-input size-input"
@@ -41,7 +47,6 @@ export default class DimensionsInput extends HTMLElement {
         <input
           type="number"
           id="height"
-          style="width: 80px"
           maxlength="3"
           min="1"
           class="dialog-input size-input"
@@ -50,10 +55,22 @@ export default class DimensionsInput extends HTMLElement {
       </span>
     `;
 
-    this.#widthElement = shadow.querySelector('#width');
-    this.#heightElement = shadow.querySelector('#height');
-    this.#connectorElement = shadow.querySelector('#connector');
+    this.#dimensions = {
+      width: {
+        element: shadow.querySelector('#width'),
+        value: 0,
+        max: null,
+        defaultValue: null,
+      },
+      height: {
+        element: shadow.querySelector('#height'),
+        value: 0,
+        max: null,
+        defaultValue: null,
+      },
+    };
 
+    this.#connectorElement = shadow.querySelector('#connector');
     this.internals = this.attachInternals();
   }
 
@@ -72,62 +89,23 @@ export default class DimensionsInput extends HTMLElement {
   }
 
   get inputs(): HTMLInputElement[] {
-    return [this.#widthElement, this.#heightElement];
+    return [this.#dimensions.width.element, this.#dimensions.height.element];
   }
 
   get width(): number {
-    return this.#width;
+    return this.#dimensions.width.value;
   }
 
   set width(value: number) {
-    if (this.floatingPoints != null) {
-      value = value.toFixedPrecision(this.floatingPoints);
-    }
-
-    if (value === this.#width) {
-      return;
-    }
-    if (isNaN(value)) {
-      console.warn('Attempting to set a NaN value to DimensionsInput width.');
-    } else {
-      if (this.#maxWidth) {
-        value = Math.min(value, this.#maxWidth);
-      }
-      this.#width = value;
-      this.#widthElement.value = String(value);
-
-      if (this.aspectRatio) {
-        this.height = value / this.aspectRatio;
-      }
-    }
+    this.setDimensionValue('width', value);
   }
 
   get height(): number {
-    return this.#height;
+    return this.#dimensions.height.value;
   }
 
   set height(value: number) {
-    if (this.floatingPoints != null) {
-      value = value.toFixedPrecision(this.floatingPoints);
-    }
-
-    if (value === this.#height) {
-      return;
-    }
-    if (isNaN(value)) {
-      console.warn('Attempting to set a NaN value to DimensionsInput height.');
-    } else {
-      if (this.#maxHeight) {
-        value = Math.min(value, this.#maxHeight);
-      }
-
-      this.#height = value;
-      this.#heightElement.value = String(value);
-
-      if (this.aspectRatio) {
-        this.width = value * this.aspectRatio;
-      }
-    }
+    this.setDimensionValue('height', value);
   }
 
   get value(): Dimensions {
@@ -140,44 +118,131 @@ export default class DimensionsInput extends HTMLElement {
   }
 
   get maxWidth(): number | null {
-    return this.#maxWidth;
+    return this.#dimensions.width.max;
   }
 
   get maxHeight(): number | null {
-    return this.#maxHeight;
+    return this.#dimensions.height.max;
   }
 
   set maxWidth(value: number | string) {
-    value = Number(value);
-    this.#maxWidth = isNaN(value) ? null : value;
-    if (this.#maxWidth) {
-      if (this.#width && this.#width > value) {
-        this.width = value;
-      }
-      this.#widthElement.setAttribute('max', String(this.maxWidth));
-    } else {
-      this.#widthElement.removeAttribute('max');
-    }
+    this.setMaxDimensionValue('width', value);
   }
 
   set maxHeight(value: number | string) {
-    value = Number(value);
-    this.#maxHeight = isNaN(value) ? null : value;
-    if (this.maxHeight) {
-      if (this.#height && this.#height > value) {
-        this.height = value;
-      }
+    this.setMaxDimensionValue('height', value);
+  }
 
-      this.#heightElement.setAttribute('max', String(this.maxHeight));
+  applyAspectRatio(targetDimension: Dimension, value: number): number {
+    if (!this.#aspectRatio) {
+      return value;
+    }
+    return targetDimension === 'width'
+      ? value * this.#aspectRatio
+      : value / this.#aspectRatio;
+  }
+
+  getOtherDimension(dimension: Dimension): Dimension {
+    return dimension === 'width' ? 'height' : 'width';
+  }
+
+  get aspectRatio(): number | null {
+    return this.#aspectRatio;
+  }
+
+  set aspectRatio(value: number | string) {
+    this.#aspectRatio = Number(value);
+    if (isNaN(this.#aspectRatio)) {
+      this.#aspectRatio = null;
+    }
+
+    this.#connectorElement.textContent = this.#aspectRatio ? '🔗' : '&times;';
+  }
+
+  setMaxDimensionValue(
+    dimension: Dimension,
+    value: number | string,
+    updateOtherDimension = true
+  ) {
+    const props = this.#dimensions[dimension];
+
+    value = Number(value);
+    let normalizedValue = value;
+    if (this.floatingPoints != null) {
+      normalizedValue = value.toFixedPrecision(this.floatingPoints);
+    }
+
+    if (normalizedValue === props.max) {
+      return;
+    }
+
+    props.max = isNaN(normalizedValue) ? null : normalizedValue;
+    if (props.max) {
+      if (props.value && props.value > normalizedValue) {
+        this[dimension] = normalizedValue;
+      }
+      props.element.setAttribute('max', String(props.max));
     } else {
-      this.#heightElement.removeAttribute('max');
+      props.element.removeAttribute('max');
+    }
+
+    if (updateOtherDimension && this.#aspectRatio) {
+      const otherDimension = this.getOtherDimension(dimension);
+      const otherDimensionMaxValue = this.applyAspectRatio(
+        otherDimension,
+        value
+      );
+      if (
+        !this.#dimensions[otherDimension].max ||
+        otherDimensionMaxValue < this.#dimensions[otherDimension].max
+      ) {
+        this.setMaxDimensionValue(
+          otherDimension,
+          otherDimensionMaxValue,
+          false
+        );
+      }
+    }
+  }
+
+  setDimensionValue(
+    dimension: Dimension,
+    value: number,
+    updateOtherDimension = true
+  ) {
+    const props = this.#dimensions[dimension];
+
+    let normalizedValue = value;
+    if (this.floatingPoints != null) {
+      normalizedValue = value.toFixedPrecision(this.floatingPoints);
+    }
+
+    if (normalizedValue === this[dimension]) {
+      return;
+    }
+    if (isNaN(normalizedValue)) {
+      console.warn('Attempting to set a NaN value to DimensionsInput width.');
+    } else {
+      if (props.max) {
+        normalizedValue = Math.min(normalizedValue, props.max);
+      }
+      props.value = normalizedValue;
+      props.element.value = String(normalizedValue);
+
+      if (updateOtherDimension && this.#aspectRatio) {
+        const otherDimension = this.getOtherDimension(dimension);
+        this.setDimensionValue(
+          otherDimension,
+          this.applyAspectRatio(otherDimension, value),
+          false
+        );
+      }
     }
   }
 
   attributeChangedCallback(name: string, oldVal: string, newVal: string) {
     if (name === 'aspect-ratio') {
-      const value = Number(newVal);
-      this.aspectRatio = isNaN(value) ? null : value;
+      this.aspectRatio = newVal;
     } else if (name === 'max-width') {
       this.maxWidth = newVal;
     } else if (name === 'max-height') {
@@ -198,10 +263,11 @@ export default class DimensionsInput extends HTMLElement {
     if (e.target instanceof HTMLInputElement) {
       const value = Number(e.target.value);
 
-      if (e.target === this.#widthElement) {
-        this.width = value;
-      } else if (e.target === this.#heightElement) {
-        this.height = value;
+      for (const dimension of DIMENSIONS) {
+        if (e.target === this.#dimensions[dimension].element) {
+          this[dimension] = value;
+          break;
+        }
       }
 
       this.internals.setFormValue(String(this.value.join(',')));
@@ -215,65 +281,27 @@ export default class DimensionsInput extends HTMLElement {
   }
 
   #syncAttributes() {
-    if (this.hasAttribute('default-width')) {
-      this.defaultWidth = Number(this.getAttribute('default-width'));
-      if (isNaN(this.defaultWidth)) {
-        this.defaultWidth = 0;
-      }
-      this.#widthElement.placeholder = String(this.defaultWidth);
-    }
+    for (const dimension of DIMENSIONS) {
+      const props = this.#dimensions[dimension];
 
-    if (this.hasAttribute('default-height')) {
-      this.defaultHeight = Number(this.getAttribute('default-height'));
-      if (isNaN(this.defaultHeight)) {
-        this.defaultHeight = 0;
-      }
-      this.#heightElement.placeholder = String(this.defaultHeight);
-    }
-
-    if (this.hasAttribute('max-width')) {
-      this.maxWidth = this.getAttribute('max-width');
-    }
-
-    if (this.hasAttribute('max-height')) {
-      this.maxHeight = this.getAttribute('max-height');
-    }
-
-    if (this.hasAttribute('width')) {
-      this.width = Number(this.getAttribute('width'));
-      if (isNaN(this.width)) {
-        this.width = this.defaultWidth;
+      if (this.hasAttribute('default-' + dimension)) {
+        const value = Number(this.getAttribute('default-' + dimension));
+        props.defaultValue = isNaN(value) ? 0 : value;
+        props.element.placeholder = String(value);
       }
 
-      if (this.maxWidth) {
-        this.width = Math.min(this.width, this.maxWidth);
-      }
+      this.setMaxDimensionValue(
+        dimension,
+        this.getAttribute('max-' + dimension)
+      );
 
-      this.#widthElement.value = String(this.width);
+      if (this.hasAttribute(dimension)) {
+        const value = Number(this.getAttribute(dimension));
+        this[dimension] = isNaN(value) ? props.defaultValue : value;
+      }
     }
 
-    if (this.hasAttribute('height')) {
-      this.height = Number(this.getAttribute('height'));
-      if (isNaN(this.height)) {
-        this.height = this.defaultHeight;
-      }
-
-      if (this.maxHeight) {
-        this.height = Math.min(this.height, this.maxHeight);
-      }
-
-      this.#heightElement.value = String(this.height);
-    }
-
-    if (this.hasAttribute('aspect-ratio')) {
-      this.aspectRatio = Number(this.getAttribute('aspect-ratio'));
-      if (isNaN(this.aspectRatio)) {
-        this.aspectRatio = null;
-      }
-      this.#connectorElement.textContent = '🔗';
-    } else {
-      this.#connectorElement.textContent = '×';
-    }
+    this.aspectRatio = this.getAttribute('aspect-ratio');
 
     if (this.hasAttribute('floating-points')) {
       const value = Number(this.getAttribute('floating-points'));
@@ -287,13 +315,12 @@ export default class DimensionsInput extends HTMLElement {
       this.inputs.forEach(input =>
         input.setAttribute('step', String(1 / 10 ** this.floatingPoints))
       );
-      if (this.width) {
-        this.width = this.width.toFixedPrecision(value);
-      }
 
-      if (this.height) {
-        this.height = this.height.toFixedPrecision(value);
-      }
+      DIMENSIONS.forEach(dimension => {
+        if (this[dimension]) {
+          this[dimension] = this[dimension].toFixedPrecision(value);
+        }
+      });
     } else {
       this.floatingPoints = null;
       this.inputs.forEach(input => input.removeAttribute('step'));

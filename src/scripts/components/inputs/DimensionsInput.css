@@ -3,3 +3,12 @@
 #wrapper {
   white-space: nowrap;
 }
+
+input {
+  width: 70px;
+}
+
+#connector {
+  transform: rotateZ(45deg);
+  display: inline-block;
+}
