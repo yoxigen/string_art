@@ -371,6 +371,14 @@ export default class DownloadDialog extends HTMLElement {
 
   #getPatternDimensions(): Dimensions {
     const width = this.dimensions[0] - this.margin;
+    const patternAvailableDimensions = mapDimensions(
+      this.dimensions,
+      v => v - this.margin
+    );
+
+    if (!this.patternAspectRatio || isNaN(this.patternAspectRatio)) {
+      return patternAvailableDimensions;
+    }
 
     const patternDimensions = [
       width,

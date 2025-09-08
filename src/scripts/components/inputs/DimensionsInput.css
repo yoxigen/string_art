@@ -8,7 +8,7 @@ input {
   width: 70px;
 }
 
-#connector {
+#connector.linked {
   transform: rotateZ(45deg);
   display: inline-block;
 }

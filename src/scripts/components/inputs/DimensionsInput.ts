@@ -151,12 +151,20 @@ export default class DimensionsInput extends HTMLElement {
   }
 
   set aspectRatio(value: number | string) {
-    this.#aspectRatio = Number(value);
+    this.#aspectRatio = value ? Number(value) : null;
     if (isNaN(this.#aspectRatio)) {
       this.#aspectRatio = null;
     }
 
-    this.#connectorElement.textContent = this.#aspectRatio ? '🔗' : '&times;';
+    if (this.#aspectRatio) {
+      if (!this.#connectorElement.classList.contains('linked')) {
+        this.#connectorElement.classList.add('linked');
+      }
+      this.#connectorElement.innerHTML = '🔗';
+    } else {
+      this.#connectorElement.classList.remove('linked');
+      this.#connectorElement.innerHTML = '&times;';
+    }
   }
 
   setMaxDimensionValue(

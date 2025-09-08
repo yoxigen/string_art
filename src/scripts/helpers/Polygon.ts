@@ -95,7 +95,7 @@ export default class Polygon {
       rotation = 0,
       sides: sideCount,
       center: configCenter,
-      margin,
+      margin = 0,
       nailsSpacing,
     } = this.config;
 
