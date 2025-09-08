@@ -8,7 +8,7 @@ import {
   sizeConvert,
   STANDARD_SIZES_CM,
 } from '../../../helpers/size_utils';
-import { Dimensions, SizeUnit } from '../../../types/general.types';
+import { Dimension, Dimensions, SizeUnit } from '../../../types/general.types';
 import preferences from '../../../helpers/preferences';
 import {
   downloadPattern,
@@ -92,10 +92,7 @@ export default class DownloadDialog extends HTMLElement {
     unitSelect: NodeListOf<HTMLSelectElement>;
     dpi: HTMLSelectElement;
     dpiBlock: HTMLElement;
-    width: HTMLInputElement;
-    height: HTMLInputElement;
-    widthAndHeight: HTMLElement;
-    widthAndHeightDisplay: HTMLElement;
+    imageDimensions: DimensionsInput;
     renderNumbersBlock: HTMLElement;
     patternSize: DimensionsInput;
   };
@@ -121,12 +118,9 @@ export default class DownloadDialog extends HTMLElement {
       unitSelect: shadow.querySelectorAll('.unit-select'),
       dpi: shadow.querySelector('#dpi'),
       dpiBlock: shadow.querySelector('#dpi_block'),
-      width: shadow.querySelector('#width'),
-      height: shadow.querySelector('#height'),
-      widthAndHeight: shadow.querySelector('#width_and_height'),
-      widthAndHeightDisplay: shadow.querySelector('#width_and_height_display'),
       renderNumbersBlock: shadow.querySelector('#render_numbers_block'),
       patternSize: shadow.querySelector('#pattern_size'),
+      imageDimensions: shadow.querySelector('#image_dimensions'),
     };
 
     this.#setSizes();
@@ -173,36 +167,27 @@ export default class DownloadDialog extends HTMLElement {
       }
     });
 
-    shadow.addEventListener('input', e => {
-      if (e.target === this.elements.width) {
-        const width = Number(this.elements.width.value);
-        if (this.customDimensions) {
-          this.customDimensions[0] = width;
-          this.elements.patternSize.maxWidth = width - this.margin;
-          if (this.aspectRatio) {
-            const height = width / this.aspectRatio;
-            this.customDimensions[1] = height;
-            this.elements.height.value = String(height);
-            this.elements.patternSize.maxHeight = height - this.margin;
-          }
+    this.elements.imageDimensions.addEventListener(
+      'dimensionchange',
+      ({
+        detail: { dimension, value: dimensions, ...size },
+      }: CustomEvent<{
+        value: Dimensions;
+        dimension: Dimension;
+        width: number;
+        height: number;
+      }>) => {
+        const value = size[dimension];
 
-          this.elements.patternSize.width = width - this.margin;
-        }
-      } else if (e.target === this.elements.height) {
-        const height = Number(this.elements.height.value);
         if (this.customDimensions) {
-          this.customDimensions[1] = height;
-          this.elements.patternSize.maxHeight = height - this.margin;
-          if (this.aspectRatio) {
-            const width = height * this.aspectRatio;
-            this.customDimensions[1] = width;
-            this.elements.width.value = String(width / this.aspectRatio);
-            this.elements.patternSize.maxWidth = width - this.margin;
-          }
-          this.elements.patternSize.height = height - this.margin;
+          this.customDimensions = dimensions;
+          this.elements.patternSize.setMaxDimensions(
+            mapDimensions(dimensions, v => v - this.margin)
+          );
+          this.elements.patternSize[dimension] = value - this.margin;
         }
       }
-    });
+    );
   }
 
   #setSizes() {
@@ -235,9 +220,11 @@ export default class DownloadDialog extends HTMLElement {
       preferences.setUserPreferredUnits(units);
       this.elements.dpiBlock.classList.remove('hidden');
       this.elements.patternSize.setFloatingPoints(1);
+      this.elements.imageDimensions.setFloatingPoints(1);
     } else {
       this.elements.dpiBlock.classList.add('hidden');
       this.elements.patternSize.setFloatingPoints(0);
+      this.elements.imageDimensions.setFloatingPoints(0);
     }
 
     // If changing from length unit to px or vice-versa, need to convert dimensions
@@ -268,7 +255,8 @@ export default class DownloadDialog extends HTMLElement {
       inUnits,
     } = SIZES.find(({ id: sizeId }) => sizeId === id);
 
-    this.aspectRatio = aspectRatio;
+    this.elements.imageDimensions.aspectRatio = this.aspectRatio = aspectRatio;
+
     let dimensions: Dimensions =
       sizeDimensions instanceof Function
         ? sizeDimensions({
@@ -278,10 +266,10 @@ export default class DownloadDialog extends HTMLElement {
         : sizeDimensions;
 
     if (allowSizeEdit) {
-      this.elements.widthAndHeight.classList.add('inputs');
+      this.elements.imageDimensions.isReadonly = false;
       this.customDimensions = dimensions;
     } else {
-      this.elements.widthAndHeight.classList.remove('inputs');
+      this.elements.imageDimensions.isReadonly = true;
     }
 
     const isPixelsOnly = units && units.length === 1 && units[0] === 'px';
@@ -354,19 +342,18 @@ export default class DownloadDialog extends HTMLElement {
 
   setDimensions(dimensions: Dimensions) {
     this.dimensions = dimensions;
-    this.elements.width.value = String(dimensions[0]);
-    this.elements.height.value = String(dimensions[1]);
-    this.elements.widthAndHeightDisplay.textContent = `${dimensions[0]} × ${dimensions[1]}`;
+    this.elements.imageDimensions.width = dimensions[0];
+    this.elements.imageDimensions.height = dimensions[1];
 
     this.updatePatternDimensions();
   }
 
   updatePatternDimensions() {
     const patternDimensions = this.#getPatternDimensions();
-    this.elements.patternSize.width = patternDimensions[0];
-    this.elements.patternSize.height = patternDimensions[1];
     this.elements.patternSize.maxWidth = patternDimensions[0];
     this.elements.patternSize.maxHeight = patternDimensions[1];
+    this.elements.patternSize.width = patternDimensions[0];
+    this.elements.patternSize.height = patternDimensions[1];
   }
 
   #getPatternDimensions(): Dimensions {

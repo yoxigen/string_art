@@ -12,14 +12,3 @@ label {
   display: block;
   margin-bottom: 4px;
 }
-
-#width_and_height_inputs {
-  display: none;
-}
-
-#width_and_height.inputs #width_and_height_inputs {
-  display: inline;
-}
-#width_and_height.inputs #width_and_height_display {
-  display: none;
-}

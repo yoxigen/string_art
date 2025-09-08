@@ -1,6 +1,7 @@
 @import '../forms.css';
 
-#wrapper {
+#inputs,
+#readonly {
   white-space: nowrap;
 }
 

@@ -1,4 +1,4 @@
-import { Dimensions } from '../../types/general.types';
+import { Dimension, Dimensions } from '../../types/general.types';
 import * as styles from 'bundle-text:./DimensionsInput.css';
 
 const sheet = new CSSStyleSheet();
@@ -11,7 +11,6 @@ interface DimensionProps {
   defaultValue: number | null;
 }
 
-type Dimension = 'width' | 'height';
 const DIMENSIONS: ReadonlyArray<Dimension> = ['width', 'height'];
 
 export default class DimensionsInput extends HTMLElement {
@@ -23,8 +22,11 @@ export default class DimensionsInput extends HTMLElement {
     height: DimensionProps;
   };
 
+  #inputsElement: HTMLElement;
+  #readonlyElement: HTMLElement;
+
   #aspectRatio: number | null;
-  isReadonly = false;
+  #isReadonly = false;
   floatingPoints: number;
   #connectorElement: HTMLSpanElement;
 
@@ -34,7 +36,7 @@ export default class DimensionsInput extends HTMLElement {
     shadow.adoptedStyleSheets = [sheet];
 
     this.shadowRoot.innerHTML = `
-      <span id="wrapper">
+      <span id="inputs">
         <input
           type="number"
           id="width"
@@ -53,6 +55,7 @@ export default class DimensionsInput extends HTMLElement {
           name="height"
         />
       </span>
+      <span id="readonly" class="hidden"></span>
     `;
 
     this.#dimensions = {
@@ -71,6 +74,9 @@ export default class DimensionsInput extends HTMLElement {
     };
 
     this.#connectorElement = shadow.querySelector('#connector');
+    this.#inputsElement = shadow.querySelector('#inputs');
+    this.#readonlyElement = shadow.querySelector('#readonly');
+
     this.internals = this.attachInternals();
   }
 
@@ -97,7 +103,7 @@ export default class DimensionsInput extends HTMLElement {
   }
 
   set width(value: number) {
-    this.setDimensionValue('width', value);
+    this.setDimensionValue('width', value, { updateOtherDimensionOnce: true });
   }
 
   get height(): number {
@@ -105,7 +111,7 @@ export default class DimensionsInput extends HTMLElement {
   }
 
   set height(value: number) {
-    this.setDimensionValue('height', value);
+    this.setDimensionValue('height', value, { updateOtherDimensionOnce: true });
   }
 
   get value(): Dimensions {
@@ -131,6 +137,24 @@ export default class DimensionsInput extends HTMLElement {
 
   set maxHeight(value: number | string) {
     this.setMaxDimensionValue('height', value);
+  }
+
+  get isReadonly(): boolean {
+    return this.#isReadonly;
+  }
+
+  set isReadonly(value: boolean | string) {
+    if ((this.#isReadonly = value && value !== 'false')) {
+      this.#inputsElement.classList.add('hidden');
+      this.#readonlyElement.classList.remove('hidden');
+    } else {
+      this.#inputsElement.classList.remove('hidden');
+      this.#readonlyElement.classList.add('hidden');
+    }
+  }
+
+  #setReadonlyText() {
+    this.#readonlyElement.innerHTML = `${this.width} &times; ${this.height}`;
   }
 
   applyAspectRatio(targetDimension: Dimension, value: number): number {
@@ -213,10 +237,15 @@ export default class DimensionsInput extends HTMLElement {
     }
   }
 
+  setMaxDimensions(dimensions: Dimensions) {
+    this.setMaxDimensionValue('width', dimensions[0], false);
+    this.setMaxDimensionValue('height', dimensions[1], false);
+  }
+
   setDimensionValue(
     dimension: Dimension,
     value: number,
-    updateOtherDimension = true
+    { updateOtherDimension = true, updateOtherDimensionOnce = false } = {}
   ) {
     const props = this.#dimensions[dimension];
 
@@ -241,10 +270,14 @@ export default class DimensionsInput extends HTMLElement {
         const otherDimension = this.getOtherDimension(dimension);
         this.setDimensionValue(
           otherDimension,
-          this.applyAspectRatio(otherDimension, value),
-          false
+          this.applyAspectRatio(otherDimension, normalizedValue),
+          {
+            updateOtherDimension: updateOtherDimensionOnce,
+          }
         );
       }
+
+      this.#setReadonlyText();
     }
   }
 
@@ -257,6 +290,8 @@ export default class DimensionsInput extends HTMLElement {
       this.maxHeight = newVal;
     } else if (name === 'floating-points') {
       this.setFloatingPoints(Number(newVal));
+    } else if (name === 'readonly') {
+      this.isReadonly = newVal;
     }
   }
 
@@ -275,8 +310,13 @@ export default class DimensionsInput extends HTMLElement {
         if (e.target === this.#dimensions[dimension].element) {
           this[dimension] = value;
           this.dispatchEvent(
-            new CustomEvent('input', {
-              detail: { value: this.value, dimension },
+            new CustomEvent('dimensionchange', {
+              detail: {
+                value: this.value,
+                dimension,
+                width: this.width,
+                height: this.height,
+              },
             })
           );
           break;
@@ -309,6 +349,7 @@ export default class DimensionsInput extends HTMLElement {
     }
 
     this.aspectRatio = this.getAttribute('aspect-ratio');
+    this.isReadonly = this.getAttribute('readonly');
 
     if (this.hasAttribute('floating-points')) {
       const value = Number(this.getAttribute('floating-points'));

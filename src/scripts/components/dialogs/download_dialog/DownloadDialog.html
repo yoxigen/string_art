@@ -30,28 +30,7 @@
         </div>
         <div style="flex: 1; white-space: nowrap; margin-inline-start: 1em">
           <div id="width_and_height">
-            <span id="width_and_height_inputs">
-              <input
-                type="number"
-                id="width"
-                style="width: 70px"
-                maxlength="3"
-                min="1"
-                class="dialog-input size-input"
-                name="width"
-              />
-              &times;
-              <input
-                type="number"
-                id="height"
-                style="width: 70px"
-                maxlength="3"
-                min="1"
-                class="dialog-input size-input"
-                name="height"
-              />
-            </span>
-            <span id="width_and_height_display"></span>
+            <dimensions-input id="image_dimensions"></dimensions-input>
             <select
               id="custom_size_unit"
               class="dialog-lesser-select unit-select"
