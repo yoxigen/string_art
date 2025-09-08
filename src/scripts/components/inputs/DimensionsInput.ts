@@ -274,17 +274,16 @@ export default class DimensionsInput extends HTMLElement {
       for (const dimension of DIMENSIONS) {
         if (e.target === this.#dimensions[dimension].element) {
           this[dimension] = value;
+          this.dispatchEvent(
+            new CustomEvent('input', {
+              detail: { value: this.value, dimension },
+            })
+          );
           break;
         }
       }
 
       this.internals.setFormValue(String(this.value.join(',')));
-
-      this.dispatchEvent(
-        new CustomEvent('input', {
-          detail: { value: this.value },
-        })
-      );
     }
   }
 
