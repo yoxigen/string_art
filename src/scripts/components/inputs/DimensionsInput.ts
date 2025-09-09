@@ -299,6 +299,13 @@ export default class DimensionsInput extends HTMLElement {
     this.shadowRoot.addEventListener('input', e =>
       this.#handleInput(e as InputEvent)
     );
+
+    this.shadowRoot.addEventListener('focusin', e => {
+      if (e.target instanceof HTMLInputElement) {
+        e.target.select();
+      }
+    });
+
     this.#syncAttributes();
   }
 

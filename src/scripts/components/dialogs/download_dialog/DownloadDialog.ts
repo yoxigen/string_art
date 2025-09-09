@@ -4,6 +4,7 @@ import type ConfirmDialog from '../ConfirmDialog';
 import type StringArt from '../../../StringArt';
 import {
   fitInside,
+  lengthConvert,
   mapDimensions,
   sizeConvert,
   STANDARD_SIZES_CM,
@@ -23,7 +24,7 @@ sheet.replaceSync(String(styles));
 const DEFAULT_DPI = 300;
 const DEFAULT_DIMENSIONS: Dimensions = [10, 10];
 
-const SIZES: ReadonlyArray<{
+interface SizeType {
   id: string;
   name?: string;
   dimensions?:
@@ -31,13 +32,40 @@ const SIZES: ReadonlyArray<{
     | ((options: {
         customDimensions: Dimensions | null;
         currentDimensions: Dimensions | null;
+        patternAspectRatio: number;
       }) => Dimensions | null);
   units?: SizeUnit[];
-  aspectRatio?: number;
+  aspectRatio?:
+    | number
+    | ((options: { patternAspectRatio: number }) => number | null);
   allowSizeEdit?: boolean;
   defaultUnits?: SizeUnit;
   inUnits?: SizeUnit;
-}> = [
+  defaultMargin?: number;
+}
+
+const SIZES: ReadonlyArray<SizeType> = [
+  {
+    id: 'fit',
+    name: 'Fit pattern',
+    dimensions: ({ customDimensions, patternAspectRatio }) => {
+      let dimensions = customDimensions;
+      if (!dimensions) {
+        const SMALL_SCREEN_DIMENSION = Math.min(screen.width, screen.height);
+        const dpr = window.devicePixelRatio ?? 1;
+        dimensions = [SMALL_SCREEN_DIMENSION, SMALL_SCREEN_DIMENSION];
+      }
+      const customDimensionsFitPattern = [
+        dimensions[0],
+        dimensions[0] / patternAspectRatio,
+      ] as Dimensions;
+
+      return fitInside(customDimensionsFitPattern, dimensions);
+    },
+    units: ['px', 'cm', 'inch'],
+    defaultUnits: 'px',
+    defaultMargin: 10,
+  },
   {
     id: 'square',
     name: 'Square',
@@ -56,6 +84,7 @@ const SIZES: ReadonlyArray<{
     defaultUnits: 'px',
     aspectRatio: 1,
     allowSizeEdit: true,
+    defaultMargin: 10,
   },
   {
     id: 'screen',
@@ -67,11 +96,13 @@ const SIZES: ReadonlyArray<{
       ) as Dimensions;
     },
     units: ['px'],
+    defaultMargin: 10,
   },
   ...STANDARD_SIZES_CM.map(size => ({
     ...size,
     units: ['cm', 'inch'] as SizeUnit[],
     inUnits: 'cm' as SizeUnit,
+    defaultMargin: 1,
   })),
   {
     id: 'custom',
@@ -94,14 +125,15 @@ export default class DownloadDialog extends HTMLElement {
     dpiBlock: HTMLElement;
     imageDimensions: DimensionsInput;
     renderNumbersBlock: HTMLElement;
-    patternSize: DimensionsInput;
+    patternDimensions: DimensionsInput;
+    margin: HTMLInputElement;
   };
   private units: Units;
   private customDimensions: Dimensions;
   private dimensions: Dimensions;
-  private aspectRatio: number;
-  private margin = 0;
+  private margin: number;
   private patternAspectRatio = 1;
+  private currentSize: SizeType;
 
   constructor() {
     super();
@@ -119,8 +151,9 @@ export default class DownloadDialog extends HTMLElement {
       dpi: shadow.querySelector('#dpi'),
       dpiBlock: shadow.querySelector('#dpi_block'),
       renderNumbersBlock: shadow.querySelector('#render_numbers_block'),
-      patternSize: shadow.querySelector('#pattern_size'),
+      patternDimensions: shadow.querySelector('#pattern_size'),
       imageDimensions: shadow.querySelector('#image_dimensions'),
+      margin: shadow.querySelector('#margin'),
     };
 
     this.#setSizes();
@@ -167,6 +200,11 @@ export default class DownloadDialog extends HTMLElement {
       }
     });
 
+    this.elements.margin.addEventListener('input', (e: InputEvent) => {
+      const value = Number(e.target.value);
+      this.setMargin(isNaN(value) ? 0 : value);
+    });
+
     this.elements.imageDimensions.addEventListener(
       'dimensionchange',
       ({
@@ -181,10 +219,29 @@ export default class DownloadDialog extends HTMLElement {
 
         if (this.customDimensions) {
           this.customDimensions = dimensions;
-          this.elements.patternSize.setMaxDimensions(
-            mapDimensions(dimensions, v => v - this.margin)
+          this.elements.patternDimensions.setMaxDimensions(dimensions);
+          this.elements.patternDimensions[dimension] = value - this.margin * 2;
+        }
+      }
+    );
+
+    this.elements.patternDimensions.addEventListener(
+      'dimensionchange',
+      ({
+        detail: { dimension, value: dimensions, ...size },
+      }: CustomEvent<{
+        value: Dimensions;
+        dimension: Dimension;
+        width: number;
+        height: number;
+      }>) => {
+        const value = size[dimension];
+
+        if (this.dimensions) {
+          this.setMargin(
+            this.dimensions[dimension === 'width' ? 0 : 1] - value,
+            false
           );
-          this.elements.patternSize[dimension] = value - this.margin;
         }
       }
     );
@@ -219,25 +276,27 @@ export default class DownloadDialog extends HTMLElement {
     if (units === 'cm' || units === 'inch') {
       preferences.setUserPreferredUnits(units);
       this.elements.dpiBlock.classList.remove('hidden');
-      this.elements.patternSize.setFloatingPoints(1);
+      this.elements.patternDimensions.setFloatingPoints(1);
       this.elements.imageDimensions.setFloatingPoints(1);
     } else {
       this.elements.dpiBlock.classList.add('hidden');
-      this.elements.patternSize.setFloatingPoints(0);
+      this.elements.patternDimensions.setFloatingPoints(0);
       this.elements.imageDimensions.setFloatingPoints(0);
     }
 
     // If changing from length unit to px or vice-versa, need to convert dimensions
-    if (prevUnits && this.dimensions) {
-      this.dimensions = mapDimensions(
-        sizeConvert(
-          this.dimensions,
-          prevUnits,
-          units,
-          Number(this.elements.dpi.value ?? DEFAULT_DPI)
-        ),
-        v => v.toFixedPrecision(1)
-      );
+    if (prevUnits) {
+      const dpi = Number(this.elements.dpi.value ?? DEFAULT_DPI);
+      if (this.dimensions) {
+        this.dimensions = mapDimensions(
+          sizeConvert(this.dimensions, prevUnits, units, dpi),
+          v => v.toFixedPrecision(1)
+        );
+      }
+
+      if (this.margin) {
+        this.setMargin(lengthConvert(this.margin, prevUnits, units, dpi));
+      }
     }
 
     if (this.dimensions) {
@@ -245,7 +304,25 @@ export default class DownloadDialog extends HTMLElement {
     }
   }
 
+  setMargin(margin: number | null, updatePatternDimensions = true) {
+    margin = Math.max(margin, 0);
+
+    if (margin === this.margin) {
+      return;
+    }
+
+    this.margin = margin ?? 0;
+    this.elements.margin.value = String(margin ?? 0);
+
+    if (updatePatternDimensions && this.dimensions) {
+      this.updatePatternDimensions();
+    }
+  }
+
   setSize(id: string) {
+    const size = SIZES.find(({ id: sizeId }) => sizeId === id);
+    this.currentSize = size;
+
     const {
       units,
       dimensions: sizeDimensions,
@@ -253,15 +330,22 @@ export default class DownloadDialog extends HTMLElement {
       allowSizeEdit,
       defaultUnits,
       inUnits,
-    } = SIZES.find(({ id: sizeId }) => sizeId === id);
+      defaultMargin = 0,
+    } = size;
 
-    this.elements.imageDimensions.aspectRatio = this.aspectRatio = aspectRatio;
+    this.elements.imageDimensions.aspectRatio =
+      aspectRatio instanceof Function
+        ? aspectRatio({
+            patternAspectRatio: this.patternAspectRatio,
+          })
+        : aspectRatio;
 
     let dimensions: Dimensions =
       sizeDimensions instanceof Function
         ? sizeDimensions({
             customDimensions: this.customDimensions,
             currentDimensions: this.dimensions,
+            patternAspectRatio: this.patternAspectRatio,
           })
         : sizeDimensions;
 
@@ -295,6 +379,11 @@ export default class DownloadDialog extends HTMLElement {
         v => v.toFixedPrecision(1)
       );
     }
+
+    if (defaultMargin) {
+      this.setMargin(defaultMargin);
+    }
+
     this.setDimensions(dimensions);
   }
 
@@ -316,6 +405,7 @@ export default class DownloadDialog extends HTMLElement {
       ? dimensions({
           customDimensions: this.customDimensions,
           currentDimensions: this.dimensions,
+          patternAspectRatio: this.patternAspectRatio,
         })
       : dimensions;
   }
@@ -350,17 +440,17 @@ export default class DownloadDialog extends HTMLElement {
 
   updatePatternDimensions() {
     const patternDimensions = this.#getPatternDimensions();
-    this.elements.patternSize.maxWidth = patternDimensions[0];
-    this.elements.patternSize.maxHeight = patternDimensions[1];
-    this.elements.patternSize.width = patternDimensions[0];
-    this.elements.patternSize.height = patternDimensions[1];
+    this.elements.patternDimensions.maxWidth = this.dimensions[0];
+    this.elements.patternDimensions.maxHeight = this.dimensions[1];
+    this.elements.patternDimensions.width = patternDimensions[0];
+    this.elements.patternDimensions.height = patternDimensions[1];
   }
 
   #getPatternDimensions(): Dimensions {
-    const width = this.dimensions[0] - this.margin;
+    const width = this.dimensions[0] - this.margin * 2;
     const patternAvailableDimensions = mapDimensions(
       this.dimensions,
-      v => v - this.margin
+      v => v - this.margin * 2
     );
 
     if (!this.patternAspectRatio || isNaN(this.patternAspectRatio)) {
@@ -373,7 +463,7 @@ export default class DownloadDialog extends HTMLElement {
     ] as Dimensions;
     return fitInside(
       patternDimensions,
-      mapDimensions(this.dimensions, v => v - this.margin)
+      mapDimensions(this.dimensions, v => v - this.margin * 2)
     );
   }
 
@@ -382,12 +472,13 @@ export default class DownloadDialog extends HTMLElement {
    */
   async show(pattern: StringArt): Promise<void> {
     this.patternAspectRatio = pattern.getAspectRatio({ size: this.dimensions });
-    this.elements.patternSize.setAttribute(
+    this.elements.patternDimensions.setAttribute(
       'aspect-ratio',
       String(this.patternAspectRatio)
     );
 
-    this.updatePatternDimensions();
+    this.setSize(this.currentSize.id);
+
     return this.dialog.show().then(async () => {
       const data = new FormData(this.elements.form);
       const values = Object.fromEntries(data.entries());

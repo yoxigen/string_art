@@ -17,8 +17,8 @@
         />
       </section>
     </fieldset>
-    <fieldset>
-      <label for="size">Size</label>
+    <expandable-panel legend="Size">
+      <label for="size">Image size</label>
       <section class="row">
         <div style="flex: 0">
           <select
@@ -31,11 +31,7 @@
         <div style="flex: 1; white-space: nowrap; margin-inline-start: 1em">
           <div id="width_and_height">
             <dimensions-input id="image_dimensions"></dimensions-input>
-            <select
-              id="custom_size_unit"
-              class="dialog-lesser-select unit-select"
-              name="unit"
-            >
+            <select class="dialog-lesser-select unit-select" name="unit">
               <option value="cm">cm</option>
               <option value="inch">inch</option>
               <option value="px">px</option>
@@ -46,66 +42,65 @@
       <section class="row">
         Pattern size:
         <dimensions-input id="pattern_size"></dimensions-input>
+        <select class="dialog-lesser-select unit-select" name="unit">
+          <option value="cm">cm</option>
+          <option value="inch">inch</option>
+          <option value="px">px</option>
+        </select>
       </section>
-      <div style="margin-top: 1.5em">
-        <expandable-panel legend="More options" minimized>
-          <fieldset id="dpi_block">
-            <label for="dpi">Print resolution</label>
-            <select
-              id="dpi"
-              value="300"
-              class="dialog-input"
-              style="width: 80px"
-              name="dpi"
-            >
-              <option value="72">72</option>
-              <option value="150">150</option>
-              <option value="200">200</option>
-              <option value="300" selected>300</option>
-              <option value="360">360</option>
-              <option value="600">600</option>
-              <option value="720">720</option>
-              <option value="1200">1200</option>
-              <option value="2400">2400</option>
-              <option value="2880">2880</option>
-            </select>
-            <label for="dpi" style="display: inline">DPI</label>
-          </fieldset>
-          <fieldset>
-            <label for="margin">Margin</label>
-            <input
-              type="number"
-              id="margin"
-              value="0"
-              style="width: 70px"
-              maxlength="2"
-              min="0"
-              max="20"
-              step="1"
-              class="dialog-input size-input"
-              name="margin"
-            />
-            <select
-              id="margin_unit"
-              class="dialog-lesser-select unit-select"
-              name="unit"
-            >
-              <option value="cm">cm</option>
-              <option value="inch">inch</option>
-              <option value="px">px</option>
-            </select>
-          </fieldset>
-          <fieldset>
-            <label for="format">Image type</label>
-            <select id="format" class="dialog-input" name="format">
-              <option value="png">PNG</option>
-              <option value="jpeg">JPEG</option>
-              <option value="webp">WEBP</option>
-              <option value="svg">SVG</option>
-            </select>
-          </fieldset>
-        </expandable-panel>
-      </div>
-    </fieldset>
+      <section>
+        <label for="margin">Margin</label>
+        <input
+          type="number"
+          id="margin"
+          value="0"
+          style="width: 70px"
+          min="0"
+          step="1"
+          class="dialog-input size-input"
+          name="margin"
+        />
+        <select class="dialog-lesser-select unit-select" name="unit">
+          <option value="cm">cm</option>
+          <option value="inch">inch</option>
+          <option value="px">px</option>
+        </select>
+      </section>
+    </expandable-panel>
+    <div style="margin-top: 1.5em">
+      <expandable-panel legend="More options" minimized>
+        <fieldset id="dpi_block">
+          <label for="dpi">Print resolution</label>
+          <select
+            id="dpi"
+            value="300"
+            class="dialog-input"
+            style="width: 80px"
+            name="dpi"
+          >
+            <option value="72">72</option>
+            <option value="150">150</option>
+            <option value="200">200</option>
+            <option value="300" selected>300</option>
+            <option value="360">360</option>
+            <option value="600">600</option>
+            <option value="720">720</option>
+            <option value="1200">1200</option>
+            <option value="2400">2400</option>
+            <option value="2880">2880</option>
+          </select>
+          <label for="dpi" style="display: inline">DPI</label>
+        </fieldset>
+        <fieldset>
+          <label for="format">Image type</label>
+          <select id="format" class="dialog-input" name="format">
+            <option value="png">PNG</option>
+            <option value="jpeg">JPEG</option>
+            <option value="webp">WEBP</option>
+            <option value="svg">SVG</option>
+          </select>
+        </fieldset>
+      </expandable-panel>
+    </div>
   </form>
 </confirm-dialog>
