@@ -126,7 +126,6 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         label: 'Dark mode',
         defaultValue: true,
         type: 'checkbox',
-        isDisabled: ({ enableBackground }) => !enableBackground,
         affectsNails: false,
       },
       {
@@ -134,7 +133,6 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         label: 'Custom background color',
         defaultValue: false,
         type: 'checkbox',
-        isDisabled: ({ enableBackground }) => !enableBackground,
         affectsNails: false,
       },
       {
@@ -143,14 +141,6 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: COLORS.dark,
         type: 'color',
         show: ({ customBackgroundColor }) => customBackgroundColor,
-        isDisabled: ({ enableBackground }) => !enableBackground,
-        affectsNails: false,
-      },
-      {
-        key: 'enableBackground',
-        label: 'Enable background',
-        defaultValue: true,
-        type: 'checkbox',
         affectsNails: false,
       },
     ],
@@ -380,7 +370,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       enableBackground,
     } = this.config;
 
-    if (enableBackground) {
+    if (enableBackground !== false) {
       renderer.setBackground(
         customBackgroundColor
           ? backgroundColor
