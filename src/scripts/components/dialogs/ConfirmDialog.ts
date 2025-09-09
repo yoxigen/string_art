@@ -12,6 +12,8 @@ export default class ConfirmDialog extends HTMLElement {
   private submitBtn: HTMLButtonElement;
   private titleEl: HTMLElement;
   private descEl: HTMLElement;
+  private submitText: HTMLSpanElement;
+  private submitIcon: HTMLElement;
 
   static get observedAttributes() {
     return [
@@ -21,6 +23,7 @@ export default class ConfirmDialog extends HTMLElement {
       'cancel',
       'type',
       'centered',
+      'submit-icon',
     ];
   }
 
@@ -37,6 +40,8 @@ export default class ConfirmDialog extends HTMLElement {
     this.submitBtn = shadow.querySelector('.btn-submit')!;
     this.titleEl = shadow.querySelector('.dialog-title')!;
     this.descEl = shadow.querySelector('.dialog-desc')!;
+    this.submitText = shadow.querySelector('#submit_text')!;
+    this.submitIcon = shadow.querySelector('#submit_icon')!;
   }
 
   connectedCallback() {
@@ -60,7 +65,7 @@ export default class ConfirmDialog extends HTMLElement {
     if (this.hasAttribute('description')) {
       this.descEl.textContent = this.getAttribute('description');
     }
-    this.submitBtn.textContent = this.getAttribute('submit') || 'Submit';
+    this.submitText.textContent = this.getAttribute('submit') || 'Submit';
     this.cancelBtn.textContent = this.getAttribute('cancel') || 'Cancel';
 
     if (this.hasAttribute('type') && this.getAttribute('type') === 'error') {
@@ -76,6 +81,13 @@ export default class ConfirmDialog extends HTMLElement {
       this.dialog.classList.add('centered');
     } else {
       this.dialog.classList.remove('centered');
+    }
+
+    if (this.hasAttribute('submit-icon')) {
+      this.submitIcon.className = 'icon-' + this.getAttribute('submit-icon');
+      this.submitIcon.removeAttribute('hidden');
+    } else {
+      this.submitIcon.setAttribute('hidden', 'hidden');
     }
   }
 

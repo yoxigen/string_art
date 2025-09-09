@@ -9,7 +9,15 @@ export default class InputDialog extends HTMLElement {
   private input: HTMLInputElement;
 
   static get observedAttributes() {
-    return ['dialog-title', 'description', 'value', 'submit', 'cancel', 'type'];
+    return [
+      'dialog-title',
+      'description',
+      'value',
+      'submit',
+      'cancel',
+      'type',
+      'submit-icon',
+    ];
   }
 
   constructor() {

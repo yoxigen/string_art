@@ -1,4 +1,9 @@
 @import '../forms.css';
+@import '../../../styles/icons.css';
+
+[hidden] {
+  display: none !important;
+}
 
 dialog {
   width: 400px;
@@ -75,6 +80,13 @@ dialog.error .dialog-menu button[type='submit'] {
 .dialog-menu .btn-cancel:hover,
 .dialog-menu .btn-cancel:focus {
   opacity: 1;
+}
+
+.dialog-menu button > i {
+  margin-inline-end: 4px;
+  vertical-align: middle;
+  transform: translateY(-2px);
+  display: inline-block;
 }
 
 #dialog_contents {
