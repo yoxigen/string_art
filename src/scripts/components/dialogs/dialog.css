@@ -16,10 +16,22 @@ dialog {
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  overflow: auto;
   max-width: calc(100vw - 20px);
-  max-height: calc(100vh - 20px);
   box-sizing: border-box;
+  padding: 0;
+}
+
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+#dialog_wrapper {
+  max-height: calc(100vh - 20px);
+  overflow: auto;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 1em;
 }
 
 dialog.centered {

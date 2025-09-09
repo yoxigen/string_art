@@ -14,30 +14,6 @@ form {
   margin-top: 1em;
 }
 
-@media only screen and (min-width: 601px) {
-  #wrapper {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas: 'preview form';
-    gap: 1em;
-  }
-
-  #preview {
-    grid-area: preview;
-    margin-top: 0;
-  }
-}
-
-section {
-  margin-bottom: 1;
-}
-
-label {
-  display: block;
-  margin-bottom: 4px;
-}
-
 #canvas {
   --checkers1: #fff;
   --checkers2: #bbb;
@@ -64,4 +40,34 @@ canvas {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+@media only screen and (max-width: 600px) {
+  #canvas {
+    max-height: 250px;
+  }
+}
+
+@media only screen and (min-width: 601px) {
+  #wrapper {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: 'preview form';
+    gap: 1em;
+  }
+
+  #preview {
+    grid-area: preview;
+    margin-top: 0;
+  }
+}
+
+section {
+  margin-bottom: 1;
+}
+
+label {
+  display: block;
+  margin-bottom: 4px;
 }
