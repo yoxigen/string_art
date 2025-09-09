@@ -24,6 +24,7 @@ export default class ConfirmDialog extends HTMLElement {
       'type',
       'centered',
       'submit-icon',
+      'width',
     ];
   }
 
@@ -88,6 +89,14 @@ export default class ConfirmDialog extends HTMLElement {
       this.submitIcon.removeAttribute('hidden');
     } else {
       this.submitIcon.setAttribute('hidden', 'hidden');
+    }
+
+    if (this.hasAttribute('width')) {
+      const value = this.getAttribute('width');
+      const isPx = /^\d+$/.test(value);
+      this.dialog.style.setProperty('width', isPx ? `${value}px` : value);
+    } else {
+      this.dialog.style.removeProperty('width');
     }
   }
 

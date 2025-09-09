@@ -8,6 +8,10 @@ fieldset {
   padding: 0;
 }
 
+section:not(:last-child) {
+  margin-bottom: 1em;
+}
+
 fieldset:last-child {
   margin-bottom: 0;
 }

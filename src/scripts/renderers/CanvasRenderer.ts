@@ -36,6 +36,11 @@ export default class CanvasRenderer extends Renderer {
     this.canvases.forEach(canvas => {
       canvas.classList.add('CanvasRenderer__canvas');
       parentElement.appendChild(canvas);
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
     });
     this.enablePixelRatio();
     this.ctxs.forEach(ctx => (ctx.globalCompositeOperation = 'source-over'));

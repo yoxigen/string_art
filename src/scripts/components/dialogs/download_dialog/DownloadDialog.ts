@@ -17,6 +17,8 @@ import {
   ImageType,
 } from '../../../download/Download';
 import type DimensionsInput from '../../inputs/DimensionsInput';
+import CanvasRenderer from '../../../renderers/CanvasRenderer';
+import StringArtCheckbox from '../../inputs/StringArtCheckbox';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -127,6 +129,7 @@ export default class DownloadDialog extends HTMLElement {
     renderNumbersBlock: HTMLElement;
     patternDimensions: DimensionsInput;
     margin: HTMLInputElement;
+    canvas: HTMLCanvasElement;
   };
   private units: Units;
   private customDimensions: Dimensions;
@@ -134,6 +137,7 @@ export default class DownloadDialog extends HTMLElement {
   private margin: number;
   private patternAspectRatio = 1;
   private currentSize: SizeType;
+  currentPattern: StringArt;
 
   constructor() {
     super();
@@ -154,6 +158,7 @@ export default class DownloadDialog extends HTMLElement {
       patternDimensions: shadow.querySelector('#pattern_size'),
       imageDimensions: shadow.querySelector('#image_dimensions'),
       margin: shadow.querySelector('#margin'),
+      canvas: shadow.querySelector('#canvas'),
     };
 
     this.#setSizes();
@@ -197,11 +202,19 @@ export default class DownloadDialog extends HTMLElement {
           ) as HTMLInputElement
         )?.value;
         this.#toggleNailNumbers(selectedType === 'nails_map');
+        this.updatePreview();
+      }
+
+      if (
+        e.target instanceof StringArtCheckbox &&
+        e.target.id === 'render_numbers'
+      ) {
+        this.updatePreview();
       }
     });
 
     this.elements.margin.addEventListener('input', (e: InputEvent) => {
-      const value = Number(e.target.value);
+      const value = Number((e.target as HTMLInputElement).value);
       this.setMargin(isNaN(value) ? 0 : value);
     });
 
@@ -261,6 +274,10 @@ export default class DownloadDialog extends HTMLElement {
     }
   }
 
+  get dpi(): number {
+    return Number(this.elements.dpi.value ?? DEFAULT_DPI);
+  }
+
   setUnits(units: Units) {
     if (units === this.units) {
       return;
@@ -286,16 +303,15 @@ export default class DownloadDialog extends HTMLElement {
 
     // If changing from length unit to px or vice-versa, need to convert dimensions
     if (prevUnits) {
-      const dpi = Number(this.elements.dpi.value ?? DEFAULT_DPI);
       if (this.dimensions) {
         this.dimensions = mapDimensions(
-          sizeConvert(this.dimensions, prevUnits, units, dpi),
+          sizeConvert(this.dimensions, prevUnits, units, this.dpi),
           v => v.toFixedPrecision(1)
         );
       }
 
       if (this.margin) {
-        this.setMargin(lengthConvert(this.margin, prevUnits, units, dpi));
+        this.setMargin(lengthConvert(this.margin, prevUnits, units, this.dpi));
       }
     }
 
@@ -317,6 +333,8 @@ export default class DownloadDialog extends HTMLElement {
     if (updatePatternDimensions && this.dimensions) {
       this.updatePatternDimensions();
     }
+
+    this.updatePreview();
   }
 
   setSize(id: string) {
@@ -370,12 +388,7 @@ export default class DownloadDialog extends HTMLElement {
     this.setUnits(newUnits);
     if (inUnits && inUnits !== newUnits) {
       dimensions = mapDimensions(
-        sizeConvert(
-          dimensions,
-          inUnits,
-          newUnits,
-          Number(this.elements.dpi.value)
-        ),
+        sizeConvert(dimensions, inUnits, newUnits, this.dpi),
         v => v.toFixedPrecision(1)
       );
     }
@@ -385,6 +398,7 @@ export default class DownloadDialog extends HTMLElement {
     }
 
     this.setDimensions(dimensions);
+    this.updatePreview();
   }
 
   togglePixels(showPixels: boolean) {
@@ -435,7 +449,15 @@ export default class DownloadDialog extends HTMLElement {
     this.elements.imageDimensions.width = dimensions[0];
     this.elements.imageDimensions.height = dimensions[1];
 
+    const pxDimensions = fitInside(
+      sizeConvert(dimensions, this.units, 'px', this.dpi),
+      [200, 300]
+    );
+    this.elements.canvas.style.width = pxDimensions[0] + 'px';
+    this.elements.canvas.style.height = pxDimensions[1] + 'px';
+
     this.updatePatternDimensions();
+    this.updatePreview();
   }
 
   updatePatternDimensions() {
@@ -471,6 +493,7 @@ export default class DownloadDialog extends HTMLElement {
    * Opens the dialog, optionally with an initial value.
    */
   async show(pattern: StringArt): Promise<void> {
+    this.currentPattern = pattern;
     this.patternAspectRatio = pattern.getAspectRatio({ size: this.dimensions });
     this.elements.patternDimensions.setAttribute(
       'aspect-ratio',
@@ -478,7 +501,7 @@ export default class DownloadDialog extends HTMLElement {
     );
 
     this.setSize(this.currentSize.id);
-
+    this.updatePreview();
     return this.dialog.show().then(async () => {
       const data = new FormData(this.elements.form);
       const values = Object.fromEntries(data.entries());
@@ -511,6 +534,54 @@ export default class DownloadDialog extends HTMLElement {
     };
 
     return options;
+  }
+
+  updatePreview() {
+    if (!this.currentPattern) {
+      return;
+    }
+
+    this.elements.canvas.innerHTML = '';
+    const renderer = new CanvasRenderer(this.elements.canvas, {
+      updateOnResize: false,
+    });
+
+    const previewSize = [
+      this.elements.canvas.clientWidth || 200,
+      this.elements.canvas.clientHeight || 300,
+    ] as Dimensions;
+
+    renderer.setFixedSize(previewSize);
+
+    const previewPattern = this.currentPattern.copy();
+    previewPattern.config = {
+      margin: (this.margin / this.dimensions[0]) * previewSize[0],
+    };
+
+    if (previewPattern.config.enableBackground) {
+      this.elements.canvas.style.setProperty(
+        'background',
+        previewPattern.config.backgroundColor
+      );
+    } else {
+      this.elements.canvas.style.removeProperty('background');
+    }
+
+    const data = new FormData(this.elements.form);
+    const values = Object.fromEntries(data.entries());
+
+    if (values.type === 'nails_map') {
+      previewPattern.config = {
+        ...previewPattern.config,
+        darkMode: false,
+        showNails: true,
+        showNailNumbers: values.render_numbers === 'on',
+        showStrings: false,
+        nailsColor: '#000000',
+        backgroundColor: '#ffffff',
+      };
+    }
+    previewPattern.draw(renderer);
   }
 }
 

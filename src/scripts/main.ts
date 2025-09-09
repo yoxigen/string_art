@@ -92,21 +92,8 @@ async function main() {
       '#download_dialog'
     ) as DownloadDialog;
     downloadDialog!.show(viewer.pattern);
-
-    //downloadPattern(currentPattern, { size: viewer.renderer.getLogicalSize() })
   });
-  // elements.downloadSVGBtn.addEventListener('click', () =>
-  //   downloadPattern(currentPattern, {
-  //     type: 'svg',
-  //     size: viewer.renderer.getLogicalSize(),
-  //   })
-  // );
-  // elements.downloadNailsBtn.addEventListener('click', () =>
-  //   downloadNailsImage()
-  // );
-  // elements.downloadNailsNoNumbersBtn.addEventListener('click', () =>
-  //   downloadNailsImage(false)
-  // );
+
   elements.resetBtn.addEventListener('click', reset);
   elements.shareBtn.addEventListener(
     'click',
@@ -232,26 +219,6 @@ async function main() {
     if (showShare) {
       unHide(elements.shareBtn);
     }
-  }
-
-  function downloadNailsImage(withNumbers = true) {
-    // @ts-ignore
-    const patternCopy = new currentPattern.constructor();
-
-    patternCopy.config = {
-      ...patternCopy.config,
-      darkMode: false,
-      showNails: true,
-      showNailNumbers: withNumbers,
-      showStrings: false,
-      nailsColor: '#000000',
-      backgroundColor: '#ffffff',
-    };
-
-    downloadPattern(patternCopy, {
-      size: viewer.renderer.getLogicalSize(),
-      filename: `${currentPattern.name} - nails map`,
-    });
   }
 
   function reset() {

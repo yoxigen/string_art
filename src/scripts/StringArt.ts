@@ -435,6 +435,14 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
 
     return result;
   }
+
+  copy(): StringArt<TConfig> {
+    const config = this.config;
+    // @ts-ignore
+    const patternCopy = new this.constructor();
+    patternCopy.config = config;
+    return patternCopy;
+  }
 }
 
 export default StringArt;
