@@ -21,6 +21,7 @@ export interface DownloadPatternOptions {
   type?: 'svg' | 'canvas';
   imageType?: ImageType;
   margin?: number;
+  enableBackground?: boolean;
 }
 
 export function downloadFile({ data, filename }: DownloadData) {
@@ -42,9 +43,8 @@ export async function downloadPattern(
 ): Promise<void> {
   const overridingConfig = getConfigForDownloadOptions(options);
   if (overridingConfig) {
-    // @ts-ignore
-    pattern = new pattern.constructor();
-    pattern.config = overridingConfig;
+    pattern = pattern.copy();
+    pattern.assignConfig(overridingConfig);
   }
 
   if (options.units) {
@@ -83,6 +83,12 @@ export function getConfigForDownloadOptions(
       showStrings: false,
       nailsColor: '#000000',
       backgroundColor: '#ffffff',
+    });
+  }
+
+  if (options.enableBackground != null) {
+    Object.assign(config, {
+      enableBackground: options.enableBackground,
     });
   }
 

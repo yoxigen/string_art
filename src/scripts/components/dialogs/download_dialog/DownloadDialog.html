@@ -20,14 +20,6 @@
           />
           <label for="type_nails_map">Nails map 🔨</label>
         </div>
-        <section class="dialog-checkbox hidden" id="render_numbers_block">
-          <string-art-checkbox
-            id="render_numbers"
-            label="Show nail numbers"
-            checked
-            name="render_numbers"
-          />
-        </section>
       </fieldset>
       <label for="size">Image size</label>
       <section class="row">
@@ -79,6 +71,15 @@
       </section>
       <div style="margin-top: 1.5em">
         <expandable-panel legend="More options" minimized>
+          <fieldset class="dialog-checkbox hidden" id="render_numbers_block">
+            <string-art-checkbox
+              id="render_numbers"
+              label="Show nail numbers"
+              name="render_numbers"
+              data-updates-preview
+            />
+          </fieldset>
+
           <fieldset id="dpi_block">
             <label for="dpi">Print resolution</label>
             <select
@@ -102,20 +103,35 @@
             <label for="dpi" style="display: inline">DPI</label>
           </fieldset>
           <fieldset>
-            <label for="format">Image type</label>
-            <select id="format" class="dialog-input" name="format">
-              <option value="png">PNG</option>
-              <option value="jpeg">JPEG</option>
-              <option value="webp">WEBP</option>
-              <option value="svg">SVG</option>
-            </select>
+            <section>
+              <label for="format">Image type</label>
+              <select
+                id="format"
+                class="dialog-input"
+                name="format"
+                data-updates-preview
+              >
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+                <option value="webp">WEBP</option>
+                <option value="svg">SVG</option>
+              </select>
+            </section>
+            <section id="transparent_background_block">
+              <string-art-checkbox
+                id="transparent_background"
+                label="Transparent background"
+                name="transparent_background"
+                data-updates-preview
+              />
+            </section>
           </fieldset>
         </expandable-panel>
       </div>
     </form>
     <div id="preview">
       Preview
-      <article id="canvas" style="width: 200px; height: 300px"></article>
+      <article id="canvas"></article>
     </div>
   </div>
 </confirm-dialog>

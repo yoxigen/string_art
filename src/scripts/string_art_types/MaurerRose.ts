@@ -4,6 +4,7 @@ import Polygon from '../helpers/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { gcd, PI2 } from '../helpers/math_utils';
+import { mapDimensions } from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
@@ -100,12 +101,12 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     this.calc = null;
   }
 
-  setUpDraw() {
+  setUpDraw(options: CalcOptions) {
     super.setUpDraw();
     const { isMultiColor, colorCount } = this.config;
 
     if (!this.calc) {
-      this.calc = this.getCalc();
+      this.calc = this.getCalc(options);
     }
 
     if (!this.points) {
@@ -133,14 +134,14 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
   }
 
   getAspectRatio({ size }: CalcOptions): number {
-    const { n, rotation } = this.config;
+    const { n, rotation, margin } = this.config;
 
     // Use a Polygon and getBoundingRect to calculate the aspectRatio
     const polygon = new Polygon({
       size,
       sides: n % 2 ? n : n * 2,
       nailsSpacing: 0.1,
-      margin: 0,
+      margin,
       rotation,
       center: size.map(v => v / 2) as Dimensions,
     });
@@ -148,14 +149,13 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     return polygon.getAspectRatio();
   }
 
-  getCalc(): TCalc {
-    const { angle, rotation, maxSteps } = this.config;
-    const size = this.getSize();
+  getCalc({ size }: CalcOptions): TCalc {
+    const { angle, rotation, maxSteps, margin } = this.config;
 
     return {
       angleRadians: (PI2 * angle) / maxSteps,
-      radius: Math.min(...size) / 2,
-      currentSize: size,
+      radius: Math.min(...size) / 2 - margin,
+      currentSize: mapDimensions(size, v => v - margin * 2),
       rotationAngle: -Math.PI * 2 * rotation,
     };
   }

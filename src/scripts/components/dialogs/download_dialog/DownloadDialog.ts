@@ -25,6 +25,7 @@ sheet.replaceSync(String(styles));
 
 const DEFAULT_DPI = 300;
 const DEFAULT_DIMENSIONS: Dimensions = [10, 10];
+const IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND = ['png', 'svg', 'webp'];
 
 interface SizeType {
   id: string;
@@ -130,6 +131,7 @@ export default class DownloadDialog extends HTMLElement {
     patternDimensions: DimensionsInput;
     margin: HTMLInputElement;
     canvas: HTMLCanvasElement;
+    transparentBackground: StringArtCheckbox;
   };
   private units: Units;
   private customDimensions: Dimensions;
@@ -159,6 +161,7 @@ export default class DownloadDialog extends HTMLElement {
       imageDimensions: shadow.querySelector('#image_dimensions'),
       margin: shadow.querySelector('#margin'),
       canvas: shadow.querySelector('#canvas'),
+      transparentBackground: shadow.querySelector('#transparent_background'),
     };
 
     this.#setSizes();
@@ -206,10 +209,18 @@ export default class DownloadDialog extends HTMLElement {
       }
 
       if (
-        e.target instanceof StringArtCheckbox &&
-        e.target.id === 'render_numbers'
+        e.target instanceof HTMLElement &&
+        e.target.dataset.updatesPreview != null
       ) {
         this.updatePreview();
+      }
+
+      if (e.target instanceof HTMLSelectElement && e.target.id === 'format') {
+        if (!IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND.includes(e.target.value)) {
+          this.elements.transparentBackground.setAttribute('hidden', 'hidden');
+        } else {
+          this.elements.transparentBackground.removeAttribute('hidden');
+        }
       }
     });
 
@@ -257,6 +268,19 @@ export default class DownloadDialog extends HTMLElement {
           );
         }
       }
+    );
+  }
+
+  get isTransparentBackground(): boolean {
+    const data = new FormData(this.elements.form);
+    const formValues = Object.fromEntries(data.entries());
+
+    return (
+      formValues.type !== 'nails_map' &&
+      IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND.includes(
+        String(formValues.format)
+      ) &&
+      formValues.transparent_background === 'on'
     );
   }
 
@@ -320,9 +344,19 @@ export default class DownloadDialog extends HTMLElement {
     }
   }
 
+  getMarginMax(): number | null {
+    if (this.dimensions) {
+      return Math.min(this.dimensions[0] / 2.1, this.dimensions[1] / 2.1);
+    }
+
+    return null;
+  }
+
   setMargin(margin: number | null, updatePatternDimensions = true) {
     margin = Math.max(margin, 0);
-
+    if (this.dimensions) {
+      margin = Math.min(margin, this.getMarginMax());
+    }
     if (margin === this.margin) {
       return;
     }
@@ -449,12 +483,10 @@ export default class DownloadDialog extends HTMLElement {
     this.elements.imageDimensions.width = dimensions[0];
     this.elements.imageDimensions.height = dimensions[1];
 
-    const pxDimensions = fitInside(
-      sizeConvert(dimensions, this.units, 'px', this.dpi),
-      [200, 300]
-    );
-    this.elements.canvas.style.width = pxDimensions[0] + 'px';
-    this.elements.canvas.style.height = pxDimensions[1] + 'px';
+    this.elements.canvas.style.removeProperty('width');
+    this.elements.canvas.style.removeProperty('height');
+
+    this.elements.margin.setAttribute('max', String(this.getMarginMax()));
 
     this.updatePatternDimensions();
     this.updatePreview();
@@ -501,47 +533,62 @@ export default class DownloadDialog extends HTMLElement {
     );
 
     this.setSize(this.currentSize.id);
-    this.updatePreview();
-    return this.dialog.show().then(async () => {
-      const data = new FormData(this.elements.form);
-      const values = Object.fromEntries(data.entries());
-      console.log('VAL', values);
-      await downloadPattern(
-        pattern,
-        this.#formValuesToDownloadOptions(values, pattern)
-      );
-    });
+    return this.dialog
+      .show(() => {
+        this.updatePreview();
+      })
+      .then(async () => {
+        const data = new FormData(this.elements.form);
+        const values = Object.fromEntries(data.entries());
+        console.log('VAL', values);
+        await downloadPattern(
+          pattern,
+          this.#formValuesToDownloadOptions(values, pattern)
+        );
+      });
   }
 
   #formValuesToDownloadOptions(
     values: Record<string, FormDataEntryValue>,
     pattern: StringArt
   ): DownloadPatternOptions {
+    const isNailsMap = values.type === 'nails_map';
+
     const options: DownloadPatternOptions = {
       size: this.#getDimensionsById(values.size as string),
       type: values.format === 'svg' ? 'svg' : 'canvas',
       imageType: values.format === 'svg' ? null : (values.format as ImageType),
-      isNailsMap: values.type === 'nails_map',
+      isNailsMap: isNailsMap,
       units: (values.unit ?? 'px') as SizeUnit,
       dpi: Number(values.dpi),
       margin: Number(values.margin),
-      includeNailNumbers:
-        values.type === 'nails_map' && values.render_numbers === 'on',
-      filename:
-        values.type === 'nails_map'
-          ? `${pattern.name} - nail map`
-          : pattern.name,
+      includeNailNumbers: isNailsMap && values.render_numbers === 'on',
+      filename: isNailsMap ? `${pattern.name} - nail map` : pattern.name,
+      enableBackground: !this.isTransparentBackground,
     };
 
     return options;
   }
 
   updatePreview() {
-    if (!this.currentPattern) {
+    if (!this.currentPattern || !this.elements.canvas.clientWidth) {
       return;
     }
 
     this.elements.canvas.innerHTML = '';
+
+    if (this.elements.canvas.clientWidth) {
+      const pxDimensions = fitInside(
+        sizeConvert(this.dimensions, this.units, 'px', this.dpi),
+        [
+          this.elements.canvas.clientWidth || 200,
+          this.elements.canvas.clientHeight || 300,
+        ]
+      );
+      this.elements.canvas.style.width = pxDimensions[0] + 'px';
+      this.elements.canvas.style.height = pxDimensions[1] + 'px';
+    }
+
     const renderer = new CanvasRenderer(this.elements.canvas, {
       updateOnResize: false,
     });
@@ -554,33 +601,39 @@ export default class DownloadDialog extends HTMLElement {
     renderer.setFixedSize(previewSize);
 
     const previewPattern = this.currentPattern.copy();
-    previewPattern.config = {
-      margin: (this.margin / this.dimensions[0]) * previewSize[0],
-    };
 
-    if (previewPattern.config.enableBackground) {
+    if (this.isTransparentBackground) {
+      this.elements.canvas.style.removeProperty('background');
+    } else {
       this.elements.canvas.style.setProperty(
         'background',
         previewPattern.config.backgroundColor
       );
-    } else {
-      this.elements.canvas.style.removeProperty('background');
     }
 
     const data = new FormData(this.elements.form);
     const values = Object.fromEntries(data.entries());
 
-    if (values.type === 'nails_map') {
-      previewPattern.config = {
-        ...previewPattern.config,
-        darkMode: false,
-        showNails: true,
-        showNailNumbers: values.render_numbers === 'on',
-        showStrings: false,
-        nailsColor: '#000000',
-        backgroundColor: '#ffffff',
-      };
-    }
+    previewPattern.assignConfig(
+      values.type === 'nails_map'
+        ? {
+            darkMode: false,
+            showNails: true,
+            showNailNumbers: values.render_numbers === 'on',
+            showStrings: false,
+            nailsColor: '#000000',
+            backgroundColor: '#ffffff',
+            enableBackground: true,
+          }
+        : {
+            enableBackground: !this.isTransparentBackground,
+          }
+    );
+
+    previewPattern.assignConfig({
+      margin: Math.floor((this.margin / this.dimensions[0]) * previewSize[0]),
+    });
+
     previewPattern.draw(renderer);
   }
 }

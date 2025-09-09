@@ -74,6 +74,7 @@ export default class StringArtCheckbox extends HTMLElement {
       this.dispatchEvent(
         new CustomEvent('change', {
           detail: { checked: this.#checked },
+          bubbles: true,
         })
       );
     });
