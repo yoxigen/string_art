@@ -264,7 +264,11 @@ export default class DimensionsInput extends HTMLElement {
         normalizedValue = Math.min(normalizedValue, props.max);
       }
       props.value = normalizedValue;
-      props.element.value = String(normalizedValue);
+      props.element.value = String(
+        this.floatingPoints != null
+          ? normalizedValue.toFixedPrecision(this.floatingPoints)
+          : normalizedValue
+      );
 
       if (updateOtherDimension && this.#aspectRatio) {
         const otherDimension = this.getOtherDimension(dimension);

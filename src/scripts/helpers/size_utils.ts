@@ -10,7 +10,8 @@ const INCH_TO_CM = 2.54;
 
 Object.defineProperty(Number.prototype, 'toFixedPrecision', {
   value: function (this: number, fractionDigits: number): number {
-    return parseFloat(this.toFixed(fractionDigits));
+    const factor = Math.pow(10, fractionDigits);
+    return Math.round(this * factor) / factor;
   },
   writable: true,
   configurable: true,

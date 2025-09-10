@@ -55,6 +55,7 @@ export default class DownloadDialog extends HTMLElement {
   private patternAspectRatio = 1;
   private currentSize: DownloadSizeType;
   currentPattern: StringArt;
+  private unitFloatingPointsPrecision = 0;
 
   constructor() {
     super();
@@ -236,23 +237,30 @@ export default class DownloadDialog extends HTMLElement {
       unitSelect.value = units;
     });
 
+    this.unitFloatingPointsPrecision = units === 'px' ? 0 : 1;
+
     if (units === 'cm' || units === 'inch') {
       preferences.setUserPreferredUnits(units);
       this.elements.dpiBlock.classList.remove('hidden');
-      this.elements.patternDimensions.setFloatingPoints(1);
-      this.elements.imageDimensions.setFloatingPoints(1);
     } else {
       this.elements.dpiBlock.classList.add('hidden');
-      this.elements.patternDimensions.setFloatingPoints(0);
-      this.elements.imageDimensions.setFloatingPoints(0);
     }
+
+    this.elements.patternDimensions.setFloatingPoints(
+      this.unitFloatingPointsPrecision
+    );
+    this.elements.imageDimensions.setFloatingPoints(
+      this.unitFloatingPointsPrecision
+    );
 
     // If changing from length unit to px or vice-versa, need to convert dimensions
     if (prevUnits) {
       if (this.dimensions) {
-        this.dimensions = mapDimensions(
-          sizeConvert(this.dimensions, prevUnits, units, this.dpi),
-          v => v.toFixedPrecision(1)
+        this.dimensions = sizeConvert(
+          this.dimensions,
+          prevUnits,
+          units,
+          this.dpi
         );
       }
 
@@ -284,7 +292,9 @@ export default class DownloadDialog extends HTMLElement {
     }
 
     this.margin = margin ?? 0;
-    this.elements.margin.value = String(margin ?? 0);
+    this.elements.margin.value = String(
+      margin.toFixedPrecision(this.unitFloatingPointsPrecision) ?? 0
+    );
 
     if (updatePatternDimensions && this.dimensions) {
       this.updatePatternDimensions();
