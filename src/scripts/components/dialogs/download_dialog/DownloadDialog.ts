@@ -121,9 +121,8 @@ export default class DownloadDialog extends HTMLElement {
           this.elements.form.querySelector(
             'input[name="type"]:checked'
           ) as HTMLInputElement
-        )?.value;
-        this.#toggleNailNumbers(selectedType === 'nails_map');
-        this.updatePreview();
+        )?.value as 'all' | 'nails_map';
+        this.setType(selectedType);
       }
 
       if (
@@ -134,11 +133,7 @@ export default class DownloadDialog extends HTMLElement {
       }
 
       if (e.target instanceof HTMLSelectElement && e.target.id === 'format') {
-        if (!IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND.includes(e.target.value)) {
-          this.elements.transparentBackground.setAttribute('hidden', 'hidden');
-        } else {
-          this.elements.transparentBackground.removeAttribute('hidden');
-        }
+        this.setImageType(e.target.value as ImageType | 'svg');
       }
     });
 
@@ -161,9 +156,12 @@ export default class DownloadDialog extends HTMLElement {
 
         if (this.customDimensions) {
           this.customDimensions = dimensions;
+          this.setDimensions(dimensions);
           this.elements.patternDimensions.setMaxDimensions(dimensions);
           this.elements.patternDimensions[dimension] = value - this.margin * 2;
         }
+
+        this.updatePreview();
       }
     );
 
@@ -182,13 +180,45 @@ export default class DownloadDialog extends HTMLElement {
         if (this.dimensions) {
           this.setMargin(
             this.dimensions[dimension === 'width' ? 0 : 1] - value,
-            false
+            { updatePatternDimensions: false }
           );
         }
       }
     );
 
     this.elements.rotateBtn.addEventListener('click', () => this.rotateImage());
+  }
+
+  setType(type: 'nails_map' | 'all', updatePreview = true) {
+    (
+      this.shadowRoot.querySelector(`#type_${type}`)! as HTMLInputElement
+    ).checked = true;
+
+    this.#toggleNailNumbers(type === 'nails_map');
+
+    const transparentBackgroundBlock = this.shadowRoot.querySelector(
+      '#transparent_background_block'
+    ) as HTMLDivElement;
+    if (type === 'nails_map') {
+      transparentBackgroundBlock.setAttribute('hidden', 'hidden');
+    } else {
+      transparentBackgroundBlock.removeAttribute('hidden');
+    }
+
+    if (updatePreview) {
+      this.updatePreview();
+    }
+  }
+
+  setImageType(imageType: ImageType | 'svg') {
+    (this.shadowRoot.querySelector('#format') as HTMLSelectElement)!.value =
+      imageType;
+
+    if (!IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND.includes(imageType)) {
+      this.elements.transparentBackground.setAttribute('hidden', 'hidden');
+    } else {
+      this.elements.transparentBackground.removeAttribute('hidden');
+    }
   }
 
   getFormValues(): Record<string, FormDataEntryValue> {
@@ -230,7 +260,7 @@ export default class DownloadDialog extends HTMLElement {
     this.setDimensions(this.#swapDimensions(this.dimensions));
   }
 
-  setUnits(units: Units) {
+  setUnits(units: Units, updatePreview = true) {
     if (units === this.units) {
       return;
     }
@@ -275,7 +305,7 @@ export default class DownloadDialog extends HTMLElement {
     }
 
     if (this.dimensions) {
-      this.setDimensions(this.dimensions);
+      this.setDimensions(this.dimensions, updatePreview);
     }
   }
 
@@ -287,7 +317,10 @@ export default class DownloadDialog extends HTMLElement {
     return null;
   }
 
-  setMargin(margin: number | null, updatePatternDimensions = true) {
+  setMargin(
+    margin: number | null,
+    { updatePatternDimensions = true, updatePreview = true } = {}
+  ) {
     margin = Math.max(margin, 0);
     if (this.dimensions) {
       margin = Math.min(margin, this.getMarginMax());
@@ -305,7 +338,9 @@ export default class DownloadDialog extends HTMLElement {
       this.updatePatternDimensions();
     }
 
-    this.updatePreview();
+    if (updatePreview) {
+      this.updatePreview();
+    }
   }
 
   setSize(id: string, updatePreview = true) {
@@ -375,7 +410,7 @@ export default class DownloadDialog extends HTMLElement {
       this.setMargin(defaultMargin);
     }
 
-    this.setDimensions(dimensions);
+    this.setDimensions(dimensions, updatePreview);
 
     if (updatePreview) {
       this.updatePreview();
@@ -427,7 +462,7 @@ export default class DownloadDialog extends HTMLElement {
     });
   }
 
-  setDimensions(dimensions: Dimensions) {
+  setDimensions(dimensions: Dimensions, updatePreview = true) {
     this.dimensions = dimensions;
     this.elements.imageDimensions.width = dimensions[0];
     this.elements.imageDimensions.height = dimensions[1];
@@ -438,7 +473,10 @@ export default class DownloadDialog extends HTMLElement {
     this.elements.margin.setAttribute('max', String(this.getMarginMax()));
 
     this.updatePatternDimensions();
-    this.updatePreview();
+
+    if (updatePreview) {
+      this.updatePreview();
+    }
   }
 
   updatePatternDimensions() {
@@ -543,18 +581,16 @@ export default class DownloadDialog extends HTMLElement {
    * @param downloadOptions
    */
   setDownloadOptionsToForm(downloadOptions: DownloadPatternOptions) {
-    (
-      this.shadowRoot.querySelector(
-        `#type_${downloadOptions.isNailsMap ? 'nails_map' : 'all'}`
-      )! as HTMLInputElement
-    ).checked = true;
+    this.setType(downloadOptions.isNailsMap ? 'nails_map' : 'all', false);
+
     this.#toggleNailNumbers(downloadOptions.isNailsMap);
     (this.shadowRoot.querySelector(
       '#render_numbers'
     ) as StringArtCheckbox)!.value =
       downloadOptions.includeNailNumbers === true;
 
-    this.setSize(downloadOptions.sizeId ?? 'custom');
+    const sizeId = downloadOptions.sizeId ?? 'custom';
+    this.setSize(sizeId, false);
 
     if (downloadOptions.isRotated === true) {
       (
@@ -563,17 +599,31 @@ export default class DownloadDialog extends HTMLElement {
       this.rotateImage();
     }
 
-    this.setMargin(downloadOptions.margin ?? 0);
+    if (downloadOptions.units != null) {
+      this.setUnits(downloadOptions.units, false);
+    }
 
+    this.setMargin(downloadOptions.margin ?? 0, { updatePreview: false });
     const { size } = downloadOptions;
-    this.customDimensions = size;
-    this.elements.patternDimensions.setMaxDimensions(size);
-    this.elements.patternDimensions.width = size[0] - this.margin * 2;
-    this.elements.patternDimensions.height = size[1] - this.margin * 2;
+    if (getDownloadImageSizeById(sizeId).allowSizeEdit) {
+      this.customDimensions = size;
+      this.setDimensions(size, false);
+    }
 
     if (downloadOptions.dpi) {
       this.elements.dpi.value = String(downloadOptions.dpi);
     }
+
+    if (downloadOptions.imageType) {
+      this.setImageType(downloadOptions.imageType);
+    }
+
+    if (downloadOptions.enableBackground != null) {
+      (this.shadowRoot.querySelector(
+        '#transparent_background'
+      ) as StringArtCheckbox)!.value = !downloadOptions.enableBackground;
+    }
+
     this.updatePreview();
   }
 
