@@ -36,6 +36,11 @@ export default class CanvasRenderer extends Renderer {
     this.canvases.forEach(canvas => {
       canvas.classList.add('CanvasRenderer__canvas');
       parentElement.appendChild(canvas);
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
     });
     this.enablePixelRatio();
     this.ctxs.forEach(ctx => (ctx.globalCompositeOperation = 'source-over'));
@@ -99,7 +104,7 @@ export default class CanvasRenderer extends Renderer {
     return newSize;
   }
 
-  setSize(size?: Dimensions | null, notifyOnChange = true): Dimensions {
+  setSize(size?: Dimensions | null): Dimensions {
     if (!size) {
       return this.resetSize();
     }
@@ -124,9 +129,7 @@ export default class CanvasRenderer extends Renderer {
     if (!this.currentSize || !areDimensionsEqual(realSize, this.currentSize)) {
       this.currentSize = realSize;
 
-      if (notifyOnChange) {
-        this.emit('sizeChange', { size: realSize });
-      }
+      this.emit('sizeChange', { size: realSize });
     }
 
     return realSize;
@@ -233,6 +236,19 @@ export default class CanvasRenderer extends Renderer {
 
   toDataURL(): string {
     return this.getComposite().toDataURL();
+  }
+
+  async toBlob(
+    type: 'jpeg' | 'png' | 'webp' = 'png',
+    quality = 1
+  ): Promise<Blob> {
+    return new Promise<Blob>((resolve, reject) => {
+      this.getComposite().toBlob(
+        blob => (blob ? resolve(blob) : reject()),
+        `image/${type}`,
+        Math.max(0, Math.min(quality, 1))
+      );
+    });
   }
 
   getComposite(): HTMLCanvasElement {

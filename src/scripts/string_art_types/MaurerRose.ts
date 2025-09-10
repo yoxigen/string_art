@@ -1,11 +1,14 @@
 import StringArt from '../StringArt';
 import Circle from '../helpers/Circle';
+import Polygon from '../helpers/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { gcd, PI2 } from '../helpers/math_utils';
+import { mapDimensions } from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
-import { ControlsConfig } from '../types/config.types.js';
+import { ControlsConfig } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 export interface MaurerRoseConfig extends ColorConfig {
   n: number;
@@ -49,7 +52,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
       defaultValue: 4,
       type: 'range',
       attr: {
-        min: 1,
+        min: 2,
         max: 12,
         step: 1,
       },
@@ -98,12 +101,12 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     this.calc = null;
   }
 
-  setUpDraw() {
+  setUpDraw(options: CalcOptions) {
     super.setUpDraw();
     const { isMultiColor, colorCount } = this.config;
 
     if (!this.calc) {
-      this.calc = this.getCalc();
+      this.calc = this.getCalc(options);
     }
 
     if (!this.points) {
@@ -130,14 +133,29 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     }
   }
 
-  getCalc(): TCalc {
-    const { angle, rotation, maxSteps } = this.config;
-    const size = this.getSize();
+  getAspectRatio({ size }: CalcOptions): number {
+    const { n, rotation, margin } = this.config;
+
+    // Use a Polygon and getBoundingRect to calculate the aspectRatio
+    const polygon = new Polygon({
+      size,
+      sides: n % 2 ? n : n * 2,
+      nailsSpacing: 0.1,
+      margin,
+      rotation,
+      center: size.map(v => v / 2) as Dimensions,
+    });
+
+    return polygon.getAspectRatio();
+  }
+
+  getCalc({ size }: CalcOptions): TCalc {
+    const { angle, rotation, maxSteps, margin } = this.config;
 
     return {
       angleRadians: (PI2 * angle) / maxSteps,
-      radius: Math.min(...size) / 2,
-      currentSize: size,
+      radius: Math.min(...size) / 2 - margin,
+      currentSize: mapDimensions(size, v => v - margin * 2),
       rotationAngle: -Math.PI * 2 * rotation,
     };
   }

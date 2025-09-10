@@ -5,8 +5,9 @@ import {
   ControlsConfig,
   NailsConfig,
 } from '../types/config.types';
-import { Coordinates, Dimensions } from '../types/general.types';
+import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { compareObjects } from './object_utils';
+import Polygon from './Polygon';
 import { formatFractionAsPercent } from './string_utils';
 
 export interface StarShapeConfig {
@@ -216,6 +217,19 @@ export default class StarShape {
     const linesPerRound = sides % 2 ? sides * 2 : sides;
     const isOdd = sides % 2 && sideNails % 2;
     return rounds * linesPerRound - (isOdd ? sides : 0);
+  }
+
+  getBoundingRect(): BoundingRect {
+    const { radius, sides, rotation, sideNails } = this.config;
+    const polygon = new Polygon({
+      size: [radius * 2, radius * 2],
+      sides,
+      nailsSpacing: 1 / sideNails,
+      margin: 0,
+      rotation,
+    });
+
+    return polygon.getBoundingRect();
   }
 
   static nailsConfig: ControlConfig<StarShapeConfig> = Object.freeze({

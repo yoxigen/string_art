@@ -3,7 +3,7 @@ import patternTypes from './pattern_types';
 import EditorControls, {
   ControlValueChangeEventData,
 } from './editor/EditorControls';
-import EditorSizeControls from './editor/EditorSizeControls';
+// import EditorSizeControls from './editor/EditorSizeControls';
 import { Thumbnails } from './thumbnails/Thumbnails';
 import { deserializeConfig, serializeConfig } from './Serialize';
 import { isShareSupported, share } from './share';
@@ -11,7 +11,6 @@ import { initServiceWorker } from './pwa';
 import SVGRenderer from './renderers/SVGRenderer';
 import { downloadPattern } from './download/Download';
 import './components/components';
-import type Renderer from './renderers/Renderer';
 import type { Dimensions } from './types/general.types';
 import { PrimitiveValue } from './types/config.types';
 import Persistance from './Persistance';
@@ -19,7 +18,8 @@ import StringArt from './StringArt';
 import { compareObjects } from './helpers/object_utils';
 import { confirm } from './helpers/dialogs';
 import Viewer from './viewer/Viewer';
-import { getPatternURL } from './helpers/url_utils';
+import { getPatternURL, getQueryParams } from './helpers/url_utils';
+import type DownloadDialog from './components/dialogs/download_dialog/DownloadDialog';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -31,14 +31,9 @@ window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
 });
 
-const elements: { [key: string]: HTMLElement } = {
+const elements = {
   main: document.querySelector('main'),
   downloadBtn: document.querySelector('#download_btn'),
-  downloadSVGBtn: document.querySelector('#download_svg_btn'),
-  downloadNailsBtn: document.querySelector('#download_nails_btn'),
-  downloadNailsNoNumbersBtn: document.querySelector(
-    '#download_nails_no_numbers_btn'
-  ),
   resetBtn: document.querySelector('#reset_btn'),
   shareBtn: document.querySelector('#share_btn'),
   playerBtn: document.querySelector('#player_btn'),
@@ -63,48 +58,42 @@ async function main() {
   document.body.querySelectorAll('.pattern_only').forEach(hide);
   unHide(document.querySelector('main'));
 
-  const queryParams = new URLSearchParams(document.location.search);
-  const viewer = new Viewer(
-    queryParams.get('renderer') === 'svg' ? 'svg' : 'canvas'
-  );
+  const queryParams = getQueryParams();
+  const viewer = new Viewer(queryParams.renderer === 'svg' ? 'svg' : 'canvas');
   const player = new Player(document.querySelector('#player'), viewer);
 
-  const sizeControls = new EditorSizeControls({
-    getCurrentSize: () => viewer.size,
-  });
+  // const sizeControls = new EditorSizeControls({
+  //   getCurrentSize: () => viewer.size,
+  // });
 
   const patterns = patternTypes.map(Pattern => new Pattern());
   type Pattern = StringArt<any>;
   let currentPattern: Pattern;
 
-  if (history.state?.pattern) {
+  if (history.state?.patternId) {
     updateState(history.state);
   } else {
-    const queryPattern = queryParams.get('pattern');
+    const queryPattern = queryParams.pattern;
 
     if (queryPattern) {
-      const config = queryParams.get('config');
-      updateState({ pattern: queryPattern, config });
+      const config = queryParams.config;
+      updateState({
+        patternId: queryPattern,
+        config,
+        patternName: queryParams.name,
+      });
     } else {
       thumbnails.toggle();
     }
   }
 
-  elements.downloadBtn.addEventListener('click', () =>
-    downloadPattern(currentPattern, { size: viewer.renderer.getLogicalSize() })
-  );
-  elements.downloadSVGBtn.addEventListener('click', () =>
-    downloadPattern(currentPattern, {
-      type: 'svg',
-      size: viewer.renderer.getLogicalSize(),
-    })
-  );
-  elements.downloadNailsBtn.addEventListener('click', () =>
-    downloadNailsImage()
-  );
-  elements.downloadNailsNoNumbersBtn.addEventListener('click', () =>
-    downloadNailsImage(false)
-  );
+  elements.downloadBtn.addEventListener('click', () => {
+    const downloadDialog = document.querySelector(
+      '#download_dialog'
+    ) as DownloadDialog;
+    downloadDialog!.show(viewer.pattern);
+  });
+
   elements.resetBtn.addEventListener('click', reset);
   elements.shareBtn.addEventListener(
     'click',
@@ -130,7 +119,7 @@ async function main() {
 
   elements.instructionsLink.addEventListener('click', e => {
     e.preventDefault();
-    history.pushState({ pattern: null }, 'String Art Studio', './');
+    history.pushState({ patternId: null }, 'String Art Studio', './');
     unselectPattern();
   });
 
@@ -175,16 +164,25 @@ async function main() {
     });
   }
 
-  function updateState(state?: { pattern: string; config: any }) {
-    if (state?.pattern) {
-      const pattern = findPatternById(state.pattern);
+  function updateState({
+    patternId,
+    config,
+    patternName,
+  }: {
+    patternId?: string;
+    config?: any;
+    patternName?: string;
+  } = {}) {
+    if (patternId) {
+      const pattern = findPatternById(patternId);
       if (pattern) {
+        if (patternName) {
+          pattern.name = patternName;
+        }
         viewer.setPattern(pattern);
         selectPattern(pattern, {
           draw: false,
-          config: state.config
-            ? deserializeConfig(pattern, state.config)
-            : null,
+          config: config ? deserializeConfig(pattern, config) : null,
         });
 
         thumbnails.close();
@@ -214,33 +212,13 @@ async function main() {
       throw new Error("Can't init pattern - no current pattern available!");
     }
 
-    initSize();
+    // initSize();
 
     elements.resetBtn.addEventListener('click', reset);
     const showShare = await isShareSupported();
     if (showShare) {
       unHide(elements.shareBtn);
     }
-  }
-
-  function downloadNailsImage(withNumbers = true) {
-    // @ts-ignore
-    const patternCopy = new currentPattern.constructor();
-
-    patternCopy.config = {
-      ...patternCopy.config,
-      darkMode: false,
-      showNails: true,
-      showNailNumbers: withNumbers,
-      showStrings: false,
-      nailsColor: '#000000',
-      backgroundColor: '#ffffff',
-    };
-
-    downloadPattern(patternCopy, {
-      size: viewer.renderer.getLogicalSize(),
-      filename: `${currentPattern.name} - nails map`,
-    });
   }
 
   function reset() {
@@ -269,7 +247,7 @@ async function main() {
     const configQuery = serializeConfig(currentPattern);
     history.replaceState(
       {
-        pattern: currentPattern.id,
+        patternId: currentPattern.id,
         config: configQuery,
         renderer: viewer.renderer instanceof SVGRenderer ? 'svg' : undefined,
       },
@@ -302,7 +280,7 @@ async function main() {
   ) {
     selectPattern(pattern, setPatternOptions);
     history.pushState(
-      { pattern: pattern.id },
+      { patternId: pattern.id },
       pattern.name,
       '?pattern=' + pattern.id
     );
@@ -312,14 +290,14 @@ async function main() {
     );
   }
 
-  function initSize() {
-    sizeControls.element.addEventListener(
-      'sizechange',
-      ({ detail: size }: CustomEvent<Dimensions | null>) => {
-        viewer.setSize(size);
-      }
-    );
-  }
+  // function initSize() {
+  //   sizeControls.element.addEventListener(
+  //     'sizechange',
+  //     ({ detail: size }: CustomEvent<Dimensions | null>) => {
+  //       viewer.setSize(size);
+  //     }
+  //   );
+  // }
 
   function selectPattern(
     pattern: Pattern,
@@ -332,6 +310,7 @@ async function main() {
     if (config) {
       // @ts-ignore
       currentPattern.setConfig(config);
+      setIsDefaultConfig();
     }
     if (controls) {
       controls.destroy();

@@ -1,44 +1,110 @@
+import { lengthConvert, sizeConvert } from '../helpers/size_utils';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import SVGRenderer from '../renderers/SVGRenderer';
 import StringArt from '../StringArt';
-import { Dimensions } from '../types/general.types';
+import { CommonConfig } from '../types/config.types';
+import { Dimensions, LengthUnit, SizeUnit } from '../types/general.types';
 
 interface DownloadData {
-  data: string;
+  data: Blob;
   filename: string;
 }
 
+export type ImageType = 'png' | 'jpeg' | 'webp';
 export interface DownloadPatternOptions {
   size: Dimensions;
+  units?: SizeUnit;
+  dpi?: number;
   filename?: string;
-  includeNails?: boolean;
+  isNailsMap?: boolean;
+  includeNailNumbers?: boolean;
   type?: 'svg' | 'canvas';
+  imageType?: ImageType;
+  margin?: number;
+  enableBackground?: boolean;
+  sizeId?: string;
+  isRotated?: boolean;
 }
 
 export function downloadFile({ data, filename }: DownloadData) {
+  const dataUrl = URL.createObjectURL(data);
+
   const downloadLink = document.createElement('a');
-  downloadLink.href = data;
+  downloadLink.href = dataUrl;
   downloadLink.download = filename;
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
+
+  URL.revokeObjectURL(dataUrl);
 }
 
-export function downloadPattern(
+export async function downloadPattern(
   pattern: StringArt,
-  { type, includeNails, ...restOptions }: DownloadPatternOptions
-) {
+  { type, ...options }: DownloadPatternOptions
+): Promise<void> {
+  const overridingConfig = getConfigForDownloadOptions(options);
+  if (overridingConfig) {
+    pattern = pattern.copy();
+    pattern.assignConfig(overridingConfig);
+  }
+
+  if (options.units) {
+    options = {
+      ...options,
+      size: sizeConvert(options.size, options.units, 'px', options.dpi),
+    };
+  }
+
   const downloadData =
     type === 'svg'
-      ? patternToSVGDownloadData(pattern, restOptions)
-      : patternToImageDownloadData(pattern, restOptions);
+      ? patternToSVGDownloadData(pattern, options)
+      : await patternToImageDownloadData(pattern, options);
   downloadFile(downloadData);
 }
 
-function patternToImageDownloadData(
+export function getConfigForDownloadOptions(
+  options: DownloadPatternOptions
+): Partial<CommonConfig> | null {
+  const config: Partial<CommonConfig> = {};
+
+  if (options.margin) {
+    config.margin = lengthConvert(
+      options.margin,
+      options.units ?? 'px',
+      'px',
+      options.dpi
+    );
+  }
+
+  if (options.isNailsMap) {
+    Object.assign(config, {
+      darkMode: false,
+      showNails: true,
+      showNailNumbers: options.includeNailNumbers,
+      showStrings: false,
+      nailsColor: '#000000',
+      backgroundColor: '#ffffff',
+    });
+  }
+
+  if (options.enableBackground != null) {
+    Object.assign(config, {
+      enableBackground: options.enableBackground,
+    });
+  }
+
+  return Object.keys(config).length === 0 ? null : config;
+}
+
+async function patternToImageDownloadData(
   pattern: StringArt,
-  { size, filename }: { size: Dimensions; filename?: string }
-): DownloadData {
+  {
+    size,
+    filename,
+    imageType,
+  }: { size: Dimensions; filename?: string; imageType?: ImageType }
+): Promise<DownloadData> {
   const parentElement = document.createElement('article');
   const renderer = new CanvasRenderer(parentElement, { updateOnResize: false });
 
@@ -48,8 +114,8 @@ function patternToImageDownloadData(
   pattern.draw(renderer);
 
   return {
-    data: renderer.toDataURL(),
-    filename: filename ?? pattern.name + '.png',
+    data: await renderer.toBlob(imageType),
+    filename: `${filename ?? pattern.name}.${imageType ?? 'png'}`,
   };
 }
 
@@ -68,7 +134,7 @@ function patternToSVGDownloadData(
   const svgData = renderer.svg.outerHTML;
   const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
   return {
-    data: URL.createObjectURL(svgBlob),
+    data: svgBlob,
     filename: filename ?? pattern.name + '.svg',
   };
 }

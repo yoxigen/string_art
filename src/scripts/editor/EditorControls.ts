@@ -1,5 +1,6 @@
-import StringArtHueInput from '../components/StringArtHueInput';
-import StringArtRangeInput from '../components/StringArtRangeInput';
+import StringArtCheckbox from '../components/inputs/StringArtCheckbox';
+import StringArtHueInput from '../components/inputs/StringArtHueInput';
+import StringArtRangeInput from '../components/inputs/StringArtRangeInput';
 import EventBus from '../helpers/EventBus';
 import type {
   Config,
@@ -31,6 +32,7 @@ type ControlInputElement = (
   | HTMLInputElement
   | StringArtRangeInput
   | StringArtHueInput
+  | StringArtCheckbox
   | HTMLSelectElement
 ) & {
   updateTimeout?: number;
@@ -208,6 +210,7 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
 
     if (
       e.target instanceof HTMLInputElement ||
+      e.target instanceof StringArtCheckbox ||
       isRangeInput(e.target) ||
       e.target instanceof HTMLSelectElement
     ) {
@@ -385,27 +388,25 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
       let displayValueElement: HTMLSpanElement;
 
       if (controlConfig.type === 'group') {
-        controlEl = document.createElement('fieldset');
+        controlEl = document.createElement('expandable-panel');
+        controlEl.setAttribute('legend', controlConfig.label);
         controlEl.setAttribute('data-group', String(controlConfig.key));
-        const groupTitleEl = document.createElement('legend');
-        groupTitleEl.setAttribute('tabindex', '0');
-        groupTitleEl.innerText = controlConfig.label;
-        controlEl.appendChild(groupTitleEl);
         controlEl.className = 'control control_group';
         if (controlConfig.defaultValue === 'minimized') {
-          controlEl.classList.add('minimized');
+          controlEl.setAttribute('minimized', 'minimized');
           this.state.groups[String(controlConfig.key)] = false;
         }
-        const childrenContainer = document.createElement('div');
-        controlEl.appendChild(childrenContainer);
-        this.renderControls(childrenContainer, controlConfig.children);
+        this.renderControls(controlEl, controlConfig.children);
       } else {
         controlEl = document.createElement('div');
         controlEl.className = 'control';
 
-        const label = document.createElement('label');
-        label.innerHTML = controlConfig.label;
-        label.setAttribute('for', controlId);
+        let label: HTMLLabelElement;
+        if (controlConfig.type !== 'checkbox') {
+          label = document.createElement('label');
+          label.innerHTML = controlConfig.label;
+          label.setAttribute('for', controlId);
+        }
 
         inputEl = document.createElement(
           getElementTagNameForControlType(controlConfig.type)
@@ -440,9 +441,9 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
           }
 
           if (controlConfig.type === 'checkbox') {
-            (inputEl as HTMLInputElement).checked = !!inputValue;
+            (inputEl as StringArtCheckbox).checked = !!inputValue;
+            inputEl.setAttribute('label', controlConfig.label);
             controlEl.appendChild(inputEl);
-            controlEl.appendChild(label);
           } else {
             controlEl.appendChild(label);
             controlEl.appendChild(inputEl);
@@ -537,6 +538,8 @@ function getInputValue(inputElement: EventTarget) {
       default:
         return inputElement.value;
     }
+  } else if (inputElement instanceof StringArtCheckbox) {
+    return inputElement.checked;
   } else if (inputElement instanceof HTMLSelectElement) {
     return inputElement.value;
   }
@@ -550,6 +553,8 @@ function getElementTagNameForControlType(controlType: ControlType): string {
       return 'string-art-range-input';
     case 'hue':
       return 'string-art-hue-input';
+    case 'checkbox':
+      return 'string-art-checkbox';
     default:
       return 'input';
   }

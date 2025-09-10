@@ -1,11 +1,12 @@
-import StringArt from '../StringArt.js';
-import Circle, { CircleConfig } from '../helpers/Circle.js';
-import StarShape, { StarShapeConfig } from '../helpers/StarShape.js';
-import { ColorValue } from '../helpers/color/color.types.js';
-import { withoutAttribute } from '../helpers/config_utils.js';
-import Renderer from '../renderers/Renderer.js';
-import { ControlsConfig, GroupValue } from '../types/config.types.js';
-import { Coordinates } from '../types/general.types.js';
+import StringArt from '../StringArt';
+import Circle, { CircleConfig } from '../helpers/Circle';
+import StarShape, { StarShapeConfig } from '../helpers/StarShape';
+import { ColorValue } from '../helpers/color/color.types';
+import { withoutAttribute } from '../helpers/config_utils';
+import Renderer from '../renderers/Renderer';
+import { ControlsConfig, GroupValue } from '../types/config.types';
+import { Coordinates } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 interface StarConfig {
   sides: number;
@@ -18,7 +19,14 @@ interface StarConfig {
   outerColor: ColorValue;
   ringColor: ColorValue;
   colorGroup: GroupValue;
+  isSingleColor: boolean;
+  singleColor: ColorValue;
 }
+
+type TCalc = {
+  circle: Circle;
+  star: StarShape;
+};
 
 export default class Star extends StringArt<StarConfig> {
   static type = 'star';
@@ -34,6 +42,7 @@ export default class Star extends StringArt<StarConfig> {
       defaultValue: 3,
       type: 'range',
       attr: { min: 3, max: 20, step: 1 },
+      isStructural: true,
     },
     {
       key: 'sideNails',
@@ -41,6 +50,7 @@ export default class Star extends StringArt<StarConfig> {
       defaultValue: 40,
       type: 'range',
       attr: { min: 1, max: 200, step: 1 },
+      isStructural: true,
     },
     StarShape.centerRadiusConfig,
     {
@@ -65,12 +75,30 @@ export default class Star extends StringArt<StarConfig> {
       type: 'group',
       children: [
         {
+          key: 'isSingleColor',
+          label: 'Is single color',
+          type: 'checkbox',
+          defaultValue: false,
+          affectsNails: false,
+          affectsStepCount: false,
+        },
+        {
+          key: 'singleColor',
+          label: 'Color',
+          defaultValue: '#2ec0ff',
+          type: 'color',
+          affectsNails: false,
+          affectsStepCount: false,
+          show: ({ isSingleColor }) => isSingleColor,
+        },
+        {
           key: 'innerColor',
           label: 'Star color',
           defaultValue: '#2ec0ff',
           type: 'color',
           affectsNails: false,
           affectsStepCount: false,
+          show: ({ isSingleColor }) => !isSingleColor,
         },
         {
           key: 'outerColor',
@@ -79,6 +107,7 @@ export default class Star extends StringArt<StarConfig> {
           type: 'color',
           affectsNails: false,
           affectsStepCount: false,
+          show: ({ isSingleColor }) => !isSingleColor,
         },
         {
           key: 'ringColor',
@@ -87,43 +116,53 @@ export default class Star extends StringArt<StarConfig> {
           type: 'color',
           affectsNails: false,
           affectsStepCount: false,
+          show: ({ isSingleColor }) => !isSingleColor,
         },
       ],
     },
   ];
 
-  #star: StarShape = null;
-  #circle: Circle;
+  calc: TCalc;
 
-  setUpDraw() {
-    super.setUpDraw();
+  resetStructure(): void {
+    this.calc = null;
+  }
 
+  getCalc({ size }: CalcOptions): TCalc {
     const { sides, rotation, distortion, sideNails, margin = 0 } = this.config;
     const circleConfig: CircleConfig = {
-      size: this.size,
+      size: size,
       n: sideNails * sides,
       margin,
       rotation: rotation ? rotation / sides : 0,
       distortion,
     };
 
-    if (this.#circle) {
-      this.#circle.setConfig(circleConfig);
-    } else {
-      this.#circle = new Circle(circleConfig);
-    }
+    const circle = new Circle(circleConfig);
 
     const starConfig: StarShapeConfig = {
       ...this.config,
-      radius: this.#circle.radius,
+      radius: circle.radius,
       size: this.size,
     };
 
-    if (this.#star) {
-      this.#star.setConfig(starConfig);
-    } else {
-      this.#star = new StarShape(starConfig);
+    return {
+      circle,
+      star: new StarShape(starConfig),
+    };
+  }
+
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw();
+
+    if (!this.calc) {
+      this.calc = this.getCalc(options);
     }
+  }
+
+  getAspectRatio(options: CalcOptions): number {
+    const { circle } = this.getCalc(options);
+    return circle.aspectRatio;
   }
 
   getArcPoint({
@@ -133,21 +172,24 @@ export default class Star extends StringArt<StarConfig> {
     side: number;
     sideIndex: number;
   }): Coordinates {
-    return this.#circle.getPoint(side * this.config.sideNails + sideIndex);
+    return this.calc.circle.getPoint(side * this.config.sideNails + sideIndex);
   }
 
   *drawStar(renderer: Renderer): Generator<void> {
-    const { innerColor } = this.config;
+    const { innerColor, isSingleColor } = this.config;
 
-    renderer.setColor(innerColor);
-    yield* this.#star.drawStrings(renderer);
+    if (!isSingleColor) {
+      renderer.setColor(innerColor);
+    }
+    yield* this.calc.star.drawStrings(renderer);
   }
 
   *drawCircle(renderer: Renderer): Generator<void> {
-    const { outerColor, sides, sideNails } = this.config;
-    renderer.setColor(outerColor);
-
-    let prevPoint = this.#star.getPoint(0, 0);
+    const { outerColor, sides, sideNails, isSingleColor } = this.config;
+    if (!isSingleColor) {
+      renderer.setColor(outerColor);
+    }
+    let prevPoint = this.calc.star.getPoint(0, 0);
     let alternate = false;
     let isStar = false;
 
@@ -166,7 +208,7 @@ export default class Star extends StringArt<StarConfig> {
         };
 
         const nextPoint = isStar
-          ? this.#star.getPoint(pointPosition.side, pointPosition.sideIndex)
+          ? this.calc.star.getPoint(pointPosition.side, pointPosition.sideIndex)
           : this.getArcPoint(pointPosition);
 
         renderer.renderLines(prevPoint, nextPoint);
@@ -180,28 +222,31 @@ export default class Star extends StringArt<StarConfig> {
           alternate = !alternate;
         }
       }
-      prevPoint = this.#star.getPoint(0, round + 1);
+      prevPoint = this.calc.star.getPoint(0, round + 1);
     }
   }
 
   *drawStrings(renderer: Renderer): Generator<void> {
+    const { ringSize, ringColor, isSingleColor, singleColor } = this.config;
+    if (isSingleColor) {
+      renderer.setColor(singleColor);
+    }
+
     yield* this.drawCircle(renderer);
 
-    const { ringSize, ringColor } = this.config;
-
     if (ringSize !== 0) {
-      yield* this.#circle.drawRing(renderer, {
+      yield* this.calc.circle.drawRing(renderer, {
         ringSize,
-        color: ringColor,
+        color: isSingleColor ? null : ringColor,
       });
     }
     yield* this.drawStar(renderer);
   }
 
   drawNails(): void {
-    this.#circle.drawNails(this.nails);
-    this.#star.drawNails(this.nails);
-    this.#circle.drawNails(this.nails);
+    this.calc.circle.drawNails(this.nails);
+    this.calc.star.drawNails(this.nails);
+    this.calc.circle.drawNails(this.nails);
   }
 
   #getCircleStepCount(): number {

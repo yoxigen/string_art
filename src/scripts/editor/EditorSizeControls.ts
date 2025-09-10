@@ -41,6 +41,7 @@ const SIZES = [
 
 export default class EditorSizeControls {
   element = document.querySelector('#size_controls');
+  selectedSize: typeof SIZES[number];
 
   constructor({ getCurrentSize }) {
     const sizeOptionsFragment = document.createDocumentFragment();

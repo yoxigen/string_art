@@ -129,37 +129,6 @@
       <form id="sidebar_form" class="noprint open">
         <div id="controls_panel" class="pattern_only">
           <div id="controls"></div>
-          <div id="size_controls">
-            <fieldset class="minimized" data-group="size">
-              <legend tabindex="0">Size</legend>
-              <div>
-                <select id="size_select"></select>
-                <select id="size_orientation_select" hidden>
-                  <option value="vertical">Vertical</option>
-                  <option value="horizontal">Horizontal</option>
-                </select>
-                <div id="size_custom" hidden>
-                  <div>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="Width"
-                      id="size_custom_width"
-                    />
-                  </div>
-                  <span>x</span>
-                  <div>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="Height"
-                      id="size_custom_height"
-                    />
-                  </div>
-                </div>
-              </div>
-            </fieldset>
-          </div>
         </div>
       </form>
       <article id="canvas_panel" class="pattern_only"></article>
@@ -193,8 +162,8 @@
         </button>
         <button
           type="button"
+          id="download_btn"
           class="circular_btn"
-          data-toggle-for="download"
           title="Download image"
         >
           <i class="icon-download"></i>
@@ -225,15 +194,7 @@
           <i class="icon-refresh"></i>
         </button>
       </footer>
-      <div role="dialog" id="download" class="buttons_dialog pattern_only">
-        <h3 class="small_title">Download</h3>
-        <button id="download_nails_btn" class="btn">🔨 Nails map</button>
-        <button id="download_nails_no_numbers_btn" class="btn">
-          🔨 Nails map (no numbers)
-        </button>
-        <button id="download_btn" class="btn">💾 Image (PNG)</button>
-        <button id="download_svg_btn" class="btn">💾 Image (SVG)</button>
-      </div>
+      <download-dialog id="download_dialog"> </download-dialog>
       <article id="mobile_menu">
         <div id="mobile_menu_contents">
           <header id="mobile_menu_header">

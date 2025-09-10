@@ -1,10 +1,14 @@
 import StringArt from '../StringArt';
-import Circle from '../helpers/Circle';
 import Polygon from '../helpers/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
+import {
+  combineBoundingRects,
+  getBoundingRectAspectRatio,
+} from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
-import { ControlsConfig } from '../types/config.types.js';
+import { ControlsConfig } from '../types/config.types';
+import { CalcOptions } from '../types/stringart.types';
 
 export interface FlowerConfig extends ColorConfig {
   sides: number;
@@ -26,6 +30,10 @@ const COLOR_CONFIG = Color.getConfig({
   exclude: ['colorCount'],
 });
 
+type TCalc = {
+  polygons: ReadonlyArray<Polygon>;
+};
+
 export default class Flower extends StringArt<FlowerConfig> {
   static type = 'flower';
 
@@ -43,6 +51,7 @@ export default class Flower extends StringArt<FlowerConfig> {
         max: 10,
         step: 1,
       },
+      isStructural: true,
     },
     {
       key: 'n',
@@ -54,6 +63,7 @@ export default class Flower extends StringArt<FlowerConfig> {
         max: 100,
         step: 1,
       },
+      isStructural: true,
     },
     {
       key: 'layers',
@@ -65,6 +75,7 @@ export default class Flower extends StringArt<FlowerConfig> {
         max: 10,
         step: 1,
       },
+      isStructural: true,
     },
     Polygon.rotationConfig,
     COLOR_CONFIG,
@@ -76,18 +87,20 @@ export default class Flower extends StringArt<FlowerConfig> {
     stringWidth: 0.5,
   };
 
-  #polygons: ReadonlyArray<Polygon>;
+  calc: TCalc;
   color: Color;
   colorMap: ColorMap;
 
-  setUpDraw() {
-    super.setUpDraw();
-    const { n, rotation, sides, layers, margin, isMultiColor } = this.config;
-    const size = this.getSize();
+  resetStructure(): void {
+    this.calc = null;
+  }
+
+  getCalc({ size }: CalcOptions): TCalc {
+    const { n, rotation, sides, layers, margin } = this.config;
 
     const layerAngleShift = 1 / (sides * layers);
 
-    this.#polygons = new Array(layers).fill(null).map((_, i) => {
+    const polygons = new Array(layers).fill(null).map((_, i) => {
       const polygonConfig = {
         sides,
         rotation: rotation / sides + i * layerAngleShift,
@@ -98,6 +111,17 @@ export default class Flower extends StringArt<FlowerConfig> {
 
       return new Polygon(polygonConfig);
     });
+
+    return { polygons };
+  }
+
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw();
+    const { layers, isMultiColor } = this.config;
+
+    if (!this.calc) {
+      this.calc = this.getCalc(options);
+    }
 
     this.color = new Color({
       ...this.config,
@@ -115,6 +139,14 @@ export default class Flower extends StringArt<FlowerConfig> {
     }
   }
 
+  getAspectRatio(calcOptions: CalcOptions): number {
+    const calc = this.getCalc(calcOptions);
+    const boundingRect = combineBoundingRects(
+      ...calc.polygons.map(p => p.getBoundingRect())
+    );
+    return getBoundingRectAspectRatio(boundingRect);
+  }
+
   *drawStrings(renderer: Renderer) {
     const { sides, layers } = this.config;
 
@@ -122,7 +154,7 @@ export default class Flower extends StringArt<FlowerConfig> {
     renderer.setColor(this.color.getColor(0));
 
     for (let layer = 0; layer < layers; layer++) {
-      const polygon = this.#polygons[layer];
+      const polygon = this.calc.polygons[layer];
 
       for (let side = 0; side < sides; side++) {
         const leftSide = side === sides - 1 ? 0 : side + 1;
@@ -180,11 +212,12 @@ export default class Flower extends StringArt<FlowerConfig> {
 
   drawNails() {
     const firstNailIndex =
-      this.#polygons[0].radiusNailsCount - this.#polygons[0].nailsPerSide;
+      this.calc.polygons[0].radiusNailsCount -
+      this.calc.polygons[0].nailsPerSide;
     const filterCenterNails =
       firstNailIndex > 0 ? (_, index) => index >= firstNailIndex : null;
 
-    this.#polygons.forEach(polygon =>
+    this.calc.polygons.forEach(polygon =>
       polygon.drawNails(this.nails, { drawCenter: true, filterCenterNails })
     );
   }

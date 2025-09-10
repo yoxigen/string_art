@@ -9,6 +9,10 @@ import { PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import Renderer from '../renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
+import {
+  combineBoundingRects,
+  getBoundingRectAspectRatio,
+} from '../helpers/size_utils';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -43,7 +47,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       label: 'Sides',
       description: 'How many petals there are in the Lotus',
       type: 'range',
-      defaultValue: 16,
+      defaultValue: 18,
       attr: {
         min: 5,
         max: 64,
@@ -55,7 +59,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       key: 'density',
       label: 'Density',
       type: 'range',
-      defaultValue: 144,
+      defaultValue: 222,
       attr: {
         min: 1,
         max: 500,
@@ -74,7 +78,7 @@ export default class Lotus extends StringArt<LotusConfig> {
         step: ({ sides, renderCenter }) =>
           1 / getSectionCountToRemove(sides, renderCenter),
       },
-      defaultValue: 0,
+      defaultValue: 4 / 7,
       displayValue: ({ removeSections, sides, renderCenter }) =>
         Math.round(
           removeSections * getSectionCountToRemove(sides, renderCenter)
@@ -92,7 +96,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       key: 'centerRadius',
       label: 'Center radius',
       type: 'range',
-      defaultValue: 0,
+      defaultValue: 1,
       attr: {
         min: 0,
         max: 1,
@@ -120,7 +124,8 @@ export default class Lotus extends StringArt<LotusConfig> {
         minLightness: 32,
         maxLightness: 85,
         saturation: 100,
-        colorCount: 8,
+        colorCount: 6,
+        mirrorColors: true,
       },
       customControls: [
         {
@@ -298,6 +303,14 @@ export default class Lotus extends StringArt<LotusConfig> {
       ...this.config,
       colorCount,
     });
+  }
+
+  getAspectRatio(options: CalcOptions): number {
+    const calc = this.getCalc(options);
+    const boundingRect = combineBoundingRects(
+      ...calc.circles.map(c => c.getBoundingRect())
+    );
+    return getBoundingRectAspectRatio(boundingRect);
   }
 
   #getPatchColor(circleIndex: number, section: number): ColorValue {

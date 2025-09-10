@@ -141,3 +141,22 @@
 .menu_btn img {
   margin-inline-end: 8px;
 }
+
+.icon_btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.icon_btn:hover {
+  color: White;
+}
+
+.icon_btn > i {
+  position: relative;
+  top: 1px;
+}

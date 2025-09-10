@@ -1,4 +1,5 @@
 import * as styles from 'bundle-text:./dialog.css';
+import * as html from 'bundle-text:./ConfirmDialog.html';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -11,9 +12,20 @@ export default class ConfirmDialog extends HTMLElement {
   private submitBtn: HTMLButtonElement;
   private titleEl: HTMLElement;
   private descEl: HTMLElement;
+  private submitText: HTMLSpanElement;
+  private submitIcon: HTMLElement;
 
   static get observedAttributes() {
-    return ['title', 'description', 'submit', 'cance', 'type'];
+    return [
+      'dialog-title',
+      'description',
+      'submit',
+      'cancel',
+      'type',
+      'centered',
+      'submit-icon',
+      'width',
+    ];
   }
 
   constructor() {
@@ -22,27 +34,15 @@ export default class ConfirmDialog extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
 
     shadow.adoptedStyleSheets = [sheet];
-    this.shadowRoot!.innerHTML = `
-      <dialog>
-        <form method="dialog">
-          <h2 class="dialog-title"></h2>
-          <p class="dialog-desc"></p>
-          <div id="dialog_contents">
-            <slot></slot>
-          </div>
-          <menu class="dialog-menu">
-            <button type="button" class="btn-cancel">Cancel</button>
-            <button type="submit" value="confirm" class="btn-submit"></button>
-          </menu>
-        </form>
-      </dialog>
-    `;
+    this.shadowRoot!.innerHTML = String(html);
 
     this.dialog = shadow.querySelector('dialog')!;
     this.cancelBtn = shadow.querySelector('.btn-cancel')!;
     this.submitBtn = shadow.querySelector('.btn-submit')!;
     this.titleEl = shadow.querySelector('.dialog-title')!;
     this.descEl = shadow.querySelector('.dialog-desc')!;
+    this.submitText = shadow.querySelector('#submit_text')!;
+    this.submitIcon = shadow.querySelector('#submit_icon')!;
   }
 
   connectedCallback() {
@@ -60,13 +60,13 @@ export default class ConfirmDialog extends HTMLElement {
   }
 
   private syncAttributes() {
-    if (this.hasAttribute('title')) {
-      this.titleEl.textContent = this.getAttribute('title');
+    if (this.hasAttribute('dialog-title')) {
+      this.titleEl.textContent = this.getAttribute('dialog-title');
     }
     if (this.hasAttribute('description')) {
       this.descEl.textContent = this.getAttribute('description');
     }
-    this.submitBtn.textContent = this.getAttribute('submit') || 'Submit';
+    this.submitText.textContent = this.getAttribute('submit') || 'Submit';
     this.cancelBtn.textContent = this.getAttribute('cancel') || 'Cancel';
 
     if (this.hasAttribute('type') && this.getAttribute('type') === 'error') {
@@ -74,13 +74,38 @@ export default class ConfirmDialog extends HTMLElement {
     } else {
       this.dialog.classList.remove('error');
     }
+
+    if (
+      this.hasAttribute('centered') &&
+      this.getAttribute('centered') !== 'false'
+    ) {
+      this.dialog.classList.add('centered');
+    } else {
+      this.dialog.classList.remove('centered');
+    }
+
+    if (this.hasAttribute('submit-icon')) {
+      this.submitIcon.className = 'icon-' + this.getAttribute('submit-icon');
+      this.submitIcon.removeAttribute('hidden');
+    } else {
+      this.submitIcon.setAttribute('hidden', 'hidden');
+    }
+
+    if (this.hasAttribute('width')) {
+      const value = this.getAttribute('width');
+      const isPx = /^\d+$/.test(value);
+      this.dialog.style.setProperty('width', isPx ? `${value}px` : value);
+    } else {
+      this.dialog.style.removeProperty('width');
+    }
   }
 
   /**
    * Opens the dialog, optionally with an initial value.
    */
-  show(): Promise<void> {
+  show(onShow?: () => void): Promise<void> {
     this.dialog.showModal();
+    onShow?.();
     return new Promise((resolve, reject) => {
       const handleClose = () => {
         this.dialog.removeEventListener('close', handleClose);

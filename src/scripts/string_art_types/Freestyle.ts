@@ -273,6 +273,10 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
     this.#calc = this.getCalc(options);
   }
 
+  getAspectRatio({ size }: CalcOptions): number {
+    return size[0] / size[1];
+  }
+
   getCalc({ size }: CalcOptions): TCalc {
     const { n, margin = 0, minNailDistance } = this.config;
 

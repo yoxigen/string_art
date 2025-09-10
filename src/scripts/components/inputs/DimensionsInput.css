@@ -1,0 +1,19 @@
+@import '../forms.css';
+
+#inputs,
+#readonly {
+  white-space: nowrap;
+}
+
+#readonly {
+  font-size: 14px;
+}
+
+input {
+  width: 70px;
+}
+
+#connector.linked {
+  transform: rotateZ(45deg);
+  display: inline-block;
+}

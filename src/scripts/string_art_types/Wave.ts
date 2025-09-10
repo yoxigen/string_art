@@ -1,14 +1,19 @@
 import Color from '../helpers/color/Color';
 import Circle from '../helpers/Circle';
-import Mandala, { MandalaConfig } from './Mandala';
+import Mandala, { MandalaCalc, MandalaConfig } from './Mandala';
 import { ControlsConfig } from '../types/config.types';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import { withoutAttribute } from '../helpers/config_utils';
 import Renderer from '../renderers/Renderer';
+import { CalcOptions } from '../types/stringart.types';
 
 export interface WaveConfig {
   layerSpread: number;
 }
+
+type TCalc = MandalaCalc & {
+  layerShift: number;
+};
 
 export default class Wave extends Mandala<WaveConfig> {
   static type = 'wave';
@@ -34,6 +39,7 @@ export default class Wave extends Mandala<WaveConfig> {
       },
       displayValue: ({ layerFill }) => formatFractionAsPercent(layerFill),
       affectsNails: false,
+      isStructural: true,
     },
     withoutAttribute(Circle.rotationConfig, 'snap'),
     Circle.distortionConfig,
@@ -56,12 +62,14 @@ export default class Wave extends Mandala<WaveConfig> {
       },
       displayValue: ({ layerSpread, n }) => Math.round(layerSpread * n),
       affectsNails: false,
+      isStructural: true,
     },
     {
       key: 'reverse',
       label: 'Reverse',
       defaultValue: true,
       type: 'checkbox',
+      isStructural: true,
     },
     Color.getConfig({
       defaults: {
@@ -82,10 +90,13 @@ export default class Wave extends Mandala<WaveConfig> {
     rotation: 176 / 360,
   };
 
-  setUpDraw() {
-    super.setUpDraw();
+  getCalc(options: CalcOptions): TCalc {
     const { n, layerSpread } = this.config;
-    this.calc.layerShift = Math.round(n * layerSpread);
+
+    return {
+      ...super.getCalc(options),
+      layerShift: Math.round(n * layerSpread),
+    };
   }
 
   *drawStrings(renderer: Renderer) {

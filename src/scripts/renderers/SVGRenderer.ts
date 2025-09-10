@@ -1,8 +1,8 @@
-import Renderer from './Renderer.js';
-import type { Coordinates, Dimensions } from '../types/general.types.js';
-import { ColorValue } from '../helpers/color/color.types.js';
-import { Nail, NailsRenderOptions } from '../types/stringart.types.js';
-import { areDimensionsEqual } from '../helpers/size_utils.js';
+import Renderer from './Renderer';
+import type { Coordinates, Dimensions } from '../types/general.types';
+import { ColorValue } from '../helpers/color/color.types';
+import { Nail, NailsRenderOptions } from '../types/stringart.types';
+import { areDimensionsEqual } from '../helpers/size_utils';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 

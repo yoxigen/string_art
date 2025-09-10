@@ -94,6 +94,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         type: 'number',
         attr: { min: 0, max: 500, step: 1 },
         displayValue: ({ margin }) => `${margin}px`,
+        isStructural: true,
       },
       {
         key: 'nailRadius',
@@ -125,7 +126,6 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         label: 'Dark mode',
         defaultValue: true,
         type: 'checkbox',
-        isDisabled: ({ enableBackground }) => !enableBackground,
         affectsNails: false,
       },
       {
@@ -133,7 +133,6 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         label: 'Custom background color',
         defaultValue: false,
         type: 'checkbox',
-        isDisabled: ({ enableBackground }) => !enableBackground,
         affectsNails: false,
       },
       {
@@ -142,14 +141,6 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: COLORS.dark,
         type: 'color',
         show: ({ customBackgroundColor }) => customBackgroundColor,
-        isDisabled: ({ enableBackground }) => !enableBackground,
-        affectsNails: false,
-      },
-      {
-        key: 'enableBackground',
-        label: 'Enable background',
-        defaultValue: true,
-        type: 'checkbox',
         affectsNails: false,
       },
     ],
@@ -180,6 +171,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   abstract drawNails(): void;
   abstract drawStrings(renderer: Renderer): Generator<void>;
   abstract getStepCount(options: CalcOptions): number;
+  abstract getAspectRatio(options: CalcOptions): number;
 
   static thumbnailConfig: Partial<Config>;
   static type: string;
@@ -378,7 +370,7 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       enableBackground,
     } = this.config;
 
-    if (enableBackground) {
+    if (enableBackground !== false) {
       renderer.setBackground(
         customBackgroundColor
           ? backgroundColor
@@ -432,6 +424,14 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     }
 
     return result;
+  }
+
+  copy(): StringArt<TConfig> {
+    const config = this.config;
+    // @ts-ignore
+    const patternCopy = new this.constructor();
+    patternCopy.config = config;
+    return patternCopy;
   }
 }
 

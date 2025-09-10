@@ -1,11 +1,10 @@
-import StringArt from '../StringArt.js';
-import Circle, { CircleConfig } from '../helpers/Circle.js';
-import Color from '../helpers/color/Color.js';
-import { ColorConfig } from '../helpers/color/color.types.js';
-import { PI2 } from '../helpers/math_utils.js';
-import Renderer from '../renderers/Renderer.js';
-import { ControlsConfig } from '../types/config.types.js';
-import { CalcOptions } from '../types/stringart.types.js';
+import StringArt from '../StringArt';
+import Circle, { CircleConfig } from '../helpers/Circle';
+import Color from '../helpers/color/Color';
+import { ColorConfig } from '../helpers/color/color.types';
+import Renderer from '../renderers/Renderer';
+import { ControlsConfig } from '../types/config.types';
+import { CalcOptions } from '../types/stringart.types';
 
 type SpreadModeType = 'evenly' | 'distance';
 
@@ -65,6 +64,10 @@ const COLOR_CONFIG = Color.getConfig({
     },
   ],
 });
+
+type TCalc = {
+  circle: Circle;
+};
 
 export default class Comet extends StringArt<CometConfig> {
   static type = 'comet';
@@ -150,7 +153,29 @@ export default class Comet extends StringArt<CometConfig> {
   };
 
   #circle: Circle;
+  calc: TCalc;
   color: Color;
+
+  getCalc(options: CalcOptions): TCalc {
+    const circleConfig = {
+      size: options.size,
+      n: this.config.n,
+      margin: this.config.margin,
+      rotation: this.config.rotation,
+      distortion: this.config.distortion,
+      displacementFunc: this.config.displacementFunc,
+      displacementMag: this.config.displacementMag,
+      displacementFastArea: this.config.displacementFastArea,
+    };
+
+    return {
+      circle: new Circle(circleConfig),
+    };
+  }
+
+  resetStructure(): void {
+    this.calc = null;
+  }
 
   setUpDraw(options: CalcOptions) {
     super.setUpDraw(options);
@@ -165,10 +190,8 @@ export default class Comet extends StringArt<CometConfig> {
       displacementFastArea: this.config.displacementFastArea,
     };
 
-    if (this.#circle) {
-      this.#circle.setConfig(circleConfig);
-    } else {
-      this.#circle = new Circle(circleConfig);
+    if (!this.calc) {
+      this.calc = this.getCalc(options);
     }
 
     if (!this.stepCount) {
@@ -187,6 +210,11 @@ export default class Comet extends StringArt<CometConfig> {
       isMultiColor,
       colorCount: realColorCount,
     });
+  }
+
+  getAspectRatio(calcOptions: CalcOptions): number {
+    const calc = this.getCalc(calcOptions);
+    return calc.circle.aspectRatio;
   }
 
   getLayerRingDistance(layerIndex: number): number {
@@ -208,20 +236,20 @@ export default class Comet extends StringArt<CometConfig> {
     const ringDistance = this.getLayerRingDistance(layerIndex);
     const stepCount = n - ringDistance + 1;
 
-    let prevPoint = this.#circle.getPoint(0);
+    let prevPoint = this.calc.circle.getPoint(0);
     let prevPointIndex = 0;
     renderer.setColor(this.color.getColor(layerIndex));
 
     for (let i = 0; i < n - ringDistance + 1; i++) {
       const pointIndex = i + ringDistance;
-      const point = this.#circle.getPoint(pointIndex);
+      const point = this.calc.circle.getPoint(pointIndex);
 
       renderer.renderLines(prevPoint, point);
       yield;
 
       if (i !== stepCount - 1) {
         prevPointIndex = i + 1;
-        prevPoint = this.#circle.getPoint(prevPointIndex);
+        prevPoint = this.calc.circle.getPoint(prevPointIndex);
 
         renderer.renderLines(point, prevPoint);
 
@@ -252,7 +280,7 @@ export default class Comet extends StringArt<CometConfig> {
   }
 
   drawNails() {
-    this.#circle.drawNails(this.nails);
+    this.calc.circle.drawNails(this.nails);
   }
 
   static thumbnailConfig = {

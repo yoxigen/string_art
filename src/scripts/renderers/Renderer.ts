@@ -96,10 +96,7 @@ export default abstract class Renderer extends EventBus<{
   ): void;
   abstract clear(): void;
   abstract toDataURL(): string;
-  abstract setSize(
-    size?: Dimensions | null,
-    notifyOnChange?: boolean
-  ): Dimensions;
+  abstract setSize(size?: Dimensions | null): Dimensions;
   abstract setBackground(color: ColorValue): void;
 
   getSize(): Dimensions {

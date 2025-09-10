@@ -1,18 +1,20 @@
 import Nails from '../Nails';
 import Renderer from '../renderers/Renderer';
 import { ControlConfig, GroupValue } from '../types/config.types';
-import { Coordinates, Dimensions } from '../types/general.types';
+import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { Nail } from '../types/stringart.types';
 import { ColorValue } from './color/color.types';
 import easing from './easing';
-import { fitInside, PI2 } from './math_utils';
+import { PI2 } from './math_utils';
 import { compareObjects } from './object_utils';
+import Polygon from './Polygon';
+import { fitInside } from './size_utils';
 
 export interface CircleConfig {
   n: number;
   size: Dimensions;
   margin?: number;
-  rotation: number;
+  rotation?: number;
   center?: Coordinates;
   radius?: number;
   reverse?: boolean;
@@ -90,6 +92,38 @@ export default class Circle {
     return realIndex;
   }
 
+  get aspectRatio(): number {
+    if (!this.config.distortion) {
+      return 1;
+    }
+
+    const aspectRatio = Circle.distortionToAspectRatio(this.config.distortion);
+    return aspectRatio[0] / aspectRatio[1];
+  }
+
+  /**
+   * The bounding rect of the Circle is not just [diameter, diameter], because a 3 nail circle is a triangle, for example,
+   * in which case the bounding rect won't take that fill rect. Using a Polygon instead, which is more precise.
+   */
+  getBoundingRect(): BoundingRect {
+    const { n, rotation } = this.config;
+
+    const polygon = new Polygon({
+      sides: n,
+      rotation,
+      size: [this.radius * 2, this.radius * 2],
+      nailsSpacing: 1,
+    });
+
+    return polygon.getBoundingRect();
+  }
+
+  static distortionToAspectRatio(distortion: number): [number, number] {
+    return distortion < 0
+      ? [1 - Math.abs(distortion), 1]
+      : [1 / (1 - distortion), 1];
+  }
+
   setConfig(config: CircleConfig) {
     if (!compareObjects(config, this.config)) {
       const {
@@ -108,14 +142,13 @@ export default class Circle {
       let xyRadius = [clampedRadius, clampedRadius];
 
       if (config.distortion) {
-        const distortedBox =
-          config.distortion < 0
-            ? [clampedRadius * (1 - Math.abs(config.distortion)), clampedRadius]
-            : [clampedRadius / (1 - config.distortion), clampedRadius];
-
+        const aspectRatio = Circle.distortionToAspectRatio(config.distortion);
+        const distortedBox = aspectRatio.map(
+          v => clampedRadius * v
+        ) as Dimensions;
         xyRadius = fitInside(
           distortedBox,
-          center.map(v => v - margin)
+          center.map(v => v - margin) as Dimensions
         );
       }
 
@@ -212,7 +245,7 @@ export default class Circle {
 
   *drawRing(
     renderer: Renderer,
-    { ringSize, color }: { ringSize: number; color: ColorValue }
+    { ringSize, color }: { ringSize: number; color?: ColorValue }
   ): Generator<void> {
     const { n } = this.config;
     const ringDistance = Math.floor(ringSize * n);
@@ -220,7 +253,9 @@ export default class Circle {
     let prevPoint: Coordinates;
     let prevPointIndex = 0;
     let isPrevSide = false;
-    renderer.setColor(color);
+    if (color) {
+      renderer.setColor(color);
+    }
 
     for (let i = 0; i < n; i++) {
       if (!prevPoint) {
@@ -246,7 +281,7 @@ export default class Circle {
     }
   }
 
-  static rotationConfig: ControlConfig<{ rotation: number }> = {
+  static rotationConfig: ControlConfig<{ rotation?: number }> = {
     key: 'rotation',
     label: 'Rotation',
     defaultValue: 0,
@@ -257,7 +292,7 @@ export default class Circle {
       step: 1 / 360,
       snap: '0.25, 0.5, 0.75',
     },
-    displayValue: ({ rotation }) => `${Math.round(rotation * 360)}°`,
+    displayValue: ({ rotation }) => `${Math.round((rotation ?? 0) * 360)}°`,
     isStructural: true,
     affectsStepCount: false,
   };

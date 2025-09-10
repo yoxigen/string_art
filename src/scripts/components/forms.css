@@ -1,0 +1,106 @@
+.hidden {
+  display: none;
+}
+
+fieldset {
+  margin: 0 0 1.3em;
+  border: none;
+  padding: 0;
+}
+
+section:not(:last-child) {
+  margin-bottom: 1em;
+}
+
+fieldset:last-child {
+  margin-bottom: 0;
+}
+
+fieldset > section {
+  margin-top: 0.3em;
+}
+
+.dialog-input {
+  background: transparent;
+  border: solid 1px var(--color-input);
+  border-radius: 4px;
+  height: 32px !important;
+  padding: 4px 8px !important;
+  color: White;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.dialog-input-small {
+  width: 50px;
+}
+
+.dialog-input-tall {
+  height: 50px !important;
+  font-size: 1.1em;
+  width: 100%;
+}
+
+.dialog-input::selection {
+  background: White;
+  color: Black;
+}
+
+.dialog-input:hover,
+.dialog-input:active,
+.dialog-input:focus-visible {
+  border-color: var(--color-input-active);
+}
+
+.dialog-input:active,
+.dialog-input:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dialog-input option {
+  background-color: White;
+  color: Black;
+}
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.dialog-lesser-select {
+  border: none;
+  background: transparent;
+  height: 32px !important;
+  padding: 0 !important;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  border-bottom: dotted 1px rgba(255, 255, 255, 0.5);
+}
+
+.dialog-lesser-select option {
+  color: Black;
+}
+
+.radio-list {
+  border: solid 1px var(--color-input);
+  border-radius: 4px;
+  height: 32px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.radio-list input[type='radio'] {
+  margin: 0 4px 0 0;
+}
+
+input[type='radio'] + label {
+  display: inline-block;
+  margin-bottom: 0;
+}
+
+input[type='radio'] + label:not(:last-child) {
+  margin-inline-end: 1.5em;
+}

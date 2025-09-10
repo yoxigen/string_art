@@ -1,0 +1,158 @@
+<confirm-dialog
+  dialog-title="Download image"
+  submit="Download"
+  submit-icon="download"
+  centered
+  width="640"
+>
+  <div id="wrapper">
+    <form>
+      <fieldset>
+        <label for="type">Type</label>
+        <div class="radio-list">
+          <input type="radio" name="type" id="type_all" value="all" checked />
+          <label for="type_all">Image</label>
+          <input
+            type="radio"
+            name="type"
+            id="type_nails_map"
+            value="nails_map"
+          />
+          <label for="type_nails_map">Nails map 🔨</label>
+        </div>
+      </fieldset>
+      <label for="size">Image size</label>
+      <section>
+        <div style="flex: 0">
+          <select
+            id="size"
+            class="dialog-input"
+            style="width: auto"
+            name="size"
+          ></select>
+        </div>
+        <div style="flex: 1; white-space: nowrap; margin-top: 0.5em">
+          <div id="width_and_height">
+            <dimensions-input
+              id="image_dimensions"
+              name="image_dimensions"
+            ></dimensions-input>
+            <select class="dialog-lesser-select unit-select" name="unit">
+              <option value="cm">cm</option>
+              <option value="inch">inch</option>
+              <option value="px">px</option>
+            </select>
+            <input
+              type="checkbox"
+              id="rotate_image"
+              name="rotate_image"
+              hidden
+            />
+            <label
+              id="rotate_btn"
+              class="icon_btn"
+              title="Rotate"
+              type="button"
+              for="rotate_image"
+            >
+              <i class="icon-rotate"></i>
+            </label>
+          </div>
+        </div>
+      </section>
+      <section>
+        <label for="pattern_size">Pattern size</label>
+        <dimensions-input
+          id="pattern_size"
+          name="pattern_dimensions"
+        ></dimensions-input>
+        <select class="dialog-lesser-select unit-select" name="unit">
+          <option value="cm">cm</option>
+          <option value="inch">inch</option>
+          <option value="px">px</option>
+        </select>
+      </section>
+      <section>
+        <label for="margin">Margin</label>
+        <input
+          type="number"
+          id="margin"
+          value="0"
+          style="width: 70px"
+          min="0"
+          step="1"
+          class="dialog-input size-input"
+          name="margin"
+        />
+        <select class="dialog-lesser-select unit-select" name="unit">
+          <option value="cm">cm</option>
+          <option value="inch">inch</option>
+          <option value="px">px</option>
+        </select>
+      </section>
+      <div style="margin-top: 1.5em">
+        <expandable-panel legend="More options" minimized>
+          <fieldset class="dialog-checkbox hidden" id="render_numbers_block">
+            <string-art-checkbox
+              id="render_numbers"
+              label="Show nail numbers"
+              name="render_numbers"
+              data-updates-preview
+            />
+          </fieldset>
+
+          <fieldset id="dpi_block">
+            <label for="dpi">Print resolution</label>
+            <select
+              id="dpi"
+              value="300"
+              class="dialog-input"
+              style="width: 80px"
+              name="dpi"
+            >
+              <option value="72">72</option>
+              <option value="150">150</option>
+              <option value="200">200</option>
+              <option value="300" selected>300</option>
+              <option value="360">360</option>
+              <option value="600">600</option>
+              <option value="720">720</option>
+              <option value="1200">1200</option>
+              <option value="2400">2400</option>
+              <option value="2880">2880</option>
+            </select>
+            <label for="dpi" style="display: inline">DPI</label>
+          </fieldset>
+          <fieldset>
+            <section>
+              <label for="format">Image type</label>
+              <select
+                id="format"
+                class="dialog-input"
+                name="format"
+                data-updates-preview
+              >
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+                <option value="webp">WEBP</option>
+                <option value="svg">SVG</option>
+              </select>
+            </section>
+            <section id="transparent_background_block">
+              <string-art-checkbox
+                id="transparent_background"
+                label="Transparent background"
+                name="transparent_background"
+                data-updates-preview
+              />
+            </section>
+          </fieldset>
+        </expandable-panel>
+      </div>
+    </form>
+    <div id="preview">
+      Preview
+      <article id="canvas"></article>
+    </div>
+  </div>
+</confirm-dialog>

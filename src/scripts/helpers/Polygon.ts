@@ -1,8 +1,9 @@
-import Nails from '../Nails.js';
-import { ControlConfig } from '../types/config.types.js';
-import { Coordinates, Dimensions } from '../types/general.types.js';
-import { PI2 } from './math_utils.js';
-import { compareObjects } from './object_utils.js';
+import Nails from '../Nails';
+import { ControlConfig } from '../types/config.types';
+import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
+import { PI2 } from './math_utils';
+import { compareObjects } from './object_utils';
+import { getBoundingRectAspectRatio } from './size_utils';
 
 export interface PolygonConfig {
   size: Dimensions;
@@ -21,15 +22,6 @@ interface Side {
     cos: number;
     sin: number;
   };
-}
-
-interface BoundingRect {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
-  width: number;
-  height: number;
 }
 
 interface TCalc {
@@ -103,7 +95,7 @@ export default class Polygon {
       rotation = 0,
       sides: sideCount,
       center: configCenter,
-      margin,
+      margin = 0,
       nailsSpacing,
     } = this.config;
 
@@ -219,6 +211,10 @@ export default class Polygon {
       height: boundingRect.bottom - boundingRect.top,
       width: boundingRect.right - boundingRect.left,
     };
+  }
+
+  getAspectRatio(): number {
+    return getBoundingRectAspectRatio(this.getBoundingRect());
   }
 
   drawNails(

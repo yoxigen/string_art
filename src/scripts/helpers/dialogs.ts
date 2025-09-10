@@ -6,6 +6,7 @@ export interface ConfirmOptions {
   title: string;
   description?: string;
   submit?: string;
+  submitIcon?: string;
   cancel?: string;
   type?: ConfirmDialogType;
 }
@@ -22,15 +23,28 @@ export function prompt({ value, ...options }: PromptOptions): Promise<string> {
     document.body.appendChild(dialog);
   }
 
-  ['title', 'description', 'submit', 'cancel', 'type'].forEach(attr => {
-    if (options[attr] != null && options[attr] !== '') {
-      dialog.setAttribute(attr, options[attr]);
-    } else {
-      dialog.removeAttribute(attr);
+  ['title', 'description', 'submit', 'cancel', 'type', 'submitIcon'].forEach(
+    attr => {
+      if (options[attr] != null && options[attr] !== '') {
+        dialog.setAttribute(getAttributeForProp(attr), options[attr]);
+      } else {
+        dialog.removeAttribute(attr);
+      }
     }
-  });
+  );
 
   return dialog.show(value);
+
+  function getAttributeForProp(prop: string): string {
+    switch (prop) {
+      case 'title':
+        return 'dialog-title';
+      case 'submitIcon':
+        return 'submit-icon';
+      default:
+        return prop;
+    }
+  }
 }
 
 const CONFIRM_DIALOG_ID = 'confirm_dialog';
@@ -45,7 +59,10 @@ export function confirm(options: ConfirmOptions): Promise<void> {
 
   ['title', 'description', 'submit', 'cancel', 'type'].forEach(attr => {
     if (options[attr] != null && options[attr] !== '') {
-      dialog.setAttribute(attr, options[attr]);
+      dialog.setAttribute(
+        attr === 'title' ? 'dialog-title' : attr,
+        options[attr]
+      );
     } else {
       dialog.removeAttribute(attr);
     }

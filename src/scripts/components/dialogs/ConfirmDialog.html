@@ -1,0 +1,21 @@
+<dialog>
+  <div id="dialog_wrapper">
+    <div id="dialog_context_menu">
+      <slot name="context-menu"></slot>
+    </div>
+    <form method="dialog">
+      <h2 class="dialog-title"></h2>
+      <p class="dialog-desc"></p>
+      <div id="dialog_contents">
+        <slot></slot>
+      </div>
+      <menu class="dialog-menu">
+        <button type="button" class="btn-cancel">Cancel</button>
+        <button type="submit" value="confirm" class="btn-submit">
+          <i id="submit_icon" class="icon" hidden></i>
+          <span id="submit_text"></span>
+        </button>
+      </menu>
+    </form>
+  </div>
+</dialog>

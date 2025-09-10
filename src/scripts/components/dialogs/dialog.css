@@ -1,3 +1,10 @@
+@import '../forms.css';
+@import '../../../styles/icons.css';
+
+[hidden] {
+  display: none !important;
+}
+
 dialog {
   width: 400px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
@@ -5,11 +12,31 @@ dialog {
   color: white;
   border: var(--border-dialog);
   position: fixed;
-  top: 100px; /* Distance from the top */
-  left: 50%; /* Keep horizontally centered */
-  transform: translateX(-50%); /* Only center horizontally */
-  margin: 0; /* Remove default centering margin */
-  overflow: hidden;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  max-width: calc(100vw - 20px);
+  box-sizing: border-box;
+  padding: 0;
+}
+
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+#dialog_wrapper {
+  max-height: calc(100vh - 20px);
+  overflow: auto;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 1em;
+}
+
+dialog.centered {
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
 }
 
 dialog::backdrop {
@@ -25,34 +52,6 @@ dialog::backdrop {
 
 dialog.error .dialog-title {
   color: var(--color-error);
-}
-
-.dialog-input {
-  width: 100%;
-  background: transparent;
-  border: solid 1px var(--color-input);
-  border-radius: 4px;
-  height: 40px !important;
-  padding: 4px 8px !important;
-  color: White;
-  outline: none;
-  font-size: 1.1em;
-}
-
-.dialog-input::selection {
-  background: White;
-  color: Black;
-}
-
-.dialog-input:hover,
-.dialog-input:active,
-.dialog-input:focus-visible {
-  border-color: var(--color-input-active);
-}
-
-.dialog-input:active,
-.dialog-input:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 .dialog-menu {
@@ -95,6 +94,20 @@ dialog.error .dialog-menu button[type='submit'] {
   opacity: 1;
 }
 
+.dialog-menu button > i {
+  margin-inline-end: 4px;
+  vertical-align: middle;
+  transform: translateY(-2px);
+  display: inline-block;
+}
+
 #dialog_contents {
   display: flex;
+}
+
+#dialog_context_menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
 }

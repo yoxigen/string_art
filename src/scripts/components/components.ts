@@ -1,6 +1,10 @@
-import './StringArtRangeInput';
-import './StringArtHueInput';
+import './inputs/StringArtRangeInput';
+import './inputs/StringArtHueInput';
+import './inputs/DimensionsInput';
+import './inputs/StringArtCheckbox';
 import './DropdownMenu';
 import './DropdownMenuItem';
 import './dialogs/InputDialog';
 import './dialogs/ConfirmDialog';
+import './dialogs/download_dialog/DownloadDialog';
+import './expandable_panel/ExpandablePanel';

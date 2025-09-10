@@ -4,7 +4,7 @@ import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
 import Renderer from '../renderers/Renderer';
-import { ControlsConfig } from '../types/config.types.js';
+import { ControlsConfig } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 
@@ -100,6 +100,13 @@ class Spirals extends StringArt<SpiralsConfig> {
       stepCount: this.getStepCount(options),
       colorCount,
     });
+  }
+
+  /**
+   * TODO: The aspect ratio isn't really 1, but it's hard to calculate. Will tackle it in the future
+   */
+  getAspectRatio(): number {
+    return 1;
   }
 
   *generatePoints() {
