@@ -89,6 +89,7 @@ fieldset > section {
   box-sizing: border-box;
   display: flex;
   align-items: center;
+  width: fit-content;
 }
 
 .radio-list input[type='radio'] {

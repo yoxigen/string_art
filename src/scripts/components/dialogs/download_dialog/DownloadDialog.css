@@ -1,4 +1,6 @@
 @import '../../forms.css';
+@import '../../../../styles/icons.css';
+@import '../../../../styles/buttons.css';
 
 #wrapper {
   width: 100%;
@@ -67,7 +69,12 @@ section {
   margin-bottom: 1;
 }
 
-label {
+label:not(.icon_btn) {
   display: block;
   margin-bottom: 4px;
+}
+
+input[type='checkbox']:checked + .icon_btn {
+  color: White;
+  background: rgba(255, 255, 255, 0.1);
 }

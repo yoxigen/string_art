@@ -7,7 +7,6 @@ import {
   lengthConvert,
   mapDimensions,
   sizeConvert,
-  STANDARD_SIZES_CM,
 } from '../../../helpers/size_utils';
 import { Dimension, Dimensions, SizeUnit } from '../../../types/general.types';
 import preferences from '../../../helpers/preferences';
@@ -19,102 +18,17 @@ import {
 import type DimensionsInput from '../../inputs/DimensionsInput';
 import CanvasRenderer from '../../../renderers/CanvasRenderer';
 import StringArtCheckbox from '../../inputs/StringArtCheckbox';
+import {
+  DOWNLOAD_IMAGE_SIZES,
+  DownloadSizeType,
+  getDownloadImageSizeById,
+} from './download_image_sizes';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
 
 const DEFAULT_DPI = 300;
-const DEFAULT_DIMENSIONS: Dimensions = [10, 10];
 const IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND = ['png', 'svg', 'webp'];
-
-interface SizeType {
-  id: string;
-  name?: string;
-  dimensions?:
-    | Dimensions
-    | ((options: {
-        customDimensions: Dimensions | null;
-        currentDimensions: Dimensions | null;
-        patternAspectRatio: number;
-      }) => Dimensions | null);
-  units?: SizeUnit[];
-  aspectRatio?:
-    | number
-    | ((options: { patternAspectRatio: number }) => number | null);
-  allowSizeEdit?: boolean;
-  defaultUnits?: SizeUnit;
-  inUnits?: SizeUnit;
-  defaultMargin?: number;
-}
-
-const SIZES: ReadonlyArray<SizeType> = [
-  {
-    id: 'fit',
-    name: 'Fit pattern',
-    dimensions: ({ customDimensions, patternAspectRatio }) => {
-      let dimensions = customDimensions;
-      if (!dimensions) {
-        const SMALL_SCREEN_DIMENSION = Math.min(screen.width, screen.height);
-        const dpr = window.devicePixelRatio ?? 1;
-        dimensions = [SMALL_SCREEN_DIMENSION, SMALL_SCREEN_DIMENSION];
-      }
-      const customDimensionsFitPattern = [
-        dimensions[0],
-        dimensions[0] / patternAspectRatio,
-      ] as Dimensions;
-
-      return fitInside(customDimensionsFitPattern, dimensions);
-    },
-    units: ['px', 'cm', 'inch'],
-    defaultUnits: 'px',
-    defaultMargin: 10,
-  },
-  {
-    id: 'square',
-    name: 'Square',
-    dimensions: ({ customDimensions }) => {
-      if (customDimensions) {
-        const smallestSize = Math.min(...customDimensions);
-        return [smallestSize, smallestSize];
-      }
-      const SMALL_SCREEN_DIMENSION = Math.min(screen.width, screen.height);
-      const dpr = window.devicePixelRatio ?? 1;
-      return [SMALL_SCREEN_DIMENSION, SMALL_SCREEN_DIMENSION].map(v =>
-        Math.floor(v * dpr)
-      ) as Dimensions;
-    },
-    units: ['px', 'cm', 'inch'],
-    defaultUnits: 'px',
-    aspectRatio: 1,
-    allowSizeEdit: true,
-    defaultMargin: 10,
-  },
-  {
-    id: 'screen',
-    name: 'Screen size',
-    dimensions: () => {
-      const dpr = window.devicePixelRatio ?? 1;
-      return [window.screen.width, window.screen.height].map(v =>
-        Math.floor(v * dpr)
-      ) as Dimensions;
-    },
-    units: ['px'],
-    defaultMargin: 10,
-  },
-  ...STANDARD_SIZES_CM.map(size => ({
-    ...size,
-    units: ['cm', 'inch'] as SizeUnit[],
-    inUnits: 'cm' as SizeUnit,
-    defaultMargin: 1,
-  })),
-  {
-    id: 'custom',
-    name: 'Custom size…',
-    dimensions: ({ customDimensions, currentDimensions }) =>
-      currentDimensions ?? customDimensions ?? DEFAULT_DIMENSIONS,
-    allowSizeEdit: true,
-  },
-];
 
 type Units = SizeUnit;
 
@@ -132,13 +46,14 @@ export default class DownloadDialog extends HTMLElement {
     margin: HTMLInputElement;
     canvas: HTMLCanvasElement;
     transparentBackground: StringArtCheckbox;
+    rotateBtn: HTMLButtonElement;
   };
   private units: Units;
   private customDimensions: Dimensions;
   private dimensions: Dimensions;
   private margin: number;
   private patternAspectRatio = 1;
-  private currentSize: SizeType;
+  private currentSize: DownloadSizeType;
   currentPattern: StringArt;
 
   constructor() {
@@ -162,10 +77,11 @@ export default class DownloadDialog extends HTMLElement {
       margin: shadow.querySelector('#margin'),
       canvas: shadow.querySelector('#canvas'),
       transparentBackground: shadow.querySelector('#transparent_background'),
+      rotateBtn: shadow.querySelector('#rotate_btn'),
     };
 
     this.#setSizes();
-    this.setSize(SIZES[0].id);
+    this.setSize(DOWNLOAD_IMAGE_SIZES[0].id);
 
     preferences.addEventListener('unitsChange', units => {
       if (this.units !== 'px') {
@@ -269,6 +185,8 @@ export default class DownloadDialog extends HTMLElement {
         }
       }
     );
+
+    this.elements.rotateBtn.addEventListener('click', () => this.rotateImage());
   }
 
   get isTransparentBackground(): boolean {
@@ -285,7 +203,7 @@ export default class DownloadDialog extends HTMLElement {
   }
 
   #setSizes() {
-    this.elements.size.innerHTML = SIZES.map(
+    this.elements.size.innerHTML = DOWNLOAD_IMAGE_SIZES.map(
       ({ id, name }) => `<option value="${id}">${name ?? id}</option>`
     ).join('\n');
   }
@@ -300,6 +218,10 @@ export default class DownloadDialog extends HTMLElement {
 
   get dpi(): number {
     return Number(this.elements.dpi.value ?? DEFAULT_DPI);
+  }
+
+  rotateImage() {
+    this.setDimensions(this.#swapDimensions(this.dimensions));
   }
 
   setUnits(units: Units) {
@@ -372,7 +294,7 @@ export default class DownloadDialog extends HTMLElement {
   }
 
   setSize(id: string) {
-    const size = SIZES.find(({ id: sizeId }) => sizeId === id);
+    const size = getDownloadImageSizeById(id);
     this.currentSize = size;
 
     const {
@@ -383,6 +305,7 @@ export default class DownloadDialog extends HTMLElement {
       defaultUnits,
       inUnits,
       defaultMargin = 0,
+      allowRotate,
     } = size;
 
     this.elements.imageDimensions.aspectRatio =
@@ -406,6 +329,12 @@ export default class DownloadDialog extends HTMLElement {
       this.customDimensions = dimensions;
     } else {
       this.elements.imageDimensions.isReadonly = true;
+    }
+
+    if (allowRotate) {
+      this.elements.rotateBtn.removeAttribute('hidden');
+    } else {
+      this.elements.rotateBtn.setAttribute('hidden', 'hidden');
     }
 
     const isPixelsOnly = units && units.length === 1 && units[0] === 'px';
@@ -446,8 +375,8 @@ export default class DownloadDialog extends HTMLElement {
     });
   }
 
-  #getDimensionsById(id: string): Dimensions {
-    const { dimensions } = SIZES.find(({ id: sizeId }) => sizeId === id);
+  #getDimensionsBySizeId(id: string): Dimensions {
+    const { dimensions } = getDownloadImageSizeById(id);
 
     return dimensions instanceof Function
       ? dimensions({
@@ -521,6 +450,10 @@ export default class DownloadDialog extends HTMLElement {
     );
   }
 
+  #swapDimensions(dimensions: Dimensions): Dimensions {
+    return [dimensions[1], dimensions[0]];
+  }
+
   /**
    * Opens the dialog, optionally with an initial value.
    */
@@ -554,8 +487,12 @@ export default class DownloadDialog extends HTMLElement {
   ): DownloadPatternOptions {
     const isNailsMap = values.type === 'nails_map';
 
+    let dimensions = this.#getDimensionsBySizeId(values.size as string);
+    if (values.rotate_image) {
+      dimensions = this.#swapDimensions(dimensions);
+    }
     const options: DownloadPatternOptions = {
-      size: this.#getDimensionsById(values.size as string),
+      size: dimensions,
       type: values.format === 'svg' ? 'svg' : 'canvas',
       imageType: values.format === 'svg' ? null : (values.format as ImageType),
       isNailsMap: isNailsMap,
