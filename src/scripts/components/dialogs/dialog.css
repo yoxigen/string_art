@@ -74,14 +74,14 @@ dialog.error .dialog-title {
   cursor: pointer;
 }
 
-.dialog-menu button[type='submit'] {
+.dialog-menu button.btn-submit {
   background: var(--color-input);
 }
 
-dialog.error .dialog-menu button[type='submit'] {
+dialog.error .dialog-menu button.btn-submit {
   background: var(--color-error);
 }
-.dialog-menu button[type='submit']:hover {
+.dialog-menu button.btn-submit:hover {
   background: var(--color-input-active);
 }
 
