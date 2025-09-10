@@ -55,6 +55,7 @@ export default class StringArtCheckbox extends HTMLElement {
 
   set value(v: boolean) {
     this.checked = v;
+    this.internals.setFormValue(this.#checked ? 'on' : null);
   }
 
   connectedCallback() {

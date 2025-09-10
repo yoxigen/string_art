@@ -33,7 +33,10 @@
         </div>
         <div style="flex: 1; white-space: nowrap; margin-inline-start: 0.5em">
           <div id="width_and_height">
-            <dimensions-input id="image_dimensions"></dimensions-input>
+            <dimensions-input
+              id="image_dimensions"
+              name="image_dimensions"
+            ></dimensions-input>
             <select class="dialog-lesser-select unit-select" name="unit">
               <option value="cm">cm</option>
               <option value="inch">inch</option>
@@ -59,7 +62,10 @@
       </section>
       <section>
         <label for="pattern_size">Pattern size</label>
-        <dimensions-input id="pattern_size"></dimensions-input>
+        <dimensions-input
+          id="pattern_size"
+          name="pattern_dimensions"
+        ></dimensions-input>
         <select class="dialog-lesser-select unit-select" name="unit">
           <option value="cm">cm</option>
           <option value="inch">inch</option>

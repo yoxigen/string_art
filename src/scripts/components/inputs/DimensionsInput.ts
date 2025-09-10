@@ -118,9 +118,17 @@ export default class DimensionsInput extends HTMLElement {
     return [this.width, this.height];
   }
 
-  set value([width, height]: [number, number]) {
-    this.width = width;
-    this.height = height;
+  set value(value: string | Dimensions) {
+    if (typeof value === 'string') {
+      const match = value.match(/^(\d+(?:\.\d+)?),\s?(\d+(?:\.\d+)?)$/);
+      if (match) {
+        this.width = Number(match[1]);
+        this.height = Number(match[2]);
+      }
+    } else {
+      this.width = value[0];
+      this.height = value[1];
+    }
   }
 
   get maxWidth(): number | null {
@@ -283,6 +291,8 @@ export default class DimensionsInput extends HTMLElement {
 
       this.#setReadonlyText();
     }
+
+    this.#updateFormValue();
   }
 
   attributeChangedCallback(name: string, oldVal: string, newVal: string) {
@@ -334,8 +344,12 @@ export default class DimensionsInput extends HTMLElement {
         }
       }
 
-      this.internals.setFormValue(String(this.value.join(',')));
+      this.#updateFormValue();
     }
+  }
+
+  #updateFormValue() {
+    this.internals.setFormValue(String(this.value.join(',')));
   }
 
   #syncAttributes() {

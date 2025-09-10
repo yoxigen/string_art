@@ -23,6 +23,7 @@ import {
   DownloadSizeType,
   getDownloadImageSizeById,
 } from './download_image_sizes';
+import Persistance from '../../../Persistance';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -190,9 +191,13 @@ export default class DownloadDialog extends HTMLElement {
     this.elements.rotateBtn.addEventListener('click', () => this.rotateImage());
   }
 
-  get isTransparentBackground(): boolean {
+  getFormValues(): Record<string, FormDataEntryValue> {
     const data = new FormData(this.elements.form);
-    const formValues = Object.fromEntries(data.entries());
+    return Object.fromEntries(data.entries());
+  }
+
+  get isTransparentBackground(): boolean {
+    const formValues = this.getFormValues();
 
     return (
       formValues.type !== 'nails_map' &&
@@ -303,7 +308,7 @@ export default class DownloadDialog extends HTMLElement {
     this.updatePreview();
   }
 
-  setSize(id: string) {
+  setSize(id: string, updatePreview = true) {
     const size = getDownloadImageSizeById(id);
     this.currentSize = size;
 
@@ -371,7 +376,12 @@ export default class DownloadDialog extends HTMLElement {
     }
 
     this.setDimensions(dimensions);
-    this.updatePreview();
+
+    if (updatePreview) {
+      this.updatePreview();
+    }
+
+    this.elements.size.value = id;
   }
 
   togglePixels(showPixels: boolean) {
@@ -478,16 +488,25 @@ export default class DownloadDialog extends HTMLElement {
     this.setSize(this.currentSize.id);
     return this.dialog
       .show(() => {
-        this.updatePreview();
+        const savedDownloadOptions = Persistance.getPatternDownloadData(
+          pattern.id
+        );
+        if (savedDownloadOptions) {
+          this.setDownloadOptionsToForm(savedDownloadOptions);
+        } else {
+          this.updatePreview();
+        }
       })
       .then(async () => {
-        const data = new FormData(this.elements.form);
-        const values = Object.fromEntries(data.entries());
+        const values = this.getFormValues();
         console.log('VAL', values);
-        await downloadPattern(
-          pattern,
-          this.#formValuesToDownloadOptions(values, pattern)
+        const downloadOptions = this.#formValuesToDownloadOptions(
+          values,
+          pattern
         );
+        Persistance.savePatternDownloadData(pattern.id, downloadOptions);
+
+        await downloadPattern(pattern, downloadOptions);
       });
   }
 
@@ -512,9 +531,50 @@ export default class DownloadDialog extends HTMLElement {
       includeNailNumbers: isNailsMap && values.render_numbers === 'on',
       filename: isNailsMap ? `${pattern.name} - nail map` : pattern.name,
       enableBackground: !this.isTransparentBackground,
+      sizeId: String(values.size),
+      isRotated: !!values.rotate_image,
     };
 
     return options;
+  }
+
+  /**
+   * Used when loading saved download options, to populate the form and internals
+   * @param downloadOptions
+   */
+  setDownloadOptionsToForm(downloadOptions: DownloadPatternOptions) {
+    (
+      this.shadowRoot.querySelector(
+        `#type_${downloadOptions.isNailsMap ? 'nails_map' : 'all'}`
+      )! as HTMLInputElement
+    ).checked = true;
+    this.#toggleNailNumbers(downloadOptions.isNailsMap);
+    (this.shadowRoot.querySelector(
+      '#render_numbers'
+    ) as StringArtCheckbox)!.value =
+      downloadOptions.includeNailNumbers === true;
+
+    this.setSize(downloadOptions.sizeId ?? 'custom');
+
+    if (downloadOptions.isRotated === true) {
+      (
+        this.shadowRoot.querySelector('#rotate_image') as HTMLInputElement
+      ).checked = true;
+      this.rotateImage();
+    }
+
+    this.setMargin(downloadOptions.margin ?? 0);
+
+    const { size } = downloadOptions;
+    this.customDimensions = size;
+    this.elements.patternDimensions.setMaxDimensions(size);
+    this.elements.patternDimensions.width = size[0] - this.margin * 2;
+    this.elements.patternDimensions.height = size[1] - this.margin * 2;
+
+    if (downloadOptions.dpi) {
+      this.elements.dpi.value = String(downloadOptions.dpi);
+    }
+    this.updatePreview();
   }
 
   updatePreview() {
@@ -558,8 +618,7 @@ export default class DownloadDialog extends HTMLElement {
       );
     }
 
-    const data = new FormData(this.elements.form);
-    const values = Object.fromEntries(data.entries());
+    const values = this.getFormValues();
 
     previewPattern.assignConfig(
       values.type === 'nails_map'

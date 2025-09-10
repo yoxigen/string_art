@@ -5,6 +5,8 @@ import { AppData, PatternData } from './types/persistance.types';
 import type InputDialog from './components/dialogs/InputDialog';
 import { confirm, prompt } from './helpers/dialogs';
 import { getQueryParams } from './helpers/url_utils';
+import { ID } from './types/stringart.types';
+import { DownloadPatternOptions } from './download/Download';
 
 const APP_DATA_STORAGE_KEY = 'string_art_app_data';
 
@@ -130,7 +132,7 @@ export default class Persistance extends EventBus<{
     };
 
     appData.patterns.push(newPatternData);
-    this.saveAppData(appData);
+    Persistance.saveAppData(appData);
 
     this.emit('newPattern', {
       pattern: Persistance.patternDataToStringArt(newPatternData),
@@ -147,7 +149,7 @@ export default class Persistance extends EventBus<{
     );
     if (patternIndex !== -1) {
       appData.patterns[patternIndex] = patternData;
-      this.saveAppData(appData);
+      Persistance.saveAppData(appData);
 
       this.emit('save', {
         pattern: Persistance.patternDataToStringArt(patternData),
@@ -205,7 +207,7 @@ export default class Persistance extends EventBus<{
         }
 
         const pattern = appData.patterns.splice(patternIndex, 1)[0];
-        this.saveAppData(appData);
+        Persistance.saveAppData(appData);
 
         this.emit('deletePattern', {
           pattern: Persistance.patternDataToStringArt(pattern),
@@ -215,10 +217,24 @@ export default class Persistance extends EventBus<{
     );
   }
 
+  static savePatternDownloadData(patternId: ID, data: DownloadPatternOptions) {
+    const appData = Persistance.loadAppData();
+    if (!appData.downloadData) {
+      appData.downloadData = {};
+    }
+    appData.downloadData[patternId] = data;
+    this.saveAppData(appData);
+  }
+
+  static getPatternDownloadData(patternId: ID): DownloadPatternOptions | null {
+    const appData = Persistance.loadAppData();
+    return appData.downloadData?.[patternId];
+  }
+
   static loadAppData(): AppData {
     const rawData = localStorage.getItem(APP_DATA_STORAGE_KEY);
     try {
-      return rawData ? JSON.parse(rawData) : { patterns: [] };
+      return rawData ? JSON.parse(rawData) : { patterns: [], downloadData: {} };
     } catch (error) {
       throw new Error(
         'App data is corrupted, failed to load it. ' + error.message
@@ -226,7 +242,7 @@ export default class Persistance extends EventBus<{
     }
   }
 
-  saveAppData(appData: AppData): void {
+  static saveAppData(appData: AppData): void {
     localStorage.setItem(APP_DATA_STORAGE_KEY, JSON.stringify(appData));
   }
 }

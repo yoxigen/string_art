@@ -22,6 +22,8 @@ export interface DownloadPatternOptions {
   imageType?: ImageType;
   margin?: number;
   enableBackground?: boolean;
+  sizeId?: string;
+  isRotated?: boolean;
 }
 
 export function downloadFile({ data, filename }: DownloadData) {
