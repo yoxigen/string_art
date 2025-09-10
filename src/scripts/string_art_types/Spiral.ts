@@ -9,6 +9,7 @@ import {
 } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
+import { withoutAttribute } from '../helpers/config_utils';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -71,7 +72,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
       affectsNails: false,
     },
     {
-      ...Circle.rotationConfig,
+      ...withoutAttribute(Circle.rotationConfig, 'snap'),
       defaultValue: 0.75,
     },
     Circle.distortionConfig,

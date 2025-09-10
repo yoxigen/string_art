@@ -537,7 +537,6 @@ export default class DownloadDialog extends HTMLElement {
       })
       .then(async () => {
         const values = this.getFormValues();
-        console.log('VAL', values);
         const downloadOptions = this.#formValuesToDownloadOptions(
           values,
           pattern

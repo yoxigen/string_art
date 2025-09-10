@@ -3,7 +3,7 @@ import patternTypes from './pattern_types';
 import EditorControls, {
   ControlValueChangeEventData,
 } from './editor/EditorControls';
-import EditorSizeControls from './editor/EditorSizeControls';
+// import EditorSizeControls from './editor/EditorSizeControls';
 import { Thumbnails } from './thumbnails/Thumbnails';
 import { deserializeConfig, serializeConfig } from './Serialize';
 import { isShareSupported, share } from './share';
@@ -62,9 +62,9 @@ async function main() {
   const viewer = new Viewer(queryParams.renderer === 'svg' ? 'svg' : 'canvas');
   const player = new Player(document.querySelector('#player'), viewer);
 
-  const sizeControls = new EditorSizeControls({
-    getCurrentSize: () => viewer.size,
-  });
+  // const sizeControls = new EditorSizeControls({
+  //   getCurrentSize: () => viewer.size,
+  // });
 
   const patterns = patternTypes.map(Pattern => new Pattern());
   type Pattern = StringArt<any>;
@@ -212,7 +212,7 @@ async function main() {
       throw new Error("Can't init pattern - no current pattern available!");
     }
 
-    initSize();
+    // initSize();
 
     elements.resetBtn.addEventListener('click', reset);
     const showShare = await isShareSupported();
@@ -290,14 +290,14 @@ async function main() {
     );
   }
 
-  function initSize() {
-    sizeControls.element.addEventListener(
-      'sizechange',
-      ({ detail: size }: CustomEvent<Dimensions | null>) => {
-        viewer.setSize(size);
-      }
-    );
-  }
+  // function initSize() {
+  //   sizeControls.element.addEventListener(
+  //     'sizechange',
+  //     ({ detail: size }: CustomEvent<Dimensions | null>) => {
+  //       viewer.setSize(size);
+  //     }
+  //   );
+  // }
 
   function selectPattern(
     pattern: Pattern,
