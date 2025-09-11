@@ -146,7 +146,8 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
 
       pattern.assignConfig({
         margin: 1,
-        enableBackground: false,
+        enableBackground:
+          !pattern.config.darkMode || pattern.config.customBackgroundColor,
         nailRadius: 0.5,
         ...(thumbnailConfig instanceof Function
           ? thumbnailConfig(pattern.config)
