@@ -297,10 +297,10 @@ class Eye extends StringArt<EyeConfig> {
     }
   }
 
-  static thumbnailConfig = {
-    n: 25,
-    layers: 7,
-  };
+  thumbnailConfig = ({ n, layers }) => ({
+    n: Math.min(n, 25),
+    layers: Math.min(layers, 7),
+  });
 }
 
 export default Eye;

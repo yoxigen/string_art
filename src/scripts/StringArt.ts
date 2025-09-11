@@ -173,7 +173,9 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   abstract getStepCount(options: CalcOptions): number;
   abstract getAspectRatio(options: CalcOptions): number;
 
-  static thumbnailConfig: Partial<Config>;
+  thumbnailConfig:
+    | Partial<Config<TConfig>>
+    | ((config: Config<TConfig>) => Partial<Config<TConfig>>);
   static type: string;
 
   getCommonControls(): ControlsConfig<Partial<CommonConfig>> {

@@ -181,8 +181,8 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     const stringsPerLayer = layerFill ? Math.floor(n * layerFill) : n;
     return (layers ?? 1) * stringsPerLayer;
   }
-
-  static thumbnailConfig = {
-    n: 70,
-  };
+  // @ts-ignore
+  thumbnailConfig = ({ n }) => ({
+    n: Math.min(n, 70),
+  });
 }

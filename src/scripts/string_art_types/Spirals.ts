@@ -173,10 +173,7 @@ class Spirals extends StringArt<SpiralsConfig> {
     }
   }
 
-  static thumbnailConfig = {
-    radiusIncrease: 1.4,
-    angleStep: 0.11,
-  };
+  thumbnailConfig = { radiusIncrease: 1.4, angleStep: 0.11 };
 }
 
 export default Spirals;

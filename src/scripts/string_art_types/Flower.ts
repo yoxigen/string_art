@@ -222,7 +222,7 @@ export default class Flower extends StringArt<FlowerConfig> {
     );
   }
 
-  static thumbnailConfig = {
-    n: 20,
-  };
+  thumbnailConfig = ({ n }) => ({
+    n: Math.min(n, 20),
+  });
 }

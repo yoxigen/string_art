@@ -283,8 +283,8 @@ export default class Comet extends StringArt<CometConfig> {
     this.calc.circle.drawNails(this.nails);
   }
 
-  static thumbnailConfig = {
-    n: 24,
-    layers: 8,
-  };
+  thumbnailConfig = ({ n, layers }) => ({
+    n: Math.min(n, n % 2 ? 29 : 28),
+    layers: Math.min(layers, 8),
+  });
 }

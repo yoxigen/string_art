@@ -466,7 +466,9 @@ export default class Lotus extends StringArt<LotusConfig> {
     return sides * sideStepCount;
   }
 
-  static thumbnailConfig = {};
+  thumbnailConfig = ({ density }) => ({
+    density: Math.min(density, 70),
+  });
 }
 
 function getSectionsCount(sides: number): number {

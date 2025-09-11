@@ -3,6 +3,7 @@ import Circle from '../helpers/Circle';
 import Polygon from '../helpers/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
+import { withoutAttribute } from '../helpers/config_utils';
 import { gcd, PI2 } from '../helpers/math_utils';
 import { mapDimensions } from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
@@ -83,7 +84,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
       displayValue: ({ angle }) => `${angle}°`,
       isStructural: true,
     },
-    Circle.rotationConfig,
+    withoutAttribute(Circle.rotationConfig, 'snap'),
     COLOR_CONFIG,
   ];
 
@@ -233,6 +234,4 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
       this.nails.addNail({ point, number: index });
     }
   }
-
-  static thumbnailConfig = {};
 }

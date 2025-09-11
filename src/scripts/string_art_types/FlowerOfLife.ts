@@ -802,7 +802,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     }
   }
 
-  static thumbnailConfig = {
-    density: 3,
-  };
+  thumbnailConfig = ({ density }) => ({
+    density: Math.min(density, 3),
+  });
 }

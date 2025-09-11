@@ -106,8 +106,4 @@ export default class Wave extends Mandala<WaveConfig> {
       yield* this.drawTimesTable(renderer, layer);
     }
   }
-
-  static thumbnailConfig = {
-    n: 70,
-  };
 }

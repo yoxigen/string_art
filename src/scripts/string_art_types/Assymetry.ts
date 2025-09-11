@@ -283,7 +283,5 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     );
   }
 
-  static thumbnailConfig = {
-    n: 50,
-  };
+  thumbnailConfig = ({ n }) => ({ n: Math.min(n, 50) });
 }

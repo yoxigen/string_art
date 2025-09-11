@@ -266,7 +266,7 @@ export default class Star extends StringArt<StarConfig> {
     return circleCount + ringCount + starCount;
   }
 
-  static thumbnailConfig = {
-    sideNails: 18,
-  };
+  thumbnailConfig = ({ sideNails }) => ({
+    sideNails: Math.min(sideNails, 18),
+  });
 }

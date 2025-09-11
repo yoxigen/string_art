@@ -192,7 +192,7 @@ export default class Spiral extends StringArt<SpiralConfig> {
     this.calc.circle.drawNails(this.nails);
   }
 
-  static thumbnailConfig = {
-    n: 60,
-  };
+  thumbnailConfig = ({ n }) => ({
+    n: Math.min(n, 60),
+  });
 }

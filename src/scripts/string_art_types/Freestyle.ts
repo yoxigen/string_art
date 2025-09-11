@@ -385,8 +385,8 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
     return layers.length * maxShapeNailsCount - 1;
   }
 
-  static thumbnailConfig = {
-    minNailDistance: 3,
-    n: 40,
-  };
+  thumbnailConfig = ({ n, minNailDistance }) => ({
+    minNailDistance: Math.min(minNailDistance, 3),
+    n: Math.min(n, 40),
+  });
 }

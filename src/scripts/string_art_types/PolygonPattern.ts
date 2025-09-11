@@ -171,7 +171,7 @@ export default class PolygonPattern extends StringArt<PolygonPatternConfig> {
     this.calc.polygon.drawNails(this.nails);
   }
 
-  static thumbnailConfig = {
-    n: 20,
-  };
+  thumbnailConfig = ({ n }) => ({
+    n: Math.min(n, 20),
+  });
 }

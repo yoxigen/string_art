@@ -454,8 +454,8 @@ export default class Sun extends StringArt<SunConfig> {
     return stepCount;
   }
 
-  static thumbnailConfig = {
-    sideNails: 10,
-    backdropNailsRadius: 0.5,
-  };
+  thumbnailConfig = ({ sideNails, backdropNailsRadius }) => ({
+    sideNails: Math.min(sideNails, 10),
+    backdropNailsRadius: Math.min(backdropNailsRadius, 0.5),
+  });
 }

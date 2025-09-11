@@ -142,11 +142,15 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
       patternLink.style.width = patternLink.style.height = THUMBNAIL_WIDTH_PX;
       patternThumbnails[pattern.id] = patternLink;
 
+      const thumbnailConfig = pattern.thumbnailConfig;
+
       pattern.assignConfig({
         margin: 1,
         enableBackground: false,
         nailRadius: 0.5,
-        ...(pattern.constructor as typeof StringArt).thumbnailConfig,
+        ...(thumbnailConfig instanceof Function
+          ? thumbnailConfig(pattern.config)
+          : thumbnailConfig),
       });
 
       const li = document.createElement('li');
