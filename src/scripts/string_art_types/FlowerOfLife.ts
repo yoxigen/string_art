@@ -803,9 +803,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
   }
 
   static thumbnailConfig = {
-    levels: 3,
     density: 3,
-    fill: false,
-    renderRing: true,
   };
 }
