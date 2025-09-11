@@ -372,15 +372,15 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       enableBackground,
     } = this.config;
 
-    if (enableBackground !== false) {
-      renderer.setBackground(
-        customBackgroundColor
+    renderer.setBackground(
+      enableBackground !== false
+        ? customBackgroundColor
           ? backgroundColor
           : darkMode
           ? COLORS.dark
           : COLORS.light
-      );
-    }
+        : null
+    );
 
     if (showNails && drawOptions.redrawNails !== false) {
       this.drawNails();

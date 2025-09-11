@@ -8,6 +8,8 @@ import { areDimensionsEqual } from '../helpers/size_utils';
 let lastId = 0;
 
 export default class CanvasRenderer extends Renderer {
+  #background: ColorValue | null;
+
   #layers: Record<
     'strings' | 'nails',
     { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D }
@@ -154,11 +156,19 @@ export default class CanvasRenderer extends Renderer {
     this.stringsCtx.lineWidth = width;
   }
 
-  setBackground(color: ColorValue) {
-    this.stringsCtx.globalCompositeOperation = 'destination-over';
-    this.stringsCtx.fillStyle = color;
-    this.stringsCtx.fillRect(0, 0, ...this.getSize());
-    this.stringsCtx.globalCompositeOperation = 'source-over';
+  setBackground(color: ColorValue | null) {
+    if ((this.#background = color)) {
+      this.parentElement.style.background = color;
+    } else {
+      this.parentElement.style.removeProperty('background');
+    }
+  }
+
+  #setBackgroundOnCanvas(context: CanvasRenderingContext2D, color: ColorValue) {
+    context.globalCompositeOperation = 'destination-over';
+    context.fillStyle = color;
+    context.fillRect(0, 0, ...this.getSize());
+    context.globalCompositeOperation = 'source-over';
   }
 
   getLogicalSize(): Dimensions {
@@ -256,6 +266,9 @@ export default class CanvasRenderer extends Renderer {
     compositeCanvas.width = this.stringsCanvas.width;
     compositeCanvas.height = this.stringsCanvas.height;
     const ctx = compositeCanvas.getContext('2d');
+    if (this.#background) {
+      this.#setBackgroundOnCanvas(ctx, this.#background);
+    }
     this.canvases.forEach(c => ctx.drawImage(c, 0, 0));
     return compositeCanvas;
   }

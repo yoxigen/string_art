@@ -657,16 +657,6 @@ export default class DownloadDialog extends HTMLElement {
     renderer.setFixedSize(previewSize);
 
     const previewPattern = this.currentPattern.copy();
-
-    if (this.isTransparentBackground) {
-      this.elements.canvas.style.removeProperty('background');
-    } else {
-      this.elements.canvas.style.setProperty(
-        'background',
-        previewPattern.config.backgroundColor
-      );
-    }
-
     const values = this.getFormValues();
 
     previewPattern.assignConfig(
