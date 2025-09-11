@@ -1,5 +1,5 @@
 import StringArt from '../StringArt';
-import Circle from '../helpers/Circle';
+import Circle from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';

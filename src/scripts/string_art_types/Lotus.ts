@@ -1,5 +1,5 @@
 import StringArt from '../StringArt';
-import Circle, { CircleConfig } from '../helpers/Circle';
+import Circle, { CircleConfig } from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import type { ControlsConfig } from '../types/config.types';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';

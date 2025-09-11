@@ -1,5 +1,5 @@
 import StringArt from '../StringArt';
-import Circle from '../helpers/Circle';
+import Circle from '../shapes/Circle';
 import { ColorValue } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
 import {

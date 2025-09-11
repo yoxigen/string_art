@@ -1,5 +1,5 @@
 import StringArt from '../StringArt';
-import Circle, { CircleConfig } from '../helpers/Circle';
+import Circle, { CircleConfig } from '../shapes/Circle';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';

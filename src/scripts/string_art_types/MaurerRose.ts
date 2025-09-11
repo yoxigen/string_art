@@ -1,6 +1,6 @@
 import StringArt from '../StringArt';
-import Circle from '../helpers/Circle';
-import Polygon from '../helpers/Polygon';
+import Circle from '../shapes/Circle';
+import Polygon from '../shapes/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';

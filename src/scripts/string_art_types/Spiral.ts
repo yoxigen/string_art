@@ -1,6 +1,6 @@
 import Color from '../helpers/color/Color';
 import StringArt from '../StringArt';
-import Circle from '../helpers/Circle';
+import Circle from '../shapes/Circle';
 import { ControlsConfig } from '../types/config.types';
 import {
   ColorConfig,

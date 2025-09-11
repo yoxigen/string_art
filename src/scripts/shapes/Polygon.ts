@@ -1,9 +1,9 @@
 import Nails from '../Nails';
 import { ControlConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
-import { PI2 } from './math_utils';
-import { compareObjects } from './object_utils';
-import { getBoundingRectAspectRatio } from './size_utils';
+import { PI2 } from '../helpers/math_utils';
+import { compareObjects } from '../helpers/object_utils';
+import { getBoundingRectAspectRatio } from '../helpers/size_utils';
 
 export interface PolygonConfig {
   size: Dimensions;

@@ -6,9 +6,9 @@ import {
   NailsConfig,
 } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
-import { compareObjects } from './object_utils';
+import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
-import { formatFractionAsPercent } from './string_utils';
+import { formatFractionAsPercent } from '../helpers/string_utils';
 
 export interface StarShapeConfig {
   sideNails: number;
