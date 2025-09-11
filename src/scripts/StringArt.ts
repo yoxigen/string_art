@@ -127,6 +127,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: true,
         type: 'checkbox',
         affectsNails: false,
+        affectsStrings: false,
       },
       {
         key: 'customBackgroundColor',
@@ -134,6 +135,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         defaultValue: false,
         type: 'checkbox',
         affectsNails: false,
+        affectsStrings: false,
       },
       {
         key: 'backgroundColor',
@@ -142,6 +144,7 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
         type: 'color',
         show: ({ customBackgroundColor }) => customBackgroundColor,
         affectsNails: false,
+        affectsStrings: false,
       },
     ],
   },

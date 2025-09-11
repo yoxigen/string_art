@@ -11,8 +11,8 @@ export interface DownloadSizeType {
   dimensions?:
     | Dimensions
     | ((options: {
-        customDimensions: Dimensions | null;
-        currentDimensions: Dimensions | null;
+        customDimensions?: Dimensions | null;
+        currentDimensions?: Dimensions | null;
         patternAspectRatio: number;
       }) => Dimensions | null);
   units?: SizeUnit[];

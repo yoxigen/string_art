@@ -529,11 +529,7 @@ export default class DownloadDialog extends HTMLElement {
         const savedDownloadOptions = Persistance.getPatternDownloadData(
           pattern.id
         );
-        if (savedDownloadOptions) {
-          this.setDownloadOptionsToForm(savedDownloadOptions);
-        } else {
-          this.updatePreview();
-        }
+        this.setDownloadOptionsToForm(savedDownloadOptions);
       })
       .then(async () => {
         const values = this.getFormValues();
@@ -579,7 +575,21 @@ export default class DownloadDialog extends HTMLElement {
    * Used when loading saved download options, to populate the form and internals
    * @param downloadOptions
    */
-  setDownloadOptionsToForm(downloadOptions: DownloadPatternOptions) {
+  setDownloadOptionsToForm(downloadOptions: DownloadPatternOptions | null) {
+    if (!downloadOptions) {
+      const size = DOWNLOAD_IMAGE_SIZES[0];
+      downloadOptions = {
+        size:
+          size.dimensions instanceof Function
+            ? size.dimensions({
+                patternAspectRatio: this.patternAspectRatio,
+              })
+            : size.dimensions,
+        sizeId: size.id,
+        margin: size.defaultMargin,
+        units: size.defaultUnits,
+      };
+    }
     this.setType(downloadOptions.isNailsMap ? 'nails_map' : 'all', false);
 
     this.#toggleNailNumbers(downloadOptions.isNailsMap);
@@ -591,10 +601,11 @@ export default class DownloadDialog extends HTMLElement {
     const sizeId = downloadOptions.sizeId ?? 'custom';
     this.setSize(sizeId, false);
 
-    if (downloadOptions.isRotated === true) {
-      (
-        this.shadowRoot.querySelector('#rotate_image') as HTMLInputElement
-      ).checked = true;
+    const isRotated = downloadOptions.isRotated === true;
+    (
+      this.shadowRoot.querySelector('#rotate_image') as HTMLInputElement
+    ).checked = isRotated;
+    if (isRotated) {
       this.rotateImage();
     }
 
@@ -609,19 +620,13 @@ export default class DownloadDialog extends HTMLElement {
       this.setDimensions(size, false);
     }
 
-    if (downloadOptions.dpi) {
-      this.elements.dpi.value = String(downloadOptions.dpi);
-    }
+    this.elements.dpi.value = String(downloadOptions.dpi ?? DEFAULT_DPI);
 
-    if (downloadOptions.imageType) {
-      this.setImageType(downloadOptions.imageType);
-    }
+    this.setImageType(downloadOptions.imageType ?? 'png');
 
-    if (downloadOptions.enableBackground != null) {
-      (this.shadowRoot.querySelector(
-        '#transparent_background'
-      ) as StringArtCheckbox)!.value = !downloadOptions.enableBackground;
-    }
+    (this.shadowRoot.querySelector(
+      '#transparent_background'
+    ) as StringArtCheckbox)!.value = !downloadOptions.enableBackground;
 
     this.updatePreview();
   }
