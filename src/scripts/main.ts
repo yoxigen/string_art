@@ -9,10 +9,8 @@ import { deserializeConfig, serializeConfig } from './Serialize';
 import { isShareSupported, share } from './share';
 import { initServiceWorker } from './pwa';
 import SVGRenderer from './renderers/SVGRenderer';
-import { downloadPattern } from './download/Download';
 import './components/components';
-import type { Dimensions } from './types/general.types';
-import { PrimitiveValue } from './types/config.types';
+import { Config, PrimitiveValue } from './types/config.types';
 import Persistance from './Persistance';
 import StringArt from './StringArt';
 import { compareObjects } from './helpers/object_utils';
@@ -66,9 +64,9 @@ async function main() {
   //   getCurrentSize: () => viewer.size,
   // });
 
-  const patterns = patternTypes.map(Pattern => new Pattern());
   type Pattern = StringArt<any>;
   let currentPattern: Pattern;
+  let currentPatternDefaultConfig: Config;
 
   if (history.state?.patternId) {
     updateState(history.state);
@@ -197,14 +195,14 @@ async function main() {
   }
 
   function findPatternById(patternId: string): StringArt | null {
-    // @ts-ignore
-    let pattern: StringArt = patterns.find(({ id }) => id === patternId);
+    let pattern = patternTypes.find(({ type }) => type === patternId);
 
-    if (!pattern) {
-      // Try from persistance
-      pattern = Persistance.getPatternByID(patternId);
+    if (pattern) {
+      // @ts-ignore
+      return new pattern();
+    } else {
+      return Persistance.getPatternByID(patternId);
     }
-    return pattern;
   }
 
   async function initPattern() {
@@ -264,12 +262,13 @@ async function main() {
   function setIsDefaultConfig(value?: boolean) {
     // Determine whether the pattern is currently on its last saved (for saved patterns) or default state (for templates):
     const isDefaultConfig =
-      value ?? currentPattern.isTemplate
-        ? compareObjects(currentPattern.config, currentPattern.defaultConfig)
-        : compareObjects(
-            currentPattern.config,
-            findPatternById(currentPattern.id).config
-          );
+      value ??
+      compareObjects(
+        currentPattern.config,
+        currentPattern.isTemplate
+          ? currentPattern.defaultConfig
+          : currentPatternDefaultConfig
+      );
 
     elements.main.dataset.isDefaultConfig = String(isDefaultConfig);
   }
@@ -301,11 +300,13 @@ async function main() {
 
   function selectPattern(
     pattern: Pattern,
-    { config, draw = true }: SetPatternOptions = {}
+    { config, draw = true, isDefaultConfig = true }: SetPatternOptions = {}
   ) {
     const isFirstTime = !currentPattern;
 
     currentPattern = pattern;
+    currentPatternDefaultConfig = isDefaultConfig ? pattern.config : null;
+
     viewer.setPattern(pattern);
     if (config) {
       // @ts-ignore
