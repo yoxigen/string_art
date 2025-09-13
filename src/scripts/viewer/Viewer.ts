@@ -17,6 +17,7 @@ export default class Viewer extends EventBus<{
   renderer: Renderer | null;
   pattern: StringArt;
   rendererType: RendererType;
+  cancelDraw: (() => void) | null;
 
   constructor(rendererType: RendererType = 'canvas') {
     super();
@@ -106,7 +107,8 @@ export default class Viewer extends EventBus<{
 
   update(options?: DrawOptions) {
     this.#withRenderer();
-    this.pattern?.draw(this.renderer, options);
+    this.cancelDraw?.();
+    this.cancelDraw = this.pattern?.draw(this.renderer, options);
   }
 
   goto(position: number) {

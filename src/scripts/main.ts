@@ -325,6 +325,7 @@ async function main() {
       viewer.update({
         redrawNails: control.affectsNails !== false,
         redrawStrings: control.affectsStrings !== false,
+        bufferSize: 10000,
       });
     });
     controls.addEventListener('change', onInputsChange);

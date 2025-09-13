@@ -2,6 +2,7 @@ import {
   getConfigDefaultValues,
   getControlsIndex,
 } from './helpers/config_utils';
+import EventBus from './helpers/EventBus';
 import { areDimensionsEqual } from './helpers/size_utils';
 import Nails from './Nails';
 import Renderer from './renderers/Renderer';
@@ -27,7 +28,10 @@ export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
 export interface DrawOptions {
   redrawNails?: boolean;
   redrawStrings?: boolean;
+  bufferSize?: number;
 }
+
+let currentJobId = 0;
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
   {
@@ -150,7 +154,11 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
   },
 ];
 
-abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
+abstract class StringArt<
+  TConfig = Record<string, PrimitiveValue>
+> extends EventBus<{
+  drawdone: void;
+}> {
   controls: ControlsConfig<TConfig> = [];
   defaultValues: Partial<Config<TConfig>> = {};
   stepCount: number | null = null;
@@ -169,7 +177,9 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
 
-  constructor() {}
+  constructor() {
+    super();
+  }
 
   abstract drawNails(): void;
   abstract drawStrings(renderer: Renderer): Generator<void>;
@@ -308,7 +318,9 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   }
 
   setUpDraw(options?: CalcOptions) {}
-  afterDraw() {}
+  afterDraw() {
+    this.emit('drawdone', null);
+  }
 
   setSize(size: Dimensions): void {
     const sizeChanged = this.size && !areDimensionsEqual(size, this.size);
@@ -361,10 +373,12 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
     renderer: Renderer,
     {
       position = Infinity,
+      bufferSize,
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
-  ) {
+  ): () => void {
     this.initDraw(renderer, drawOptions);
+    const jobId = currentJobId++;
 
     const {
       showNails,
@@ -390,15 +404,47 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       this.nails.draw(renderer, { drawNumbers: showNailNumbers });
     }
 
+    let abortController = new AbortController();
     if (drawOptions.redrawStrings !== false) {
       const { showStrings } = this.config;
 
       if (showStrings) {
         this.stringsIterator = this.drawStrings(renderer);
         this.position = 0;
+        let chunkId = 0;
+        let totalCount = 0;
+        const stepCount = this.getStepCount({ size: this.size });
+        const doChunk = () => {
+          console.log(`Job [${jobId}]: ${chunkId} (b: ${bufferSize})`);
+          chunkId++;
 
-        while (!this.drawNext().done && this.position < position);
-        this.afterDraw();
+          let i = 0;
+          let isDone = false;
+
+          while (
+            (!bufferSize || i < bufferSize) &&
+            !(isDone = this.drawNext().done) &&
+            this.position < position
+          ) {
+            i++;
+            totalCount++;
+          }
+
+          if (abortController.signal.aborted) {
+            console.log('CANCELLED!');
+          } else if (!isDone) {
+            setTimeout(doChunk, 0);
+          }
+        };
+
+        doChunk();
+
+        return () => {
+          console.log(
+            'cancelling job ' + jobId + ` after ${totalCount} / ${stepCount}`
+          );
+          abortController.abort();
+        };
       }
     }
   }
