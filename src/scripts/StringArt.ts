@@ -375,6 +375,7 @@ abstract class StringArt<
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
   ): () => void {
+    let abortController = new AbortController();
     this.initDraw(renderer, drawOptions);
 
     const {
@@ -401,7 +402,6 @@ abstract class StringArt<
       this.nails.draw(renderer, { drawNumbers: showNailNumbers });
     }
 
-    let abortController = new AbortController();
     if (drawOptions.redrawStrings !== false) {
       const { showStrings } = this.config;
 
@@ -409,14 +409,17 @@ abstract class StringArt<
         this.stringsIterator = this.drawStrings(renderer);
         this.position = 0;
         let chunkId = 0;
-        const doChunk = () => {
+
+        const drawBuffer = () => {
           chunkId++;
 
           let i = 0;
           let isDone = false;
 
           while (
-            (!bufferSize || i < bufferSize) &&
+            (!drawOptions.redrawNails ||
+              bufferSize == null ||
+              i < bufferSize) &&
             !(isDone =
               this.drawNext().done ||
               (position != null && this.position >= position) ||
@@ -428,17 +431,17 @@ abstract class StringArt<
           if (!isDone) {
             // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
             // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
-            setTimeout(doChunk, 0);
+            setTimeout(drawBuffer, 0);
           }
         };
 
-        doChunk();
-
-        return () => {
-          abortController.abort();
-        };
+        drawBuffer();
       }
     }
+
+    return () => {
+      abortController.abort();
+    };
   }
 
   goto(renderer: Renderer, position: number) {
