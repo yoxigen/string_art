@@ -31,8 +31,6 @@ export interface DrawOptions {
   bufferSize?: number;
 }
 
-let currentJobId = 0;
-
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
   {
     key: 'strings',
@@ -372,7 +370,7 @@ abstract class StringArt<
   draw(
     renderer: Renderer,
     {
-      position = Infinity,
+      position,
       bufferSize,
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
@@ -411,7 +409,6 @@ abstract class StringArt<
         this.stringsIterator = this.drawStrings(renderer);
         this.position = 0;
         let chunkId = 0;
-        let totalCount = 0;
         const doChunk = () => {
           chunkId++;
 
@@ -420,14 +417,17 @@ abstract class StringArt<
 
           while (
             (!bufferSize || i < bufferSize) &&
-            !(isDone = this.drawNext().done) &&
-            this.position < position
+            !(isDone =
+              this.drawNext().done ||
+              (position != null && this.position >= position) ||
+              abortController.signal.aborted)
           ) {
             i++;
-            totalCount++;
           }
 
-          if (!abortController.signal.aborted && !isDone) {
+          if (!isDone) {
+            // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
+            // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
             setTimeout(doChunk, 0);
           }
         };
