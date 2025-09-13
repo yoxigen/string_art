@@ -378,7 +378,6 @@ abstract class StringArt<
     }: { position?: number } & DrawOptions = {}
   ): () => void {
     this.initDraw(renderer, drawOptions);
-    const jobId = currentJobId++;
 
     const {
       showNails,
@@ -413,9 +412,7 @@ abstract class StringArt<
         this.position = 0;
         let chunkId = 0;
         let totalCount = 0;
-        const stepCount = this.getStepCount({ size: this.size });
         const doChunk = () => {
-          console.log(`Job [${jobId}]: ${chunkId} (b: ${bufferSize})`);
           chunkId++;
 
           let i = 0;
@@ -430,9 +427,7 @@ abstract class StringArt<
             totalCount++;
           }
 
-          if (abortController.signal.aborted) {
-            console.log('CANCELLED!');
-          } else if (!isDone) {
+          if (!abortController.signal.aborted && !isDone) {
             setTimeout(doChunk, 0);
           }
         };
@@ -440,9 +435,6 @@ abstract class StringArt<
         doChunk();
 
         return () => {
-          console.log(
-            'cancelling job ' + jobId + ` after ${totalCount} / ${stepCount}`
-          );
           abortController.abort();
         };
       }
