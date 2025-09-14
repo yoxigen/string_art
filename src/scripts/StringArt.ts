@@ -2,6 +2,7 @@ import {
   getConfigDefaultValues,
   getControlsIndex,
 } from './helpers/config_utils';
+import EventBus from './helpers/EventBus';
 import { areDimensionsEqual } from './helpers/size_utils';
 import Nails from './Nails';
 import Renderer from './renderers/Renderer';
@@ -27,6 +28,8 @@ export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
 export interface DrawOptions {
   redrawNails?: boolean;
   redrawStrings?: boolean;
+  bufferSize?: number;
+  bufferFrom?: number;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -150,7 +153,11 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
   },
 ];
 
-abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
+abstract class StringArt<
+  TConfig = Record<string, PrimitiveValue>
+> extends EventBus<{
+  drawdone: void;
+}> {
   controls: ControlsConfig<TConfig> = [];
   defaultValues: Partial<Config<TConfig>> = {};
   stepCount: number | null = null;
@@ -169,7 +176,9 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
 
-  constructor() {}
+  constructor() {
+    super();
+  }
 
   abstract drawNails(): void;
   abstract drawStrings(renderer: Renderer): Generator<void>;
@@ -308,7 +317,9 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   }
 
   setUpDraw(options?: CalcOptions) {}
-  afterDraw() {}
+  afterDraw() {
+    this.emit('drawdone', null);
+  }
 
   setSize(size: Dimensions): void {
     const sizeChanged = this.size && !areDimensionsEqual(size, this.size);
@@ -360,10 +371,13 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
   draw(
     renderer: Renderer,
     {
-      position = Infinity,
+      position,
+      bufferSize,
+      bufferFrom,
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
-  ) {
+  ): () => void {
+    let abortController = new AbortController();
     this.initDraw(renderer, drawOptions);
 
     const {
@@ -396,11 +410,46 @@ abstract class StringArt<TConfig = Record<string, PrimitiveValue>> {
       if (showStrings) {
         this.stringsIterator = this.drawStrings(renderer);
         this.position = 0;
+        let chunkId = 0;
 
-        while (!this.drawNext().done && this.position < position);
-        this.afterDraw();
+        const drawBuffer = bufferSize
+          ? () => {
+              chunkId++;
+
+              let i = 0;
+              let isDone = false;
+
+              while (
+                (bufferSize == null || i < bufferSize) &&
+                !(isDone =
+                  this.drawNext().done ||
+                  (position != null && this.position >= position) ||
+                  abortController.signal.aborted)
+              ) {
+                i++;
+              }
+
+              if (!isDone) {
+                // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
+                // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
+                setTimeout(drawBuffer, 0);
+              }
+            }
+          : () => {
+              while (
+                !this.drawNext().done ||
+                (position != null && this.position >= position) ||
+                abortController.signal.aborted
+              );
+            };
+
+        drawBuffer();
       }
     }
+
+    return () => {
+      abortController.abort();
+    };
   }
 
   goto(renderer: Renderer, position: number) {

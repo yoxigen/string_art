@@ -1,7 +1,7 @@
 import StringArt from '../StringArt';
-import Circle, { CircleConfig } from '../helpers/Circle';
+import Circle, { CircleConfig } from '../shapes/Circle';
 import Color from '../helpers/color/Color';
-import StarShape, { StarShapeConfig } from '../helpers/StarShape';
+import StarShape, { StarShapeConfig } from '../shapes/StarShape';
 import { insertAfter } from '../helpers/config_utils';
 import { mapKeys } from '../helpers/object_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';

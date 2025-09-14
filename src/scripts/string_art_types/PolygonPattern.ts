@@ -1,5 +1,5 @@
 import StringArt from '../StringArt';
-import Polygon, { PolygonConfig } from '../helpers/Polygon';
+import Polygon, { PolygonConfig } from '../shapes/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';

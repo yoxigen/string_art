@@ -1,6 +1,6 @@
 import StringArt from '../StringArt';
-import Circle, { CircleConfig } from '../helpers/Circle';
-import StarShape, { StarShapeConfig } from '../helpers/StarShape';
+import Circle, { CircleConfig } from '../shapes/Circle';
+import StarShape, { StarShapeConfig } from '../shapes/StarShape';
 import { ColorValue } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import Renderer from '../renderers/Renderer';

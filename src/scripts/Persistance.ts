@@ -7,6 +7,7 @@ import { confirm, prompt } from './helpers/dialogs';
 import { getQueryParams } from './helpers/url_utils';
 import { ID } from './types/stringart.types';
 import { DownloadPatternOptions } from './download/Download';
+import { createPatternInstance } from './helpers/pattern_utils';
 
 const APP_DATA_STORAGE_KEY = 'string_art_app_data';
 
@@ -84,15 +85,10 @@ export default class Persistance extends EventBus<{
   }
 
   static patternDataToStringArt({
-    type: patternType,
+    type,
     ...patternData
   }: PatternData): StringArt<any> {
-    const Pattern = patternTypes.find(({ type }) => type === patternType);
-    if (Pattern == null) {
-      throw new Error(`No pattern of type "${patternType}" found!`);
-    }
-
-    const pattern = new Pattern();
+    const pattern = createPatternInstance(type);
     Object.assign(pattern, patternData);
 
     return pattern;

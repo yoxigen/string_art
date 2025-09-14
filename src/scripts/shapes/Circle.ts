@@ -3,12 +3,12 @@ import Renderer from '../renderers/Renderer';
 import { ControlConfig, GroupValue } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { Nail } from '../types/stringart.types';
-import { ColorValue } from './color/color.types';
-import easing from './easing';
-import { PI2 } from './math_utils';
-import { compareObjects } from './object_utils';
+import { ColorValue } from '../helpers/color/color.types';
+import easing from '../helpers/easing';
+import { PI2 } from '../helpers/math_utils';
+import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
-import { fitInside } from './size_utils';
+import { fitInside } from '../helpers/size_utils';
 
 export interface CircleConfig {
   n: number;

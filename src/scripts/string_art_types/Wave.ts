@@ -1,5 +1,5 @@
 import Color from '../helpers/color/Color';
-import Circle from '../helpers/Circle';
+import Circle from '../shapes/Circle';
 import Mandala, { MandalaCalc, MandalaConfig } from './Mandala';
 import { ControlsConfig } from '../types/config.types';
 import { formatFractionAsPercent } from '../helpers/string_utils';

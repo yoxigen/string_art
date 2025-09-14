@@ -1,8 +1,8 @@
 import { PI2 } from '../helpers/math_utils';
 import StringArt from '../StringArt';
 import Color from '../helpers/color/Color';
-import Polygon from '../helpers/Polygon';
-import Circle, { CircleConfig } from '../helpers/Circle';
+import Polygon from '../shapes/Polygon';
+import Circle, { CircleConfig } from '../shapes/Circle';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import {
   ColorConfig,
