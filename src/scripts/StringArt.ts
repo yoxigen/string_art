@@ -29,6 +29,7 @@ export interface DrawOptions {
   redrawNails?: boolean;
   redrawStrings?: boolean;
   bufferSize?: number;
+  bufferFrom?: number;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -372,6 +373,7 @@ abstract class StringArt<
     {
       position,
       bufferSize,
+      bufferFrom,
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
   ): () => void {
@@ -410,30 +412,36 @@ abstract class StringArt<
         this.position = 0;
         let chunkId = 0;
 
-        const drawBuffer = () => {
-          chunkId++;
+        const drawBuffer = bufferSize
+          ? () => {
+              chunkId++;
 
-          let i = 0;
-          let isDone = false;
+              let i = 0;
+              let isDone = false;
 
-          while (
-            (!drawOptions.redrawNails ||
-              bufferSize == null ||
-              i < bufferSize) &&
-            !(isDone =
-              this.drawNext().done ||
-              (position != null && this.position >= position) ||
-              abortController.signal.aborted)
-          ) {
-            i++;
-          }
+              while (
+                (bufferSize == null || i < bufferSize) &&
+                !(isDone =
+                  this.drawNext().done ||
+                  (position != null && this.position >= position) ||
+                  abortController.signal.aborted)
+              ) {
+                i++;
+              }
 
-          if (!isDone) {
-            // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
-            // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
-            setTimeout(drawBuffer, 0);
-          }
-        };
+              if (!isDone) {
+                // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
+                // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
+                setTimeout(drawBuffer, 0);
+              }
+            }
+          : () => {
+              while (
+                !this.drawNext().done ||
+                (position != null && this.position >= position) ||
+                abortController.signal.aborted
+              );
+            };
 
         drawBuffer();
       }
