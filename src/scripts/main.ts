@@ -158,7 +158,7 @@ async function main() {
 
   function initRouting() {
     window.addEventListener('popstate', ({ state }) => {
-      updateState(state);
+      updateState(state ?? {});
     });
   }
 
