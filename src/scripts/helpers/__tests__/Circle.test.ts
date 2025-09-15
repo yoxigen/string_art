@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import Circle from '../Circle';
+import Circle from '../../shapes/Circle';
 
 describe('Circle', () => {
   describe('aspectRatio', () => {

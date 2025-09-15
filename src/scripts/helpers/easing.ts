@@ -47,8 +47,11 @@ const easing = {
   },
 };
 
+// @ts-ignore
 easing.fastInOut.requirePower = true;
+// @ts-ignore
 easing.fastInOutFixed.requirePower = true;
+// @ts-ignore
 easing.fastInOutFixed.requireFastArea = true;
 
 export default easing;

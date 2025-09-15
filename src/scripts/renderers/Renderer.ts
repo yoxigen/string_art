@@ -66,7 +66,9 @@ export default abstract class Renderer extends EventBus<{
   }
 
   destroy(): void {
-    this.parentElement.innerHTML = '';
+    if (this.parentElement) {
+      this.parentElement.innerHTML = '';
+    }
     this.#removeDevicePixelListener?.();
     this.#removeOnResizeListener?.();
   }

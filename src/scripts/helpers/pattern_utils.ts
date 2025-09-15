@@ -10,3 +10,15 @@ export function createPatternInstance(type: string): StringArt {
   // @ts-ignore
   return new Pattern();
 }
+
+/**
+ *
+ * @returns Returns an instance of each pattern type, with default configs
+ */
+export function getAllPatternsTypes(): StringArt[] {
+  // @ts-ignore
+  const patterns: StringArt[] = patternTypes.map(
+    PatternType => new PatternType()
+  );
+  return patterns;
+}

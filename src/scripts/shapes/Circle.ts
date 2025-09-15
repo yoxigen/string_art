@@ -170,9 +170,11 @@ export default class Circle {
         ? easing[config.displacementFunc]
         : easing.linear;
       const easingParams = [];
+      // @ts-ignore
       if (easingFunction.requirePower) {
         easingParams.push(config.displacementMag);
       }
+      // @ts-ignore
       if (easingFunction.requireFastArea) {
         easingParams.push(config.displacementFastArea);
       }
@@ -334,6 +336,7 @@ export default class Circle {
           max: 10,
           step: 0.1,
         },
+        // @ts-ignore
         show: ({ displacementFunc }) => easing[displacementFunc].requirePower,
         isStructural: true,
         affectsStepCount: false,
@@ -349,6 +352,7 @@ export default class Circle {
           step: 0.01,
         },
         show: ({ displacementFunc }) =>
+          // @ts-ignore
           easing[displacementFunc].requireFastArea,
         isStructural: true,
         affectsStepCount: false,

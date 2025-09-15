@@ -168,6 +168,7 @@ export function getConfigDefaultValues<T>(
     control: { key, defaultValue },
   } of traverseConfig(configControls)) {
     if (!(defaultValue instanceof Function)) {
+      // @ts-ignore
       defaultValues[key] = defaultValue;
     }
   }

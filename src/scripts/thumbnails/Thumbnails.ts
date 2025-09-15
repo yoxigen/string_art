@@ -3,6 +3,7 @@ import CanvasRenderer from '../renderers/CanvasRenderer';
 import type StringArt from '../StringArt';
 import Persistance from '../Persistance';
 import EventBus from '../helpers/EventBus';
+import { getAllPatternsTypes } from '../helpers/pattern_utils';
 
 const THUMBNAIL_WIDTH_PX = '100px';
 const MINIMIZED_CLASS = 'minimized';
@@ -186,8 +187,7 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
         Persistance.getSavedPatterns()
       );
     }
-    const patterns = patternTypes.map(PatternType => new PatternType());
-    // @ts-ignore
+    const patterns = getAllPatternsTypes();
     this.#createThumbnailsSection('Built-in patterns', patterns);
   }
 }

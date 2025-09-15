@@ -404,47 +404,42 @@ abstract class StringArt<
       this.nails.draw(renderer, { drawNumbers: showNailNumbers });
     }
 
-    if (drawOptions.redrawStrings !== false) {
-      const { showStrings } = this.config;
+    if (drawOptions.redrawStrings !== false && this.config.showStrings) {
+      this.stringsIterator = this.drawStrings(renderer);
+      this.position = 0;
+      let chunkId = 0;
 
-      if (showStrings) {
-        this.stringsIterator = this.drawStrings(renderer);
-        this.position = 0;
-        let chunkId = 0;
+      const drawBuffer = bufferSize
+        ? () => {
+            chunkId++;
 
-        const drawBuffer = bufferSize
-          ? () => {
-              chunkId++;
+            let i = 0;
+            let isDone = false;
 
-              let i = 0;
-              let isDone = false;
-
-              while (
-                (bufferSize == null || i < bufferSize) &&
-                !(isDone =
-                  this.drawNext().done ||
-                  (position != null && this.position >= position) ||
-                  abortController.signal.aborted)
-              ) {
-                i++;
-              }
-
-              if (!isDone) {
-                // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
-                // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
-                setTimeout(drawBuffer, 0);
-              }
-            }
-          : () => {
-              while (
-                !this.drawNext().done ||
+            while (
+              (bufferSize == null || i < bufferSize) &&
+              !(isDone =
+                this.drawNext().done ||
                 (position != null && this.position >= position) ||
-                abortController.signal.aborted
-              );
-            };
+                abortController.signal.aborted)
+            ) {
+              i++;
+            }
 
-        drawBuffer();
-      }
+            if (!isDone) {
+              // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
+              // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
+              setTimeout(drawBuffer, 0);
+            }
+          }
+        : () => {
+            while (
+              !this.drawNext().done &&
+              (position == null || this.position < position)
+            );
+          };
+
+      drawBuffer();
     }
 
     return () => {
