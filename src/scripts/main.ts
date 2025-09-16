@@ -1,11 +1,9 @@
 import Player from './editor/Player';
-import patternTypes from './pattern_types';
 import EditorControls, {
   ControlValueChangeEventData,
 } from './editor/EditorControls';
 // import EditorSizeControls from './editor/EditorSizeControls';
 import { Thumbnails } from './thumbnails/Thumbnails';
-import { deserializeConfig, serializeConfig } from './Serialize';
 import { isShareSupported, share } from './share';
 import { initServiceWorker } from './pwa';
 import SVGRenderer from './renderers/SVGRenderer';
@@ -16,8 +14,9 @@ import StringArt from './StringArt';
 import { compareObjects } from './helpers/object_utils';
 import { confirm } from './helpers/dialogs';
 import Viewer from './viewer/Viewer';
-import { getPatternURL, getQueryParams } from './helpers/url_utils';
 import type DownloadDialog from './components/dialogs/download_dialog/DownloadDialog';
+import { findPatternById } from './helpers/pattern_utils';
+import routing from './routing';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -49,40 +48,21 @@ window.addEventListener('load', main);
 async function main() {
   let controls: EditorControls<any>;
 
-  initRouting();
+  let currentPattern: Pattern;
+  let currentPatternDefaultConfig: Config;
+  const viewer = new Viewer();
+  const player = new Player(document.querySelector('#player'), viewer);
 
   await initServiceWorker();
 
   document.body.querySelectorAll('.pattern_only').forEach(hide);
   unHide(document.querySelector('main'));
 
-  const queryParams = getQueryParams();
-  const viewer = new Viewer(queryParams.renderer === 'svg' ? 'svg' : 'canvas');
-  const player = new Player(document.querySelector('#player'), viewer);
-
-  // const sizeControls = new EditorSizeControls({
-  //   getCurrentSize: () => viewer.size,
-  // });
-
   type Pattern = StringArt<any>;
-  let currentPattern: Pattern;
-  let currentPatternDefaultConfig: Config;
 
-  if (history.state?.patternId) {
-    updateState(history.state);
-  } else {
-    const queryPattern = queryParams.pattern;
-
-    if (queryPattern) {
-      const config = queryParams.config;
-      updateState({
-        patternId: queryPattern,
-        config,
-        patternName: queryParams.name,
-      });
-    } else {
-      thumbnails.toggle();
-    }
+  const showShare = await isShareSupported();
+  if (showShare) {
+    unHide(elements.shareBtn);
   }
 
   elements.downloadBtn.addEventListener('click', () => {
@@ -117,13 +97,12 @@ async function main() {
 
   elements.instructionsLink.addEventListener('click', e => {
     e.preventDefault();
-    history.pushState({ patternId: null }, 'String Art Studio', './');
-    unselectPattern();
+    routing.navigateToMain();
   });
 
   thumbnails.addEventListener('select', ({ patternId }) => {
     const pattern = findPatternById(patternId);
-    setCurrentPattern(pattern);
+    routing.navigateToPattern(pattern);
   });
 
   document.body.addEventListener('click', e => {
@@ -148,75 +127,28 @@ async function main() {
     const templatePattern = findPatternById(pattern.type);
     if (templatePattern) {
       templatePattern.config = pattern.config;
-      setCurrentPattern(templatePattern, { isDefaultConfig: false });
+      routing.navigateToPattern(templatePattern);
     }
   });
 
   persistance.addEventListener('save', ({ pattern }) => {
-    setCurrentPattern(pattern);
+    routing.navigateToPattern(pattern);
   });
 
+  initRouting();
+
   function initRouting() {
-    window.addEventListener('popstate', ({ state }) => {
-      updateState(state ?? {});
+    routing.addEventListener('pattern', ({ pattern, renderer }) => {
+      selectPattern(pattern);
+      viewer.setPattern(pattern);
+      thumbnails.close();
     });
-  }
 
-  function updateState({
-    patternId,
-    config,
-    patternName,
-  }: {
-    patternId?: string;
-    config?: any;
-    patternName?: string;
-  } = {}) {
-    if (patternId) {
-      const pattern = findPatternById(patternId);
-      if (pattern) {
-        if (patternName) {
-          pattern.name = patternName;
-        }
-        viewer.setPattern(pattern);
-        selectPattern(pattern, {
-          draw: false,
-          config: config ? deserializeConfig(pattern, config) : null,
-        });
-
-        thumbnails.close();
-        viewer.update();
-      } else {
-        thumbnails.open();
-      }
-    } else {
-      unselectPattern();
+    routing.addEventListener('main', () => {
       thumbnails.open();
-    }
-  }
+    });
 
-  function findPatternById(patternId: string): StringArt | null {
-    let pattern = patternTypes.find(({ type }) => type === patternId);
-
-    if (pattern) {
-      // @ts-ignore
-      return new pattern();
-    } else {
-      return Persistance.getPatternByID(patternId);
-    }
-  }
-
-  async function initPattern() {
-    if (!currentPattern) {
-      throw new Error("Can't init pattern - no current pattern available!");
-    }
-
-    // initSize();
-
-    elements.resetBtn.addEventListener('click', reset);
-    const showShare = await isShareSupported();
-    if (showShare) {
-      unHide(elements.shareBtn);
-    }
+    routing.init();
   }
 
   function reset() {
@@ -229,10 +161,7 @@ async function main() {
     }).then(
       () => {
         const pattern = findPatternById(currentPattern.id);
-        setCurrentPattern(
-          pattern,
-          currentPattern.isTemplate ? { config: {} } : {}
-        ); // For a template, make sure to reset the config, for saved patterns loading the pattern above gets the latest saved options
+        routing.navigateToPattern(pattern);
       },
       () => {}
     );
@@ -242,19 +171,10 @@ async function main() {
     if (control.affectsStepCount !== false) {
       player.update(viewer.getStepCount());
     }
-    const configQuery = serializeConfig(currentPattern);
-    history.replaceState(
-      {
-        patternId: currentPattern.id,
-        config: configQuery,
-        renderer: viewer.renderer instanceof SVGRenderer ? 'svg' : undefined,
-      },
-      currentPattern.name,
-      getPatternURL(currentPattern, {
-        renderer: viewer.renderer instanceof SVGRenderer ? 'svg' : 'canvas',
-        patternAsTemplate: false,
-      })
-    );
+    routing.navigateToPattern(currentPattern, {
+      renderer: viewer.renderer instanceof SVGRenderer ? 'svg' : undefined,
+      replaceState: true,
+    });
 
     setIsDefaultConfig();
   }
@@ -273,37 +193,10 @@ async function main() {
     elements.main.dataset.isDefaultConfig = String(isDefaultConfig);
   }
 
-  function setCurrentPattern(
-    pattern: Pattern,
-    setPatternOptions?: SetPatternOptions
-  ) {
-    selectPattern(pattern, setPatternOptions);
-    history.pushState(
-      { patternId: pattern.id },
-      pattern.name,
-      '?pattern=' + pattern.id
-    );
-
-    elements.main.dataset.isDefaultConfig = String(
-      setPatternOptions?.isDefaultConfig !== false
-    );
-  }
-
-  // function initSize() {
-  //   sizeControls.element.addEventListener(
-  //     'sizechange',
-  //     ({ detail: size }: CustomEvent<Dimensions | null>) => {
-  //       viewer.setSize(size);
-  //     }
-  //   );
-  // }
-
   function selectPattern(
     pattern: Pattern,
     { config, draw = true, isDefaultConfig = true }: SetPatternOptions = {}
   ) {
-    const isFirstTime = !currentPattern;
-
     currentPattern = pattern;
     currentPatternDefaultConfig = isDefaultConfig ? pattern.config : null;
 
@@ -313,9 +206,7 @@ async function main() {
       currentPattern.setConfig(config);
       setIsDefaultConfig();
     }
-    if (controls) {
-      controls.destroy();
-    }
+    controls?.destroy();
 
     persistance.setPattern(currentPattern);
     controls = new EditorControls<any>(pattern.configControls, pattern.config);
@@ -333,9 +224,6 @@ async function main() {
     document.title = `${pattern.name} - String Art Studio`;
     document.body.setAttribute('data-pattern', pattern.id);
 
-    if (isFirstTime) {
-      initPattern();
-    }
     document.body.querySelectorAll('.pattern_only').forEach(unHide);
     if (draw) {
       viewer.update();
@@ -344,6 +232,7 @@ async function main() {
     player.update(viewer.getStepCount(), { draw: false });
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
+    elements.main.dataset.isDefaultConfig = String(isDefaultConfig !== false);
   }
 
   function unselectPattern() {

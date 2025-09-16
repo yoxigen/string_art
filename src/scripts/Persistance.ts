@@ -90,6 +90,7 @@ export default class Persistance extends EventBus<{
   }: PatternData): StringArt<any> {
     const pattern = createPatternInstance(type);
     Object.assign(pattern, patternData);
+    pattern.markConfigAsDefault();
 
     return pattern;
   }
@@ -202,11 +203,14 @@ export default class Persistance extends EventBus<{
           );
         }
 
-        const pattern = appData.patterns.splice(patternIndex, 1)[0];
+        const patternData = appData.patterns.splice(patternIndex, 1)[0];
         Persistance.saveAppData(appData);
 
+        const pattern = Persistance.patternDataToStringArt(patternData);
+        pattern.resetDefaultConfig();
+
         this.emit('deletePattern', {
-          pattern: Persistance.patternDataToStringArt(pattern),
+          pattern,
         });
       },
       () => {}
