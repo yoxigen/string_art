@@ -57,7 +57,6 @@ async function main() {
   await initServiceWorker();
 
   document.body.querySelectorAll('.pattern_only').forEach(hide);
-  unHide(document.querySelector('main'));
 
   type Pattern = StringArt<any>;
 
@@ -82,19 +81,6 @@ async function main() {
         pattern: viewer.pattern,
       })
   );
-
-  function deactivateTabs(exclude?: string[]) {
-    document
-      .querySelectorAll('#buttons [data-toggle-for].active')
-      .forEach(btn => {
-        if (
-          btn instanceof HTMLElement &&
-          !exclude?.includes(btn.getAttribute('data-toggle-for'))
-        ) {
-          btn.click();
-        }
-      });
-  }
 
   elements.instructionsLink.addEventListener('click', e => {
     e.preventDefault();
@@ -136,6 +122,7 @@ async function main() {
     routing.navigateToPattern(pattern);
   });
 
+  unHide(document.querySelector('main'));
   initRouting();
 
   function initRouting() {
@@ -151,6 +138,19 @@ async function main() {
     });
 
     routing.init();
+  }
+
+  function deactivateTabs(exclude?: string[]) {
+    document
+      .querySelectorAll('#buttons [data-toggle-for].active')
+      .forEach(btn => {
+        if (
+          btn instanceof HTMLElement &&
+          !exclude?.includes(btn.getAttribute('data-toggle-for'))
+        ) {
+          btn.click();
+        }
+      });
   }
 
   function reset() {
