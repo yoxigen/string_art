@@ -123,7 +123,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     return calc.circle.aspectRatio;
   }
 
-  *drawTimesTable(renderer: Renderer, layerIndex: number): Generator<void> {
+  *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
     const { reverse, base } = this.config;
     const { n, layerShift, stringsPerLayer } = this.calc;
 
@@ -151,7 +151,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     const { layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      yield* this.drawTimesTable(renderer, layer);
+      yield* this.drawLayer(renderer, layer);
     }
   }
 
