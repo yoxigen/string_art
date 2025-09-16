@@ -28,24 +28,24 @@ window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
 });
 
-const elements = {
-  main: document.querySelector('main'),
-  downloadBtn: document.querySelector('#download_btn'),
-  resetBtn: document.querySelector('#reset_btn'),
-  shareBtn: document.querySelector('#share_btn'),
-  playerBtn: document.querySelector('#player_btn'),
-  buttons: document.querySelector('#buttons'),
-  instructionsLink: document.querySelector(
-    '#pattern_select_dropdown_instructions'
-  ),
-};
-
-const persistance = new Persistance();
-const thumbnails = new Thumbnails(persistance);
-
 window.addEventListener('load', main);
 
 async function main() {
+  const elements = {
+    main: document.querySelector('main'),
+    downloadBtn: document.querySelector('#download_btn'),
+    resetBtn: document.querySelector('#reset_btn'),
+    shareBtn: document.querySelector('#share_btn'),
+    playerBtn: document.querySelector('#player_btn'),
+    buttons: document.querySelector('#buttons'),
+    instructionsLink: document.querySelector(
+      '#pattern_select_dropdown_instructions'
+    ),
+  };
+
+  const persistance = new Persistance();
+  const thumbnails = new Thumbnails(persistance);
+
   let controls: EditorControls<any>;
 
   let currentPattern: Pattern;
@@ -179,33 +179,17 @@ async function main() {
     setIsDefaultConfig();
   }
 
-  function setIsDefaultConfig(value?: boolean) {
-    // Determine whether the pattern is currently on its last saved (for saved patterns) or default state (for templates):
-    const isDefaultConfig =
-      value ??
-      compareObjects(
-        currentPattern.config,
-        currentPattern.isTemplate
-          ? currentPattern.defaultConfig
-          : currentPatternDefaultConfig
-      );
-
-    elements.main.dataset.isDefaultConfig = String(isDefaultConfig);
+  function setIsDefaultConfig() {
+    elements.main.dataset.isDefaultConfig = String(
+      currentPattern.isDefaultConfig
+    );
   }
 
-  function selectPattern(
-    pattern: Pattern,
-    { config, draw = true, isDefaultConfig = true }: SetPatternOptions = {}
-  ) {
+  function selectPattern(pattern: Pattern) {
     currentPattern = pattern;
-    currentPatternDefaultConfig = isDefaultConfig ? pattern.config : null;
+    currentPatternDefaultConfig = pattern.defaultConfig;
 
     viewer.setPattern(pattern);
-    if (config) {
-      // @ts-ignore
-      currentPattern.setConfig(config);
-      setIsDefaultConfig();
-    }
     controls?.destroy();
 
     persistance.setPattern(currentPattern);
@@ -225,22 +209,12 @@ async function main() {
     document.body.setAttribute('data-pattern', pattern.id);
 
     document.body.querySelectorAll('.pattern_only').forEach(unHide);
-    if (draw) {
-      viewer.update();
-    }
+    viewer.update();
 
     player.update(viewer.getStepCount(), { draw: false });
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
-    elements.main.dataset.isDefaultConfig = String(isDefaultConfig !== false);
-  }
-
-  function unselectPattern() {
-    viewer.setPattern(null);
-    thumbnails.setCurrentPattern(null);
-    controls && controls.destroy();
-    document.body.querySelectorAll('.pattern_only').forEach(hide);
-    document.body.removeAttribute('data-pattern');
+    setIsDefaultConfig();
   }
 }
 
