@@ -219,6 +219,7 @@ async function main() {
   }
 
   function unselectPattern() {
+    currentPattern = null;
     viewer.setPattern(null);
     thumbnails.setCurrentPattern(null);
     controls && controls.destroy();
