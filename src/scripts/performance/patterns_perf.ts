@@ -52,12 +52,12 @@ const CSV =
 fs.appendFileSync(logFile, CSV, { encoding: 'utf-8' });
 console.log('Wrote file ' + logFile);
 
-const cycles = 10;
-const drawCountPerCycle = 1000;
-const warmupDrawCount = 500;
-const size: Dimensions = [1000, 1000];
-
 export function measurePattern(pattern: StringArt): PatternPerfResult {
+  const cycles = 10;
+  const drawCountPerCycle = 1000;
+  const warmupDrawCount = 500;
+  const size: Dimensions = [1000, 1000];
+
   const renderer = new TestRenderer(size);
 
   // warmup

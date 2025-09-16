@@ -42,7 +42,7 @@ interface TCalc {
   layers: ReadonlyArray<Layer>;
 }
 
-class Eye extends StringArt<EyeConfig> {
+class Eye extends StringArt<EyeConfig, TCalc> {
   static type = 'eye';
 
   name = 'Eye';
@@ -56,6 +56,7 @@ class Eye extends StringArt<EyeConfig> {
       defaultValue: 82,
       type: 'range',
       attr: { min: 2, max: 200, step: 1 },
+      isStructural: true,
     },
     {
       key: 'layers',
@@ -63,6 +64,7 @@ class Eye extends StringArt<EyeConfig> {
       defaultValue: 13,
       type: 'range',
       attr: { min: 1, max: 20, step: 1 },
+      isStructural: true,
     },
     {
       key: 'angle',
@@ -71,6 +73,7 @@ class Eye extends StringArt<EyeConfig> {
       displayValue: ({ angle }) => `${angle}°`,
       type: 'range',
       attr: { min: 0, max: 45, step: 1 },
+      isStructural: true,
     },
     Color.getConfig({
       defaults: {
@@ -101,7 +104,6 @@ class Eye extends StringArt<EyeConfig> {
     nailsColor: '#000000',
   };
 
-  #calc: TCalc;
   color: Color;
 
   getCalc({ size }: CalcOptions): TCalc {
@@ -146,7 +148,6 @@ class Eye extends StringArt<EyeConfig> {
       repeatColors: true,
       colorCount: 2,
     });
-    this.#calc = this.getCalc(options);
   }
 
   getAspectRatio(): number {
@@ -169,7 +170,7 @@ class Eye extends StringArt<EyeConfig> {
 
     const point: Coordinates = [
       layerStart[0],
-      layerStart[1] + this.#calc.nailSpacing * index,
+      layerStart[1] + this.calc.nailSpacing * index,
     ];
 
     const pivot = this.center;
@@ -231,7 +232,7 @@ class Eye extends StringArt<EyeConfig> {
     const { colorPerLayer } = this.config;
 
     const { layerAngle, layerSize, layerStart, layerStringCount } =
-      this.#calc.layers[layerIndex];
+      this.calc.layers[layerIndex];
 
     for (let i = 0; i < SIDES.length; i++) {
       yield* this.drawSide(renderer, {
@@ -276,7 +277,7 @@ class Eye extends StringArt<EyeConfig> {
         layerSize: size,
         layerStart,
         layerStringCount,
-      } = this.#calc.layers[layer];
+      } = this.calc.layers[layer];
 
       for (let s = 0; s < SIDES.length; s++) {
         const sideOrder = SIDES_ORDER[s];

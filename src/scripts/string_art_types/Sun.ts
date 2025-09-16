@@ -41,7 +41,7 @@ interface TCalc {
   circle: Circle;
 }
 
-export default class Sun extends StringArt<SunConfig> {
+export default class Sun extends StringArt<SunConfig, TCalc> {
   static type = 'sun';
 
   name = 'Sun';
@@ -243,7 +243,6 @@ export default class Sun extends StringArt<SunConfig> {
     );
   }
 
-  calc: TCalc;
   #color: Color;
   #backdropColor: Color;
 
@@ -311,19 +310,10 @@ export default class Sun extends StringArt<SunConfig> {
     };
   }
 
-  resetStructure() {
-    super.resetStructure();
-    this.calc = null;
-  }
-
   setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
+    super.setUpDraw(options);
 
     const { layers, backdropColorCount } = this.config;
-
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
 
     this.#color = new Color({
       ...this.config,

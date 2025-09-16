@@ -39,7 +39,7 @@ interface TCalc {
   rotationAngle: number;
 }
 
-export default class MaurerRose extends StringArt<MaurerRoseConfig> {
+export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
   static type = 'maurer_rose';
 
   name = 'Maurer Rose';
@@ -88,7 +88,6 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     COLOR_CONFIG,
   ];
 
-  calc: TCalc;
   points: Map<number, Coordinates>;
   color: Color;
   colorMap: ColorMap;
@@ -99,16 +98,11 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig> {
     if (this.points) {
       this.points.clear();
     }
-    this.calc = null;
   }
 
   setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
+    super.setUpDraw(options);
     const { isMultiColor, colorCount } = this.config;
-
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
 
     if (!this.points) {
       this.points = new Map();

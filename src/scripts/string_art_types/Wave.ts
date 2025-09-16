@@ -11,10 +11,6 @@ export interface WaveConfig {
   layerSpread: number;
 }
 
-type TCalc = MandalaCalc & {
-  layerShift: number;
-};
-
 export default class Wave extends Mandala<WaveConfig> {
   static type = 'wave';
 
@@ -90,7 +86,7 @@ export default class Wave extends Mandala<WaveConfig> {
     rotation: 176 / 360,
   };
 
-  getCalc(options: CalcOptions): TCalc {
+  getCalc(options: CalcOptions): MandalaCalc {
     const { n, layerSpread } = this.config;
 
     return {

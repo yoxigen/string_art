@@ -76,7 +76,7 @@ const SIDE_ANGLES = new Array(6)
   .fill(null)
   .map((_, i) => Math.PI / 2 + ANGLE * i);
 
-export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
+export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
   static type = 'flower_of_life';
 
   name = 'Flower of Life';
@@ -233,7 +233,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     nailsColor: '#474747',
   };
 
-  #calc: TCalc;
   points: Points;
   color: Color;
   colorMap: ColorMap;
@@ -300,7 +299,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     super.resetStructure();
 
     this.points = null;
-    this.#calc = null;
   }
 
   setUpDraw(options: CalcOptions) {
@@ -316,10 +314,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
       ringNailCount,
       ...config
     } = this.config;
-
-    if (!this.#calc) {
-      this.#calc = this.getCalc(options);
-    }
 
     if (renderRing && ringSize) {
       const circleConfig: CircleConfig = {
@@ -405,7 +399,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
       const sinSideAngle = Math.sin(sideAngle);
 
       for (let n = 1; n <= this.config.density; n++) {
-        const nNailDistance = n * this.#calc.nailDistance;
+        const nNailDistance = n * this.calc.nailDistance;
 
         triangleSidePoints.push([
           center[0] + nNailDistance * cosSideAngle,
@@ -424,8 +418,8 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
 
     const { levels, renderCaps } = this.config;
 
-    const largeDistance = this.#calc.nailsLength;
-    const smallDistance = this.#calc.triangleHeight - largeDistance;
+    const largeDistance = this.calc.nailsLength;
+    const smallDistance = this.calc.triangleHeight - largeDistance;
     const levelsPoints: Points = [];
 
     const levelsCount = renderCaps ? levels + 1 : levels;
@@ -436,7 +430,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
       const levelTrianglesPoints: Coordinates[][][] = [];
       levelsPoints.push(levelTrianglesPoints);
 
-      const levelSideTriangleCount = this.#calc.countPerLevelSide[level];
+      const levelSideTriangleCount = this.calc.countPerLevelSide[level];
 
       // Caching distances to avoid repeated calculations for each side:
       const levelPositions = new Array(levelSideTriangleCount)
@@ -444,8 +438,8 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
         .map((_, n) => {
           const isFlipped = n % 2 === 0;
           const trianglePosition = [
-            this.#calc.triangleCenterDistance * (n - level),
-            level * this.#calc.triangleHeight +
+            this.calc.triangleCenterDistance * (n - level),
+            level * this.calc.triangleHeight +
               (isFlipped ? largeDistance : smallDistance),
           ];
 
@@ -470,7 +464,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
           const { distanceFromCenter, rotation } = levelPositions[n];
 
           const triangleCenterAngle =
-            sideRotation - rotation - this.#calc.globalRotationRadians;
+            sideRotation - rotation - this.calc.globalRotationRadians;
 
           const rotatedTrianglePosition = [
             this.center[0] + distanceFromCenter * Math.cos(triangleCenterAngle),
@@ -483,7 +477,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
               sideRotation +
               (side * PI2) / 3 -
               n * ANGLE +
-              this.#calc.globalRotationRadians,
+              this.calc.globalRotationRadians,
             isCapLevel,
             triangleIndexInSide: n,
           });
@@ -565,7 +559,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
     }
   ): Generator<void> {
     const { density, fillColor } = this.config;
-    const levelSideCount = this.#calc.countPerLevelSide[level];
+    const levelSideCount = this.calc.countPerLevelSide[level];
     const angleShift = (triangleIndex % levelSideCount) % 3;
 
     renderer.setColor(fillColor);
@@ -675,7 +669,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
 
       for (const triangle of level) {
         triangleIndex++;
-        const levelSideCount = this.#calc.countPerLevelSide[levelIndex];
+        const levelSideCount = this.calc.countPerLevelSide[levelIndex];
         const triangleIndexInSide = triangleIndex % levelSideCount;
 
         if (fill && !isCapLevel) {
@@ -704,7 +698,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
           ) {
             const side = Math.floor(triangleIndex / levelSideCount);
             const nextLevelSideCount =
-              this.#calc.countPerLevelSide[levelIndex + 1];
+              this.calc.countPerLevelSide[levelIndex + 1];
             const nextLevelTriangleIndex =
               side * nextLevelSideCount + triangleIndexInSide + 1;
 
@@ -720,7 +714,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
         }
 
         const indexInSide =
-          triangleIndex % this.#calc.countPerLevelSide[levelIndex];
+          triangleIndex % this.calc.countPerLevelSide[levelIndex];
 
         if (renderTriangles && (!isCapLevel || indexInSide % 2)) {
           yield* this.generateTriangleStrings(renderer, {
@@ -745,7 +739,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig> {
       return this.stepCount;
     }
 
-    const calc = this.#calc ?? this.getCalc(options);
+    const calc = this.calc ?? this.getCalc(options);
 
     const {
       levels,

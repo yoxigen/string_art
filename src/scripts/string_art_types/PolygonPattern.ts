@@ -30,7 +30,10 @@ const COLOR_CONFIG = Color.getConfig({
   exclude: ['colorCount'],
 });
 
-export default class PolygonPattern extends StringArt<PolygonPatternConfig> {
+export default class PolygonPattern extends StringArt<
+  PolygonPatternConfig,
+  TCalc
+> {
   static type = 'polygon';
 
   name = 'Polygon';
@@ -83,13 +86,8 @@ export default class PolygonPattern extends StringArt<PolygonPatternConfig> {
     nailRadius: 1,
   };
 
-  calc: TCalc;
   color: Color;
   colorMap: ColorMap;
-
-  resetStructure(): void {
-    this.calc = null;
-  }
 
   getCalc({ size }: CalcOptions): TCalc {
     const { n, rotation, sides, margin } = this.config;
@@ -109,12 +107,8 @@ export default class PolygonPattern extends StringArt<PolygonPatternConfig> {
   }
 
   setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
+    super.setUpDraw(options);
     const { sides, isMultiColor } = this.config;
-
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
 
     this.color = new Color({
       ...this.config,

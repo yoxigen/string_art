@@ -37,7 +37,7 @@ type TCalc = {
   realRepetition: number;
 };
 
-export default class Spiral extends StringArt<SpiralConfig> {
+export default class Spiral extends StringArt<SpiralConfig, TCalc> {
   static type = 'spiral';
 
   id = 'spiral';
@@ -82,8 +82,6 @@ export default class Spiral extends StringArt<SpiralConfig> {
   #color: Color;
   #colorMap: ColorMap;
 
-  calc: TCalc;
-
   getCalc({ size }: CalcOptions): TCalc {
     const { n, rotation, margin, repetition, distortion } = this.config;
 
@@ -101,17 +99,9 @@ export default class Spiral extends StringArt<SpiralConfig> {
     };
   }
 
-  resetStructure(): void {
-    this.calc = null;
-  }
-
   setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
+    super.setUpDraw(options);
     const { colorCount } = this.config;
-
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
 
     this.#color = new Color({
       ...this.config,

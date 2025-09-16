@@ -155,7 +155,8 @@ const COMMON_CONFIG_CONTROLS: ControlsConfig = [
 ];
 
 abstract class StringArt<
-  TConfig = Record<string, PrimitiveValue>
+  TConfig = Record<string, PrimitiveValue>,
+  TCalc = Record<string, any>
 > extends EventBus<{
   drawdone: void;
 }> {
@@ -172,6 +173,8 @@ abstract class StringArt<
   name: string;
   link: string;
   linkText: string;
+
+  protected calc: TCalc;
 
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
@@ -286,7 +289,13 @@ abstract class StringArt<
   /**
    * Child classes can define this method to clear any structural cache when config values for `isStructural=true` controls change.
    */
-  resetStructure() {}
+  resetStructure() {
+    this.calc = null;
+  }
+
+  getCalc(options: CalcOptions): TCalc {
+    return {} as TCalc;
+  }
 
   onConfigChange(
     controls: ReadonlyArray<{
@@ -332,7 +341,12 @@ abstract class StringArt<
     return this.size;
   }
 
-  setUpDraw(options?: CalcOptions) {}
+  setUpDraw(options?: CalcOptions) {
+    if (!this.calc) {
+      this.calc = this.getCalc(options);
+    }
+  }
+
   afterDraw() {
     this.emit('drawdone', null);
   }

@@ -69,7 +69,7 @@ type TCalc = {
   circle: Circle;
 };
 
-export default class Comet extends StringArt<CometConfig> {
+export default class Comet extends StringArt<CometConfig, TCalc> {
   static type = 'comet';
 
   name = 'Comet';
@@ -152,8 +152,6 @@ export default class Comet extends StringArt<CometConfig> {
     layerDistance: 1,
   };
 
-  #circle: Circle;
-  calc: TCalc;
   color: Color;
 
   getCalc(options: CalcOptions): TCalc {
@@ -173,26 +171,8 @@ export default class Comet extends StringArt<CometConfig> {
     };
   }
 
-  resetStructure(): void {
-    this.calc = null;
-  }
-
   setUpDraw(options: CalcOptions) {
     super.setUpDraw(options);
-    const circleConfig = {
-      size: options.size,
-      n: this.config.n,
-      margin: this.config.margin,
-      rotation: this.config.rotation,
-      distortion: this.config.distortion,
-      displacementFunc: this.config.displacementFunc,
-      displacementMag: this.config.displacementMag,
-      displacementFastArea: this.config.displacementFastArea,
-    };
-
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
 
     if (!this.stepCount) {
       this.stepCount = this.getStepCount();

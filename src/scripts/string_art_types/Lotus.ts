@@ -36,7 +36,7 @@ interface TCalc {
   centerCircle?: Circle;
 }
 
-export default class Lotus extends StringArt<LotusConfig> {
+export default class Lotus extends StringArt<LotusConfig, TCalc> {
   static type = 'lotus';
 
   name = 'Lotus';
@@ -145,7 +145,6 @@ export default class Lotus extends StringArt<LotusConfig> {
     nailsColor: '#a08346',
   };
 
-  #calc: TCalc;
   #color: Color;
 
   getCalc({ size }: CalcOptions): TCalc {
@@ -279,20 +278,11 @@ export default class Lotus extends StringArt<LotusConfig> {
     }
   }
 
-  resetStructure() {
-    super.resetStructure();
-
-    this.#calc = null;
-  }
-
-  setUpDraw(options) {
+  setUpDraw(options: CalcOptions) {
     super.setUpDraw(options);
 
-    if (!this.#calc) {
-      this.#calc = this.getCalc(options);
-    }
     let colorCount = this.config.radialColor
-      ? this.#calc.sections - this.#calc.removedSections - 1
+      ? this.calc.sections - this.calc.removedSections - 1
       : this.config.colorCount;
 
     if (!this.config.renderCenter && this.config.radialColor) {
@@ -315,7 +305,7 @@ export default class Lotus extends StringArt<LotusConfig> {
 
   #getPatchColor(circleIndex: number, section: number): ColorValue {
     const { radialColor } = this.config;
-    const { removedSections } = this.#calc;
+    const { removedSections } = this.calc;
 
     return this.#color.getColor(
       radialColor ? section - removedSections : circleIndex
@@ -334,7 +324,7 @@ export default class Lotus extends StringArt<LotusConfig> {
       nailsPerSection,
       nailsPerCircle,
       removedSections,
-    } = this.#calc;
+    } = this.calc;
 
     const color = this.#getPatchColor(circleIndex, section);
     const circle = circles[circleIndex];
@@ -342,7 +332,7 @@ export default class Lotus extends StringArt<LotusConfig> {
     renderer.setColor(color);
 
     const prevCircle =
-      this.#calc.circles[circleIndex === 0 ? sides - 1 : circleIndex - 1];
+      this.calc.circles[circleIndex === 0 ? sides - 1 : circleIndex - 1];
 
     if (section === 0) {
       // For first section (outtermost): connectPoint is `prevCircle[sideAngle * 2]
@@ -362,8 +352,8 @@ export default class Lotus extends StringArt<LotusConfig> {
 
       const isLastSection = section === sections - 2;
       const connectPoint: Coordinates =
-        isLastSection && this.#calc.centerCircle
-          ? this.#calc.centerCircle.getPoint(circleIndex)
+        isLastSection && this.calc.centerCircle
+          ? this.calc.centerCircle.getPoint(circleIndex)
           : prevCircle.getPoint(
               nailsPerSection * (section + 2 - removedSections) -
                 (sides % 2 && section === sections - 2
@@ -400,7 +390,7 @@ export default class Lotus extends StringArt<LotusConfig> {
 
   *#generatePatches(): Generator<{ side: number; section: number }> {
     const { radialColor, sides, renderCenter } = this.config;
-    const { sections, removedSections } = this.#calc;
+    const { sections, removedSections } = this.calc;
 
     const lastSection = sections - (renderCenter ? 1 : 2);
 
@@ -421,7 +411,7 @@ export default class Lotus extends StringArt<LotusConfig> {
 
   drawNails() {
     const { renderCenter, renderCenterNails } = this.config;
-    const { circles, centerCircle } = this.#calc;
+    const { circles, centerCircle } = this.calc;
 
     circles.forEach((circle, circleIndex) => {
       circle.drawNails(this.nails, {
@@ -444,7 +434,7 @@ export default class Lotus extends StringArt<LotusConfig> {
   #getCenterExcludedNails(): [[number, number]] {
     const { renderCenter } = this.config;
     const { sections, nailsPerSection, nailsPerCircle, removedSections } =
-      this.#calc;
+      this.calc;
 
     const innerSectionNailsStart =
       (sections - 1 - removedSections - (renderCenter ? 0 : 1)) *

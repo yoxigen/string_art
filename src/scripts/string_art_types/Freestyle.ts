@@ -69,7 +69,7 @@ interface TCalc {
   maxShapeNailsCount: number;
 }
 
-export default class Freestyle extends StringArt<FreestyleConfig> {
+export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
   static type = 'freestyle';
 
   name = 'Freestyle';
@@ -83,6 +83,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
       defaultValue: 80,
       type: 'range',
       attr: { min: 1, max: 300, step: 1 },
+      isStructural: true,
     },
     {
       key: 'minNailDistance',
@@ -90,6 +91,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
       defaultValue: 20,
       type: 'range',
       attr: { min: 1, max: 300, step: 1 },
+      isStructural: true,
     },
     {
       key: 'color',
@@ -114,6 +116,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               label: 'Enable',
               defaultValue: true,
               type: 'checkbox',
+              isStructural: true,
             },
             {
               key: 'radius1',
@@ -122,6 +125,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0.01, max: 1, step: 0.01 },
               show: ({ show1 }) => show1,
+              isStructural: true,
             },
             {
               key: 'x1',
@@ -130,6 +134,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show1 }) => show1,
+              isStructural: true,
             },
             {
               key: 'y1',
@@ -138,6 +143,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show1 }) => show1,
+              isStructural: true,
             },
             {
               ...rotationConfig,
@@ -152,6 +158,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               defaultValue: false,
               type: 'checkbox',
               show: ({ show1 }) => show1,
+              isStructural: true,
             },
           ],
         },
@@ -165,6 +172,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               label: 'Enable',
               defaultValue: true,
               type: 'checkbox',
+              isStructural: true,
             },
             {
               key: 'radius2',
@@ -173,6 +181,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0.01, max: 1, step: 0.01 },
               show: ({ show2 }) => show2,
+              isStructural: true,
             },
             {
               key: 'x2',
@@ -181,6 +190,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show2 }) => show2,
+              isStructural: true,
             },
             {
               key: 'y2',
@@ -189,6 +199,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show2 }) => show2,
+              isStructural: true,
             },
             {
               ...rotationConfig,
@@ -203,6 +214,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               defaultValue: false,
               type: 'checkbox',
               show: ({ show2 }) => show2,
+              isStructural: true,
             },
           ],
         },
@@ -216,6 +228,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               label: 'Enable',
               defaultValue: true,
               type: 'checkbox',
+              isStructural: true,
             },
             {
               key: 'radius3',
@@ -224,6 +237,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               type: 'range',
               attr: { min: 0.01, max: 1, step: 0.01 },
               show: ({ show3 }) => show3,
+              isStructural: true,
             },
             {
               key: 'x3',
@@ -233,6 +247,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show3 }) => show3,
               affectsStepCount: false,
+              isStructural: true,
             },
             {
               key: 'y3',
@@ -242,6 +257,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               attr: { min: 0, max: 1, step: 0.01 },
               show: ({ show3 }) => show3,
               affectsStepCount: false,
+              isStructural: true,
             },
             {
               ...rotationConfig,
@@ -259,19 +275,13 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
               show: ({ show3 }) => show3,
               affectsNails: false,
               affectsStepCount: false,
+              isStructural: true,
             },
           ],
         },
       ],
     },
   ];
-
-  #calc: TCalc;
-
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
-    this.#calc = this.getCalc(options);
-  }
 
   getAspectRatio({ size }: CalcOptions): number {
     return size[0] / size[1];
@@ -334,7 +344,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
   getPoint(layer: Layer, index: number): Coordinates {
     const { circle } = layer;
     let circleIndex = Math.round(
-      (index * circle.config.n) / this.#calc.maxShapeNailsCount
+      (index * circle.config.n) / this.calc.maxShapeNailsCount
     );
     return circle.getPoint(circleIndex);
   }
@@ -345,13 +355,13 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
     renderer.setColor(color);
     let prevCirclePoint: Coordinates;
 
-    for (let i = 0; i < this.#calc.maxShapeNailsCount; i++) {
+    for (let i = 0; i < this.calc.maxShapeNailsCount; i++) {
       for (
         let layerIndex = 0;
-        layerIndex < this.#calc.layers.length;
+        layerIndex < this.calc.layers.length;
         layerIndex++
       ) {
-        const layer = this.#calc.layers[layerIndex];
+        const layer = this.calc.layers[layerIndex];
         const startPoint = prevCirclePoint ?? this.getPoint(layer, i);
 
         const positions: Coordinates[] = [];
@@ -360,11 +370,11 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
         }
 
         let nextLayerIndex = layerIndex + 1;
-        if (nextLayerIndex === this.#calc.layers.length) {
+        if (nextLayerIndex === this.calc.layers.length) {
           nextLayerIndex = 0;
         }
 
-        prevCirclePoint = this.getPoint(this.#calc.layers[nextLayerIndex], i);
+        prevCirclePoint = this.getPoint(this.calc.layers[nextLayerIndex], i);
 
         renderer.renderLines(startPoint, prevCirclePoint);
         yield;
@@ -373,7 +383,7 @@ export default class Freestyle extends StringArt<FreestyleConfig> {
   }
 
   drawNails() {
-    this.#calc.layers.forEach(({ circle }, layerIndex) =>
+    this.calc.layers.forEach(({ circle }, layerIndex) =>
       circle.drawNails(this.nails, {
         getNumber: i => `${layerIndex + 1}_${i + 1}`,
       })

@@ -34,7 +34,7 @@ type TCalc = {
   polygons: ReadonlyArray<Polygon>;
 };
 
-export default class Flower extends StringArt<FlowerConfig> {
+export default class Flower extends StringArt<FlowerConfig, TCalc> {
   static type = 'flower';
 
   name = 'Flower';
@@ -87,13 +87,8 @@ export default class Flower extends StringArt<FlowerConfig> {
     stringWidth: 0.5,
   };
 
-  calc: TCalc;
   color: Color;
   colorMap: ColorMap;
-
-  resetStructure(): void {
-    this.calc = null;
-  }
 
   getCalc({ size }: CalcOptions): TCalc {
     const { n, rotation, sides, layers, margin } = this.config;
@@ -116,12 +111,8 @@ export default class Flower extends StringArt<FlowerConfig> {
   }
 
   setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
+    super.setUpDraw(options);
     const { layers, isMultiColor } = this.config;
-
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
 
     this.color = new Color({
       ...this.config,

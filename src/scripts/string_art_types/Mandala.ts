@@ -24,7 +24,8 @@ export interface MandalaCalc {
 }
 
 export default class Mandala<TCustomConfig = void> extends StringArt<
-  MandalaConfig & TCustomConfig
+  MandalaConfig & TCustomConfig,
+  MandalaCalc
 > {
   static type = 'mandala';
 
@@ -71,14 +72,9 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
   ];
 
   color: Color;
-  calc: MandalaCalc;
 
   get n() {
     return this.calc.n;
-  }
-
-  resetStructure(): void {
-    this.calc = null;
   }
 
   getCalc({ size }: CalcOptions): MandalaCalc {
@@ -112,21 +108,9 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
   }
 
   setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
+    super.setUpDraw(options);
 
-    const { layers, rotation, distortion, margin, reverse } = this.config;
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
-
-    const circleConfig: CircleConfig = {
-      size: this.size,
-      n: this.n,
-      margin,
-      rotation,
-      distortion,
-      reverse,
-    };
+    const { layers } = this.config;
 
     this.color = new Color({
       ...this.config,

@@ -28,7 +28,7 @@ type TCalc = {
   star: StarShape;
 };
 
-export default class Star extends StringArt<StarConfig> {
+export default class Star extends StringArt<StarConfig, TCalc> {
   static type = 'star';
 
   name = 'Star';
@@ -122,12 +122,6 @@ export default class Star extends StringArt<StarConfig> {
     },
   ];
 
-  calc: TCalc;
-
-  resetStructure(): void {
-    this.calc = null;
-  }
-
   getCalc({ size }: CalcOptions): TCalc {
     const { sides, rotation, distortion, sideNails, margin = 0 } = this.config;
     const circleConfig: CircleConfig = {
@@ -150,14 +144,6 @@ export default class Star extends StringArt<StarConfig> {
       circle,
       star: new StarShape(starConfig),
     };
-  }
-
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
-
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
   }
 
   getAspectRatio(options: CalcOptions): number {

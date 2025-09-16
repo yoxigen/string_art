@@ -55,7 +55,7 @@ interface TCalc {
   totalIndexCount: number;
 }
 
-export default class Assymetry extends StringArt<AssymetryConfig> {
+export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
   static type = 'assymetry';
 
   name = 'Assymetry';
@@ -83,6 +83,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
               label: 'Enable',
               defaultValue: true,
               type: 'checkbox',
+              isStructural: true,
             },
             {
               key: `size${layer}`,
@@ -97,6 +98,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
               displayValue: config =>
                 Math.round(config.n * config[`size${layer}`]),
               show: config => config[`show${layer}`],
+              isStructural: true,
             },
             {
               key: `end${layer}`,
@@ -112,6 +114,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
                 Math.round(config.n * config[`end${layer}`]),
               show: config => config[`show${layer}`],
               affectsNails: false,
+              isStructural: true,
             },
             {
               key: `color${layer}`,
@@ -120,6 +123,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
               type: 'color',
               show: config => config[`show${layer}`],
               affectsNails: false,
+              isStructural: true,
             },
             {
               key: `reverse${layer}`,
@@ -128,6 +132,7 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
               type: 'checkbox',
               show: config => config[`show${layer}`],
               affectsNails: false,
+              isStructural: true,
             },
           ],
         };
@@ -135,19 +140,12 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     },
   ];
 
-  #calc: TCalc;
-
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw();
-    this.#calc = this.#getCalc(options);
-  }
-
   getAspectRatio(calcOptions: CalcOptions): number {
-    const calc = this.#getCalc(calcOptions);
+    const calc = this.getCalc(calcOptions);
     return calc.circle.aspectRatio;
   }
 
-  #getCalc({ size }: CalcOptions) {
+  getCalc({ size }: CalcOptions) {
     const { rotation, n, margin = 0, distortion } = this.config;
 
     const circleConfig: CircleConfig = {
@@ -159,9 +157,9 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     };
 
     let circle: Circle;
-    if (this.#calc?.circle) {
-      circle = this.#calc.circle;
-      this.#calc.circle.setConfig(circleConfig);
+    if (this.calc?.circle) {
+      circle = this.calc.circle;
+      this.calc.circle.setConfig(circleConfig);
     } else {
       circle = new Circle(circleConfig);
     }
@@ -208,22 +206,22 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
    * Returns the position of a point on the line
    */
   getPoint(index: number): Coordinates {
-    if (index < this.#calc.lineNailCount || index > this.#calc.totalNailCount) {
+    if (index < this.calc.lineNailCount || index > this.calc.totalNailCount) {
       const linePosition =
-        index < this.#calc.lineNailCount
-          ? this.#calc.lineNailCount - index
-          : index - this.#calc.totalNailCount;
+        index < this.calc.lineNailCount
+          ? this.calc.lineNailCount - index
+          : index - this.calc.totalNailCount;
 
-      const indexLength = linePosition * this.#calc.lineSpacing;
+      const indexLength = linePosition * this.calc.lineSpacing;
       return [
-        this.#calc.firstCirclePoint[0] -
-          indexLength * Math.sin(this.#calc.circle.rotationAngle),
-        this.#calc.firstCirclePoint[1] -
-          indexLength * Math.cos(this.#calc.circle.rotationAngle),
+        this.calc.firstCirclePoint[0] -
+          indexLength * Math.sin(this.calc.circle.rotationAngle),
+        this.calc.firstCirclePoint[1] -
+          indexLength * Math.cos(this.calc.circle.rotationAngle),
       ];
     } else {
-      const circleIndex = index - this.#calc.lineNailCount;
-      return this.#calc.circle.getPoint(circleIndex);
+      const circleIndex = index - this.calc.lineNailCount;
+      return this.calc.circle.getPoint(circleIndex);
     }
   }
 
@@ -255,28 +253,28 @@ export default class Assymetry extends StringArt<AssymetryConfig> {
     }
 
     function getPointIndex(index: number): number {
-      return isReverse ? self.#calc.totalIndexCount - index : index;
+      return isReverse ? self.calc.totalIndexCount - index : index;
     }
   }
 
   *drawStrings(renderer: Renderer) {
-    for (const layer of this.#calc.layers) {
+    for (const layer of this.calc.layers) {
       yield* this.drawCircle(renderer, layer);
     }
   }
 
   drawNails() {
-    this.#calc.circle.drawNails(this.nails, {
-      nailsNumberStart: this.#calc.lineNailCount,
+    this.calc.circle.drawNails(this.nails, {
+      nailsNumberStart: this.calc.lineNailCount,
     });
 
-    for (let i = 0; i < this.#calc.lineNailCount; i++) {
+    for (let i = 0; i < this.calc.lineNailCount; i++) {
       this.nails.addNail({ point: this.getPoint(i), number: i });
     }
   }
 
   getStepCount(options: CalcOptions): number {
-    const { layers } = this.#getCalc(options);
+    const { layers } = this.getCalc(options);
     return layers.reduce(
       (stepCount, layer) => stepCount + layer.endIndex + 1,
       0

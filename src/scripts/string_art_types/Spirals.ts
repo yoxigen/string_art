@@ -22,7 +22,7 @@ interface TCalc {
   angleIncrease: number;
 }
 
-class Spirals extends StringArt<SpiralsConfig> {
+class Spirals extends StringArt<SpiralsConfig, TCalc> {
   static type = 'spirals';
 
   name = 'Spirals';
@@ -36,6 +36,7 @@ class Spirals extends StringArt<SpiralsConfig> {
       defaultValue: 5.7,
       type: 'range',
       attr: { min: 1, max: 20, step: 0.1 },
+      isStructural: true,
     },
     {
       key: 'angleStep',
@@ -43,6 +44,7 @@ class Spirals extends StringArt<SpiralsConfig> {
       defaultValue: 0.45,
       type: 'range',
       attr: { min: 0, max: 1, step: 0.01 },
+      isStructural: true,
     },
     {
       key: 'nSpirals',
@@ -50,6 +52,7 @@ class Spirals extends StringArt<SpiralsConfig> {
       defaultValue: 3,
       type: 'range',
       attr: { min: 1, max: 20, step: 1 },
+      isStructural: true,
     },
     {
       ...Circle.rotationConfig,
@@ -70,7 +73,6 @@ class Spirals extends StringArt<SpiralsConfig> {
     }),
   ];
 
-  calc: TCalc;
   color: Color;
   colorMap: ColorMap;
 
@@ -94,7 +96,6 @@ class Spirals extends StringArt<SpiralsConfig> {
 
     const { colorCount } = this.config;
 
-    this.calc = this.getCalc();
     this.color = new Color(this.config);
     this.colorMap = this.color.getColorMap({
       stepCount: this.getStepCount(options),
