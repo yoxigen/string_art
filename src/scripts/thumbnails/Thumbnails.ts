@@ -71,8 +71,6 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
       }
 
       this.emit('select', { patternId: link.dataset.pattern });
-
-      this.toggle();
     });
   }
 

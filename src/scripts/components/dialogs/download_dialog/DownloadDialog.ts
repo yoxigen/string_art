@@ -24,6 +24,7 @@ import {
   getDownloadImageSizeById,
 } from './download_image_sizes';
 import Persistance from '../../../Persistance';
+import { hide, toggleHide, unHide } from '../../../helpers/dom_utils';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -200,9 +201,9 @@ export default class DownloadDialog extends HTMLElement {
       '#transparent_background_block'
     ) as HTMLDivElement;
     if (type === 'nails_map') {
-      transparentBackgroundBlock.setAttribute('hidden', 'hidden');
+      hide(transparentBackgroundBlock);
     } else {
-      transparentBackgroundBlock.removeAttribute('hidden');
+      unHide(transparentBackgroundBlock);
     }
 
     if (updatePreview) {
@@ -214,11 +215,10 @@ export default class DownloadDialog extends HTMLElement {
     (this.shadowRoot.querySelector('#format') as HTMLSelectElement)!.value =
       imageType;
 
-    if (!IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND.includes(imageType)) {
-      this.elements.transparentBackground.setAttribute('hidden', 'hidden');
-    } else {
-      this.elements.transparentBackground.removeAttribute('hidden');
-    }
+    toggleHide(
+      this.elements.transparentBackground,
+      !IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND.includes(imageType)
+    );
   }
 
   getFormValues(): Record<string, FormDataEntryValue> {
@@ -245,11 +245,7 @@ export default class DownloadDialog extends HTMLElement {
   }
 
   #toggleNailNumbers(show: boolean) {
-    if (show) {
-      this.elements.renderNumbersBlock.classList.remove('hidden');
-    } else {
-      this.elements.renderNumbersBlock.classList.add('hidden');
-    }
+    toggleHide(this.elements.renderNumbersBlock, !show);
   }
 
   get dpi(): number {
@@ -276,9 +272,9 @@ export default class DownloadDialog extends HTMLElement {
 
     if (units === 'cm' || units === 'inch') {
       preferences.setUserPreferredUnits(units);
-      this.elements.dpiBlock.classList.remove('hidden');
+      unHide(this.elements.dpiBlock);
     } else {
-      this.elements.dpiBlock.classList.add('hidden');
+      hide(this.elements.dpiBlock);
     }
 
     this.elements.patternDimensions.setFloatingPoints(
@@ -381,11 +377,7 @@ export default class DownloadDialog extends HTMLElement {
       this.elements.imageDimensions.isReadonly = true;
     }
 
-    if (allowRotate) {
-      this.elements.rotateBtn.removeAttribute('hidden');
-    } else {
-      this.elements.rotateBtn.setAttribute('hidden', 'hidden');
-    }
+    toggleHide(this.elements.rotateBtn, !allowRotate);
 
     const isPixelsOnly = units && units.length === 1 && units[0] === 'px';
     this.togglePixels(!units || units.includes('px'));
@@ -422,11 +414,7 @@ export default class DownloadDialog extends HTMLElement {
   togglePixels(showPixels: boolean) {
     this.elements.unitSelect.forEach(el => {
       const pixelsOption = el.querySelector('[value="px"]');
-      if (showPixels) {
-        pixelsOption!.removeAttribute('hidden');
-      } else {
-        pixelsOption!.setAttribute('hidden', 'hidden');
-      }
+      toggleHide(pixelsOption, !showPixels);
     });
   }
 
@@ -454,11 +442,7 @@ export default class DownloadDialog extends HTMLElement {
       }
 
       const nonPixelOptions = el.querySelectorAll(':not([value="px"])');
-      nonPixelOptions.forEach(option =>
-        isPixelsOnly
-          ? option.setAttribute('hidden', 'hidden')
-          : option.removeAttribute('hidden')
-      );
+      nonPixelOptions.forEach(option => toggleHide(option, isPixelsOnly));
     });
   }
 

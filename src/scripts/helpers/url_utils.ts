@@ -11,7 +11,9 @@ export function getPatternURL(
     patternAsTemplate?: boolean;
   } = {}
 ): string {
-  const configQuery = serializeConfig(pattern);
+  const configQuery = pattern.isDefaultConfig
+    ? undefined
+    : serializeConfig(pattern);
 
   return `?pattern=${!patternAsTemplate ? pattern.id : pattern.type}${
     configQuery ? `&config=${encodeURIComponent(configQuery)}` : ''

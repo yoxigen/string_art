@@ -1,5 +1,6 @@
 import * as styles from 'bundle-text:./dialog.css';
 import * as html from 'bundle-text:./ConfirmDialog.html';
+import { hide, unHide } from '../../helpers/dom_utils';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -86,9 +87,9 @@ export default class ConfirmDialog extends HTMLElement {
 
     if (this.hasAttribute('submit-icon')) {
       this.submitIcon.className = 'icon-' + this.getAttribute('submit-icon');
-      this.submitIcon.removeAttribute('hidden');
+      unHide(this.submitIcon);
     } else {
-      this.submitIcon.setAttribute('hidden', 'hidden');
+      hide(this.submitIcon);
     }
 
     if (this.hasAttribute('width')) {

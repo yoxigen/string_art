@@ -3,6 +3,7 @@ import {
   getControlsIndex,
 } from './helpers/config_utils';
 import EventBus from './helpers/EventBus';
+import { compareObjects } from './helpers/object_utils';
 import { areDimensionsEqual } from './helpers/size_utils';
 import Nails from './Nails';
 import Renderer from './renderers/Renderer';
@@ -236,6 +237,21 @@ abstract class StringArt<
 
   set config(value: Partial<Config<TConfig>>) {
     this.#config = Object.assign({}, this.defaultConfig, value);
+  }
+
+  get isDefaultConfig(): boolean {
+    return compareObjects(this.config, this.#defaultConfig);
+  }
+
+  /**
+   * Marks the current config as default. Useful for saved patterns
+   */
+  markConfigAsDefault() {
+    this.#defaultConfig = this.config;
+  }
+
+  resetDefaultConfig() {
+    this.#defaultConfig = null;
   }
 
   /**

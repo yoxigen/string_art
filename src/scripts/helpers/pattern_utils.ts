@@ -1,4 +1,5 @@
 import patternTypes from '../pattern_types';
+import Persistance from '../Persistance';
 import StringArt from '../StringArt';
 
 export function createPatternInstance(type: string): StringArt {
@@ -21,4 +22,18 @@ export function getAllPatternsTypes(): StringArt[] {
     PatternType => new PatternType()
   );
   return patterns;
+}
+
+/**
+ * Finds a pattern with the given ID, can be a template or a saved pattern
+ */
+export function findPatternById(patternId: string): StringArt | null {
+  let pattern = patternTypes.find(({ type }) => type === patternId);
+
+  if (pattern) {
+    // @ts-ignore
+    return new pattern();
+  } else {
+    return Persistance.getPatternByID(patternId);
+  }
 }
