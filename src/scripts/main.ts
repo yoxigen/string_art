@@ -17,6 +17,7 @@ import Viewer from './viewer/Viewer';
 import type DownloadDialog from './components/dialogs/download_dialog/DownloadDialog';
 import { findPatternById } from './helpers/pattern_utils';
 import routing from './routing';
+import { hide, unHide } from './helpers/dom_utils';
 
 interface SetPatternOptions {
   config?: Record<string, PrimitiveValue>;
@@ -226,12 +227,4 @@ async function main() {
     document.body.querySelectorAll('.pattern_only').forEach(hide);
     document.body.removeAttribute('data-pattern');
   }
-}
-
-function unHide(element: Element) {
-  element.removeAttribute('hidden');
-}
-
-function hide(element: Element) {
-  element.setAttribute('hidden', 'hidden');
 }

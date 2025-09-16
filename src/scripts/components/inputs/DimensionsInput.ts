@@ -1,3 +1,4 @@
+import { hide, unHide } from '../../helpers/dom_utils';
 import { Dimension, Dimensions } from '../../types/general.types';
 import * as styles from 'bundle-text:./DimensionsInput.css';
 
@@ -55,7 +56,7 @@ export default class DimensionsInput extends HTMLElement {
           name="height"
         />
       </span>
-      <span id="readonly" class="hidden"></span>
+      <span id="readonly" hidden></span>
     `;
 
     this.#dimensions = {
@@ -153,11 +154,11 @@ export default class DimensionsInput extends HTMLElement {
 
   set isReadonly(value: boolean | string) {
     if ((this.#isReadonly = value && value !== 'false')) {
-      this.#inputsElement.classList.add('hidden');
-      this.#readonlyElement.classList.remove('hidden');
+      hide(this.#inputsElement);
+      unHide(this.#readonlyElement);
     } else {
-      this.#inputsElement.classList.remove('hidden');
-      this.#readonlyElement.classList.add('hidden');
+      unHide(this.#inputsElement);
+      hide(this.#readonlyElement);
     }
   }
 

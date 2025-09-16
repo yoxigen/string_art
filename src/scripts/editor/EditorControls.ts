@@ -1,6 +1,7 @@
 import StringArtCheckbox from '../components/inputs/StringArtCheckbox';
 import StringArtHueInput from '../components/inputs/StringArtHueInput';
 import StringArtRangeInput from '../components/inputs/StringArtRangeInput';
+import { toggleHide, unHide } from '../helpers/dom_utils';
 import EventBus from '../helpers/EventBus';
 import type {
   Config,
@@ -344,11 +345,7 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
         const shouldShowControl = control.show(this.config);
         const controlEl = this.controlElements[control.key].element;
         if (controlEl) {
-          if (shouldShowControl) {
-            controlEl.removeAttribute('hidden');
-          } else {
-            controlEl.setAttribute('hidden', 'hidden');
-          }
+          toggleHide(controlEl, !shouldShowControl);
         }
       }
 
