@@ -146,6 +146,7 @@ async function main() {
 
     routing.addEventListener('main', () => {
       thumbnails.open();
+      unselectPattern();
     });
 
     routing.init();
@@ -215,6 +216,14 @@ async function main() {
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
     setIsDefaultConfig();
+  }
+
+  function unselectPattern() {
+    viewer.setPattern(null);
+    thumbnails.setCurrentPattern(null);
+    controls && controls.destroy();
+    document.body.querySelectorAll('.pattern_only').forEach(hide);
+    document.body.removeAttribute('data-pattern');
   }
 }
 

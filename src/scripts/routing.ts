@@ -29,9 +29,7 @@ class Routing extends EventBus<{
     }: {
       state: StringArtQueryParams;
     }) => {
-      if (state) {
-        this.#updateFromState(state);
-      }
+      this.#updateFromState(state ?? {});
     });
 
     window.addEventListener('popstate', onPopState);
