@@ -519,23 +519,20 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       for (let n = 0; n <= lastIndex; n++) {
         const isNextSide = n % 2 === 0;
 
-        const positions = [];
         const nextSidePoint = isNextSide ? this.config.density - n : n;
         const targetSide = isNextSide ? nextSide : side;
-        positions.push(points[targetSide][nextSidePoint]);
+        const targetPoint = points[targetSide][nextSidePoint];
+        renderer.renderLine(prevPoint, targetPoint);
+        yield;
 
         if (n < density) {
-          positions.push(
+          prevPoint =
             points[targetSide][
               isNextSide ? nextSidePoint - 1 : nextSidePoint + 1
-            ]
-          );
+            ];
+          renderer.renderLine(targetPoint, prevPoint);
+          yield;
         }
-
-        renderer.renderLines(prevPoint, ...positions);
-        prevPoint = positions[positions.length - 1];
-
-        yield;
       }
     }
   }
@@ -584,7 +581,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       const order = generateOrderInSide.call(this, s);
 
       for (const { pointIndex, triangle1Points, triangle2Points } of order) {
-        renderer.renderLines(
+        renderer.renderLine(
           triangle1Points[pointIndex],
           triangle2Points[pointIndex]
         );

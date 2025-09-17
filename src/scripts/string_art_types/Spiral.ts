@@ -159,7 +159,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
 
       const nextPoint = this.calc.circle.getPoint(prevPointIndex);
 
-      renderer.renderLines(prevPoint, nextPoint);
+      renderer.renderLine(prevPoint, nextPoint);
       prevPoint = nextPoint;
 
       yield;

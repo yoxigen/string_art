@@ -37,6 +37,8 @@ export default abstract class Renderer extends EventBus<{
    */
   protected currentSize: Dimensions | null;
 
+  protected lastStringCoordinates: Coordinates;
+
   #removeDevicePixelListener: Function;
   #removeOnResizeListener: typeof ResizeObserver.prototype.disconnect;
 
@@ -90,10 +92,8 @@ export default abstract class Renderer extends EventBus<{
   }
 
   abstract setLineWidth(width: number): void;
-  abstract renderLines(
-    startPosition: Coordinates,
-    ...positions: Array<Coordinates>
-  ): void;
+  abstract renderLine(from: Coordinates, to: Coordinates): void;
+  abstract lineTo(to: Coordinates): void;
   abstract renderNails(
     nails: ReadonlyArray<Nail>,
     options: NailsRenderOptions

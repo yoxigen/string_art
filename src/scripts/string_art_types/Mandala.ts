@@ -137,12 +137,11 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       const startPoint = point;
       point = this.calc.circle.getPoint(i + shift);
       const toIndex = (i * base) % n;
-      renderer.renderLines(
-        startPoint,
-        point,
-        this.calc.circle.getPoint(toIndex + shift)
-      );
+      renderer.renderLine(startPoint, point);
 
+      yield;
+
+      renderer.renderLine(point, this.calc.circle.getPoint(toIndex + shift));
       yield;
     }
   }
@@ -163,7 +162,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     const { layers, layerFill } = this.config;
     const { n } = this.getCalc(options);
     const stringsPerLayer = layerFill ? Math.floor(n * layerFill) : n;
-    return (layers ?? 1) * stringsPerLayer;
+    return (layers ?? 1) * stringsPerLayer * 2;
   }
   // @ts-ignore
   thumbnailConfig = ({ n }) => ({

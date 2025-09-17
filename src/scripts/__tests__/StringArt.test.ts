@@ -26,4 +26,21 @@ describe('StringArt', () => {
 
     expect(starPattern.draw(renderer, { position: 20 })).not.toThrow();
   });
+
+  test('step count equals draw yields', () => {
+    const patterns = getAllPatternsTypes();
+
+    for (const pattern of patterns) {
+      test(`Step count for ${pattern.name}`, () => {
+        const renderer = new TestRenderer(size);
+        let drawCount = 0;
+        const drawStringsGen = pattern.drawStrings(renderer);
+        while (!drawStringsGen.next().done) {
+          drawCount++;
+        }
+
+        expect(pattern.getStepCount({ size })).toEqual(drawCount);
+      });
+    }
+  });
 });

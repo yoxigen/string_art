@@ -376,7 +376,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
 
         prevCirclePoint = this.getPoint(this.calc.layers[nextLayerIndex], i);
 
-        renderer.renderLines(startPoint, prevCirclePoint);
+        renderer.renderLine(startPoint, prevCirclePoint);
         yield;
       }
     }

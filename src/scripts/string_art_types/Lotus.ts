@@ -340,11 +340,11 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
         nailsPerSection * 2
       );
       for (let i = nailsPerCircle - nailsPerSection; i < nailsPerCircle; i++) {
-        renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLine(circle.getPoint(i), connectPoint);
         yield;
       }
       for (let i = 0; i <= nailsPerSection; i++) {
-        renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLine(circle.getPoint(i), connectPoint);
         yield;
       }
     } else {
@@ -367,7 +367,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
         (removedSections ? 1 : 0);
 
       for (let i = 0; i <= nailsPerSection; i++) {
-        renderer.renderLines(
+        renderer.renderLine(
           firstCircle.getPoint(firstCircleStart + i),
           connectPoint
         );
@@ -376,7 +376,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
 
       const startIndex = (section - removedSections) * nailsPerSection + 1;
       for (let i = startIndex; i < startIndex + nailsPerSection; i++) {
-        renderer.renderLines(circle.getPoint(i), connectPoint);
+        renderer.renderLine(circle.getPoint(i), connectPoint);
         yield;
       }
     }

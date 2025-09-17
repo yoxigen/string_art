@@ -200,7 +200,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
         }
       }
 
-      renderer.renderLines(prevPoint, point);
+      renderer.renderLine(prevPoint, point);
       prevPoint = point;
 
       yield;
