@@ -223,19 +223,24 @@ export default class CanvasRenderer extends Renderer {
     return this.getLogicalSize().map(v => v * this.pixelRatio) as Dimensions;
   }
 
-  renderLines(startPosition: Coordinates, ...positions: Array<Coordinates>) {
+  renderLine(from: Coordinates, to: Coordinates) {
     this.stringsCtx.beginPath();
-    this.stringsCtx.moveTo(...startPosition);
+    this.stringsCtx.moveTo(...from);
+    this.lastStringCoordinates = from;
 
-    for (const position of positions) {
-      this.stringsCtx.lineTo(...position);
-    }
+    this.lineTo(to);
+  }
+
+  lineTo(to: Coordinates) {
+    this.stringsCtx.lineTo(...to);
 
     this.stringsCtx.stroke();
 
     if (this.options.showInstructions) {
-      this.renderInstructions(startPosition, ...positions);
+      this.renderInstructions(this.lastStringCoordinates, to);
     }
+
+    this.lastStringCoordinates = to;
   }
 
   renderNails(
@@ -306,10 +311,7 @@ export default class CanvasRenderer extends Renderer {
     this.#instructionsOverlay = null;
   }
 
-  renderInstructions(
-    startPosition: Coordinates,
-    ...positions: Array<Coordinates>
-  ) {
+  renderInstructions(from: Coordinates, to: Coordinates) {
     const strokeColor = 'white';
     const fillColor = this.#currentColor ?? 'red';
 
@@ -357,18 +359,14 @@ export default class CanvasRenderer extends Renderer {
       ctx.restore(); // Restore the canvas state
     };
 
-    let prevPosition = startPosition;
-    for (const position of positions) {
-      //this.instructionsCtx.lineTo(...position);
-
-      drawArrow(prevPosition, position);
-      prevPosition = position;
-    }
+    let prevPosition = from;
+    drawArrow(prevPosition, to);
+    prevPosition = to;
 
     this.instructionsCtx.stroke();
 
     this.instructionsCtx.beginPath();
-    [startPosition, ...positions].forEach(([x, y]) => {
+    [from, to].forEach(([x, y]) => {
       this.instructionsCtx.moveTo(x + INSTRUCTIONS_NAIL_RADIUS, y);
       this.instructionsCtx.arc(x, y, INSTRUCTIONS_NAIL_RADIUS, 0, PI2);
     });

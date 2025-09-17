@@ -237,15 +237,18 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     const advance = isReverse ? -1 : 1;
 
     for (let index = 0; index <= endIndex; index++) {
-      const startPoint = prevPoint ?? this.getPoint(getPointIndex(index));
-      const positions = [];
       if (prevPoint) {
-        positions.push(this.getPoint(prevPointIndex + advance));
+        renderer.renderLine(prevPoint, this.getPoint(prevPointIndex + advance));
+        yield;
       }
-      prevPointIndex = getPointIndex(isPrevSide ? index : index + size);
-      positions.push((prevPoint = this.getPoint(prevPointIndex)));
 
-      renderer.renderLines(startPoint, ...positions);
+      const startPoint = prevPoint
+        ? this.getPoint(prevPointIndex + advance)
+        : this.getPoint(getPointIndex(index));
+      prevPointIndex = getPointIndex(isPrevSide ? index : index + size);
+      prevPoint = this.getPoint(prevPointIndex);
+
+      renderer.renderLine(startPoint, prevPoint);
 
       yield;
 
@@ -276,7 +279,7 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
   getStepCount(options: CalcOptions): number {
     const { layers } = this.getCalc(options);
     return layers.reduce(
-      (stepCount, layer) => stepCount + layer.endIndex + 1,
+      (stepCount, layer) => stepCount + layer.endIndex * 2 + 1,
       0
     );
   }

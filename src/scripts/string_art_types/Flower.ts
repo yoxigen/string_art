@@ -160,12 +160,17 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
             sideIndex: index,
           });
 
-          renderer.renderLines(
+          renderer.renderLine(
             polygon.getCenterPoint({
               side: side,
               index: centerIndexes[0],
             }),
-            polygon.getSidePoint({ side, index }),
+            polygon.getSidePoint({ side, index })
+          );
+
+          yield;
+
+          renderer.lineTo(
             polygon.getCenterPoint({
               side: leftSide,
               index: centerIndexes[1],
@@ -198,7 +203,7 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
 
   getStepCount(): number {
     const { sides, n, layers } = this.config;
-    return sides * (n + 1) * layers;
+    return sides * (n + 1) * 2 * layers;
   }
 
   drawNails() {

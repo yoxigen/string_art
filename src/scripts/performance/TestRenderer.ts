@@ -26,8 +26,12 @@ export class TestRenderer extends Renderer {
     this.lineWidth = width;
   }
 
-  renderLines(startPosition: Coordinates, ...positions: Array<Coordinates>) {
-    this.strings.push({ startPosition, positions });
+  renderLine(from: Coordinates, to: Coordinates) {
+    this.strings.push([from, to]);
+  }
+
+  lineTo(to: Coordinates) {
+    this.strings.push([[0, 0], to]);
   }
 
   renderNails(nails: ReadonlyArray<Nail>, options: NailsRenderOptions) {
@@ -53,4 +57,8 @@ export class TestRenderer extends Renderer {
   setBackground(color: ColorValue): void {
     this.background = color;
   }
+
+  showInstructions(): void {}
+
+  hideInstructions(): void {}
 }

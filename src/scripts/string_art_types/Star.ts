@@ -197,7 +197,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
           ? this.calc.star.getPoint(pointPosition.side, pointPosition.sideIndex)
           : this.getArcPoint(pointPosition);
 
-        renderer.renderLines(prevPoint, nextPoint);
+        renderer.renderLine(prevPoint, nextPoint);
         prevPoint = nextPoint;
 
         yield;

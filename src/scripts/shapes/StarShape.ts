@@ -171,7 +171,7 @@ export default class StarShape {
           ? sideNails - round - 1
           : round + minNailIndex;
         const nextPoint = this.getPoint(side, prevPointIndex);
-        renderer.renderLines(prevPoint, nextPoint);
+        renderer.renderLine(prevPoint, nextPoint);
         prevPoint = nextPoint;
         yield;
 
@@ -183,7 +183,7 @@ export default class StarShape {
       if (!isLastRound) {
         prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
         const nextPoint = this.getPoint(0, prevPointIndex);
-        renderer.renderLines(prevPoint, nextPoint);
+        renderer.renderLine(prevPoint, nextPoint);
         prevPoint = nextPoint;
       }
     }
