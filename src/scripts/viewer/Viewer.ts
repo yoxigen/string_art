@@ -113,6 +113,7 @@ export default class Viewer extends EventBus<{
 
   goto(position: number) {
     this.#withRenderer();
+    this.renderer.showInstructions();
     this.pattern.goto(this.renderer, position);
   }
 
@@ -129,7 +130,9 @@ export default class Viewer extends EventBus<{
     if (!this.renderer) {
       const RendererType =
         this.rendererType === 'svg' ? SVGRenderer : CanvasRenderer;
-      this.setRenderer(new RendererType(this.element));
+      this.setRenderer(
+        new RendererType(this.element, { showInstructions: true })
+      );
     }
   }
 }
