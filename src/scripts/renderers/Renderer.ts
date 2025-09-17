@@ -11,10 +11,12 @@ export type RendererResetOptions = Partial<{
 
 export type RendererOptions = Partial<{
   updateOnResize: boolean;
+  showInstructions: boolean;
 }>;
 
 const DEFAULT_OPTIONS: RendererOptions = {
   updateOnResize: true,
+  showInstructions: false,
 };
 
 export default abstract class Renderer extends EventBus<{
@@ -100,6 +102,8 @@ export default abstract class Renderer extends EventBus<{
   abstract toDataURL(): string;
   abstract setSize(size?: Dimensions | null): Dimensions;
   abstract setBackground(color: ColorValue): void;
+  abstract showInstructions(): void;
+  abstract hideInstructions(): void;
 
   getSize(): Dimensions {
     const { width, height } = this.parentElement.getBoundingClientRect();
