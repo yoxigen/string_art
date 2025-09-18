@@ -226,21 +226,14 @@ export default class CanvasRenderer extends Renderer {
   renderLine(from: Coordinates, to: Coordinates) {
     this.stringsCtx.beginPath();
     this.stringsCtx.moveTo(...from);
-    this.lastStringCoordinates = from;
+    this.lastLine = [from, to];
 
     this.lineTo(to);
   }
 
   lineTo(to: Coordinates) {
     this.stringsCtx.lineTo(...to);
-
     this.stringsCtx.stroke();
-
-    if (this.options.showInstructions) {
-      this.renderInstructions(this.lastStringCoordinates, to);
-    }
-
-    this.lastStringCoordinates = to;
   }
 
   renderNails(
@@ -319,48 +312,8 @@ export default class CanvasRenderer extends Renderer {
     this.instructionsCtx.beginPath();
     this.instructionsCtx.lineWidth = 3;
 
-    const arrowHeadSize = 15;
-
-    const drawArrow = (from: Coordinates, to: Coordinates) => {
-      const ctx = this.instructionsCtx;
-
-      // Calculate angle of the line
-      const angle = Math.atan2(to[1] - from[1], to[0] - from[0]);
-
-      ctx.save(); // Save the current canvas state
-      ctx.strokeStyle = strokeColor;
-      ctx.fillStyle = fillColor; // For filling the arrowhead
-
-      // Draw the main line
-      ctx.beginPath();
-      ctx.moveTo(from[0], from[1]);
-      ctx.lineTo(to[0], to[1]);
-      ctx.stroke();
-
-      const arrowPos = [
-        from[0] + (to[0] - from[0]) / 2,
-        from[1] + (to[1] - from[1]) / 2,
-      ];
-
-      // Draw the arrowhead
-      ctx.beginPath();
-      ctx.moveTo(arrowPos[0], arrowPos[1]);
-      ctx.lineTo(
-        arrowPos[0] - arrowHeadSize * Math.cos(angle - Math.PI / 6),
-        arrowPos[1] - arrowHeadSize * Math.sin(angle - Math.PI / 6)
-      );
-      ctx.lineTo(
-        arrowPos[0] - arrowHeadSize * Math.cos(angle + Math.PI / 6),
-        arrowPos[1] - arrowHeadSize * Math.sin(angle + Math.PI / 6)
-      );
-      ctx.closePath(); // Connects the last point to the first, closing the triangle
-      ctx.fill(); // Fills the arrowhead
-
-      ctx.restore(); // Restore the canvas state
-    };
-
     let prevPosition = from;
-    drawArrow(prevPosition, to);
+    this.#drawArrow(prevPosition, to, { strokeColor, fillColor });
     prevPosition = to;
 
     this.instructionsCtx.stroke();
@@ -374,6 +327,50 @@ export default class CanvasRenderer extends Renderer {
     this.instructionsCtx.stroke();
     this.instructionsCtx.fillStyle = fillColor;
     this.instructionsCtx.fill();
+  }
+
+  #drawArrow(
+    from: Coordinates,
+    to: Coordinates,
+    { strokeColor = 'white', fillColor = 'red' }
+  ) {
+    const arrowHeadSize = 15;
+
+    const ctx = this.instructionsCtx;
+
+    // Calculate angle of the line
+    const angle = Math.atan2(to[1] - from[1], to[0] - from[0]);
+
+    ctx.save(); // Save the current canvas state
+    ctx.strokeStyle = strokeColor;
+    ctx.fillStyle = fillColor; // For filling the arrowhead
+
+    // Draw the main line
+    ctx.beginPath();
+    ctx.moveTo(from[0], from[1]);
+    ctx.lineTo(to[0], to[1]);
+    ctx.stroke();
+
+    const arrowPos = [
+      from[0] + (to[0] - from[0]) / 2,
+      from[1] + (to[1] - from[1]) / 2,
+    ];
+
+    // Draw the arrowhead
+    ctx.beginPath();
+    ctx.moveTo(arrowPos[0], arrowPos[1]);
+    ctx.lineTo(
+      arrowPos[0] - arrowHeadSize * Math.cos(angle - Math.PI / 6),
+      arrowPos[1] - arrowHeadSize * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.lineTo(
+      arrowPos[0] - arrowHeadSize * Math.cos(angle + Math.PI / 6),
+      arrowPos[1] - arrowHeadSize * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.closePath(); // Connects the last point to the first, closing the triangle
+    ctx.fill(); // Fills the arrowhead
+
+    ctx.restore(); // Restore the canvas state
   }
 
   clear() {

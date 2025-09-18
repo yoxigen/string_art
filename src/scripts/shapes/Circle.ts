@@ -286,6 +286,10 @@ export default class Circle {
     }
   }
 
+  getRingStepCount() {
+    return this.config.n * 2 - 1;
+  }
+
   static rotationConfig: ControlConfig<{ rotation?: number }> = {
     key: 'rotation',
     label: 'Rotation',

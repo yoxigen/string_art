@@ -243,10 +243,11 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     return (circleRounds + 1) * linesPerRound - sides * 2;
   }
 
-  getStepCount(): number {
-    const { sides, sideNails, ringSize } = this.config;
+  getStepCount(options: CalcOptions): number {
+    const { ringSize } = this.config;
 
-    const ringCount = ringSize ? sideNails * sides : 0;
+    const calc = this.getCalc(options);
+    const ringCount = ringSize ? calc.circle.getRingStepCount() : 0;
     const circleCount = this.#getCircleStepCount();
     const starCount = StarShape.getStepCount(this.config);
     return circleCount + ringCount + starCount;

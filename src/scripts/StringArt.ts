@@ -31,6 +31,7 @@ export interface DrawOptions {
   redrawStrings?: boolean;
   bufferSize?: number;
   bufferFrom?: number;
+  showInstructions?: boolean;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -404,6 +405,7 @@ abstract class StringArt<
       position,
       bufferSize,
       bufferFrom,
+      showInstructions = false,
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
   ): () => void {
@@ -454,6 +456,13 @@ abstract class StringArt<
                 abortController.signal.aborted)
             ) {
               i++;
+              if (
+                showInstructions &&
+                position != null &&
+                this.position === position
+              ) {
+                renderer.renderInstructions(this.lastStringCoordinates, to);
+              }
             }
 
             if (!isDone) {

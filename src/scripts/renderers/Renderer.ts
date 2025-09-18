@@ -36,8 +36,7 @@ export default abstract class Renderer extends EventBus<{
    * The current dimensions of the renderer. Should be fixed for device pixel ratio, if used by the renderer!
    */
   protected currentSize: Dimensions | null;
-
-  protected lastStringCoordinates: Coordinates;
+  protected lastLine: [Coordinates, Coordinates];
 
   #removeDevicePixelListener: Function;
   #removeOnResizeListener: typeof ResizeObserver.prototype.disconnect;
@@ -98,6 +97,7 @@ export default abstract class Renderer extends EventBus<{
     nails: ReadonlyArray<Nail>,
     options: NailsRenderOptions
   ): void;
+  abstract renderInstructions;
   abstract clear(): void;
   abstract toDataURL(): string;
   abstract setSize(size?: Dimensions | null): Dimensions;

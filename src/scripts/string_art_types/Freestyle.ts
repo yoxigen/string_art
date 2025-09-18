@@ -392,7 +392,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
 
   getStepCount(options: CalcOptions) {
     const { layers, maxShapeNailsCount } = this.getCalc(options);
-    return layers.length * maxShapeNailsCount - 1;
+    return layers.length * maxShapeNailsCount;
   }
 
   thumbnailConfig = ({ n, minNailDistance }) => ({

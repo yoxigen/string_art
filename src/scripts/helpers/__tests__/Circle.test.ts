@@ -1,5 +1,6 @@
 import { describe, test, expect } from '@jest/globals';
 import Circle from '../../shapes/Circle';
+import { TestRenderer } from '../../performance/TestRenderer';
 
 describe('Circle', () => {
   describe('aspectRatio', () => {
@@ -31,5 +32,20 @@ describe('Circle', () => {
 
       expect(circle.aspectRatio).toBe(2);
     });
+  });
+
+  test('step count is the same as number of yields for drawing a ring', () => {
+    const renderer = new TestRenderer([1000, 600]);
+    const circle = new Circle({
+      n: 20,
+      size: [1000, 600],
+    });
+    const drawRingGen = circle.drawRing(renderer, { ringSize: 2 });
+    let drawCount = 0;
+    while (!drawRingGen.next().done) {
+      drawCount++;
+    }
+
+    expect(circle.getRingStepCount()).toEqual(drawCount);
   });
 });
