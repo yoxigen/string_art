@@ -38,6 +38,8 @@ export default abstract class Renderer extends EventBus<{
   protected currentSize: Dimensions | null;
   protected lastLine: [Coordinates, Coordinates];
 
+  protected lastStringCoordinates: Coordinates;
+
   #removeDevicePixelListener: Function;
   #removeOnResizeListener: typeof ResizeObserver.prototype.disconnect;
 

@@ -226,7 +226,7 @@ export default class CanvasRenderer extends Renderer {
   renderLine(from: Coordinates, to: Coordinates) {
     this.stringsCtx.beginPath();
     this.stringsCtx.moveTo(...from);
-    this.lastLine = [from, to];
+    this.lastStringCoordinates = from;
 
     this.lineTo(to);
   }
@@ -234,6 +234,7 @@ export default class CanvasRenderer extends Renderer {
   lineTo(to: Coordinates) {
     this.stringsCtx.lineTo(...to);
     this.stringsCtx.stroke();
+    this.lastStringCoordinates = to;
   }
 
   renderNails(

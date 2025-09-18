@@ -113,7 +113,6 @@ export default class Viewer extends EventBus<{
 
   goto(position: number) {
     this.#withRenderer();
-    //this.renderer.showInstructions();
     this.renderer.showInstructions();
     this.pattern.goto(this.renderer, position);
   }
