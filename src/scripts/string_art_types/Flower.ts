@@ -1,7 +1,7 @@
 import StringArt from '../StringArt';
 import Polygon from '../shapes/Polygon';
 import Color from '../helpers/color/Color';
-import { ColorConfig, ColorMap } from '../helpers/color/color.types';
+import { ColorConfig } from '../helpers/color/color.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
@@ -88,7 +88,6 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
   };
 
   color: Color;
-  colorMap: ColorMap;
 
   getCalc({ size }: CalcOptions): TCalc {
     const { n, rotation, sides, layers, margin } = this.config;
@@ -119,15 +118,6 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
       isMultiColor,
       colorCount: layers,
     });
-
-    if (isMultiColor) {
-      this.colorMap = this.color.getColorMap({
-        stepCount: this.getStepCount(),
-        colorCount: layers,
-      });
-    } else {
-      this.colorMap = null;
-    }
   }
 
   getAspectRatio(calcOptions: CalcOptions): number {
@@ -142,19 +132,15 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     const { sides, layers } = this.config;
 
     let step = 0;
-    renderer.setColor(this.color.getColor(0));
 
     for (let layer = 0; layer < layers; layer++) {
+      renderer.setColor(this.color.getColor(layer));
       const polygon = this.calc.polygons[layer];
 
       for (let side = 0; side < sides; side++) {
         const leftSide = side === sides - 1 ? 0 : side + 1;
 
         for (let index = 0; index <= polygon.nailsPerSide; index++) {
-          if (this.colorMap?.has(step)) {
-            renderer.setColor(this.colorMap.get(step));
-          }
-
           const centerIndexes = this.getCenterIndexes({
             polygon,
             sideIndex: index,
