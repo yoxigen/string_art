@@ -3,7 +3,7 @@ import {
   createPatternInstance,
   getAllPatternsTypes,
 } from '../helpers/pattern_utils';
-import { TestRenderer } from '../performance/TestRenderer';
+import { TestRenderer } from '../renderers/TestRenderer';
 import { Dimensions } from '../types/general.types';
 
 const size: Dimensions = [1000, 1000];

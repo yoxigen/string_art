@@ -1,5 +1,5 @@
 import { ColorValue } from '../helpers/color/color.types';
-import Renderer, { RendererOptions } from '../renderers/Renderer';
+import Renderer, { RendererOptions } from './Renderer';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { Nail, NailsRenderOptions } from '../types/stringart.types';
 
@@ -30,6 +30,7 @@ export class TestRenderer extends Renderer {
     this.strings.push([from, to]);
   }
 
+  renderInstructions(from: Coordinates, to: Coordinates): void {}
   lineTo(to: Coordinates) {
     this.strings.push([[0, 0], to]);
   }
