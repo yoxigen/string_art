@@ -227,13 +227,13 @@ export default class CanvasRenderer extends Renderer {
     this.stringsCtx.beginPath();
     this.stringsCtx.moveTo(...from);
     this.lastStringCoordinates = from;
-
     this.lineTo(to);
   }
 
   lineTo(to: Coordinates) {
     this.stringsCtx.lineTo(...to);
     this.stringsCtx.stroke();
+    this.lastLine = [this.lastStringCoordinates, to];
     this.lastStringCoordinates = to;
   }
 

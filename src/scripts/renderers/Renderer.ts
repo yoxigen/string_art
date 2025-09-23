@@ -37,7 +37,6 @@ export default abstract class Renderer extends EventBus<{
    */
   protected currentSize: Dimensions | null;
   protected lastLine: [Coordinates, Coordinates];
-
   protected lastStringCoordinates: Coordinates;
 
   #removeDevicePixelListener: Function;
@@ -99,7 +98,10 @@ export default abstract class Renderer extends EventBus<{
     nails: ReadonlyArray<Nail>,
     options: NailsRenderOptions
   ): void;
-  abstract renderInstructions;
+  abstract renderInstructions(from: Coordinates, to: Coordinates): void;
+  renderInstructionsForLastLine(): void {
+    this.renderInstructions(...this.lastLine);
+  }
   abstract clear(): void;
   abstract toDataURL(): string;
   abstract setSize(size?: Dimensions | null): Dimensions;

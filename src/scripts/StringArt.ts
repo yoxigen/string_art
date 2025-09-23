@@ -456,13 +456,6 @@ abstract class StringArt<
                 abortController.signal.aborted)
             ) {
               i++;
-              if (
-                showInstructions &&
-                position != null &&
-                this.position === position
-              ) {
-                renderer.renderInstructions(this.lastStringCoordinates, to);
-              }
             }
 
             if (!isDone) {
@@ -476,6 +469,14 @@ abstract class StringArt<
               !this.drawNext().done &&
               (position == null || this.position < position)
             );
+
+            if (
+              showInstructions &&
+              position != null &&
+              this.position === position
+            ) {
+              renderer.renderInstructionsForLastLine();
+            }
           };
 
       drawBuffer();
@@ -493,8 +494,13 @@ abstract class StringArt<
 
     if (this.stringsIterator && position > this.position) {
       while (!this.drawNext().done && this.position < position);
+      renderer.renderInstructionsForLastLine();
     } else {
-      this.draw(renderer, { position, redrawNails: false });
+      this.draw(renderer, {
+        position,
+        redrawNails: false,
+        showInstructions: true,
+      });
     }
   }
 
