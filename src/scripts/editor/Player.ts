@@ -19,6 +19,7 @@ export default class Player {
   stepCount: number;
   #isPlaying: boolean;
   #cancelNextPlayStep: Function;
+  #cancelHideInstruction: Function;
 
   constructor(parentEl: HTMLElement, viewer: Viewer) {
     this.viewer = viewer;
@@ -61,6 +62,15 @@ export default class Player {
       this.play({ speed: SLOW_PLAY_SPEED })
     );
     viewer.addEventListener('touchEnd', () => this.pause());
+
+    viewOptions.addEventListener(
+      'showInstructionsChange',
+      ({ showInstructions }) => {
+        if (showInstructions) {
+          this.#cancelHideInstruction?.();
+        }
+      }
+    );
   }
 
   updateStatus(isPlaying: boolean) {
@@ -97,9 +107,11 @@ export default class Player {
       return;
     }
 
+    this.#cancelHideInstruction?.();
     this.pause();
     this.updatePosition(position);
     if (showInstructions) {
+      console.log('SHOW INSTRUCTIONS');
       viewOptions.showInstructions = true;
     }
     if (updateStringArt) {
@@ -111,7 +123,11 @@ export default class Player {
       position === this.stepCount &&
       viewOptions.showInstructions
     ) {
-      setTimeout(() => (viewOptions.showInstructions = false), 1000);
+      const hideIntructionsTimeout = setTimeout(() => {
+        console.log('HIDE');
+        viewOptions.showInstructions = false;
+      }, 1000);
+      this.#cancelHideInstruction = () => clearTimeout(hideIntructionsTimeout);
     }
   }
 

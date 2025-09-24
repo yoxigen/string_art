@@ -19,6 +19,7 @@ export default class CanvasRenderer extends Renderer {
   >;
 
   #instructions: HTMLDivElement;
+  #cancelInstructionsHide: Function;
 
   constructor(parentElement: HTMLElement, options?: RendererOptions) {
     super(parentElement, options);
@@ -284,6 +285,7 @@ export default class CanvasRenderer extends Renderer {
 
   showInstructions(): void {
     this.options.showInstructions = true;
+    this.#cancelInstructionsHide?.();
 
     if (!this.#instructions) {
       this.#instructions = document.createElement('div');
@@ -310,7 +312,11 @@ export default class CanvasRenderer extends Renderer {
         opacity -= 0.02;
         this.#instructions.style.opacity = String(opacity);
         if (opacity > 0) {
-          requestAnimationFrame(fadeOut);
+          const raf = requestAnimationFrame(fadeOut);
+          this.#cancelInstructionsHide = () => {
+            cancelAnimationFrame(raf);
+            this.#instructions.style.removeProperty('opacity');
+          };
         } else {
           hide(this.#instructions);
           this.clearInstructions();
@@ -323,6 +329,10 @@ export default class CanvasRenderer extends Renderer {
   }
 
   renderInstructions(from: Coordinates, to: Coordinates) {
+    if (!this.options.showInstructions) {
+      this.showInstructions();
+    }
+
     const strokeColor = 'white';
     const fillColor = this.#currentColor ?? 'red';
 
