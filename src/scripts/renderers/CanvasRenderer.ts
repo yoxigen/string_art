@@ -4,6 +4,7 @@ import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail } from '../types/stringart.types';
 import { ColorValue } from '../helpers/color/color.types';
 import { areDimensionsEqual } from '../helpers/size_utils';
+import { hide, unHide } from '../helpers/dom_utils';
 
 let lastId = 0;
 const INSTRUCTIONS_NAIL_RADIUS = 4;
@@ -17,7 +18,7 @@ export default class CanvasRenderer extends Renderer {
     { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D }
   >;
 
-  #instructionsOverlay: HTMLDivElement;
+  #instructions: HTMLDivElement;
 
   constructor(parentElement: HTMLElement, options?: RendererOptions) {
     super(parentElement, options);
@@ -191,13 +192,13 @@ export default class CanvasRenderer extends Renderer {
   setBackground(color: ColorValue | null) {
     if ((this.#background = color)) {
       this.parentElement.style.background = color;
-      if (this.#instructionsOverlay) {
-        this.#instructionsOverlay.style.background = color;
+      if (this.#instructions) {
+        this.#instructions.style.background = color;
       }
     } else {
       this.parentElement.style.removeProperty('background');
-      if (this.#instructionsOverlay) {
-        this.#instructionsOverlay.style.background = 'black';
+      if (this.#instructions) {
+        this.#instructions.style.background = 'black';
       }
     }
   }
@@ -284,31 +285,48 @@ export default class CanvasRenderer extends Renderer {
   showInstructions(): void {
     this.options.showInstructions = true;
 
-    if (!this.#instructionsOverlay) {
-      this.#instructionsOverlay = document.createElement('div');
-      this.#instructionsOverlay.id = 'CanvasRenderer__instructions_overlay';
-      this.#instructionsOverlay.className = 'renderer-instructions-overlay';
-      this.#instructionsOverlay.style = `background: ${
+    if (!this.#instructions) {
+      this.#instructions = document.createElement('div');
+      this.#instructions.id = 'CanvasRenderer__instructions';
+
+      const instructionsOverlay = document.createElement('div');
+      instructionsOverlay.id = 'CanvasRenderer__instructions_overlay';
+      instructionsOverlay.style = `background: ${
         this.parentElement.style.background ?? 'black'
       }; position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.5`;
-      this.parentElement.insertBefore(
-        this.#instructionsOverlay,
-        this.instructionsCanvas
-      );
+      this.#instructions.appendChild(instructionsOverlay);
+      this.#instructions.appendChild(this.instructionsCanvas);
+      this.parentElement.appendChild(this.#instructions);
+    } else {
+      unHide(this.#instructions);
     }
   }
 
   hideInstructions(): void {
     this.options.showInstructions = false;
-    this.instructionsCtx.clearRect(0, 0, ...this.getSize());
-    this.parentElement.removeChild(this.#instructionsOverlay);
-    this.#instructionsOverlay = null;
+    if (this.#instructions) {
+      let opacity = 1;
+      const fadeOut = () => {
+        opacity -= 0.02;
+        this.#instructions.style.opacity = String(opacity);
+        if (opacity > 0) {
+          requestAnimationFrame(fadeOut);
+        } else {
+          hide(this.#instructions);
+          this.clearInstructions();
+          this.#instructions.style.removeProperty('opacity');
+        }
+      };
+
+      fadeOut();
+    }
   }
 
   renderInstructions(from: Coordinates, to: Coordinates) {
     const strokeColor = 'white';
     const fillColor = this.#currentColor ?? 'red';
 
+    this.clearInstructions();
     this.instructionsCtx.clearRect(0, 0, ...this.getSize());
     this.instructionsCtx.beginPath();
     this.instructionsCtx.lineWidth = 3;
@@ -328,6 +346,14 @@ export default class CanvasRenderer extends Renderer {
     this.instructionsCtx.stroke();
     this.instructionsCtx.fillStyle = fillColor;
     this.instructionsCtx.fill();
+    this.hasInstructions = true;
+  }
+
+  clearInstructions(): void {
+    if (this.hasInstructions) {
+      this.instructionsCtx.clearRect(0, 0, ...this.getSize());
+      this.hasInstructions = false;
+    }
   }
 
   #drawArrow(

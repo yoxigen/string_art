@@ -38,6 +38,7 @@ export default abstract class Renderer extends EventBus<{
   protected currentSize: Dimensions | null;
   protected lastLine: [Coordinates, Coordinates];
   protected lastStringCoordinates: Coordinates;
+  protected hasInstructions: boolean = false;
 
   #removeDevicePixelListener: Function;
   #removeOnResizeListener: typeof ResizeObserver.prototype.disconnect;
@@ -99,9 +100,7 @@ export default abstract class Renderer extends EventBus<{
     options: NailsRenderOptions
   ): void;
   abstract renderInstructions(from: Coordinates, to: Coordinates): void;
-  renderInstructionsForLastLine(): void {
-    this.renderInstructions(...this.lastLine);
-  }
+  abstract clearInstructions(): void;
   abstract clear(): void;
   abstract toDataURL(): string;
   abstract setSize(size?: Dimensions | null): Dimensions;
@@ -160,5 +159,9 @@ export default abstract class Renderer extends EventBus<{
   disablePixelRatio() {
     this.pixelRatio = 1;
     this.#removeDevicePixelListener?.();
+  }
+
+  renderInstructionsForLastLine(): void {
+    this.renderInstructions(...this.lastLine);
   }
 }

@@ -391,6 +391,7 @@ abstract class StringArt<
       this.nails = new Nails(this.config);
     }
 
+    renderer.clearInstructions();
     renderer.setLineWidth(this.config.stringWidth);
 
     this.setUpDraw({ size: this.size });
@@ -494,7 +495,6 @@ abstract class StringArt<
 
     if (this.stringsIterator && position > this.position) {
       while (!this.drawNext().done && this.position < position);
-      renderer.renderInstructionsForLastLine();
     } else {
       this.draw(renderer, {
         position,
@@ -502,6 +502,7 @@ abstract class StringArt<
         showInstructions: true,
       });
     }
+    renderer.renderInstructionsForLastLine();
   }
 
   /**

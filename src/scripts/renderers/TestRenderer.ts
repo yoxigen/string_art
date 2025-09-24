@@ -31,6 +31,7 @@ export class TestRenderer extends Renderer {
   }
 
   renderInstructions(from: Coordinates, to: Coordinates): void {}
+  clearInstructions(): void {}
   lineTo(to: Coordinates) {
     this.strings.push([[0, 0], to]);
   }
