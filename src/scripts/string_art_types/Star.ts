@@ -183,11 +183,8 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     let side = 0;
     const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
 
-    for (let round = 0; round <= rounds; round++) {
-      const linesPerThisRound =
-        linesPerRound - (round === rounds ? sides * 2 : 0);
-
-      for (let i = 0; i < linesPerThisRound; i++) {
+    for (let round = 0; round < rounds; round++) {
+      for (let i = 0; i < linesPerRound; i++) {
         const pointPosition = {
           side,
           sideIndex: alternate ? sideNails - round - 1 : round,
@@ -237,10 +234,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
 
   #getCircleStepCount(): number {
     const { sides, sideNails } = this.config;
-    const circleRounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
-    const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
-
-    return (circleRounds + 1) * linesPerRound - sides * 2;
+    return sides * 2 * sideNails;
   }
 
   getStepCount(options: CalcOptions): number {
