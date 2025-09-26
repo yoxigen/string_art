@@ -14,8 +14,8 @@ export interface StarShapeConfig {
   sideNails: number;
   sides: number;
   maxCurveSize?: number;
-  centerRadius: number;
-  rotation: number;
+  centerRadius?: number;
+  rotation?: number;
   center?: Coordinates;
   size?: Dimensions;
   radius?: number;
@@ -85,6 +85,12 @@ export default class StarShape {
       ])
     ) {
       return;
+    }
+
+    if (!config.center && !config.size) {
+      throw new Error(
+        'StarShape requires a config value for either center or size.'
+      );
     }
 
     const center =
@@ -189,7 +195,7 @@ export default class StarShape {
     }
   }
 
-  getStepCount(size: number) {
+  getStepCount(size?: number) {
     return StarShape.getStepCount(this.config, { size });
   }
 

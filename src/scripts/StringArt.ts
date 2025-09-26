@@ -192,6 +192,11 @@ abstract class StringArt<
   thumbnailConfig:
     | Partial<Config<TConfig>>
     | ((config: Config<TConfig>) => Partial<Config<TConfig>>);
+  /**
+   * Set testStepCountConfig to automatically test that the step count is correct for the given configurations
+   */
+  testStepCountConfig: Partial<Config<TConfig>>[];
+
   static type: string;
 
   getCommonControls(): ControlsConfig<Partial<CommonConfig>> {

@@ -1,4 +1,4 @@
-import Renderer, { RendererOptions } from './Renderer';
+import Renderer, { LayerOptions, RendererOptions } from './Renderer';
 import { PI2 } from '../helpers/math_utils';
 import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail } from '../types/stringart.types';
@@ -226,13 +226,17 @@ export default class CanvasRenderer extends Renderer {
   }
 
   renderLine(from: Coordinates, to: Coordinates) {
-    this.stringsCtx.beginPath();
-    this.stringsCtx.moveTo(...from);
     this.lastStringCoordinates = from;
     this.lineTo(to);
   }
 
   lineTo(to: Coordinates) {
+    if (!this.lastStringCoordinates) {
+      throw new Error("no last string coordinates, can't lineTo");
+    }
+
+    this.stringsCtx.beginPath();
+    this.stringsCtx.moveTo(...this.lastStringCoordinates);
     this.stringsCtx.lineTo(...to);
     this.stringsCtx.stroke();
     this.lastLine = [this.lastStringCoordinates, to];

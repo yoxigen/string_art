@@ -13,6 +13,12 @@ export type RendererOptions = Partial<{
   updateOnResize: boolean;
 }>;
 
+export interface LayerOptions {
+  startPosition?: Coordinates;
+  color?: ColorValue;
+  layerName?: string;
+}
+
 const DEFAULT_OPTIONS: RendererOptions = {
   updateOnResize: true,
 };
@@ -37,6 +43,7 @@ export default abstract class Renderer extends EventBus<{
   protected lastLine: [Coordinates, Coordinates];
   protected lastStringCoordinates: Coordinates;
   protected hasInstructions: boolean = false;
+  protected currentLayerOptions: LayerOptions;
 
   #removeDevicePixelListener: Function;
   #removeOnResizeListener: typeof ResizeObserver.prototype.disconnect;
@@ -117,6 +124,21 @@ export default abstract class Renderer extends EventBus<{
    */
   getLogicalSize(): Dimensions {
     return this.getSize();
+  }
+
+  setStartingPoint(coordinates: Coordinates) {
+    this.lastStringCoordinates = coordinates;
+  }
+
+  startLayer(options: LayerOptions) {
+    this.currentLayerOptions = options;
+    if (options.color) {
+      this.setColor(options.color);
+    }
+  }
+
+  endLayer() {
+    this.currentLayerOptions = null;
   }
 
   /**
