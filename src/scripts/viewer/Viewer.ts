@@ -2,11 +2,11 @@ import EventBus from '../helpers/EventBus';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import Renderer from '../renderers/Renderer';
 import SVGRenderer from '../renderers/SVGRenderer';
+import routing from '../routing';
 import StringArt, { DrawOptions } from '../StringArt';
 import { Dimensions } from '../types/general.types';
+import { RendererType } from '../types/stringart.types';
 import viewOptions from './ViewOptions';
-
-type RendererType = 'svg' | 'canvas';
 
 export default class Viewer extends EventBus<{
   positionChange: { changeBy: number };
@@ -42,6 +42,11 @@ export default class Viewer extends EventBus<{
         }
       }
     );
+
+    routing.addEventListener('renderer', rendererType => {
+      this.rendererType = rendererType;
+      this.renderer = null;
+    });
 
     // Cancelling this for the moment, as it creates problems on mobile, when doing back with gestures:
     // this.#setTapEvents();
@@ -143,9 +148,7 @@ export default class Viewer extends EventBus<{
     if (!this.renderer) {
       const RendererType =
         this.rendererType === 'svg' ? SVGRenderer : CanvasRenderer;
-      this.setRenderer(
-        new RendererType(this.element, { showInstructions: true })
-      );
+      this.setRenderer(new RendererType(this.element));
     }
   }
 }

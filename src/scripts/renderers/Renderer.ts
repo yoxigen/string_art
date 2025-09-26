@@ -11,12 +11,10 @@ export type RendererResetOptions = Partial<{
 
 export type RendererOptions = Partial<{
   updateOnResize: boolean;
-  showInstructions: boolean;
 }>;
 
 const DEFAULT_OPTIONS: RendererOptions = {
   updateOnResize: true,
-  showInstructions: false,
 };
 
 export default abstract class Renderer extends EventBus<{

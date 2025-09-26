@@ -8,18 +8,21 @@ import {
 import { deserializeConfig, serializeConfig } from './Serialize';
 import StringArt from './StringArt';
 import { PrimitiveValue } from './types/config.types';
+import { RendererType } from './types/stringart.types';
 
 export interface PatternRoute<TConfig = Record<string, PrimitiveValue>> {
   pattern: StringArt<TConfig>;
   config?: TConfig;
-  renderer?: 'canvas' | 'svg';
+  renderer?: RendererType;
 }
 
 class Routing extends EventBus<{
   pattern: PatternRoute;
   main: void;
+  renderer: RendererType;
 }> {
   #popStateListener: (this: Window, ev: PopStateEvent) => any;
+  #currentRenderer: RendererType = 'canvas';
 
   constructor() {
     super();
@@ -36,7 +39,18 @@ class Routing extends EventBus<{
   }
 
   #updateFromState(state: StringArtQueryParams) {
-    const { pattern: patternId, name: patternName, config, renderer } = state;
+    const {
+      pattern: patternId,
+      name: patternName,
+      config,
+      renderer = 'canvas',
+    } = state;
+
+    const actualRenderer = renderer === 'svg' ? 'svg' : 'canvas';
+    if (actualRenderer !== this.#currentRenderer) {
+      this.#currentRenderer = actualRenderer;
+      this.emit('renderer', actualRenderer);
+    }
 
     if (patternId) {
       const pattern = findPatternById(patternId);
@@ -52,7 +66,7 @@ class Routing extends EventBus<{
         }
         this.emit('pattern', {
           pattern,
-          renderer: renderer === 'svg' ? 'svg' : 'canvas',
+          renderer: actualRenderer,
         });
       } else {
         throw new Error(`Unknown pattern with ID "${patternId}".`);
@@ -85,7 +99,7 @@ class Routing extends EventBus<{
     {
       renderer = 'canvas',
       replaceState = false,
-    }: { renderer?: 'canvas' | 'svg'; replaceState?: boolean } = {}
+    }: { renderer?: RendererType; replaceState?: boolean } = {}
   ) {
     const configQuery = pattern.isDefaultConfig
       ? undefined

@@ -1,4 +1,4 @@
-import Renderer, { RendererOptions, RendererResetOptions } from './Renderer';
+import Renderer, { RendererOptions } from './Renderer';
 import { PI2 } from '../helpers/math_utils';
 import type { Coordinates, Dimensions } from '../types/general.types';
 import type { Nail } from '../types/stringart.types';
@@ -284,7 +284,6 @@ export default class CanvasRenderer extends Renderer {
   }
 
   showInstructions(): void {
-    this.options.showInstructions = true;
     this.#cancelInstructionsHide?.();
 
     if (!this.#instructions) {
@@ -305,7 +304,6 @@ export default class CanvasRenderer extends Renderer {
   }
 
   hideInstructions(): void {
-    this.options.showInstructions = false;
     if (this.#instructions) {
       let opacity = 1;
       const fadeOut = () => {
@@ -329,9 +327,7 @@ export default class CanvasRenderer extends Renderer {
   }
 
   renderInstructions(from: Coordinates, to: Coordinates) {
-    if (!this.options.showInstructions) {
-      this.showInstructions();
-    }
+    this.showInstructions();
 
     const strokeColor = 'white';
     const fillColor = this.#currentColor ?? 'red';
