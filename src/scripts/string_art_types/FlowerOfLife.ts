@@ -42,6 +42,7 @@ interface TCalc {
   countPerLevelSide: number[];
   globalRotationRadians: number;
   radius: number;
+  ringCircle: Circle;
 }
 
 const COLOR_CONFIG = Color.getConfig({
@@ -236,7 +237,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
   points: Points;
   color: Color;
   colorMap: ColorMap;
-  #circle: Circle;
 
   getCalc({ size }: CalcOptions): TCalc {
     const {
@@ -278,6 +278,16 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     const edgeSize = polygon.sideSize / levels;
     const nailsLength = edgeSize / (2 * Math.cos(Math.PI / 6));
 
+    const ringCircle =
+      renderRing && ringSize
+        ? new Circle({
+            size,
+            n: ringNailCount,
+            margin: margin,
+            rotation: globalRotation,
+          })
+        : null;
+
     const countPerLevelSide = new Array(levels + (renderCaps ? 1 : 0))
       .fill(null)
       .map((_, level) => level * 2 + 1);
@@ -292,6 +302,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       countPerLevelSide,
       globalRotationRadians,
       radius,
+      ringCircle,
     };
   }
 
@@ -314,23 +325,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       ringNailCount,
       ...config
     } = this.config;
-
-    if (renderRing && ringSize) {
-      const circleConfig: CircleConfig = {
-        size: options.size,
-        n: ringNailCount,
-        margin: config.margin,
-        rotation: config.globalRotation,
-      };
-
-      if (this.#circle) {
-        this.#circle.setConfig(circleConfig);
-      } else {
-        this.#circle = new Circle(circleConfig);
-      }
-    } else {
-      this.#circle = null;
-    }
 
     if (!this.points) {
       this.points = this.getPoints();
@@ -691,7 +685,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
           if (
             triangleIndexInSide % 2 === 0 &&
-            (renderCaps || levelIndex < levels - 1)
+            ((renderCaps && renderTriangles) || levelIndex < levels - 1)
           ) {
             const side = Math.floor(triangleIndex / levelSideCount);
             const nextLevelSideCount =
@@ -724,7 +718,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     }
 
     if (renderRing && ringSize) {
-      yield* this.#circle.drawRing(renderer, {
+      yield* this.calc.ringCircle.drawRing(renderer, {
         ringSize: ringSize / 2,
         color: ringColor,
       });
@@ -738,37 +732,31 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
     const calc = this.calc ?? this.getCalc(options);
 
-    const {
-      levels,
-      density,
-      fill,
-      renderTriangles,
-      renderCaps,
-      ringNailCount = 0,
-    } = this.config;
-    const { triangleCount } = calc;
+    const { density, renderTriangles, renderCaps, levels, fill } = this.config;
+    const { triangleCount, ringCircle } = calc;
 
-    const fillStepsPerTriangle = fill ? density * 2 : 0;
-    const triangleSteps = renderTriangles ? density * 3 : 0;
+    const capCount = renderTriangles && renderCaps ? levels * 6 : 0;
 
-    const stepsPerTriangle = triangleSteps + fillStepsPerTriangle;
+    let fillCount = 0;
+    if (fill) {
+      const getTriangleCountForLevel = (level: number) => 6 * (level * 2 + 1);
 
-    const levelsWithFillBetween = levels + (renderCaps ? 1 : 0);
-    const fillStepsBetweenLevels =
-      (fillStepsPerTriangle *
-        (levelsWithFillBetween - 1) *
-        6 *
-        levelsWithFillBetween) /
-      2;
-    const stepsPerCap = density + 1;
-    const capSteps =
-      renderTriangles && renderCaps ? 6 * levels * stepsPerCap : 0;
+      for (let level = 0; level < levels; level++) {
+        const levelTrianglecount = getTriangleCountForLevel(level);
+        fillCount += levelTrianglecount + level * 6;
+      }
+
+      fillCount += capCount;
+    }
+
+    const fillStepCount = fillCount * density * 2;
+    const capSteps = capCount * (2 * density + 1);
 
     return (
-      triangleCount * stepsPerTriangle +
+      (renderTriangles ? triangleCount * density * 6 : 0) +
       capSteps +
-      fillStepsBetweenLevels +
-      ringNailCount
+      fillStepCount +
+      (ringCircle ? ringCircle.getRingStepCount() : 0)
     );
   }
 
@@ -788,8 +776,8 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       }
     }
 
-    if (this.#circle) {
-      this.#circle.drawNails(this.nails);
+    if (this.calc.ringCircle) {
+      this.calc.ringCircle.drawNails(this.nails);
     }
   }
 
