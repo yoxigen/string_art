@@ -737,6 +737,10 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
     const capCount = renderTriangles && renderCaps ? levels * 6 : 0;
 
+    // First we count how many fills there are. The calculation is like this:
+    // For each level, there's a fill between each triangle
+    // Also, for each level, there are (level - 1) * 6 fills, where the level is zero-based (the first level is 0)
+    // Finally, if there are caps, each cap has a fill
     let fillCount = 0;
     if (fill) {
       const getTriangleCountForLevel = (level: number) => 6 * (level * 2 + 1);
