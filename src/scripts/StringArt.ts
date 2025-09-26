@@ -31,7 +31,6 @@ export interface DrawOptions {
   redrawStrings?: boolean;
   bufferSize?: number;
   bufferFrom?: number;
-  showInstructions?: boolean;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -406,7 +405,6 @@ abstract class StringArt<
       position,
       bufferSize,
       bufferFrom,
-      showInstructions = false,
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
   ): () => void {
@@ -470,14 +468,6 @@ abstract class StringArt<
               !this.drawNext().done &&
               (position == null || this.position < position)
             );
-
-            if (
-              showInstructions &&
-              position != null &&
-              this.position === position
-            ) {
-              renderer.renderInstructionsForLastLine();
-            }
           };
 
       drawBuffer();
@@ -488,7 +478,7 @@ abstract class StringArt<
     };
   }
 
-  goto(renderer: Renderer, position: number) {
+  goto(renderer: Renderer, position: number, { showInstructions = true } = {}) {
     if (position === this.position) {
       return;
     }
@@ -499,10 +489,13 @@ abstract class StringArt<
       this.draw(renderer, {
         position,
         redrawNails: false,
-        showInstructions: true,
+        showInstructions,
       });
     }
-    renderer.renderInstructionsForLastLine();
+
+    if (showInstructions) {
+      renderer.renderInstructionsForLastLine();
+    }
   }
 
   /**

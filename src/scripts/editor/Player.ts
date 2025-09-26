@@ -111,7 +111,6 @@ export default class Player {
     this.pause();
     this.updatePosition(position);
     if (showInstructions) {
-      console.log('SHOW INSTRUCTIONS');
       viewOptions.showInstructions = true;
     }
     if (updateStringArt) {
@@ -124,7 +123,6 @@ export default class Player {
       viewOptions.showInstructions
     ) {
       const hideIntructionsTimeout = setTimeout(() => {
-        console.log('HIDE');
         viewOptions.showInstructions = false;
       }, 1000);
       this.#cancelHideInstruction = () => clearTimeout(hideIntructionsTimeout);
