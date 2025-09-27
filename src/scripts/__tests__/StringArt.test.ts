@@ -50,15 +50,18 @@ describe('StringArt', () => {
       });
 
       if (pattern.testStepCountConfig != null) {
-        let testId = 1;
-        for (const testConfig of pattern.testStepCountConfig) {
-          test(pattern.name + ' additional config #' + testId, () => {
-            const patternConfig = pattern.copy();
-            patternConfig.assignConfig(testConfig);
-            testPatternStepCount(patternConfig);
+        describe(`${pattern.name} additional configs`, () => {
+          let testId = 1;
+
+          for (const testConfig of pattern.testStepCountConfig) {
+            test('config #' + testId, () => {
+              const patternConfig = pattern.copy();
+              patternConfig.assignConfig(testConfig);
+              testPatternStepCount(patternConfig);
+            });
             testId++;
-          });
-        }
+          }
+        });
       }
     }
   });

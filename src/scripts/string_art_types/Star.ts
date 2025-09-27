@@ -191,15 +191,20 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     let alternate = false;
     let isStar = false;
 
-    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
+    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails - 1;
     let side = 0;
     const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
 
     renderer.setStartingPoint(star.getPoint(0, 0));
 
     for (let round = 0; round < rounds; round++) {
+      const isLastRound = round === rounds - 1;
+
       const linesThisRound =
-        round || !(sides % 2) ? linesPerRound : linesPerRound - 2 * sides;
+        sides % 2 && (round === 0 || (isLastRound && sideNails % 2))
+          ? linesPerRound - 2 * sides
+          : linesPerRound;
+
       for (let i = 0; i < linesThisRound; i++) {
         const pointPosition = {
           side,
@@ -220,9 +225,12 @@ export default class Star extends StringArt<StarConfig, TCalc> {
           alternate = !alternate;
         }
       }
-      renderer.lineTo(star.getPoint(0, round + 1));
-      isStar = false;
-      alternate = false;
+      if (!isLastRound) {
+        renderer.lineTo(star.getPoint(0, round + 1));
+        yield;
+        isStar = false;
+        alternate = false;
+      }
     }
 
     renderer.endLayer();
@@ -264,7 +272,12 @@ export default class Star extends StringArt<StarConfig, TCalc> {
 
     const calc = this.getCalc(options);
     const ringCount = ringSize ? calc.circle.getRingStepCount() : 0;
-    const circleCount = sides * 2 * sideNails;
+    const circleRounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails - 1;
+    const circleLinesPerRound = sides % 2 ? sides * 4 : sides * 2;
+    const circleStepsToRemove =
+      sides % 2 ? sides * 2 + (sideNails % 2 ? sides * 2 : 0) : 0;
+    const circleCount =
+      circleRounds * (circleLinesPerRound + 1) - circleStepsToRemove - 1;
     const starCount = renderStar ? StarShape.getStepCount(this.config) : 0;
     return circleCount + ringCount + starCount;
   }
@@ -276,7 +289,25 @@ export default class Star extends StringArt<StarConfig, TCalc> {
   testStepCountConfig: Partial<StarConfig>[] = [
     {
       sides: 3,
+      sideNails: 4,
+      ringSize: 0,
+      renderStar: false,
+    },
+    {
+      sides: 3,
       sideNails: 11,
+      ringSize: 0,
+      renderStar: false,
+    },
+    {
+      sides: 4,
+      sideNails: 11,
+      ringSize: 0,
+      renderStar: false,
+    },
+    {
+      sides: 4,
+      sideNails: 10,
       ringSize: 0,
       renderStar: false,
     },
