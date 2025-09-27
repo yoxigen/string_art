@@ -14,8 +14,8 @@ export interface StarShapeConfig {
   sideNails: number;
   sides: number;
   maxCurveSize?: number;
-  centerRadius: number;
-  rotation: number;
+  centerRadius?: number;
+  rotation?: number;
   center?: Coordinates;
   size?: Dimensions;
   radius?: number;
@@ -85,6 +85,12 @@ export default class StarShape {
       ])
     ) {
       return;
+    }
+
+    if (!config.center && !config.size) {
+      throw new Error(
+        'StarShape requires a config value for either center or size.'
+      );
     }
 
     const center =
@@ -171,7 +177,7 @@ export default class StarShape {
           ? sideNails - round - 1
           : round + minNailIndex;
         const nextPoint = this.getPoint(side, prevPointIndex);
-        renderer.renderLines(prevPoint, nextPoint);
+        renderer.renderLine(prevPoint, nextPoint);
         prevPoint = nextPoint;
         yield;
 
@@ -183,13 +189,13 @@ export default class StarShape {
       if (!isLastRound) {
         prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
         const nextPoint = this.getPoint(0, prevPointIndex);
-        renderer.renderLines(prevPoint, nextPoint);
+        renderer.renderLine(prevPoint, nextPoint);
         prevPoint = nextPoint;
       }
     }
   }
 
-  getStepCount(size: number) {
+  getStepCount(size?: number) {
     return StarShape.getStepCount(this.config, { size });
   }
 

@@ -192,6 +192,11 @@ abstract class StringArt<
   thumbnailConfig:
     | Partial<Config<TConfig>>
     | ((config: Config<TConfig>) => Partial<Config<TConfig>>);
+  /**
+   * Set testStepCountConfig to automatically test that the step count is correct for the given configurations
+   */
+  testStepCountConfig: Partial<Config<TConfig>>[];
+
   static type: string;
 
   getCommonControls(): ControlsConfig<Partial<CommonConfig>> {
@@ -390,6 +395,7 @@ abstract class StringArt<
       this.nails = new Nails(this.config);
     }
 
+    renderer.clearInstructions();
     renderer.setLineWidth(this.config.stringWidth);
 
     this.setUpDraw({ size: this.size });
@@ -477,7 +483,7 @@ abstract class StringArt<
     };
   }
 
-  goto(renderer: Renderer, position: number) {
+  goto(renderer: Renderer, position: number, { showInstructions = true } = {}) {
     if (position === this.position) {
       return;
     }
@@ -485,7 +491,15 @@ abstract class StringArt<
     if (this.stringsIterator && position > this.position) {
       while (!this.drawNext().done && this.position < position);
     } else {
-      this.draw(renderer, { position, redrawNails: false });
+      this.draw(renderer, {
+        position,
+        redrawNails: false,
+        showInstructions,
+      });
+    }
+
+    if (showInstructions) {
+      renderer.renderInstructionsForLastLine();
     }
   }
 

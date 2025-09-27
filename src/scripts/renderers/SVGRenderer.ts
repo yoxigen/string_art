@@ -166,25 +166,34 @@ export default class SVGRenderer extends Renderer {
     return realSize;
   }
 
-  renderLines(
-    startPosition: Coordinates,
-    ...positions: Array<Coordinates>
-  ): void {
-    let previousPoint = startPosition;
-    const fragment = document.createDocumentFragment();
+  renderLine(from: Coordinates, to: Coordinates): void {
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', String(Math.trunc(from[0])));
+    line.setAttribute('y1', String(Math.trunc(from[1])));
+    line.setAttribute('x2', String(Math.trunc(to[0])));
+    line.setAttribute('y2', String(Math.trunc(to[1])));
 
-    for (const position of positions) {
-      const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('x1', String(Math.trunc(previousPoint[0])));
-      line.setAttribute('y1', String(Math.trunc(previousPoint[1])));
-      line.setAttribute('x2', String(Math.trunc(position[0])));
-      line.setAttribute('y2', String(Math.trunc(position[1])));
-      previousPoint = position;
+    this.currentLineGroup.appendChild(line);
+  }
 
-      fragment.appendChild(line);
-    }
+  clearInstructions(): void {
+    // TODO: Implement this
+  }
 
-    this.currentLineGroup.appendChild(fragment);
+  renderInstructions(from: Coordinates, to: Coordinates): void {
+    // TODO: Implement this
+  }
+
+  renderInstructionsForLastLine(): void {
+    // TODO: Implement this
+  }
+
+  hideInstructions(): void {
+    // TODO: Implement this
+  }
+
+  showInstructions(): void {
+    // TODO: Implement this
   }
 
   renderNails(

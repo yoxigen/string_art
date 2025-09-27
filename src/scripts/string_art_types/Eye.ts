@@ -215,7 +215,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     renderer.setColor(color);
 
     for (let i = 0; i <= layerStringCount; i++) {
-      renderer.renderLines(
+      renderer.renderLine(
         this.getPoint({ index: i, rotation, ...sideProps }),
         this.getPoint({
           index: i,

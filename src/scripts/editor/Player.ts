@@ -1,4 +1,5 @@
 import Viewer from '../viewer/Viewer';
+import viewOptions from '../viewer/ViewOptions';
 
 const SLOW_PLAY_SPEED = 200;
 
@@ -18,6 +19,7 @@ export default class Player {
   stepCount: number;
   #isPlaying: boolean;
   #cancelNextPlayStep: Function;
+  #cancelHideInstruction: Function;
 
   constructor(parentEl: HTMLElement, viewer: Viewer) {
     this.viewer = viewer;
@@ -60,6 +62,15 @@ export default class Player {
       this.play({ speed: SLOW_PLAY_SPEED })
     );
     viewer.addEventListener('touchEnd', () => this.pause());
+
+    viewOptions.addEventListener(
+      'showInstructionsChange',
+      ({ showInstructions }) => {
+        if (showInstructions) {
+          this.#cancelHideInstruction?.();
+        }
+      }
+    );
   }
 
   updateStatus(isPlaying: boolean) {
@@ -76,7 +87,11 @@ export default class Player {
     this.elements.text.style.removeProperty('width');
     this.elements.text.style.width =
       (this.elements.text.clientWidth || 70) + 'px';
-    this.goto(this.stepCount, { updateStringArt: draw });
+    viewOptions.showInstructions = false;
+    this.goto(this.stepCount, {
+      updateStringArt: draw,
+      showInstructions: false,
+    });
   }
 
   updatePosition(position: number) {
@@ -84,15 +99,33 @@ export default class Player {
     this.elements.playerPosition.value = String(position);
   }
 
-  goto(position: number, { updateStringArt = true } = {}) {
+  goto(
+    position: number,
+    { updateStringArt = true, showInstructions = true } = {}
+  ) {
     if (position > this.stepCount || position < 1) {
       return;
     }
 
+    this.#cancelHideInstruction?.();
     this.pause();
     this.updatePosition(position);
+    if (showInstructions) {
+      viewOptions.showInstructions = true;
+    }
     if (updateStringArt) {
       this.viewer.goto(position);
+    }
+
+    if (
+      viewOptions.instructionsMode === 'auto' &&
+      position === this.stepCount &&
+      viewOptions.showInstructions
+    ) {
+      const hideIntructionsTimeout = setTimeout(() => {
+        viewOptions.showInstructions = false;
+      }, 1000);
+      this.#cancelHideInstruction = () => clearTimeout(hideIntructionsTimeout);
     }
   }
 
@@ -130,6 +163,14 @@ export default class Player {
 
     this.updateStatus(true);
     this.#cancelNextPlayStep?.();
+
+    viewOptions.showInstructions = false;
+    // if (
+    //   viewOptions.instructionsMode === 'auto' ||
+    //   viewOptions.instructionsMode === 'show'
+    // ) {
+    //   viewOptions.showInstructions = true;
+    // }
 
     if (isAtEnd) {
       this.viewer.goto(0);

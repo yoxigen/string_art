@@ -3,8 +3,9 @@ import {
   createPatternInstance,
   getAllPatternsTypes,
 } from '../helpers/pattern_utils';
-import { TestRenderer } from '../performance/TestRenderer';
+import { TestRenderer } from '../renderers/TestRenderer';
 import { Dimensions } from '../types/general.types';
+import type StringArt from '../StringArt';
 
 const size: Dimensions = [1000, 1000];
 
@@ -25,5 +26,43 @@ describe('StringArt', () => {
     const starPattern = createPatternInstance('star');
 
     expect(starPattern.draw(renderer, { position: 20 })).not.toThrow();
+  });
+
+  describe('step count equals draw yields', () => {
+    const patterns = getAllPatternsTypes();
+
+    function testPatternStepCount(pattern: StringArt) {
+      const renderer = new TestRenderer(size);
+      let drawCount = 0;
+      pattern.initDraw(renderer);
+      pattern.position = 0;
+      const drawStringsGen = pattern.drawStrings(renderer);
+      while (!drawStringsGen.next().done) {
+        drawCount++;
+      }
+
+      expect(pattern.getStepCount({ size })).toEqual(drawCount);
+    }
+
+    for (const pattern of patterns) {
+      test(pattern.name + ' default config', () => {
+        testPatternStepCount(pattern);
+      });
+
+      if (pattern.testStepCountConfig != null) {
+        describe(`${pattern.name} additional configs`, () => {
+          let testId = 1;
+
+          for (const testConfig of pattern.testStepCountConfig) {
+            test('config #' + testId, () => {
+              const patternConfig = pattern.copy();
+              patternConfig.assignConfig(testConfig);
+              testPatternStepCount(patternConfig);
+            });
+            testId++;
+          }
+        });
+      }
+    }
   });
 });

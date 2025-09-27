@@ -152,7 +152,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
       }
 
       if (lastPoint) {
-        renderer.renderLines(lastPoint, point);
+        renderer.renderLine(lastPoint, point);
       }
       lastPoint = point;
       index++;

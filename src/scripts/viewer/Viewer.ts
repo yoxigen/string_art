@@ -2,10 +2,11 @@ import EventBus from '../helpers/EventBus';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import Renderer from '../renderers/Renderer';
 import SVGRenderer from '../renderers/SVGRenderer';
+import routing from '../routing';
 import StringArt, { DrawOptions } from '../StringArt';
 import { Dimensions } from '../types/general.types';
-
-type RendererType = 'svg' | 'canvas';
+import { RendererType } from '../types/stringart.types';
+import viewOptions from './ViewOptions';
 
 export default class Viewer extends EventBus<{
   positionChange: { changeBy: number };
@@ -28,6 +29,23 @@ export default class Viewer extends EventBus<{
     this.element.addEventListener('wheel', ({ deltaY }) => {
       const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
       this.emit('positionChange', { changeBy: direction });
+    });
+
+    viewOptions.addEventListener(
+      'showInstructionsChange',
+      ({ showInstructions }) => {
+        this.#withRenderer();
+        if (showInstructions) {
+          this.renderer.showInstructions();
+        } else {
+          this.renderer.hideInstructions();
+        }
+      }
+    );
+
+    routing.addEventListener('renderer', rendererType => {
+      this.rendererType = rendererType;
+      this.renderer = null;
     });
 
     // Cancelling this for the moment, as it creates problems on mobile, when doing back with gestures:
@@ -106,6 +124,7 @@ export default class Viewer extends EventBus<{
   }
 
   update(options?: DrawOptions) {
+    viewOptions.showInstructions = false;
     this.#withRenderer();
     this.cancelDraw?.();
     this.cancelDraw = this.pattern?.draw(this.renderer, options);
@@ -113,7 +132,9 @@ export default class Viewer extends EventBus<{
 
   goto(position: number) {
     this.#withRenderer();
-    this.pattern.goto(this.renderer, position);
+    this.pattern.goto(this.renderer, position, {
+      showInstructions: viewOptions.showInstructions,
+    });
   }
 
   next(): { done: boolean } {

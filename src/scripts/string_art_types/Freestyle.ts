@@ -376,7 +376,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
 
         prevCirclePoint = this.getPoint(this.calc.layers[nextLayerIndex], i);
 
-        renderer.renderLines(startPoint, prevCirclePoint);
+        renderer.renderLine(startPoint, prevCirclePoint);
         yield;
       }
     }
@@ -392,7 +392,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
 
   getStepCount(options: CalcOptions) {
     const { layers, maxShapeNailsCount } = this.getCalc(options);
-    return layers.length * maxShapeNailsCount - 1;
+    return layers.length * maxShapeNailsCount;
   }
 
   thumbnailConfig = ({ n, minNailDistance }) => ({

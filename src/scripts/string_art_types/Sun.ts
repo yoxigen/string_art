@@ -379,19 +379,19 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
       prevPoint = star.getPoint(side, currentSideIndex);
 
       for (let i = 0; i < backdropNails; i++) {
-        renderer.renderLines(prevPoint, backdropPoint);
+        renderer.renderLine(prevPoint, backdropPoint);
         yield;
 
         currentSide = (alternate ? side : side + (shouldSkip ? 3 : 1)) % sides;
         prevPoint = star.getPoint(currentSide, currentSideIndex);
-        renderer.renderLines(backdropPoint, prevPoint);
+        renderer.renderLine(backdropPoint, prevPoint);
         yield;
 
         if (i < backdropNails - 1) {
           alternate = !alternate;
           currentSideIndex += direction;
           const nextPoint = star.getPoint(currentSide, currentSideIndex);
-          renderer.renderLines(prevPoint, nextPoint);
+          renderer.renderLine(prevPoint, nextPoint);
           prevPoint = nextPoint;
         }
       }

@@ -4,7 +4,7 @@ import patternTypes from '../pattern_types';
 import { fileURLToPath } from 'url';
 import StringArt from '../StringArt';
 import { Dimensions } from '../types/general.types';
-import { TestRenderer } from './TestRenderer';
+import { TestRenderer } from '../renderers/TestRenderer';
 import { getAllPatternsTypes } from '../helpers/pattern_utils';
 
 export interface PatternPerfResult {

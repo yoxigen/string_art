@@ -145,7 +145,7 @@ export default class PolygonPattern extends StringArt<
         renderer.setColor(this.colorMap.get(step));
       }
       for (let index = 0; index < this.calc.polygon.nailsPerSide; index++) {
-        renderer.renderLines(
+        renderer.renderLine(
           this.calc.polygon.getSidePoint({ side, index }),
           this.calc.polygon.getSidePoint({ side: nextSide, index })
         );

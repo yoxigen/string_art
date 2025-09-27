@@ -1,5 +1,6 @@
 import { serializeConfig } from '../Serialize';
 import type StringArt from '../StringArt';
+import { RendererType } from '../types/stringart.types';
 
 export function getPatternURL(
   pattern: StringArt<any>,
@@ -7,7 +8,7 @@ export function getPatternURL(
     renderer,
     patternAsTemplate = false,
   }: {
-    renderer?: 'svg' | 'canvas';
+    renderer?: RendererType;
     patternAsTemplate?: boolean;
   } = {}
 ): string {
@@ -24,7 +25,7 @@ export interface StringArtQueryParams {
   pattern?: string;
   config?: string;
   name?: string;
-  renderer?: 'svg' | 'canvas';
+  renderer?: RendererType;
 }
 
 export function getQueryParams(): StringArtQueryParams {

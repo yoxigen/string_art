@@ -270,17 +270,24 @@ export default class Circle {
       prevPoint = this.getPoint(prevPointIndex);
       positions.push(prevPoint);
 
+      renderer.renderLine(startPoint, prevPoint);
+      yield;
+
       if (i < n - 1) {
         prevPointIndex++;
-        prevPoint = this.getPoint(prevPointIndex);
+        const nextPoint = this.getPoint(prevPointIndex);
+        renderer.renderLine(prevPoint, nextPoint);
+        yield;
+        prevPoint = nextPoint;
         positions.push(prevPoint);
       }
 
-      renderer.renderLines(startPoint, ...positions);
-      yield;
-
       isPrevSide = !isPrevSide;
     }
+  }
+
+  getRingStepCount() {
+    return this.config.n * 2 - 1;
   }
 
   static rotationConfig: ControlConfig<{ rotation?: number }> = {

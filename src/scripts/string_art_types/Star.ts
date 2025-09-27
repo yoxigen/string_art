@@ -21,6 +21,7 @@ interface StarConfig {
   colorGroup: GroupValue;
   isSingleColor: boolean;
   singleColor: ColorValue;
+  renderStar: boolean;
 }
 
 type TCalc = {
@@ -70,6 +71,14 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     withoutAttribute<StarConfig>(Circle.rotationConfig, 'snap'),
     Circle.distortionConfig,
     {
+      key: 'renderStar',
+      label: 'Show star',
+      type: 'checkbox',
+      defaultValue: true,
+      affectsNails: false,
+      isStructural: true,
+    },
+    {
       key: 'colorGroup',
       label: 'Color',
       type: 'group',
@@ -98,7 +107,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
           type: 'color',
           affectsNails: false,
           affectsStepCount: false,
-          show: ({ isSingleColor }) => !isSingleColor,
+          show: ({ isSingleColor, renderStar }) => !isSingleColor && renderStar,
         },
         {
           key: 'outerColor',
@@ -126,7 +135,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     const { sides, rotation, distortion, sideNails, margin = 0 } = this.config;
     const circleConfig: CircleConfig = {
       size: size,
-      n: sideNails * sides,
+      n: sideNails * sides - sides,
       margin,
       rotation: rotation ? rotation / sides : 0,
       distortion,
@@ -158,7 +167,9 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     side: number;
     sideIndex: number;
   }): Coordinates {
-    return this.calc.circle.getPoint(side * this.config.sideNails + sideIndex);
+    return this.calc.circle.getPoint(
+      side * (this.config.sideNails - 1) + sideIndex
+    );
   }
 
   *drawStar(renderer: Renderer): Generator<void> {
@@ -172,48 +183,67 @@ export default class Star extends StringArt<StarConfig, TCalc> {
 
   *drawCircle(renderer: Renderer): Generator<void> {
     const { outerColor, sides, sideNails, isSingleColor } = this.config;
+    const { star } = this.calc;
+
     if (!isSingleColor) {
       renderer.setColor(outerColor);
     }
-    let prevPoint = this.calc.star.getPoint(0, 0);
     let alternate = false;
     let isStar = false;
 
-    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
+    const rounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails - 1;
     let side = 0;
     const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
 
-    for (let round = 0; round <= rounds; round++) {
-      const linesPerThisRound =
-        linesPerRound - (round === rounds ? sides * 2 : 0);
+    renderer.setStartingPoint(star.getPoint(0, 0));
 
-      for (let i = 0; i < linesPerThisRound; i++) {
+    for (let round = 0; round < rounds; round++) {
+      const isLastRound = round === rounds - 1;
+
+      const linesThisRound =
+        sides % 2 && (round === 0 || (isLastRound && sideNails % 2))
+          ? linesPerRound - 2 * sides
+          : linesPerRound;
+
+      for (let i = 0; i < linesThisRound; i++) {
         const pointPosition = {
           side,
           sideIndex: alternate ? sideNails - round - 1 : round,
         };
 
         const nextPoint = isStar
-          ? this.calc.star.getPoint(pointPosition.side, pointPosition.sideIndex)
+          ? star.getPoint(pointPosition.side, pointPosition.sideIndex)
           : this.getArcPoint(pointPosition);
 
-        renderer.renderLines(prevPoint, nextPoint);
-        prevPoint = nextPoint;
+        renderer.lineTo(nextPoint);
 
         yield;
         isStar = !isStar;
 
         if (isStar) {
-          side = side !== sides - 1 ? side + 1 : 0;
+          side = (side + 1) % sides;
           alternate = !alternate;
         }
       }
-      prevPoint = this.calc.star.getPoint(0, round + 1);
+      if (!isLastRound) {
+        renderer.lineTo(star.getPoint(0, round + 1));
+        yield;
+        isStar = false;
+        alternate = false;
+      }
     }
+
+    renderer.endLayer();
   }
 
   *drawStrings(renderer: Renderer): Generator<void> {
-    const { ringSize, ringColor, isSingleColor, singleColor } = this.config;
+    const {
+      ringSize,
+      ringColor,
+      isSingleColor,
+      singleColor,
+      renderStar = true,
+    } = this.config;
     if (isSingleColor) {
       renderer.setColor(singleColor);
     }
@@ -226,7 +256,9 @@ export default class Star extends StringArt<StarConfig, TCalc> {
         color: isSingleColor ? null : ringColor,
       });
     }
-    yield* this.drawStar(renderer);
+    if (renderStar) {
+      yield* this.drawStar(renderer);
+    }
   }
 
   drawNails(): void {
@@ -235,24 +267,49 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     this.calc.circle.drawNails(this.nails);
   }
 
-  #getCircleStepCount(): number {
-    const { sides, sideNails } = this.config;
-    const circleRounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails;
-    const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
+  getStepCount(options: CalcOptions): number {
+    const { ringSize, sides, sideNails, renderStar } = this.config;
 
-    return (circleRounds + 1) * linesPerRound - sides * 2;
-  }
-
-  getStepCount(): number {
-    const { sides, sideNails, ringSize } = this.config;
-
-    const ringCount = ringSize ? sideNails * sides : 0;
-    const circleCount = this.#getCircleStepCount();
-    const starCount = StarShape.getStepCount(this.config);
+    const calc = this.getCalc(options);
+    const ringCount = ringSize ? calc.circle.getRingStepCount() : 0;
+    const circleRounds = sides % 2 ? Math.ceil(sideNails / 2) : sideNails - 1;
+    const circleLinesPerRound = sides % 2 ? sides * 4 : sides * 2;
+    const circleStepsToRemove =
+      sides % 2 ? sides * 2 + (sideNails % 2 ? sides * 2 : 0) : 0;
+    const circleCount =
+      circleRounds * (circleLinesPerRound + 1) - circleStepsToRemove - 1;
+    const starCount = renderStar ? StarShape.getStepCount(this.config) : 0;
     return circleCount + ringCount + starCount;
   }
 
   thumbnailConfig = ({ sideNails }) => ({
     sideNails: Math.min(sideNails, 18),
   });
+
+  testStepCountConfig: Partial<StarConfig>[] = [
+    {
+      sides: 3,
+      sideNails: 4,
+      ringSize: 0,
+      renderStar: false,
+    },
+    {
+      sides: 3,
+      sideNails: 11,
+      ringSize: 0,
+      renderStar: false,
+    },
+    {
+      sides: 4,
+      sideNails: 11,
+      ringSize: 0,
+      renderStar: false,
+    },
+    {
+      sides: 4,
+      sideNails: 10,
+      ringSize: 0,
+      renderStar: false,
+    },
+  ];
 }

@@ -13,6 +13,12 @@ export type RendererOptions = Partial<{
   updateOnResize: boolean;
 }>;
 
+export interface LayerOptions {
+  startPosition?: Coordinates;
+  color?: ColorValue;
+  layerName?: string;
+}
+
 const DEFAULT_OPTIONS: RendererOptions = {
   updateOnResize: true,
 };
@@ -34,6 +40,10 @@ export default abstract class Renderer extends EventBus<{
    * The current dimensions of the renderer. Should be fixed for device pixel ratio, if used by the renderer!
    */
   protected currentSize: Dimensions | null;
+  protected lastLine: [Coordinates, Coordinates];
+  protected lastStringCoordinates: Coordinates;
+  protected hasInstructions: boolean = false;
+  protected currentLayerOptions: LayerOptions;
 
   #removeDevicePixelListener: Function;
   #removeOnResizeListener: typeof ResizeObserver.prototype.disconnect;
@@ -88,18 +98,20 @@ export default abstract class Renderer extends EventBus<{
   }
 
   abstract setLineWidth(width: number): void;
-  abstract renderLines(
-    startPosition: Coordinates,
-    ...positions: Array<Coordinates>
-  ): void;
+  abstract renderLine(from: Coordinates, to: Coordinates): void;
+  abstract lineTo(to: Coordinates): void;
   abstract renderNails(
     nails: ReadonlyArray<Nail>,
     options: NailsRenderOptions
   ): void;
+  abstract renderInstructions(from: Coordinates, to: Coordinates): void;
+  abstract clearInstructions(): void;
   abstract clear(): void;
   abstract toDataURL(): string;
   abstract setSize(size?: Dimensions | null): Dimensions;
   abstract setBackground(color: ColorValue): void;
+  abstract showInstructions(): void;
+  abstract hideInstructions(): void;
 
   getSize(): Dimensions {
     const { width, height } = this.parentElement.getBoundingClientRect();
@@ -112,6 +124,21 @@ export default abstract class Renderer extends EventBus<{
    */
   getLogicalSize(): Dimensions {
     return this.getSize();
+  }
+
+  setStartingPoint(coordinates: Coordinates) {
+    this.lastStringCoordinates = coordinates;
+  }
+
+  startLayer(options: LayerOptions) {
+    this.currentLayerOptions = options;
+    if (options.color) {
+      this.setColor(options.color);
+    }
+  }
+
+  endLayer() {
+    this.currentLayerOptions = null;
   }
 
   /**
@@ -152,5 +179,9 @@ export default abstract class Renderer extends EventBus<{
   disablePixelRatio() {
     this.pixelRatio = 1;
     this.#removeDevicePixelListener?.();
+  }
+
+  renderInstructionsForLastLine(): void {
+    this.renderInstructions(...this.lastLine);
   }
 }

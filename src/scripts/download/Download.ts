@@ -4,6 +4,7 @@ import SVGRenderer from '../renderers/SVGRenderer';
 import StringArt from '../StringArt';
 import { CommonConfig } from '../types/config.types';
 import { Dimensions, LengthUnit, SizeUnit } from '../types/general.types';
+import { RendererType } from '../types/stringart.types';
 
 interface DownloadData {
   data: Blob;
@@ -18,7 +19,7 @@ export interface DownloadPatternOptions {
   filename?: string;
   isNailsMap?: boolean;
   includeNailNumbers?: boolean;
-  type?: 'svg' | 'canvas';
+  type?: RendererType;
   imageType?: ImageType;
   margin?: number;
   enableBackground?: boolean;

@@ -224,14 +224,14 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
       const pointIndex = i + ringDistance;
       const point = this.calc.circle.getPoint(pointIndex);
 
-      renderer.renderLines(prevPoint, point);
+      renderer.renderLine(prevPoint, point);
       yield;
 
       if (i !== stepCount - 1) {
         prevPointIndex = i + 1;
         prevPoint = this.calc.circle.getPoint(prevPointIndex);
 
-        renderer.renderLines(point, prevPoint);
+        renderer.renderLine(point, prevPoint);
 
         yield;
       }
