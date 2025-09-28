@@ -157,7 +157,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
 
   getAspectRatio(options: CalcOptions): number {
     const { circle } = this.getCalc(options);
-    return circle.aspectRatio;
+    return circle.getAspectRatio();
   }
 
   getArcPoint({
@@ -195,7 +195,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     let side = 0;
     const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
 
-    renderer.setStartingPoint(star.getPoint(0, 0));
+    renderer.setStartingPoint(star.getSidePoint(0, 0));
 
     for (let round = 0; round < rounds; round++) {
       const isLastRound = round === rounds - 1;
@@ -212,7 +212,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
         };
 
         const nextPoint = isStar
-          ? star.getPoint(pointPosition.side, pointPosition.sideIndex)
+          ? star.getSidePoint(pointPosition.side, pointPosition.sideIndex)
           : this.getArcPoint(pointPosition);
 
         renderer.lineTo(nextPoint);
@@ -226,7 +226,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
         }
       }
       if (!isLastRound) {
-        renderer.lineTo(star.getPoint(0, round + 1));
+        renderer.lineTo(star.getSidePoint(0, round + 1));
         yield;
         isStar = false;
         alternate = false;

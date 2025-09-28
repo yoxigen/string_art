@@ -10,7 +10,7 @@ describe('Circle', () => {
         size: [100, 100],
       });
 
-      expect(circle.aspectRatio).toBe(1);
+      expect(circle.getAspectRatio()).toBe(1);
     });
 
     test('aspect ratio is correct for negative distortion', () => {
@@ -20,7 +20,7 @@ describe('Circle', () => {
         distortion: -0.5,
       });
 
-      expect(circle.aspectRatio).toBe(0.5);
+      expect(circle.getAspectRatio()).toBe(0.5);
     });
 
     test('aspect ratio is correct for positive distortion', () => {
@@ -30,7 +30,7 @@ describe('Circle', () => {
         distortion: 0.5,
       });
 
-      expect(circle.aspectRatio).toBe(2);
+      expect(circle.getAspectRatio()).toBe(2);
     });
   });
 

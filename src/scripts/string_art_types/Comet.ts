@@ -194,7 +194,7 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
 
   getAspectRatio(calcOptions: CalcOptions): number {
     const calc = this.getCalc(calcOptions);
-    return calc.circle.aspectRatio;
+    return calc.circle.getAspectRatio();
   }
 
   getLayerRingDistance(layerIndex: number): number {

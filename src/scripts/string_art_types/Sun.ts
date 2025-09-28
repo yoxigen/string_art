@@ -376,21 +376,21 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
       );
       let alternate = false;
       const direction = side % 2 ? 1 : -1; // 1 if backdrop threading starts at the bottom and goes up, -1 if it goes down
-      prevPoint = star.getPoint(side, currentSideIndex);
+      prevPoint = star.getSidePoint(side, currentSideIndex);
 
       for (let i = 0; i < backdropNails; i++) {
         renderer.renderLine(prevPoint, backdropPoint);
         yield;
 
         currentSide = (alternate ? side : side + (shouldSkip ? 3 : 1)) % sides;
-        prevPoint = star.getPoint(currentSide, currentSideIndex);
+        prevPoint = star.getSidePoint(currentSide, currentSideIndex);
         renderer.renderLine(backdropPoint, prevPoint);
         yield;
 
         if (i < backdropNails - 1) {
           alternate = !alternate;
           currentSideIndex += direction;
-          const nextPoint = star.getPoint(currentSide, currentSideIndex);
+          const nextPoint = star.getSidePoint(currentSide, currentSideIndex);
           renderer.renderLine(prevPoint, nextPoint);
           prevPoint = nextPoint;
         }

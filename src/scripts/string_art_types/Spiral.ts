@@ -118,7 +118,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
 
   getAspectRatio(options: CalcOptions): number {
     const { circle } = this.getCalc(options);
-    return circle.aspectRatio;
+    return circle.getAspectRatio();
   }
 
   *drawSpiral(

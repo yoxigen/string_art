@@ -4,6 +4,7 @@ import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import { getBoundingRectAspectRatio } from '../helpers/size_utils';
+import { Shape } from './Shape';
 
 export interface PolygonConfig {
   size: Dimensions;
@@ -37,12 +38,13 @@ interface TCalc {
   sideAngle: number;
 }
 
-export default class Polygon {
+export default class Polygon extends Shape {
   config: PolygonConfig;
   #points: Map<string, Coordinates>;
   #calc: TCalc;
 
   constructor(config: PolygonConfig) {
+    super();
     this.setConfig(config);
   }
 
@@ -156,7 +158,15 @@ export default class Polygon {
     return this.#calc.sideSize;
   }
 
-  getSidePoint({ side, index }): Coordinates {
+  getPoint(index: number): Coordinates {
+    const position = index / this.#calc.nailsPerSide;
+    const side = Math.floor(position);
+    const sideIndex = index % this.#calc.nailsPerSide;
+
+    return this.getSidePoint({ side, index: sideIndex });
+  }
+
+  getSidePoint({ side, index }: { side: number; index: number }): Coordinates {
     const pointsMapIndex = [side, index].join('_');
 
     if (this.#points.has(pointsMapIndex)) {

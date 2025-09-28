@@ -9,6 +9,7 @@ import { PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
 import { fitInside } from '../helpers/size_utils';
+import { Shape } from './Shape';
 
 export interface CircleConfig {
   n: number;
@@ -42,7 +43,7 @@ export interface CircleNailsOptions {
   excludedNailRanges?: ReadonlyArray<[number, number]>;
 }
 
-export default class Circle {
+export default class Circle extends Shape {
   points: Map<number, Coordinates>;
   easingFunction: Function;
   config: CircleConfig;
@@ -57,10 +58,11 @@ export default class Circle {
   excludedNailIndexes: ReadonlySet<number>;
 
   constructor(config: CircleConfig) {
+    super();
     this.setConfig(config);
   }
 
-  getPoint(index = 0) {
+  getPoint(index: number): Coordinates {
     const realIndex = this.getNailIndex(index);
 
     if (this.points.has(index)) {
@@ -84,7 +86,7 @@ export default class Circle {
     return point;
   }
 
-  getNailIndex(index = 0) {
+  getNailIndex(index = 0): number {
     let realIndex = this.isReverse ? this.config.n - 1 - index : index;
     if (realIndex > this.config.n - 1) {
       realIndex = realIndex % this.config.n;
@@ -92,7 +94,7 @@ export default class Circle {
     return realIndex;
   }
 
-  get aspectRatio(): number {
+  getAspectRatio(): number {
     if (!this.config.distortion) {
       return 1;
     }
@@ -124,7 +126,7 @@ export default class Circle {
       : [1 / (1 - distortion), 1];
   }
 
-  setConfig(config: CircleConfig) {
+  setConfig(config: CircleConfig): void {
     if (!compareObjects(config, this.config)) {
       const {
         n,
@@ -235,7 +237,7 @@ export default class Circle {
     props: CircleNailsOptions & {
       color?: ColorValue;
     } = {}
-  ) {
+  ): void {
     const arr = [];
     const { color, ...restProps } = props;
 
@@ -286,7 +288,7 @@ export default class Circle {
     }
   }
 
-  getRingStepCount() {
+  getRingStepCount(): number {
     return this.config.n * 2 - 1;
   }
 
