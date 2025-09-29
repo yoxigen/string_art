@@ -128,7 +128,7 @@ function getShapeControlsGroup(
         type: 'range',
         attr: {
           min: 3,
-          max: 800,
+          max: 400,
           step: 1,
         },
         defaultValue: 100,
@@ -183,10 +183,19 @@ export default class DanceOfPlanets extends StringArt<
   defaultValues: Partial<DanceOfPlanetsConfig> = {
     shape1Type: 'circle',
     shape1Size: 1,
-    shape1NailCount: 160,
+    shape1NailCount: 150,
+    shape1Rotation: 0,
     shape2Type: 'circle',
-    shape2Size: 0.5,
-    shape2NailCount: 100,
+    shape2Size: 0.8,
+    shape2NailCount: 117,
+    shape2Distortion: -0.12,
+    shape2Rotation: 0.216,
+    rounds: 2,
+    multicolorRange: 132,
+    multicolorStart: 198,
+    isMultiColor: true,
+    multicolorByLightness: false,
+    colorCount: 2,
   };
 
   color: Color;
@@ -237,15 +246,26 @@ export default class DanceOfPlanets extends StringArt<
       }
     }
 
-    const shape2NailCount = this.config.identicalNailCount
-      ? this.config.shape1NailCount
+    let shape1NailCount = this.#getShapeNailCount(
+      this.config.shape1Type,
+      this.config.shape1NailCount,
+      this.config.shape1Sides
+    );
+
+    let shape2NailCount = this.config.identicalNailCount
+      ? shape1NailCount
       : this.config.shape2NailCount;
 
+    shape2NailCount = this.#getShapeNailCount(
+      this.config.shape2Type,
+      shape2NailCount,
+      this.config.shape2Sides
+    );
     return {
       shape1: getShape({
         type: this.config.shape1Type,
         diameter: this.config.shape1Size,
-        nailCount: this.config.shape1NailCount,
+        nailCount: shape1NailCount,
         sides: this.config.shape1Sides,
         rotation: this.config.shape1Rotation,
         distortion: this.config.shape1Distortion,
@@ -258,16 +278,21 @@ export default class DanceOfPlanets extends StringArt<
         rotation: this.config.shape2Rotation,
         distortion: this.config.shape2Distortion,
       }),
-      // TODO: polygon nail count should be a multiple of the sides
-      shape1NailCount:
-        this.config.shape1Type === 'circle'
-          ? this.config.shape1NailCount
-          : Math.max(this.config.shape1NailCount, this.config.shape1Sides),
-      shape2NailCount:
-        this.config.shape2Type === 'circle'
-          ? shape2NailCount
-          : Math.max(shape2NailCount, this.config.shape2Sides),
+      shape1NailCount,
+      shape2NailCount,
     };
+  }
+
+  #getShapeNailCount(
+    shapeType: ShapeType,
+    nailCount: number,
+    sides: number
+  ): number {
+    if (shapeType === 'circle') {
+      return nailCount;
+    }
+
+    return nailCount <= sides ? sides : nailCount - (nailCount % sides);
   }
 
   setUpDraw(options: CalcOptions) {
@@ -277,7 +302,7 @@ export default class DanceOfPlanets extends StringArt<
 
     this.color = new Color({
       ...this.config,
-      colorCount: colorCount,
+      colorCount,
     });
 
     if (colorCount) {
