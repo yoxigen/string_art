@@ -26,6 +26,7 @@ interface DanceOfPlanetsConfig extends ColorConfig {
   shape1NailCount: number;
   shape1Sides: number;
   shape1Rotation: number;
+  shape1Distortion: number;
 
   shape2: GroupValue;
   shape2Type: ShapeType;
@@ -34,6 +35,7 @@ interface DanceOfPlanetsConfig extends ColorConfig {
   shape2Sides: number;
   shape2Rotation: number;
   identicalNailCount: boolean;
+  shape2Distortion: number;
 }
 
 type TCalc = {
@@ -105,6 +107,12 @@ function getShapeControlsGroup(
         show: (config: DanceOfPlanetsConfig) =>
           config[`shape${shapeIndex}Type`] === 'polygon',
       },
+      {
+        ...Circle.distortionConfig,
+        key: `shape${shapeIndex}Distortion`,
+        show: (config: DanceOfPlanetsConfig) =>
+          config[`shape${shapeIndex}Type`] === 'circle',
+      },
       shapeIndex === 2
         ? {
             key: 'identicalNailCount',
@@ -120,7 +128,7 @@ function getShapeControlsGroup(
         type: 'range',
         attr: {
           min: 3,
-          max: 1300,
+          max: 800,
           step: 1,
         },
         defaultValue: 100,
@@ -194,22 +202,25 @@ export default class DanceOfPlanets extends StringArt<
       nailCount,
       sides,
       rotation = 0,
+      distortion,
     }: {
       type: ShapeType;
       diameter: number;
       nailCount: number;
       sides?: number;
       rotation?: number;
+      distortion?: number;
     }): Shape {
       if (type === 'circle') {
         return new Circle({
-          size,
+          size: mapDimensions(size, v => v * diameter),
           n: nailCount,
           radius: (Math.min(...size) * diameter) / 2,
           center,
           margin,
           reverse: true,
           rotation,
+          distortion,
         });
       } else {
         sides = sides ?? 3;
@@ -237,6 +248,7 @@ export default class DanceOfPlanets extends StringArt<
         nailCount: this.config.shape1NailCount,
         sides: this.config.shape1Sides,
         rotation: this.config.shape1Rotation,
+        distortion: this.config.shape1Distortion,
       }),
       shape2: getShape({
         type: this.config.shape2Type,
@@ -244,6 +256,7 @@ export default class DanceOfPlanets extends StringArt<
         nailCount: shape2NailCount,
         sides: this.config.shape2Sides,
         rotation: this.config.shape2Rotation,
+        distortion: this.config.shape2Distortion,
       }),
       // TODO: polygon nail count should be a multiple of the sides
       shape1NailCount:
@@ -284,11 +297,15 @@ export default class DanceOfPlanets extends StringArt<
     const nailCountsGcd = gcd(shape1NailCount, shape2NailCount);
     const greaterNailCount = Math.max(shape1NailCount, shape2NailCount);
 
-    return Math.max(
-      greaterNailCount,
-      (Math.min(shape1NailCount, shape2NailCount) * greaterNailCount) /
-        nailCountsGcd
-    );
+    return greaterNailCount * this.config.rounds;
+    // return Math.min(
+    //   5000,
+    //   Math.max(
+    //     greaterNailCount,
+    //     (Math.min(shape1NailCount, shape2NailCount) * greaterNailCount) /
+    //       nailCountsGcd
+    //   )
+    // );
   }
 
   *drawStrings(renderer: Renderer) {

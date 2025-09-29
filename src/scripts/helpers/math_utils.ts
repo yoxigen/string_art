@@ -12,3 +12,9 @@ export function gcd(int1: number, int2: number): number {
 }
 
 export const PI2 = Math.PI * 2;
+
+export function distortionToAspectRatio(distortion: number): [number, number] {
+  return distortion < 0
+    ? [1 - Math.abs(distortion), 1]
+    : [1 / (1 - distortion), 1];
+}

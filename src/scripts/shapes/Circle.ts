@@ -5,7 +5,7 @@ import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { Nail } from '../types/stringart.types';
 import { ColorValue } from '../helpers/color/color.types';
 import easing from '../helpers/easing';
-import { PI2 } from '../helpers/math_utils';
+import { distortionToAspectRatio, PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
 import { fitInside } from '../helpers/size_utils';
@@ -99,7 +99,7 @@ export default class Circle extends Shape {
       return 1;
     }
 
-    const aspectRatio = Circle.distortionToAspectRatio(this.config.distortion);
+    const aspectRatio = distortionToAspectRatio(this.config.distortion);
     return aspectRatio[0] / aspectRatio[1];
   }
 
@@ -120,12 +120,6 @@ export default class Circle extends Shape {
     return polygon.getBoundingRect();
   }
 
-  static distortionToAspectRatio(distortion: number): [number, number] {
-    return distortion < 0
-      ? [1 - Math.abs(distortion), 1]
-      : [1 / (1 - distortion), 1];
-  }
-
   setConfig(config: CircleConfig): void {
     if (!compareObjects(config, this.config)) {
       const {
@@ -140,17 +134,18 @@ export default class Circle extends Shape {
         angleEnd,
       } = config;
       const center = configCenter ?? size.map(v => v / 2);
-      const clampedRadius = radius ?? Math.min(...center) - margin;
+      const clampedRadius =
+        (radius ?? Math.min(...size.map(v => v / 2))) - margin;
       let xyRadius = [clampedRadius, clampedRadius];
 
       if (config.distortion) {
-        const aspectRatio = Circle.distortionToAspectRatio(config.distortion);
+        const aspectRatio = distortionToAspectRatio(config.distortion);
         const distortedBox = aspectRatio.map(
           v => clampedRadius * v
         ) as Dimensions;
         xyRadius = fitInside(
           distortedBox,
-          center.map(v => v - margin) as Dimensions
+          size.map(v => v / 2 - margin) as Dimensions
         );
       }
 
