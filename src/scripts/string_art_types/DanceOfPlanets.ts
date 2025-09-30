@@ -1,5 +1,5 @@
 import StringArt from '../StringArt';
-import Circle, { CircleConfig } from '../shapes/Circle';
+import Circle from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
@@ -13,16 +13,15 @@ import { Shape } from '../shapes/Shape';
 import { mapDimensions } from '../helpers/size_utils';
 import Polygon from '../shapes/Polygon';
 import { formatFractionAsPercent } from '../helpers/string_utils';
-import { gcd } from '../helpers/math_utils';
 
 type ShapeType = 'circle' | 'polygon';
 
 interface DanceOfPlanetsConfig extends ColorConfig {
   rounds: number;
+  reverse: boolean;
 
   shape1: GroupValue;
   shape1Type: ShapeType;
-  shape1Size: number;
   shape1NailCount: number;
   shape1Sides: number;
   shape1Rotation: number;
@@ -66,6 +65,7 @@ function getShapeControlsGroup(
     key: `shape${shapeIndex}`,
     label,
     type: 'group',
+    // @ts-ignore
     children: [
       {
         key: `shape${shapeIndex}Type`,
@@ -78,21 +78,23 @@ function getShapeControlsGroup(
         ],
         isStructural: true,
       },
-      {
-        key: `shape${shapeIndex}Size`,
-        label: 'Size',
-        type: 'range',
-        attr: {
-          min: 0.1,
-          max: 1,
-          step: 0.01,
-        },
-        defaultValue: 1,
-        displayValue: (config: DanceOfPlanetsConfig) =>
-          formatFractionAsPercent(config[`shape${shapeIndex}Size`]),
-        isStructural: true,
-        affectsStepCount: false,
-      },
+      shapeIndex === 2
+        ? {
+            key: `shape${shapeIndex}Size`,
+            label: 'Size',
+            type: 'range',
+            attr: {
+              min: 0.1,
+              max: 1,
+              step: 0.01,
+            },
+            defaultValue: 1,
+            displayValue: (config: Partial<DanceOfPlanetsConfig>) =>
+              formatFractionAsPercent(config[`shape${shapeIndex}Size`]),
+            isStructural: true,
+            affectsStepCount: false,
+          }
+        : undefined,
       {
         key: `shape${shapeIndex}Sides`,
         label: 'Sides',
@@ -104,13 +106,13 @@ function getShapeControlsGroup(
         },
         defaultValue: 7,
         isStructural: true,
-        show: (config: DanceOfPlanetsConfig) =>
+        show: (config: Partial<DanceOfPlanetsConfig>) =>
           config[`shape${shapeIndex}Type`] === 'polygon',
       },
       {
         ...Circle.distortionConfig,
         key: `shape${shapeIndex}Distortion`,
-        show: (config: DanceOfPlanetsConfig) =>
+        show: (config: Partial<DanceOfPlanetsConfig>) =>
           config[`shape${shapeIndex}Type`] === 'circle',
       },
       shapeIndex === 2
@@ -146,11 +148,11 @@ function getShapeControlsGroup(
           step: 0.0027,
         },
         defaultValue: 0,
-        displayValue: (config: DanceOfPlanetsConfig) =>
+        displayValue: (config: Partial<DanceOfPlanetsConfig>) =>
           `${Math.round(config[`shape${shapeIndex}Rotation`] * 360)}°`,
         isStructural: true,
       },
-    ].filter(v => v != null),
+    ].filter(Boolean),
   };
 }
 
@@ -177,12 +179,21 @@ export default class DanceOfPlanets extends StringArt<
       defaultValue: 1,
       affectsNails: false,
     },
+    {
+      key: 'reverse',
+      type: 'checkbox',
+      label: 'Reverse order',
+      description:
+        'If on, while the first shape advances in one direction, the second shape advances in the opposite direction',
+      defaultValue: false,
+      isStructural: false,
+      affectsNails: false,
+    },
     COLOR_CONFIG,
   ];
 
   defaultValues: Partial<DanceOfPlanetsConfig> = {
     shape1Type: 'circle',
-    shape1Size: 1,
     shape1NailCount: 150,
     shape1Rotation: 0,
     shape2Type: 'circle',
@@ -207,14 +218,14 @@ export default class DanceOfPlanets extends StringArt<
 
     function getShape({
       type,
-      diameter,
+      diameter = 1,
       nailCount,
       sides,
       rotation = 0,
       distortion,
     }: {
       type: ShapeType;
-      diameter: number;
+      diameter?: number;
       nailCount: number;
       sides?: number;
       rotation?: number;
@@ -264,7 +275,6 @@ export default class DanceOfPlanets extends StringArt<
     return {
       shape1: getShape({
         type: this.config.shape1Type,
-        diameter: this.config.shape1Size,
         nailCount: shape1NailCount,
         sides: this.config.shape1Sides,
         rotation: this.config.shape1Rotation,
@@ -319,28 +329,26 @@ export default class DanceOfPlanets extends StringArt<
 
   #getConnectionCount(): number {
     const { shape1NailCount, shape2NailCount } = this.calc;
-    const nailCountsGcd = gcd(shape1NailCount, shape2NailCount);
     const greaterNailCount = Math.max(shape1NailCount, shape2NailCount);
 
     return greaterNailCount * this.config.rounds;
-    // return Math.min(
-    //   5000,
-    //   Math.max(
-    //     greaterNailCount,
-    //     (Math.min(shape1NailCount, shape2NailCount) * greaterNailCount) /
-    //       nailCountsGcd
-    //   )
-    // );
   }
 
   *drawStrings(renderer: Renderer) {
     const { shape1, shape2, shape1NailCount, shape2NailCount } = this.calc;
+    const { reverse } = this.config;
+
     const steps = this.#getConnectionCount();
 
     renderer.setColor('#ffffff');
     renderer.setStartingPoint(shape1.getPoint(0));
 
     let toShape2 = true;
+
+    const getShape2Index = reverse
+      ? (step: number) =>
+          shape2NailCount - (step % shape2NailCount || shape2NailCount)
+      : (step: number) => step % shape2NailCount;
 
     for (let step = 0; step < steps; step++) {
       const stepColor = this.colorMap.get(step);
@@ -350,7 +358,7 @@ export default class DanceOfPlanets extends StringArt<
 
       renderer.lineTo(
         toShape2
-          ? shape2.getPoint(step % shape2NailCount)
+          ? shape2.getPoint(getShape2Index(step))
           : shape1.getPoint(step % shape1NailCount)
       );
       yield;
@@ -358,7 +366,7 @@ export default class DanceOfPlanets extends StringArt<
       if (step !== steps - 1) {
         renderer.lineTo(
           toShape2
-            ? shape2.getPoint((step + 1) % shape2NailCount)
+            ? shape2.getPoint(getShape2Index(step + 1))
             : shape1.getPoint((step + 1) % shape1NailCount)
         );
         yield;
@@ -380,4 +388,42 @@ export default class DanceOfPlanets extends StringArt<
     this.calc.shape1.drawNails(this.nails);
     this.calc.shape2.drawNails(this.nails);
   }
+
+  thumbnailConfig = (
+    config: DanceOfPlanetsConfig
+  ): Partial<DanceOfPlanetsConfig> => {
+    const MAX_NAIL_COUNT = 80;
+    // the nail count of either shape shouldn't exceed the MAX_NAIL_COUNT,
+    // but the ratio between the two counts needs to be preserved, so the pattern in the thumbnail looks similar
+
+    let shape1NailCount = this.#getShapeNailCount(
+      config.shape1Type,
+      config.shape1NailCount,
+      config.shape1Sides
+    );
+
+    let shape2NailCount = config.identicalNailCount
+      ? shape1NailCount
+      : config.shape2NailCount;
+
+    if (
+      shape1NailCount <= MAX_NAIL_COUNT &&
+      shape2NailCount <= MAX_NAIL_COUNT
+    ) {
+      return {};
+    }
+
+    const ratio = shape1NailCount / shape2NailCount;
+
+    if (ratio >= 1) {
+      // shape1 has a larger or equal nail count than shape2
+      shape1NailCount = MAX_NAIL_COUNT;
+      shape2NailCount = MAX_NAIL_COUNT / ratio;
+    } else {
+      shape2NailCount = MAX_NAIL_COUNT;
+      shape1NailCount = MAX_NAIL_COUNT * ratio;
+    }
+
+    return { shape1NailCount, shape2NailCount };
+  };
 }
