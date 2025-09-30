@@ -120,7 +120,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
 
   getAspectRatio(options: CalcOptions): number {
     const calc = this.getCalc(options);
-    return calc.circle.aspectRatio;
+    return calc.circle.getAspectRatio();
   }
 
   *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {

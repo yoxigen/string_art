@@ -9,6 +9,8 @@ import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
 import { formatFractionAsPercent } from '../helpers/string_utils';
+import { Shape } from './Shape';
+import { getBoundingRectAspectRatio } from '../helpers/size_utils';
 
 export interface StarShapeConfig {
   sideNails: number;
@@ -21,12 +23,13 @@ export interface StarShapeConfig {
   radius?: number;
 }
 
-export default class StarShape {
+export default class StarShape extends Shape {
   config: StarShapeConfig;
   center: Coordinates;
   calc: ReturnType<typeof StarShape.getCalc>;
 
   constructor(config: StarShapeConfig) {
+    super();
     this.setConfig(config);
   }
 
@@ -61,7 +64,15 @@ export default class StarShape {
     };
   }
 
-  getPoint(side = 0, index = 0): Coordinates {
+  getPoint(index: number): Coordinates {
+    const position = index / this.config.sideNails;
+    const side = Math.floor(position);
+    const sideIndex = index % this.config.sideNails;
+
+    return this.getSidePoint(side, sideIndex);
+  }
+
+  getSidePoint(side = 0, index = 0): Coordinates {
     const radius = this.calc.centerRadius + index * this.calc.nailSpacing;
     const { sinSideAngle, cosSideAngle } = this.calc.sides[side];
 
@@ -125,7 +136,7 @@ export default class StarShape {
       for (let i = 0; i < sideNails; i++) {
         const sideIndex = reverseOrder ? sideNails - i : i;
         groupNails.push({
-          point: this.getPoint(side, sideIndex),
+          point: this.getSidePoint(side, sideIndex),
           number: getNumber
             ? getNumber(side, sideIndex)
             : sideIndex || this.config.centerRadius
@@ -164,7 +175,7 @@ export default class StarShape {
         : sideNails - minNailIndex;
 
     let prevPointIndex = minNailIndex;
-    let prevPoint = this.getPoint(0, prevPointIndex);
+    let prevPoint = this.getSidePoint(0, prevPointIndex);
 
     for (let round = 0; round < rounds; round++) {
       const isLastRound = round === rounds - 1;
@@ -176,7 +187,7 @@ export default class StarShape {
         prevPointIndex = alternate
           ? sideNails - round - 1
           : round + minNailIndex;
-        const nextPoint = this.getPoint(side, prevPointIndex);
+        const nextPoint = this.getSidePoint(side, prevPointIndex);
         renderer.renderLine(prevPoint, nextPoint);
         prevPoint = nextPoint;
         yield;
@@ -188,7 +199,7 @@ export default class StarShape {
 
       if (!isLastRound) {
         prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
-        const nextPoint = this.getPoint(0, prevPointIndex);
+        const nextPoint = this.getSidePoint(0, prevPointIndex);
         renderer.renderLine(prevPoint, nextPoint);
         prevPoint = nextPoint;
       }
@@ -236,6 +247,10 @@ export default class StarShape {
     });
 
     return polygon.getBoundingRect();
+  }
+
+  getAspectRatio(): number {
+    return getBoundingRectAspectRatio(this.getBoundingRect());
   }
 
   static nailsConfig: ControlConfig<StarShapeConfig> = Object.freeze({

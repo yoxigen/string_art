@@ -5,10 +5,11 @@ import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { Nail } from '../types/stringart.types';
 import { ColorValue } from '../helpers/color/color.types';
 import easing from '../helpers/easing';
-import { PI2 } from '../helpers/math_utils';
+import { distortionToAspectRatio, PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
 import { fitInside } from '../helpers/size_utils';
+import { Shape } from './Shape';
 
 export interface CircleConfig {
   n: number;
@@ -42,7 +43,7 @@ export interface CircleNailsOptions {
   excludedNailRanges?: ReadonlyArray<[number, number]>;
 }
 
-export default class Circle {
+export default class Circle extends Shape {
   points: Map<number, Coordinates>;
   easingFunction: Function;
   config: CircleConfig;
@@ -57,10 +58,11 @@ export default class Circle {
   excludedNailIndexes: ReadonlySet<number>;
 
   constructor(config: CircleConfig) {
+    super();
     this.setConfig(config);
   }
 
-  getPoint(index = 0) {
+  getPoint(index: number): Coordinates {
     const realIndex = this.getNailIndex(index);
 
     if (this.points.has(index)) {
@@ -84,7 +86,7 @@ export default class Circle {
     return point;
   }
 
-  getNailIndex(index = 0) {
+  getNailIndex(index = 0): number {
     let realIndex = this.isReverse ? this.config.n - 1 - index : index;
     if (realIndex > this.config.n - 1) {
       realIndex = realIndex % this.config.n;
@@ -92,12 +94,12 @@ export default class Circle {
     return realIndex;
   }
 
-  get aspectRatio(): number {
+  getAspectRatio(): number {
     if (!this.config.distortion) {
       return 1;
     }
 
-    const aspectRatio = Circle.distortionToAspectRatio(this.config.distortion);
+    const aspectRatio = distortionToAspectRatio(this.config.distortion);
     return aspectRatio[0] / aspectRatio[1];
   }
 
@@ -118,13 +120,7 @@ export default class Circle {
     return polygon.getBoundingRect();
   }
 
-  static distortionToAspectRatio(distortion: number): [number, number] {
-    return distortion < 0
-      ? [1 - Math.abs(distortion), 1]
-      : [1 / (1 - distortion), 1];
-  }
-
-  setConfig(config: CircleConfig) {
+  setConfig(config: CircleConfig): void {
     if (!compareObjects(config, this.config)) {
       const {
         n,
@@ -138,17 +134,18 @@ export default class Circle {
         angleEnd,
       } = config;
       const center = configCenter ?? size.map(v => v / 2);
-      const clampedRadius = radius ?? Math.min(...center) - margin;
+      const clampedRadius =
+        (radius ?? Math.min(...size.map(v => v / 2))) - margin;
       let xyRadius = [clampedRadius, clampedRadius];
 
       if (config.distortion) {
-        const aspectRatio = Circle.distortionToAspectRatio(config.distortion);
+        const aspectRatio = distortionToAspectRatio(config.distortion);
         const distortedBox = aspectRatio.map(
           v => clampedRadius * v
         ) as Dimensions;
         xyRadius = fitInside(
           distortedBox,
-          center.map(v => v - margin) as Dimensions
+          size.map(v => v / 2 - margin) as Dimensions
         );
       }
 
@@ -235,7 +232,7 @@ export default class Circle {
     props: CircleNailsOptions & {
       color?: ColorValue;
     } = {}
-  ) {
+  ): void {
     const arr = [];
     const { color, ...restProps } = props;
 
@@ -286,7 +283,7 @@ export default class Circle {
     }
   }
 
-  getRingStepCount() {
+  getRingStepCount(): number {
     return this.config.n * 2 - 1;
   }
 
