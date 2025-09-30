@@ -324,7 +324,13 @@ export default class DanceOfPlanets extends StringArt<
   }
 
   getAspectRatio(calcOptions: CalcOptions): number {
-    return 1;
+    const { shape1, shape2 } = this.getCalc(calcOptions);
+    const rect1 = shape1.getBoundingRect();
+    const rect2 = shape2.getBoundingRect();
+
+    return (
+      Math.max(rect1.width, rect2.width) / Math.max(rect1.height, rect2.height)
+    );
   }
 
   #getConnectionCount(): number {
