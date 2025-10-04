@@ -14,6 +14,7 @@ import Comet from './string_art_types/Comet';
 import Sun from './string_art_types/Sun';
 import Lotus from './string_art_types/Lotus';
 import DanceOfPlanets from './string_art_types/DanceOfPlanets';
+import Crosses from './string_art_types/Crosses';
 
 const patternTypes = [
   Star,
@@ -32,6 +33,7 @@ const patternTypes = [
   Sun,
   Lotus,
   DanceOfPlanets,
+  Crosses,
 ];
 
 export default patternTypes;
