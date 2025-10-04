@@ -172,6 +172,12 @@ export default class CanvasRenderer extends Renderer {
 
   resetStrings(): void {
     this.stringsCtx.clearRect(0, 0, ...this.getSize());
+    const scale = 2.6;
+    this.ctxs.forEach(ctx => ctx.setTransform(1, 0, 0, 1, 0, 0));
+    this.ctxs.forEach(ctx => ctx.scale(scale, scale));
+    this.ctxs.forEach(ctx =>
+      ctx.translate(this.getSize()[0] * -0.625, this.getSize()[1] * -0.625)
+    );
   }
 
   /**

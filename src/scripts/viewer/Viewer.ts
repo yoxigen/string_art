@@ -19,6 +19,7 @@ export default class Viewer extends EventBus<{
   pattern: StringArt;
   rendererType: RendererType;
   cancelDraw: (() => void) | null;
+  zoom = 1;
 
   constructor(rendererType: RendererType = 'canvas') {
     super();
@@ -26,9 +27,24 @@ export default class Viewer extends EventBus<{
     this.rendererType = rendererType;
     this.element = document.querySelector('#canvas_panel');
 
-    this.element.addEventListener('wheel', ({ deltaY }) => {
+    this.element.addEventListener('wheel', e => {
+      e.preventDefault();
+      const { offsetX, offsetY, deltaY } = e;
+
       const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
-      this.emit('positionChange', { changeBy: direction });
+      this.zoom = Math.min(10, Math.max(1, this.zoom * (1 + direction * 0.1)));
+      const zoomPercent = 100 * this.zoom;
+
+      this.element.style.width = this.element.style.height = `${zoomPercent}%`;
+      const offset = [
+        offsetX / this.element.parentElement.clientWidth,
+        offsetY / this.element.parentElement.clientHeight,
+      ];
+
+      const xPercent = (-100 * (this.zoom - offset[0])) / this.zoom;
+      const yPercent = (-100 * (this.zoom - offset[1])) / this.zoom;
+      this.element.style.transform = `translateX(${xPercent}%) translateY(${yPercent}%)`;
+      //this.emit('positionChange', { changeBy: direction });
     });
 
     viewOptions.addEventListener(

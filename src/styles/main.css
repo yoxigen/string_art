@@ -108,11 +108,19 @@ a:hover {
   text-decoration: underline;
   color: var(--color-link-hover);
 }
-#canvas_panel {
+#canvas_panel_wrapper {
   grid-area: canvas;
+  position: relative;
+  overflow: auto;
+}
+#canvas_panel {
   text-align: center;
   overflow: hidden;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 #canvas_panel.overflow {
   overflow: auto;
