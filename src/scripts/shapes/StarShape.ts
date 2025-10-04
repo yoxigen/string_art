@@ -120,11 +120,13 @@ export default class StarShape extends Shape {
     {
       getNumber,
       reverseOrder,
+      excludeSides,
       ...nailsConfig
     }: Partial<
       {
-        getNumber: (side: number, sideIndex: number) => string;
-        reverseOrder: boolean;
+        getNumber?: (side: number, sideIndex: number) => string;
+        reverseOrder?: boolean;
+        excludeSides?: ReadonlyArray<number>;
       } & NailsConfig
     > = {}
   ): void {
@@ -133,16 +135,18 @@ export default class StarShape extends Shape {
     const groupNails = [];
 
     for (let side = 0; side < sides; side++) {
-      for (let i = 0; i < sideNails; i++) {
-        const sideIndex = reverseOrder ? sideNails - i : i;
-        groupNails.push({
-          point: this.getSidePoint(side, sideIndex),
-          number: getNumber
-            ? getNumber(side, sideIndex)
-            : sideIndex || this.config.centerRadius
-            ? `${side}_${sideIndex}`
-            : 0,
-        });
+      if (!excludeSides || !excludeSides.includes(side)) {
+        for (let i = 0; i < sideNails; i++) {
+          const sideIndex = reverseOrder ? sideNails - i : i;
+          groupNails.push({
+            point: this.getSidePoint(side, sideIndex),
+            number: getNumber
+              ? getNumber(side, sideIndex)
+              : sideIndex || this.config.centerRadius
+              ? `${side}_${sideIndex}`
+              : 0,
+          });
+        }
       }
     }
 
