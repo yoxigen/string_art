@@ -104,7 +104,11 @@ class Routing extends EventBus<{
     const configQuery = pattern.isDefaultConfig
       ? undefined
       : serializeConfig(pattern);
-    (replaceState ? history.replaceState : history.pushState)(
+    const setHistoryState = (
+      replaceState ? history.replaceState : history.pushState
+    ).bind(history);
+
+    setHistoryState(
       {
         pattern: pattern.id,
         config: configQuery,
