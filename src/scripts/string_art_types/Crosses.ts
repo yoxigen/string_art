@@ -20,6 +20,8 @@ interface CrossesConfig extends ColorConfig {
   n: number;
   centerRadius: number;
   isVertical: boolean;
+  verticalShift?: number;
+  horizontalShift?: number;
 }
 
 type TCalc = {
@@ -50,7 +52,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       key: 'n',
       label: 'Nails per side',
       attr: {
-        min: 1,
+        min: 2,
         max: 50,
         step: 1,
       },
@@ -79,6 +81,22 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       affectsStepCount: false,
       isStructural: true,
     },
+    {
+      key: 'verticalShift',
+      type: 'range',
+      label: 'Vertical shift',
+      attr: {
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      displayValue: ({ verticalShift }) =>
+        formatFractionAsPercent(verticalShift),
+      defaultValue: 0.5,
+      affectsStepCount: false,
+      isStructural: true,
+      show: ({ centerRadius }) => centerRadius > 0,
+    },
     COLOR_CONFIG,
   ];
 
@@ -86,13 +104,23 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   getCalc({ size }: CalcOptions): TCalc {
     const sizeCenter = this.center;
-    const { n, centerRadius, isVertical, margin } = this.config;
+    const { n, centerRadius, isVertical, margin, verticalShift } = this.config;
     const length = (isVertical ? size[1] : size[0]) - 2 * margin;
 
-    let radius = length / (4 + 2 * centerRadius);
+    let radius =
+      length /
+      (4 * (1 - centerRadius * verticalShift) +
+        2 * centerRadius * (1 - verticalShift));
 
     const stars = new Array(3).fill(null).map((_, i) => {
-      const starCenter = margin + (i + 1) * radius + i * centerRadius * radius;
+      const starCenter =
+        i === 1
+          ? isVertical
+            ? sizeCenter[1]
+            : sizeCenter[0]
+          : i === 0
+          ? margin + radius * (1 - centerRadius * verticalShift)
+          : margin + length - radius * (1 - centerRadius * verticalShift);
       return new StarShape({
         sideNails: n,
         sides: 4,
@@ -102,6 +130,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
           : [starCenter, sizeCenter[1]],
         radius,
         rotation: isVertical ? 2 : 1,
+        sidesCenterRadiusShift: [verticalShift, 0, verticalShift, 0],
       });
     });
 
@@ -113,9 +142,73 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     return isVertical ? 1 / 3 : 3;
   }
 
-  *drawStrings(renderer: Renderer) {}
+  private *connectSides(
+    renderer: Renderer,
+    {
+      from,
+      to,
+      fromSide,
+      toSide,
+      isReverse = false,
+    }: {
+      from: StarShape;
+      to: StarShape;
+      fromSide: number;
+      toSide: number;
+      isReverse?: boolean;
+    }
+  ): Generator<void> {
+    const { n } = this.config;
 
-  getStepCount(options: CalcOptions): number {
+    for (let i = 0; i < n; i++) {
+      renderer.renderLine(
+        from.getSidePoint(fromSide, isReverse ? n - 1 - i : i),
+        to.getSidePoint(toSide, n - i - 1)
+      );
+      yield;
+    }
+  }
+
+  *drawStrings(renderer: Renderer) {
+    const { stars } = this.calc;
+    renderer.setColor('#ffffff');
+    const connections = [
+      [0, 0, 0, 1],
+      [0, 1, 0, 1],
+      [0, 0, 0, 3],
+      [0, 1, 0, 3],
+      [1, 0, 0, 3],
+      [1, 0, 0, 1],
+      [1, 1, 0, 1],
+      [1, 1, 0, 3],
+      [2, 2, 2, 1],
+      [2, 2, 2, 3],
+      [2, 1, 2, 1],
+      [2, 1, 2, 3],
+      [1, 1, 1, 2],
+      [1, 1, 3, 2],
+      [1, 2, 2, 1],
+      [1, 2, 2, 3],
+      [2, 1, 3, 0],
+      [2, 1, 1, 0],
+      [0, 1, 1, 2],
+      [0, 1, 3, 2],
+    ];
+
+    for (const [from, to, fromSide, toSide] of connections) {
+      const isReverse = from === 1 && (to === 0 || to === 2);
+
+      yield* this.connectSides(renderer, {
+        from: stars[from],
+        to: stars[to],
+        fromSide,
+        toSide,
+        isReverse,
+      });
+    }
+  }
+
+  getStepCount(): number {
     const { n } = this.config;
     const perStarCount = 4 * n;
     return perStarCount * 3 + n + 8 * n;

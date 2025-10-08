@@ -21,6 +21,7 @@ export interface StarShapeConfig {
   center?: Coordinates;
   size?: Dimensions;
   radius?: number;
+  sidesCenterRadiusShift?: number[];
 }
 
 export default class StarShape extends Shape {
@@ -40,6 +41,7 @@ export default class StarShape extends Shape {
     rotation,
     centerRadius: centerRadiusFraction = 0,
     maxCurveSize = 1,
+    sidesCenterRadiusShift,
   }: StarShapeConfig) {
     const centerRadius = radius * centerRadiusFraction;
     const nailSpacing = (radius - centerRadius) / (sideNails - 1); // The distance between nails on the same side, in px
@@ -61,6 +63,9 @@ export default class StarShape extends Shape {
           cosSideAngle: Math.cos(sideAngle),
         };
       }),
+      sidesCenterRadius: sidesCenterRadiusShift
+        ? sidesCenterRadiusShift.map(v => centerRadius * v)
+        : null,
     };
   }
 
@@ -73,7 +78,10 @@ export default class StarShape extends Shape {
   }
 
   getSidePoint(side = 0, index = 0): Coordinates {
-    const radius = this.calc.centerRadius + index * this.calc.nailSpacing;
+    const radius =
+      this.calc.centerRadius +
+      index * this.calc.nailSpacing -
+      (this.calc.sidesCenterRadius?.[side] ?? 0);
     const { sinSideAngle, cosSideAngle } = this.calc.sides[side];
 
     return [
