@@ -1,6 +1,6 @@
 import StringArt from '../StringArt';
 import Color from '../helpers/color/Color';
-import { ColorConfig } from '../helpers/color/color.types';
+import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
 import { Config, ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
@@ -24,13 +24,14 @@ type TCalc = {
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
     isMultiColor: true,
-    colorCount: 7,
-    color: '#ffbb29',
-    multicolorRange: 21,
-    multicolorStart: 32,
+    colorCount: 2,
+    color: '#ffffff',
+    multicolorRange: 1,
+    multicolorStart: 1,
     multicolorByLightness: true,
-    minLightness: 36,
-    maxLightness: 98,
+    minLightness: 40,
+    maxLightness: 100,
+    reverseColors: true,
   },
 });
 
@@ -164,6 +165,16 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     };
   }
 
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw(options);
+    const { colorCount } = this.config;
+
+    this.color = new Color({
+      ...this.config,
+      colorCount,
+    });
+  }
+
   getAspectRatio(): number {
     const { width, height } = this.calc;
     return width / height;
@@ -175,14 +186,17 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       from,
       to,
       isReverse = false,
+      color,
     }: {
       from: Line;
       to: Line;
       isReverse?: boolean;
+      color: ColorValue;
     }
   ): Generator<void> {
     const { n } = this.config;
 
+    renderer.setColor(color);
     for (let i = 0; i < n; i++) {
       renderer.renderLine(
         from.getPoint(isReverse ? n - 1 - i : i),
@@ -194,8 +208,6 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   *drawStrings(renderer: Renderer) {
     const { verticalLines, horizontalLines } = this.calc;
-    renderer.setColor('#ffffff');
-    // [verticalLineIndex, horizontalLineRowIndex, horizontalLineLeftOrRightIndex (0 left, 1 right)]
     const connections = [
       [0, 0, 0],
       [0, 0, 1],
@@ -205,14 +217,14 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       [1, 0, 1],
       [1, 1, 0],
       [1, 1, 1],
-      [3, 2, 0],
       [3, 2, 1],
-      [3, 1, 0],
+      [3, 2, 0],
       [3, 1, 1],
-      [2, 1, 0],
+      [3, 1, 0],
       [2, 1, 1],
-      [2, 2, 0],
+      [2, 1, 0],
       [2, 2, 1],
+      [2, 2, 0],
       [1, 2, 0],
       [1, 2, 1],
       [2, 0, 0],
@@ -226,6 +238,11 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         from: verticalLines[verticalIndex],
         to: horizontalLines[horizontalRow][horizontalIndex],
         isReverse,
+        color: this.color.getColor(
+          horizontalRow > verticalIndex || verticalIndex - horizontalRow > 1
+            ? 1
+            : 0
+        ),
       });
     }
   }
