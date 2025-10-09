@@ -2,10 +2,9 @@ import StringArt from '../StringArt';
 import Color from '../helpers/color/Color';
 import { ColorConfig } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
-import { ControlsConfig } from '../types/config.types';
+import { Config, ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsPercent } from '../helpers/string_utils';
-import StarShape from '../shapes/StarShape';
 import { Line } from '../shapes/Line';
 
 interface CrossesConfig extends ColorConfig {
@@ -50,7 +49,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         max: 50,
         step: 1,
       },
-      defaultValue: 20,
+      defaultValue: 25,
       isStructural: true,
     },
     {
@@ -75,7 +74,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         step: 0.01,
       },
       displayValue: ({ verticalGap }) => formatFractionAsPercent(verticalGap),
-      defaultValue: 0.5,
+      defaultValue: 0.27,
       affectsStepCount: false,
       isStructural: true,
     },
@@ -90,7 +89,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       },
       displayValue: ({ horizontalGap }) =>
         formatFractionAsPercent(horizontalGap),
-      defaultValue: 0.5,
+      defaultValue: 0.43,
       affectsStepCount: false,
       isStructural: true,
     },
@@ -110,21 +109,26 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     } = this.config;
     const isVertical = orientation === 'vertical';
     const length = (isVertical ? size[1] : size[0]) - 2 * margin;
-    const smallDimension = Math.min(...size) / 2 - 2 * margin;
     const maxVerticalGap = (length * 0.8) / 3;
     const verticalGap = verticalGapPercent * maxVerticalGap;
     const lineLength = (length - 3 * verticalGap) / 4;
 
     const verticalLines = new Array(4).fill(null).map((_, i) => {
       return new Line({
-        from: [center[0], margin + i * (lineLength + verticalGap)],
-        to: [center[0], margin + i * (lineLength + verticalGap) + lineLength],
+        from: isVertical
+          ? [center[0], margin + i * (lineLength + verticalGap)]
+          : [margin + i * (lineLength + verticalGap), center[1]],
+        to: isVertical
+          ? [center[0], margin + i * (lineLength + verticalGap) + lineLength]
+          : [margin + i * (lineLength + verticalGap) + lineLength, center[1]],
         n,
       });
     });
 
-    const horizontalStart = center[0] - verticalGap - lineLength;
-    const horizontalEnd = center[0] + verticalGap + lineLength;
+    const horizontalStart =
+      center[isVertical ? 0 : 1] - horizontalGap * lineLength - lineLength;
+    const horizontalEnd =
+      center[isVertical ? 0 : 1] + horizontalGap * lineLength + lineLength;
 
     const horizontalLines = new Array(3).fill(null).map((_, row) => {
       const rowTop =
@@ -135,13 +139,19 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
       return [
         new Line({
-          from: [horizontalStart, rowTop],
-          to: [horizontalStart + lineLength, rowTop],
+          from: isVertical
+            ? [horizontalStart, rowTop]
+            : [rowTop, horizontalStart],
+          to: isVertical
+            ? [horizontalStart + lineLength, rowTop]
+            : [rowTop, horizontalStart + lineLength],
           n,
         }),
         new Line({
-          to: [horizontalEnd - lineLength, rowTop],
-          from: [horizontalEnd, rowTop],
+          to: isVertical
+            ? [horizontalEnd - lineLength, rowTop]
+            : [rowTop, horizontalEnd - lineLength],
+          from: isVertical ? [horizontalEnd, rowTop] : [rowTop, horizontalEnd],
           n,
         }),
       ];
@@ -222,8 +232,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   getStepCount(): number {
     const { n } = this.config;
-    const perStarCount = 4 * n;
-    return perStarCount * 3 + n + 8 * n;
+    return 20 * n;
   }
 
   drawNails() {
@@ -243,4 +252,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       });
     });
   }
+
+  thumbnailConfig = (config: CrossesConfig) => ({
+    n: Math.min(6, config.n),
+  });
 }
