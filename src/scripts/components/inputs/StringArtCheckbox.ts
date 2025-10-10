@@ -43,10 +43,12 @@ export default class StringArtCheckbox extends HTMLElement {
 
   set checked(v: boolean) {
     if ((this.#checked = v)) {
-      this.#input.setAttribute('checked', 'checked');
+      this.#input.checked = true;
     } else {
-      this.#input.removeAttribute('checked');
+      this.#input.checked = false;
     }
+
+    this.internals.setFormValue(this.#checked ? 'on' : null);
   }
 
   get value(): boolean {
@@ -55,7 +57,6 @@ export default class StringArtCheckbox extends HTMLElement {
 
   set value(v: boolean) {
     this.checked = v;
-    this.internals.setFormValue(this.#checked ? 'on' : null);
   }
 
   connectedCallback() {
