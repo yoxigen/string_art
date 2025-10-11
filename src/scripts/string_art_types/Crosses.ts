@@ -183,60 +183,63 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
   private *connectLines(
     renderer: Renderer,
     {
-      from,
-      to,
+      verticalLine,
+      row,
       isReverse = false,
       color,
     }: {
-      from: Line;
-      to: Line;
+      verticalLine: Line;
+      row: number;
       isReverse?: boolean;
       color: ColorValue;
     }
   ): Generator<void> {
     const { n } = this.config;
+    const horizontalLines = this.calc.horizontalLines[row];
 
     renderer.setColor(color);
+    renderer.setStartingPoint(horizontalLines[0].getPoint(0));
+
+    let alternate = false;
+    let currentLine: Line;
+
     for (let i = 0; i < n; i++) {
-      renderer.renderLine(
-        from.getPoint(isReverse ? n - 1 - i : i),
-        to.getPoint(n - i - 1)
-      );
+      if (currentLine) {
+        renderer.lineTo(currentLine.getPoint(i));
+        yield;
+      }
+      renderer.lineTo(verticalLine.getPoint(isReverse ? i : n - 1 - i));
       yield;
+
+      currentLine = horizontalLines[alternate ? 0 : 1];
+      renderer.lineTo(currentLine.getPoint(i));
+      yield;
+
+      alternate = !alternate;
     }
   }
 
   *drawStrings(renderer: Renderer) {
     const { verticalLines, horizontalLines } = this.calc;
     const connections = [
-      [0, 0, 0],
-      [0, 0, 1],
-      [0, 1, 0],
-      [0, 1, 1],
-      [1, 0, 0],
-      [1, 0, 1],
-      [1, 1, 0],
-      [1, 1, 1],
-      [3, 2, 1],
-      [3, 2, 0],
-      [3, 1, 1],
-      [3, 1, 0],
-      [2, 1, 1],
-      [2, 1, 0],
-      [2, 2, 1],
-      [2, 2, 0],
-      [1, 2, 0],
-      [1, 2, 1],
-      [2, 0, 0],
-      [2, 0, 1],
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 1],
+      [3, 2],
+      [3, 1],
+      [2, 1],
+      [2, 2],
+      [1, 2],
+      [2, 0],
     ];
 
-    for (const [verticalIndex, horizontalRow, horizontalIndex] of connections) {
+    for (const [verticalIndex, horizontalRow] of connections) {
       const isReverse = horizontalRow < verticalIndex;
 
       yield* this.connectLines(renderer, {
-        from: verticalLines[verticalIndex],
-        to: horizontalLines[horizontalRow][horizontalIndex],
+        verticalLine: verticalLines[verticalIndex],
+        row: horizontalRow,
         isReverse,
         color: this.color.getColor(
           horizontalRow > verticalIndex || verticalIndex - horizontalRow > 1
@@ -249,7 +252,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   getStepCount(): number {
     const { n } = this.config;
-    return 20 * n;
+    return 10 * (3 * n - 1);
   }
 
   drawNails() {
