@@ -12,8 +12,9 @@ interface CrossesConfig extends ColorConfig {
   orientation: 'v' | 'h';
   lengthGap: number;
   widthGap?: number;
-  lockCenterWidthGap?: boolean;
+  lockCenterSize?: boolean;
   centerWidthGap?: number;
+  centerSpread?: number;
   lockCenterColor: boolean;
   centerColor: ColorValue;
 }
@@ -84,12 +85,27 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       isStructural: true,
     },
     {
-      key: 'lockCenterWidthGap',
+      key: 'lockCenterSize',
       type: 'checkbox',
-      label: 'Lock center width gap',
+      label: 'Lock center size',
       defaultValue: true,
       affectsStepCount: false,
       isStructural: true,
+    },
+    {
+      key: 'centerSpread',
+      type: 'range',
+      label: 'Center spread',
+      attr: {
+        min: 0.2,
+        max: 5,
+        step: 0.01,
+      },
+      displayValue: ({ centerSpread }) => formatFractionAsPercent(centerSpread),
+      defaultValue: 1,
+      affectsStepCount: false,
+      isStructural: true,
+      show: ({ lockCenterSize }) => !lockCenterSize,
     },
     {
       key: 'centerWidthGap',
@@ -105,7 +121,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       defaultValue: 0,
       affectsStepCount: false,
       isStructural: true,
-      show: ({ lockCenterWidthGap }) => !lockCenterWidthGap,
+      show: ({ lockCenterSize }) => !lockCenterSize,
     },
     Color.getConfig({
       defaults: {
@@ -155,8 +171,9 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       margin,
       lengthGap: verticalGapPercent,
       widthGap,
-      lockCenterWidthGap,
+      lockCenterSize,
       centerWidthGap,
+      centerSpread,
     } = this.config;
     const isVertical = orientation === 'v';
     let height = (isVertical ? size[1] : size[0]) - 2 * margin;
@@ -175,21 +192,26 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       centerLeft: number;
       centerRight: number;
     } => {
-      const getSides = (widthGap: number): [number, number] => {
+      const getSides = (
+        widthGap: number,
+        sideLength: number
+      ): [number, number] => {
         return [
           center[orientationDimensionIndex] -
             widthGap * lineLength -
-            lineLength,
+            sideLength,
           center[orientationDimensionIndex] +
             widthGap * lineLength +
-            lineLength,
+            sideLength,
         ];
       };
-      const sides = getSides(widthGap);
-      const [centerLeft, centerRight] =
-        lockCenterWidthGap || centerWidthGap === widthGap
-          ? sides
-          : getSides(centerWidthGap);
+      const sides = getSides(widthGap, lineLength);
+      const [centerLeft, centerRight] = lockCenterSize
+        ? sides
+        : getSides(
+            centerWidthGap,
+            !lockCenterSize ? centerSpread * lineLength : lineLength
+          );
 
       const [left, right] = sides;
 
@@ -252,17 +274,20 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         lengthGap / 2 +
         row * (lineLength + lengthGap);
 
+      const sideLength =
+        !lockCenterSize && row === 1 ? lineLength * centerSpread : lineLength;
+
       return [
         new Line(
           isVertical
             ? {
                 from: [horizontalStart, rowTop],
-                to: [horizontalStart + lineLength, rowTop],
+                to: [horizontalStart + sideLength, rowTop],
                 n,
               }
             : {
                 from: [rowTop, horizontalStart],
-                to: [rowTop, horizontalStart + lineLength],
+                to: [rowTop, horizontalStart + sideLength],
                 n,
               }
         ),
@@ -270,12 +295,12 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
           isVertical
             ? {
                 from: [horizontalEnd, rowTop],
-                to: [horizontalEnd - lineLength, rowTop],
+                to: [horizontalEnd - sideLength, rowTop],
                 n,
               }
             : {
                 from: [rowTop, horizontalEnd],
-                to: [rowTop, horizontalEnd - lineLength],
+                to: [rowTop, horizontalEnd - sideLength],
                 n,
               }
         ),
