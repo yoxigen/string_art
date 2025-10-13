@@ -2,21 +2,28 @@ import StringArt from '../StringArt';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
-import { Config, ControlsConfig } from '../types/config.types';
+import { Config, ControlsConfig, GroupValue } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import { Line } from '../shapes/Line';
+import { Coordinates } from '../types/general.types';
 
 interface CrossesConfig extends ColorConfig {
   n: number;
   orientation: 'v' | 'h';
   lengthGap: number;
+  lockGap: boolean;
   widthGap?: number;
   lockCenterSize?: boolean;
+  center: GroupValue;
   centerWidthGap?: number;
   centerSpread?: number;
   lockCenterColor: boolean;
   centerColor: ColorValue;
+  sides: GroupValue;
+  lockSides: boolean;
+  sidesGap: number;
+  sidesSpread: number;
 }
 
 type TCalc = {
@@ -71,6 +78,14 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       isStructural: true,
     },
     {
+      key: 'lockGap',
+      type: 'checkbox',
+      label: 'Lock length/width gap',
+      defaultValue: true,
+      isStructural: true,
+      affectsStepCount: false,
+    },
+    {
       key: 'widthGap',
       type: 'range',
       label: 'Width gap',
@@ -83,45 +98,103 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       defaultValue: 0.43,
       affectsStepCount: false,
       isStructural: true,
+      show: ({ lockGap }) => !lockGap,
     },
     {
-      key: 'lockCenterSize',
-      type: 'checkbox',
-      label: 'Lock center size',
-      defaultValue: true,
-      affectsStepCount: false,
-      isStructural: true,
+      key: 'center',
+      type: 'group',
+      label: 'Center',
+      children: [
+        {
+          key: 'lockCenterSize',
+          type: 'checkbox',
+          label: 'Lock center size',
+          defaultValue: true,
+          affectsStepCount: false,
+          isStructural: true,
+        },
+        {
+          key: 'centerSpread',
+          type: 'range',
+          label: 'Center spread',
+          attr: {
+            min: 0.2,
+            max: 5,
+            step: 0.01,
+            snap: '1',
+          },
+          displayValue: ({ centerSpread }) =>
+            formatFractionAsPercent(centerSpread),
+          defaultValue: 1,
+          affectsStepCount: false,
+          isStructural: true,
+          show: ({ lockCenterSize }) => !lockCenterSize,
+        },
+        {
+          key: 'centerWidthGap',
+          type: 'range',
+          label: 'Center width gap',
+          attr: {
+            min: 0,
+            max: 5,
+            step: 0.01,
+          },
+          displayValue: ({ centerWidthGap }) =>
+            formatFractionAsPercent(centerWidthGap),
+          defaultValue: 0,
+          affectsStepCount: false,
+          isStructural: true,
+          show: ({ lockCenterSize }) => !lockCenterSize,
+        },
+      ],
     },
     {
-      key: 'centerSpread',
-      type: 'range',
-      label: 'Center spread',
-      attr: {
-        min: 0.2,
-        max: 5,
-        step: 0.01,
-      },
-      displayValue: ({ centerSpread }) => formatFractionAsPercent(centerSpread),
-      defaultValue: 1,
-      affectsStepCount: false,
-      isStructural: true,
-      show: ({ lockCenterSize }) => !lockCenterSize,
-    },
-    {
-      key: 'centerWidthGap',
-      type: 'range',
-      label: 'Center width gap',
-      attr: {
-        min: 0,
-        max: 5,
-        step: 0.01,
-      },
-      displayValue: ({ centerWidthGap }) =>
-        formatFractionAsPercent(centerWidthGap),
-      defaultValue: 0,
-      affectsStepCount: false,
-      isStructural: true,
-      show: ({ lockCenterSize }) => !lockCenterSize,
+      key: 'sides',
+      label: 'Sides',
+      type: 'group',
+      children: [
+        {
+          key: 'lockSides',
+          type: 'checkbox',
+          label: 'Lock sides size',
+          defaultValue: true,
+          affectsStepCount: false,
+          isStructural: true,
+        },
+        {
+          key: 'sidesSpread',
+          type: 'range',
+          label: 'Sides length spread',
+          attr: {
+            min: 0.2,
+            max: 5,
+            step: 0.01,
+            snap: '1',
+          },
+          displayValue: ({ sidesSpread }) =>
+            formatFractionAsPercent(sidesSpread),
+          defaultValue: 1,
+          affectsStepCount: false,
+          isStructural: true,
+          show: ({ lockSides }) => !lockSides,
+        },
+        {
+          key: 'sidesGap',
+          type: 'range',
+          label: 'Sides length gap',
+          attr: {
+            min: 0,
+            max: 1,
+            step: 0.01,
+            snap: '1',
+          },
+          displayValue: ({ sidesGap }) => formatFractionAsPercent(sidesGap),
+          defaultValue: 1,
+          affectsStepCount: false,
+          isStructural: true,
+          show: ({ lockSides }) => !lockSides,
+        },
+      ],
     },
     Color.getConfig({
       defaults: {
@@ -171,15 +244,21 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       margin,
       lengthGap: verticalGapPercent,
       widthGap,
+      lockGap,
       lockCenterSize,
       centerWidthGap,
       centerSpread,
+      lockSides,
+      sidesGap,
     } = this.config;
     const isVertical = orientation === 'v';
     let height = (isVertical ? size[1] : size[0]) - 2 * margin;
     const maxVerticalGap = (height * 0.8) / 3;
     let lengthGap = verticalGapPercent * maxVerticalGap;
-    let lineLength = (height - 3 * lengthGap) / 4;
+    let sideLengthGap = lockSides
+      ? lengthGap
+      : ((height * 0.8 - lengthGap) * sidesGap) / 2;
+    let lineLength = (height - (lengthGap + 2 * sideLengthGap)) / 4;
     const orientationDimensionIndex = isVertical ? 0 : 1;
 
     const getBoundingRect = (
@@ -205,7 +284,10 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
             sideLength,
         ];
       };
-      const sides = getSides(widthGap, lineLength);
+      const sides = getSides(
+        lockGap ? verticalGapPercent : widthGap,
+        lineLength
+      );
       const [centerLeft, centerRight] = lockCenterSize
         ? sides
         : getSides(
@@ -218,7 +300,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       return {
         top: topAsMargin
           ? margin
-          : center[isVertical ? 1 : 0] - (2 * lineLength + 1.5 * lengthGap),
+          : center[isVertical ? 1 : 0] -
+            (2 * lineLength + lengthGap / 2 + sideLengthGap),
         left,
         right,
         centerLeft,
@@ -240,26 +323,52 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
     const { top: verticalStart, width } = boundingRect;
 
+    const getVerticalPosition = (
+      index: number
+    ): { horizontal: number; vertical: number } => {
+      let lineStart = verticalStart;
+      if (index === 0) {
+        return { vertical: lineStart, horizontal: -1 };
+      }
+
+      lineStart += sideLengthGap + lineLength;
+      if (index === 1) {
+        return {
+          vertical: lineStart,
+          horizontal: lineStart - sideLengthGap / 2,
+        };
+      }
+
+      lineStart += lineLength + lengthGap;
+      if (index === 2) {
+        return { vertical: lineStart, horizontal: lineStart - lengthGap / 2 };
+      }
+
+      lineStart += lineLength + sideLengthGap;
+      return { vertical: lineStart, horizontal: lineStart - sideLengthGap / 2 };
+    };
+
+    const verticalPositions = new Array(4)
+      .fill(null)
+      .map((_, i) => getVerticalPosition(i));
+    const verticalCenter = isVertical ? center[0] : center[1];
+
+    const getVerticalLine = (index: number): Line => {
+      const lineVerticalStart = verticalPositions[index].vertical;
+
+      const from: Coordinates = [verticalCenter, lineVerticalStart];
+      const to: Coordinates = [verticalCenter, lineVerticalStart + lineLength];
+
+      if (!isVertical) {
+        from.reverse();
+        to.reverse();
+      }
+
+      return new Line({ from, to, n });
+    };
+
     const verticalLines = new Array(4).fill(null).map((_, i) => {
-      return new Line(
-        isVertical
-          ? {
-              from: [center[0], verticalStart + i * (lineLength + lengthGap)],
-              to: [
-                center[0],
-                verticalStart + i * (lineLength + lengthGap) + lineLength,
-              ],
-              n,
-            }
-          : {
-              from: [verticalStart + i * (lineLength + lengthGap), center[1]],
-              to: [
-                verticalStart + i * (lineLength + lengthGap) + lineLength,
-                center[1],
-              ],
-              n,
-            }
-      );
+      return getVerticalLine(i);
     });
 
     const horizontalLines = new Array(3).fill(null).map((_, row) => {
@@ -268,11 +377,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       const horizontalEnd =
         row === 1 ? boundingRect.centerRight : boundingRect.right;
 
-      const rowTop =
-        verticalStart +
-        lineLength +
-        lengthGap / 2 +
-        row * (lineLength + lengthGap);
+      const rowTop = verticalPositions[row + 1].horizontal;
 
       const sideLength =
         !lockCenterSize && row === 1 ? lineLength * centerSpread : lineLength;
