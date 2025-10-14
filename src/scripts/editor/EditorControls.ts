@@ -44,6 +44,7 @@ interface Control<TConfig> {
   input: ControlInputElement;
   element: HTMLElement;
   displayValueElement: HTMLSpanElement;
+  label?: HTMLLabelElement;
 }
 
 export type ControlValueChangeEventData<
@@ -264,6 +265,7 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
     const triggerChange = () => {
       this.emit('change', eventData);
       this.updateControlsVisibility();
+      this.updateControlsLabels();
     };
 
     this.updateControlsAttributes();
@@ -339,6 +341,27 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
     });
   }
 
+  updateControlsLabels(controlsConfig?: ControlsConfig<TConfig>) {
+    (controlsConfig ?? this.controlsConfig).forEach(control => {
+      if (control.label instanceof Function) {
+        const { label: labelEl, element } = this.controlElements[control.key];
+
+        const labelText = control.label(this.config);
+        if (control.type === 'checkbox') {
+          element.setAttribute('label', labelText);
+        } else if (control.type === 'group') {
+          element.setAttribute('legend', labelText);
+        } else if (labelEl) {
+          labelEl.innerText = labelText;
+        }
+      }
+
+      if (control.type === 'group') {
+        this.updateControlsLabels(control.children);
+      }
+    });
+  }
+
   updateControlsVisibility(controlsConfig?: ControlsConfig<TConfig>) {
     (controlsConfig ?? this.controlsConfig).forEach(control => {
       if (control.show) {
@@ -383,10 +406,14 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
       let controlEl: HTMLElement;
       let inputEl: ControlInputElement;
       let displayValueElement: HTMLSpanElement;
+      let label: HTMLLabelElement;
 
       if (controlConfig.type === 'group') {
         controlEl = document.createElement('expandable-panel');
-        controlEl.setAttribute('legend', controlConfig.label);
+        controlEl.setAttribute(
+          'legend',
+          this.getConfigValue(controlConfig.label, this.config)
+        );
         controlEl.setAttribute('data-group', String(controlConfig.key));
         controlEl.className = 'control control_group';
         if (controlConfig.defaultValue === 'minimized') {
@@ -398,10 +425,12 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
         controlEl = document.createElement('div');
         controlEl.className = 'control';
 
-        let label: HTMLLabelElement;
         if (controlConfig.type !== 'checkbox') {
           label = document.createElement('label');
-          label.innerHTML = controlConfig.label;
+          label.innerHTML = this.getConfigValue(
+            controlConfig.label,
+            this.config
+          );
           label.setAttribute('for', controlId);
         }
 
@@ -439,7 +468,10 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
 
           if (controlConfig.type === 'checkbox') {
             (inputEl as StringArtCheckbox).checked = !!inputValue;
-            inputEl.setAttribute('label', controlConfig.label);
+            inputEl.setAttribute(
+              'label',
+              this.getConfigValue(controlConfig.label, this.config)
+            );
             controlEl.appendChild(inputEl);
           } else {
             controlEl.appendChild(label);
@@ -476,6 +508,7 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
         displayValueElement,
         input: inputEl,
         element: controlEl,
+        label,
       };
       controlEl.id = `control_${String(controlConfig.key)}`;
       controlsFragment.appendChild(controlEl);
@@ -503,10 +536,10 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
     });
   }
 
-  getConfigValue(
-    valueOrFn: ConfigValueOrFunction<TConfig>,
+  getConfigValue<T = PrimitiveValue>(
+    valueOrFn: ConfigValueOrFunction<TConfig, T>,
     config: Config<TConfig>
-  ): PrimitiveValue {
+  ): T {
     if (valueOrFn instanceof Function) {
       return valueOrFn(config);
     }
