@@ -8,7 +8,10 @@ import {
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
-import { formatFractionAsPercent } from '../helpers/string_utils';
+import {
+  formatFractionAsAngle,
+  formatFractionAsPercent,
+} from '../helpers/string_utils';
 import { Shape } from './Shape';
 import { getBoundingRectAspectRatio } from '../helpers/size_utils';
 
@@ -326,7 +329,7 @@ export default class StarShape extends Shape {
       snap: '0.5',
     },
     displayValue: ({ rotation, sides }) =>
-      `${Math.round((rotation * 360) / sides)}°`,
+      formatFractionAsAngle(rotation / sides),
     isStructural: true,
     affectsStepCount: false,
   };

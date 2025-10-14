@@ -5,6 +5,7 @@ import { PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import { getBoundingRectAspectRatio } from '../helpers/size_utils';
 import { Shape } from './Shape';
+import { formatFractionAsAngle } from '../helpers/string_utils';
 
 export interface PolygonConfig {
   size: Dimensions;
@@ -275,7 +276,7 @@ export default class Polygon extends Shape {
       step: 0.02,
     },
     displayValue: ({ rotation, sides }) =>
-      `${Math.round((rotation * 180) / sides)}°`,
+      formatFractionAsAngle(rotation / (2 * sides)),
     isStructural: true,
     affectsStepCount: false,
   };

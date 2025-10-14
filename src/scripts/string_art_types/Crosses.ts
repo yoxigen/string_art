@@ -4,8 +4,12 @@ import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
 import { Config, ControlsConfig, GroupValue } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
-import { capitalize, formatFractionAsPercent } from '../helpers/string_utils';
-import { Line } from '../shapes/Line';
+import {
+  capitalize,
+  formatFractionAsAngle,
+  formatFractionAsPercent,
+} from '../helpers/string_utils';
+import { Line, LineConfig } from '../shapes/Line';
 import { Coordinates } from '../types/general.types';
 
 type CrossesOrientation = 'v' | 'h';
@@ -26,6 +30,7 @@ interface CrossesConfig extends ColorConfig {
   lockEdges: boolean;
   edgesGap: number;
   edgesSpread: number;
+  sidesRotation: number;
 }
 
 type TCalc = {
@@ -216,6 +221,21 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         },
       ],
     },
+    {
+      key: 'sidesRotation',
+      type: 'range',
+      label: 'Sides rotation',
+      attr: {
+        min: -0.25,
+        max: 0.25,
+        step: 0.005,
+        snap: '0',
+      },
+      displayValue: ({ sidesRotation }) => formatFractionAsAngle(sidesRotation),
+      defaultValue: 0,
+      affectsStepCount: false,
+      isStructural: true,
+    },
     Color.getConfig({
       defaults: {
         isMultiColor: true,
@@ -271,6 +291,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       lockEdges,
       edgesGap,
       edgesSpread,
+      sidesRotation,
     } = this.config;
     const isVertical = orientation === 'v';
     let height = (isVertical ? size[1] : size[0]) - 2 * margin;
@@ -289,9 +310,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
     const orientationDimensionIndex = isVertical ? 0 : 1;
 
-    const getBoundingRect = (
-      topAsMargin = true
-    ): {
+    const getBoundingRect = (): {
       top: number;
       left: number;
       right: number;
@@ -345,7 +364,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       height *= ratio;
       lengthGap *= ratio;
       lineLength *= ratio;
-      boundingRect = getBoundingRect(false);
+      boundingRect = getBoundingRect();
     }
 
     const { top: verticalStart, width } = boundingRect;
@@ -407,6 +426,28 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       return getVerticalLine(i);
     });
 
+    const getRowLineRotationConfig = (
+      row: number,
+      index: 0 | 1
+    ): Partial<LineConfig> | null => {
+      if (!sidesRotation || row === 1) {
+        return null;
+      }
+
+      let rotation = sidesRotation;
+      if (!isVertical) {
+        rotation *= -1;
+      }
+
+      if ((index === 1 && row === 0) || (index === 0 && row === 2)) {
+        rotation *= -1;
+      }
+      return {
+        rotation,
+        rotationCenter: 'to',
+      };
+    };
+
     const horizontalLines = new Array(3).fill(null).map((_, row) => {
       const horizontalStart =
         row === 1 ? boundingRect.centerLeft : boundingRect.left;
@@ -419,8 +460,9 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         !lockCenterSize && row === 1 ? lineLength * centerSpread : lineLength;
 
       return [
-        new Line(
-          isVertical
+        new Line({
+          ...getRowLineRotationConfig(row, 0),
+          ...(isVertical
             ? {
                 from: [horizontalStart, rowTop],
                 to: [horizontalStart + sideLength, rowTop],
@@ -430,10 +472,11 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
                 from: [rowTop, horizontalStart],
                 to: [rowTop, horizontalStart + sideLength],
                 n,
-              }
-        ),
-        new Line(
-          isVertical
+              }),
+        }),
+        new Line({
+          ...getRowLineRotationConfig(row, 1),
+          ...(isVertical
             ? {
                 from: [horizontalEnd, rowTop],
                 to: [horizontalEnd - sideLength, rowTop],
@@ -443,8 +486,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
                 from: [rowTop, horizontalEnd],
                 to: [rowTop, horizontalEnd - sideLength],
                 n,
-              }
-        ),
+              }),
+        }),
       ];
     });
     return {
@@ -569,10 +612,10 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
     this.calc.horizontalLines.forEach(([leftLine, rightLine], row) => {
       leftLine.drawNails(this.nails, {
-        getNumber: sideIndex => `L_${row + 1}_${sideIndex}`,
+        getNumber: sideIndex => `1_${row + 1}_${sideIndex}`,
       });
       rightLine.drawNails(this.nails, {
-        getNumber: sideIndex => `R_${row + 1}_${sideIndex}`,
+        getNumber: sideIndex => `2_${row + 1}_${sideIndex}`,
       });
     });
   }
