@@ -11,6 +11,8 @@ import {
 } from '../helpers/string_utils';
 import { Line, LineConfig } from '../shapes/Line';
 import { Coordinates } from '../types/general.types';
+import { getShapesBoundingRect } from '../helpers/shape_utils';
+import { createArray } from '../helpers/array_utils';
 
 type CrossesOrientation = 'v' | 'h';
 
@@ -20,14 +22,15 @@ interface CrossesConfig extends ColorConfig {
   lengthGap: number;
   lockGap: boolean;
   widthGap?: number;
-  lockCenterSize?: boolean;
+  fineControl: boolean;
   center: GroupValue;
   centerWidthGap?: number;
   centerSpread?: number;
+  centerLengthSpread: number;
+  centerLengthGap: number;
   lockCenterColor: boolean;
   centerColor: ColorValue;
   edges: GroupValue;
-  lockEdges: boolean;
   edgesGap: number;
   edgesSpread: number;
   sidesRotation: number;
@@ -83,12 +86,21 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       isStructural: true,
     },
     {
+      key: 'fineControl',
+      type: 'checkbox',
+      label: 'Fine control',
+      defaultValue: false,
+      affectsStepCount: false,
+      isStructural: true,
+    },
+    {
       key: 'lockGap',
       type: 'checkbox',
       label: 'Lock horizontal/vertical gap',
       defaultValue: true,
       isStructural: true,
       affectsStepCount: false,
+      show: ({ fineControl }) => !fineControl,
     },
     {
       key: 'lengthGap',
@@ -104,6 +116,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       defaultValue: 0.27,
       affectsStepCount: false,
       isStructural: true,
+      show: ({ fineControl }) => !fineControl,
     },
     {
       key: 'widthGap',
@@ -119,21 +132,14 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       defaultValue: 0.43,
       affectsStepCount: false,
       isStructural: true,
-      show: ({ lockGap }) => !lockGap,
+      show: ({ lockGap, fineControl }) => !fineControl && !lockGap,
     },
     {
       key: 'center',
       type: 'group',
       label: 'Center',
+      show: ({ fineControl }) => fineControl,
       children: [
-        {
-          key: 'lockCenterSize',
-          type: 'checkbox',
-          label: 'Same center as edges',
-          defaultValue: true,
-          affectsStepCount: false,
-          isStructural: true,
-        },
         {
           key: 'centerSpread',
           type: 'range',
@@ -150,7 +156,23 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
           defaultValue: 1,
           affectsStepCount: false,
           isStructural: true,
-          show: ({ lockCenterSize }) => !lockCenterSize,
+        },
+        {
+          key: 'centerLengthSpread',
+          type: 'range',
+          label: ({ orientation }) =>
+            `Center ${getOrientationLabel(orientation)} spread`,
+          attr: {
+            min: 0.2,
+            max: 5,
+            step: 0.01,
+            snap: '1',
+          },
+          displayValue: ({ centerLengthSpread }) =>
+            formatFractionAsPercent(centerLengthSpread),
+          defaultValue: 1,
+          affectsStepCount: false,
+          isStructural: true,
         },
         {
           key: 'centerWidthGap',
@@ -167,7 +189,22 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
           defaultValue: 0,
           affectsStepCount: false,
           isStructural: true,
-          show: ({ lockCenterSize }) => !lockCenterSize,
+        },
+        {
+          key: 'centerLengthGap',
+          type: 'range',
+          label: ({ orientation }) =>
+            `Center ${getOrientationLabel(orientation)} gap`,
+          attr: {
+            min: 0,
+            max: 5,
+            step: 0.01,
+          },
+          displayValue: ({ centerLengthGap }) =>
+            formatFractionAsPercent(centerLengthGap),
+          defaultValue: 0,
+          affectsStepCount: false,
+          isStructural: true,
         },
       ],
     },
@@ -175,15 +212,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       key: 'edges',
       label: 'Edges',
       type: 'group',
+      show: ({ fineControl }) => fineControl,
       children: [
-        {
-          key: 'lockEdges',
-          type: 'checkbox',
-          label: 'Lock edges',
-          defaultValue: true,
-          affectsStepCount: false,
-          isStructural: true,
-        },
         {
           key: 'edgesSpread',
           type: 'range',
@@ -200,7 +230,6 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
           defaultValue: 1,
           affectsStepCount: false,
           isStructural: true,
-          show: ({ lockEdges }) => !lockEdges,
         },
         {
           key: 'edgesGap',
@@ -217,7 +246,6 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
           defaultValue: 0,
           affectsStepCount: false,
           isStructural: true,
-          show: ({ lockEdges }) => !lockEdges,
         },
       ],
     },
@@ -285,10 +313,11 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       lengthGap: verticalGapPercent,
       widthGap,
       lockGap,
-      lockCenterSize,
+      fineControl,
       centerWidthGap,
       centerSpread,
-      lockEdges,
+      centerLengthGap: centerLengthGapPercent,
+      centerLengthSpread: centerLengthSpreadPercent,
       edgesGap,
       edgesSpread,
       sidesRotation,
@@ -296,17 +325,21 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     const isVertical = orientation === 'v';
     let height = (isVertical ? size[1] : size[0]) - 2 * margin;
     const maxVerticalGap = (height * 0.8) / 3;
-    let lengthGap = verticalGapPercent * maxVerticalGap;
-    let sideLengthGap = lockEdges
-      ? lengthGap
-      : ((height * 0.8 - lengthGap) * edgesGap) / 2;
+    let centerLengthGap =
+      (fineControl ? centerLengthGapPercent : verticalGapPercent) *
+      maxVerticalGap;
+    let sideLengthGap = fineControl
+      ? ((height * 0.8 - verticalGapPercent * maxVerticalGap) * edgesGap) / 2
+      : verticalGapPercent * maxVerticalGap;
+    const centerLengthSpread = fineControl ? centerLengthSpreadPercent : 1;
     // lineLength is for the two center vertical lines
     let lineLength =
-      (height - (lengthGap + 2 * sideLengthGap)) /
-      (2 + 2 * (lockEdges ? 1 : edgesSpread));
+      (height - (centerLengthGap + 2 * sideLengthGap)) /
+      (2 * (fineControl ? centerLengthSpread : 1) +
+        2 * (fineControl ? edgesSpread : 1));
 
     // sideLineLength are the two vertical lines at the edges - top and bottom
-    let sideLineLength = lockEdges ? lineLength : lineLength * edgesSpread;
+    let sideLineLength = fineControl ? lineLength * edgesSpread : lineLength;
 
     const orientationDimensionIndex = isVertical ? 0 : 1;
 
@@ -335,19 +368,19 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         lockGap ? verticalGapPercent : widthGap,
         lineLength
       );
-      const [centerLeft, centerRight] = lockCenterSize
-        ? edges
-        : getSides(
-            centerWidthGap,
-            !lockCenterSize ? centerSpread * lineLength : lineLength
-          );
+      const [centerLeft, centerRight] = fineControl
+        ? getSides(centerWidthGap, centerSpread * lineLength)
+        : edges;
 
       const [left, right] = edges;
 
       return {
         top:
           center[isVertical ? 1 : 0] -
-          (sideLineLength + lineLength + lengthGap / 2 + sideLengthGap),
+          (sideLineLength +
+            lineLength * centerLengthSpread +
+            centerLengthGap / 2 +
+            sideLengthGap),
         left,
         right,
         centerLeft,
@@ -362,7 +395,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     if (boundingRect.width > sizeWidth) {
       const ratio = sizeWidth / boundingRect.width;
       height *= ratio;
-      lengthGap *= ratio;
+      centerLengthGap *= ratio;
       lineLength *= ratio;
       boundingRect = getBoundingRect();
     }
@@ -382,20 +415,20 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         return {
           vertical: lineStart,
           horizontal: lineStart - sideLengthGap / 2,
-          length: lineLength,
+          length: lineLength * centerLengthSpread,
         };
       }
 
-      lineStart += lineLength + lengthGap;
+      lineStart += lineLength * centerLengthSpread + centerLengthGap;
       if (index === 2) {
         return {
           vertical: lineStart,
-          horizontal: lineStart - lengthGap / 2,
-          length: lineLength,
+          horizontal: lineStart - centerLengthGap / 2,
+          length: lineLength * centerLengthSpread,
         };
       }
 
-      lineStart += lineLength + sideLengthGap;
+      lineStart += lineLength * centerLengthSpread + sideLengthGap;
       return {
         vertical: lineStart,
         horizontal: lineStart - sideLengthGap / 2,
@@ -403,9 +436,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       };
     };
 
-    const verticalPositions = new Array(4)
-      .fill(null)
-      .map((_, i) => getVerticalPosition(i));
+    const verticalPositions = createArray(4, getVerticalPosition);
     const verticalCenter = isVertical ? center[0] : center[1];
 
     const getVerticalLine = (index: number): Line => {
@@ -422,9 +453,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       return new Line({ from, to, n });
     };
 
-    const verticalLines = new Array(4).fill(null).map((_, i) => {
-      return getVerticalLine(i);
-    });
+    const verticalLines = createArray(4, getVerticalLine);
 
     const getRowLineRotationConfig = (
       row: number,
@@ -448,7 +477,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       };
     };
 
-    const horizontalLines = new Array(3).fill(null).map((_, row) => {
+    const horizontalLines = createArray(3, row => {
       const horizontalStart =
         row === 1 ? boundingRect.centerLeft : boundingRect.left;
       const horizontalEnd =
@@ -457,7 +486,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       const rowTop = verticalPositions[row + 1].horizontal;
 
       const sideLength =
-        !lockCenterSize && row === 1 ? lineLength * centerSpread : lineLength;
+        fineControl && row === 1 ? lineLength * centerSpread : lineLength;
 
       return [
         new Line({
@@ -509,9 +538,11 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
   }
 
   getAspectRatio(): number {
-    const { width, height } = this.calc;
-    const ratio = width / height;
-    return this.config.orientation === 'h' ? 1 / ratio : ratio;
+    const { verticalLines, horizontalLines } = this.calc;
+    const boundingRect = getShapesBoundingRect(
+      ...verticalLines.concat(horizontalLines.flat())
+    );
+    return boundingRect.width / boundingRect.height;
   }
 
   private *connectLines(

@@ -108,7 +108,7 @@ export class Line extends Shape {
   }
 
   getBoundingRect(): BoundingRect {
-    const { from, to } = this.config;
+    const { from, to } = this;
 
     return {
       width: Math.abs(to[0] - from[0]),
