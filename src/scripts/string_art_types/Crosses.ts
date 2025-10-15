@@ -86,6 +86,21 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       isStructural: true,
     },
     {
+      key: 'sidesRotation',
+      type: 'range',
+      label: 'Sides rotation',
+      attr: {
+        min: -0.25,
+        max: 0.25,
+        step: 0.005,
+        snap: '0',
+      },
+      displayValue: ({ sidesRotation }) => formatFractionAsAngle(sidesRotation),
+      defaultValue: 0,
+      affectsStepCount: false,
+      isStructural: true,
+    },
+    {
       key: 'fineControl',
       type: 'checkbox',
       label: 'Fine control',
@@ -137,7 +152,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     {
       key: 'center',
       type: 'group',
-      label: 'Center',
+      label: 'Center ◈',
       show: ({ fineControl }) => fineControl,
       children: [
         {
@@ -210,7 +225,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     },
     {
       key: 'edges',
-      label: 'Edges',
+      label: 'Edges ◅ ▻',
       type: 'group',
       show: ({ fineControl }) => fineControl,
       children: [
@@ -248,21 +263,6 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
           isStructural: true,
         },
       ],
-    },
-    {
-      key: 'sidesRotation',
-      type: 'range',
-      label: 'Sides rotation',
-      attr: {
-        min: -0.25,
-        max: 0.25,
-        step: 0.005,
-        snap: '0',
-      },
-      displayValue: ({ sidesRotation }) => formatFractionAsAngle(sidesRotation),
-      defaultValue: 0,
-      affectsStepCount: false,
-      isStructural: true,
     },
     Color.getConfig({
       defaults: {
