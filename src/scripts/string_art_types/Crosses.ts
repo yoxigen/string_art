@@ -34,7 +34,7 @@ interface CrossesConfig extends ColorConfig {
   centerEndSpread: number;
   centerStartGap: number;
   centerEndGap: number;
-  lockCenterColor: boolean;
+  setCenterColor: boolean;
   centerColor: ColorValue;
   edges: GroupValue;
   edgesGap: number;
@@ -401,11 +401,10 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       },
       customControls: [
         {
-          key: 'lockCenterColor',
-          label: 'Lock center color',
-          defaultValue: true,
+          key: 'setCenterColor',
+          label: 'Manually set center color',
+          defaultValue: false,
           type: 'checkbox',
-          show: ({ isMultiColor }) => isMultiColor,
           affectsNails: false,
           affectsStepCount: false,
         },
@@ -414,13 +413,12 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
           type: 'color',
           label: 'Center color',
           defaultValue: '#ffd500',
-          show: ({ isMultiColor, lockCenterColor }) =>
-            isMultiColor && !lockCenterColor,
+          show: ({ setCenterColor }) => setCenterColor,
           affectsNails: false,
           affectsStepCount: false,
         },
       ],
-      exclude: ['colorCount', 'repeatColors'],
+      exclude: ['repeatColors'],
       maxColorCount: 2,
     }),
   ];
@@ -758,12 +756,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   setUpDraw(options: CalcOptions) {
     super.setUpDraw(options);
-    const { colorCount } = this.config;
 
-    this.color = new Color({
-      ...this.config,
-      colorCount: 2,
-    });
+    this.color = new Color(this.config);
   }
 
   getAspectRatio(): number {
@@ -815,7 +809,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   *drawStrings(renderer: Renderer) {
     const { verticalLines } = this.calc;
-    const { lockCenterColor, centerColor, isMultiColor } = this.config;
+    const { setCenterColor, centerColor, isMultiColor } = this.config;
 
     const connections = [
       [0, 0],
@@ -833,7 +827,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     for (const [verticalIndex, horizontalRow] of connections) {
       const isReverse = horizontalRow < verticalIndex;
       let color: ColorValue;
-      if (!lockCenterColor && isMultiColor) {
+      if (setCenterColor) {
         const isCenter =
           (verticalIndex === 1 || verticalIndex === 2) && horizontalRow === 1;
         if (isCenter) {
