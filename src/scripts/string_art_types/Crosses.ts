@@ -484,6 +484,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       centerEnd: number;
       widthStart: number;
       widthEnd: number;
+      height: number;
+      heightStart: number;
     } {
       const getSides = (
         widthGap: number,
@@ -531,19 +533,36 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
       const [rotatedEdgesWidthStart, rotatedEdgesWidthEnd] = getSides(
         edgesWidthGap,
-        Math.cos(sidesRotation * PI2) * edgesWidthSpread * lineLength
+        Math.cos(sidesRotation * PI2) *
+          (fineControl ? edgesWidthSpread : 1) *
+          lineLength
       );
+
+      const length =
+        2 * (sideLineLength + lineLength * centerLengthSpread + sideLengthGap) +
+        centerLengthGap;
+
+      const lengthStart = center[isVertical ? 1 : 0] - length / 2;
+
+      const distanceToFirstEdge =
+        centerLengthGap / 2 +
+        lineLength * centerLengthSpread +
+        sideLengthGap / 2 +
+        Math.sin(sidesRotation * PI2) * lineLength * edgesWidthSpread;
+
+      const [rotatedEdgesLegthStart, rotatedEdgesLengthEnd] = [
+        center[isVertical ? 1 : 0] - distanceToFirstEdge,
+        center[isVertical ? 1 : 0] + distanceToFirstEdge,
+      ];
 
       const widthStart = Math.min(rotatedEdgesWidthStart, centerStart);
       const widthEnd = Math.max(rotatedEdgesWidthEnd, centerEnd);
 
+      const heightStart = Math.min(lengthStart, rotatedEdgesLegthStart);
+      const heightEnd = Math.max(lengthStart + length, rotatedEdgesLengthEnd);
+
       return {
-        lengthStart:
-          center[isVertical ? 1 : 0] -
-          (sideLineLength +
-            lineLength * centerLengthSpread +
-            centerLengthGap / 2 +
-            sideLengthGap),
+        lengthStart,
         edgesWidthStart,
         edgesWidthEnd,
         centerStart,
@@ -551,12 +570,22 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         width: widthEnd - widthStart,
         widthStart,
         widthEnd,
+        heightStart,
+        height: heightEnd - heightStart,
       };
     }
 
     let boundingRect = getBoundingRect();
 
-    const sizeWidth = size[orientationDimensionIndex] - 2 * margin;
+    const sizeWithoutMargins = size.map(v => v - 2 * margin);
+    const sizeWidth = sizeWithoutMargins[orientationDimensionIndex];
+    const sizeHeight = sizeWithoutMargins[isVertical ? 1 : 0];
+
+    const sizeRatio = Math.min(
+      sizeWidth / boundingRect.width,
+      sizeHeight / boundingRect.height
+    );
+
     const centeredWidthStart =
       center[orientationDimensionIndex] - boundingRect.width / 2;
     let shouldRefreshBoundingRect = false;
@@ -567,13 +596,14 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       shouldRefreshBoundingRect = true;
     }
 
-    if (boundingRect.width > sizeWidth) {
-      const ratio = sizeWidth / boundingRect.width;
-      height *= ratio;
-      centerLengthGap *= ratio;
-      lineLength *= ratio;
-      widthShift *= ratio;
+    if (sizeRatio < 1) {
+      height *= sizeRatio;
+      centerLengthGap *= sizeRatio;
+      lineLength *= sizeRatio;
+      widthShift *= sizeRatio;
+      sideLineLength *= sizeRatio;
       shouldRefreshBoundingRect = true;
+      sideLengthGap *= sizeRatio;
     }
 
     if (shouldRefreshBoundingRect) {
