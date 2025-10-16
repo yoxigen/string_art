@@ -21,6 +21,10 @@ export class Line extends Shape {
 
   constructor(config: LineConfig) {
     super();
+    if (config.n < 1) {
+      throw new Error(`Can't create a Line with n less than 1.`);
+    }
+
     this.config = config;
 
     const { rotation, from, to } = config;
