@@ -12,7 +12,10 @@ import { CalcOptions } from '../types/stringart.types';
 import { Shape } from '../shapes/Shape';
 import { mapDimensions } from '../helpers/size_utils';
 import Polygon from '../shapes/Polygon';
-import { formatFractionAsPercent } from '../helpers/string_utils';
+import {
+  formatFractionAsAngle,
+  formatFractionAsPercent,
+} from '../helpers/string_utils';
 
 type ShapeType = 'circle' | 'polygon';
 
@@ -149,7 +152,7 @@ function getShapeControlsGroup(
         },
         defaultValue: 0,
         displayValue: (config: Partial<DanceOfPlanetsConfig>) =>
-          `${Math.round(config[`shape${shapeIndex}Rotation`] * 360)}°`,
+          formatFractionAsAngle(config[`shape${shapeIndex}Rotation`]),
         isStructural: true,
       },
     ].filter(Boolean),

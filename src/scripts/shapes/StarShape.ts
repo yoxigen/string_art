@@ -8,7 +8,10 @@ import {
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
-import { formatFractionAsPercent } from '../helpers/string_utils';
+import {
+  formatFractionAsAngle,
+  formatFractionAsPercent,
+} from '../helpers/string_utils';
 import { Shape } from './Shape';
 import { getBoundingRectAspectRatio } from '../helpers/size_utils';
 
@@ -21,6 +24,7 @@ export interface StarShapeConfig {
   center?: Coordinates;
   size?: Dimensions;
   radius?: number;
+  sidesCenterRadiusShift?: number[];
 }
 
 export default class StarShape extends Shape {
@@ -40,6 +44,7 @@ export default class StarShape extends Shape {
     rotation,
     centerRadius: centerRadiusFraction = 0,
     maxCurveSize = 1,
+    sidesCenterRadiusShift,
   }: StarShapeConfig) {
     const centerRadius = radius * centerRadiusFraction;
     const nailSpacing = (radius - centerRadius) / (sideNails - 1); // The distance between nails on the same side, in px
@@ -61,6 +66,9 @@ export default class StarShape extends Shape {
           cosSideAngle: Math.cos(sideAngle),
         };
       }),
+      sidesCenterRadius: sidesCenterRadiusShift
+        ? sidesCenterRadiusShift.map(v => centerRadius * v)
+        : null,
     };
   }
 
@@ -73,7 +81,10 @@ export default class StarShape extends Shape {
   }
 
   getSidePoint(side = 0, index = 0): Coordinates {
-    const radius = this.calc.centerRadius + index * this.calc.nailSpacing;
+    const radius =
+      this.calc.centerRadius +
+      index * this.calc.nailSpacing -
+      (this.calc.sidesCenterRadius?.[side] ?? 0);
     const { sinSideAngle, cosSideAngle } = this.calc.sides[side];
 
     return [
@@ -120,11 +131,13 @@ export default class StarShape extends Shape {
     {
       getNumber,
       reverseOrder,
+      excludeSides,
       ...nailsConfig
     }: Partial<
       {
-        getNumber: (side: number, sideIndex: number) => string;
-        reverseOrder: boolean;
+        getNumber?: (side: number, sideIndex: number) => string;
+        reverseOrder?: boolean;
+        excludeSides?: ReadonlyArray<number>;
       } & NailsConfig
     > = {}
   ): void {
@@ -133,16 +146,18 @@ export default class StarShape extends Shape {
     const groupNails = [];
 
     for (let side = 0; side < sides; side++) {
-      for (let i = 0; i < sideNails; i++) {
-        const sideIndex = reverseOrder ? sideNails - i : i;
-        groupNails.push({
-          point: this.getSidePoint(side, sideIndex),
-          number: getNumber
-            ? getNumber(side, sideIndex)
-            : sideIndex || this.config.centerRadius
-            ? `${side}_${sideIndex}`
-            : 0,
-        });
+      if (!excludeSides || !excludeSides.includes(side)) {
+        for (let i = 0; i < sideNails; i++) {
+          const sideIndex = reverseOrder ? sideNails - i : i;
+          groupNails.push({
+            point: this.getSidePoint(side, sideIndex),
+            number: getNumber
+              ? getNumber(side, sideIndex)
+              : sideIndex || this.config.centerRadius
+              ? `${side}_${sideIndex}`
+              : 0,
+          });
+        }
       }
     }
 
@@ -314,7 +329,7 @@ export default class StarShape extends Shape {
       snap: '0.5',
     },
     displayValue: ({ rotation, sides }) =>
-      `${Math.round((rotation * 360) / sides)}°`,
+      formatFractionAsAngle(rotation / sides),
     isStructural: true,
     affectsStepCount: false,
   };

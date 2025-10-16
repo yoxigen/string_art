@@ -17,6 +17,7 @@ export interface ColorConfig {
   isMultiColor: boolean;
   colorGroup: GroupValue;
   colorOrderGroup: GroupValue;
+  maxColorCount?: number;
 }
 
 export type ColorValue = string;

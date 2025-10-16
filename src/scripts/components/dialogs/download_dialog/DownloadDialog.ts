@@ -572,6 +572,7 @@ export default class DownloadDialog extends HTMLElement {
         sizeId: size.id,
         margin: size.defaultMargin,
         units: size.defaultUnits,
+        enableBackground: true,
       };
     }
     this.setType(downloadOptions.isNailsMap ? 'nails_map' : 'all', false);
@@ -598,11 +599,11 @@ export default class DownloadDialog extends HTMLElement {
     }
 
     this.setMargin(downloadOptions.margin ?? 0, { updatePreview: false });
-    const { size } = downloadOptions;
-    if (getDownloadImageSizeById(sizeId).allowSizeEdit) {
-      this.customDimensions = size;
-      this.setDimensions(size, false);
-    }
+    // const { size } = downloadOptions;
+    // if (getDownloadImageSizeById(sizeId).allowSizeEdit) {
+    //   this.customDimensions = size;
+    //   this.setDimensions(size, false);
+    // }
 
     this.elements.dpi.value = String(downloadOptions.dpi ?? DEFAULT_DPI);
 

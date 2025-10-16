@@ -10,6 +10,7 @@ import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
 import { fitInside } from '../helpers/size_utils';
 import { Shape } from './Shape';
+import { formatFractionAsAngle } from '../helpers/string_utils';
 
 export interface CircleConfig {
   n: number;
@@ -298,7 +299,7 @@ export default class Circle extends Shape {
       step: 1 / 360,
       snap: '0.25, 0.5, 0.75',
     },
-    displayValue: ({ rotation }) => `${Math.round((rotation ?? 0) * 360)}°`,
+    displayValue: ({ rotation }) => formatFractionAsAngle(rotation),
     isStructural: true,
     affectsStepCount: false,
   };

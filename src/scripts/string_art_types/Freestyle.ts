@@ -10,6 +10,7 @@ import {
 } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
+import { formatFractionAsAngle } from '../helpers/string_utils';
 
 interface FreestyleConfig {
   n: number;
@@ -149,8 +150,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
               ...rotationConfig,
               key: 'rotation1',
               show: ({ show1 }) => show1,
-              displayValue: ({ rotation1 }) =>
-                `${Math.round(rotation1 * 360)}°`,
+              displayValue: ({ rotation1 }) => formatFractionAsAngle(rotation1),
             },
             {
               key: 'reverse1',
@@ -205,8 +205,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
               ...rotationConfig,
               key: 'rotation2',
               show: ({ show2 }) => show2,
-              displayValue: ({ rotation2 }) =>
-                `${Math.round(rotation2 * 360)}°`,
+              displayValue: ({ rotation2 }) => formatFractionAsAngle(rotation2),
             },
             {
               key: 'reverse2',
@@ -263,8 +262,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
               ...rotationConfig,
               key: 'rotation3',
               show: ({ show3 }) => show3,
-              displayValue: ({ rotation3 }) =>
-                `${Math.round(rotation3 * 360)}°`,
+              displayValue: ({ rotation3 }) => formatFractionAsAngle(rotation3),
               affectsStepCount: false,
             },
             {

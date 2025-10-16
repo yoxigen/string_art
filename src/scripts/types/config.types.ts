@@ -52,7 +52,7 @@ export type ConfigValueOrFunction<TConfig, TValue = PrimitiveValue> =
 
 export interface ControlConfig<TConfig = Record<string, PrimitiveValue>> {
   key: keyof TConfig;
-  label: string;
+  label: ConfigValueOrFunction<TConfig, string>;
   type: ControlType;
   defaultValue?: ConfigValueOrFunction<TConfig>;
   displayValue?: ConfigFunction<TConfig>;
