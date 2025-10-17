@@ -16,6 +16,8 @@ import {
   formatFractionAsAngle,
   formatFractionAsPercent,
 } from '../helpers/string_utils';
+import Nails from '../Nails';
+import { Dimensions } from '../types/general.types';
 
 type ShapeType = 'circle' | 'polygon';
 
@@ -215,8 +217,7 @@ export default class DanceOfPlanets extends StringArt<
   color: Color;
   colorMap: ColorMap;
 
-  getCalc({ size }: CalcOptions): TCalc {
-    const center = this.center;
+  getCalc({ size, center }: CalcOptions): TCalc {
     const { margin } = this.config;
 
     function getShape({
@@ -252,7 +253,7 @@ export default class DanceOfPlanets extends StringArt<
         return new Polygon({
           size: mapDimensions(size, v => v * diameter),
           sides: sides ?? 3,
-          nailsSpacing: 1 / (nailCount / sides),
+          nailsPerSide: Math.round(nailCount / sides),
           center,
           margin,
           rotation,
@@ -310,13 +311,9 @@ export default class DanceOfPlanets extends StringArt<
 
   setUpDraw(options: CalcOptions) {
     super.setUpDraw(options);
-    const { colorCount, shape1NailCount, shape2NailCount, rounds } =
-      this.config;
+    const { colorCount } = this.config;
 
-    this.color = new Color({
-      ...this.config,
-      colorCount,
-    });
+    this.color = new Color(this.config);
 
     if (colorCount) {
       this.colorMap = this.color.getColorMap({
@@ -393,9 +390,17 @@ export default class DanceOfPlanets extends StringArt<
     return this.#getConnectionCount() * 2 - 1;
   }
 
-  drawNails() {
-    this.calc.shape1.drawNails(this.nails);
-    this.calc.shape2.drawNails(this.nails);
+  getNailCount(size: Dimensions): number {
+    const calc = this.getCalc({
+      size,
+      center: mapDimensions(size, v => v / 2),
+    });
+    return calc.shape1NailCount + calc.shape2NailCount;
+  }
+
+  drawNails(nails: Nails) {
+    this.calc.shape1.drawNails(nails);
+    this.calc.shape2.drawNails(nails);
   }
 
   thumbnailConfig = (

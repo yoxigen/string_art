@@ -1,9 +1,11 @@
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
+import { mapDimensions } from '../helpers/size_utils';
+import Nails from '../Nails';
 import Renderer from '../renderers/Renderer';
 import StringArt from '../StringArt';
 import { Config, ControlsConfig } from '../types/config.types';
-import { Coordinates } from '../types/general.types';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 
 type Side = 'left' | 'bottom' | 'right' | 'top';
@@ -40,6 +42,7 @@ interface TCalc {
   nailSpacing: number;
   layerAngle: number;
   layers: ReadonlyArray<Layer>;
+  center: Coordinates;
 }
 
 class Eye extends StringArt<EyeConfig, TCalc> {
@@ -106,7 +109,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
   color: Color;
 
-  getCalc({ size }: CalcOptions): TCalc {
+  getCalc({ size, center }: CalcOptions): TCalc {
     const { n, angle, layers, margin } = this.config;
 
     const maxSize = Math.min(...size) - 2 * margin;
@@ -118,8 +121,8 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         maxSize /
         Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layerIndex);
       const layerStart: Coordinates = [
-        this.center[0] - layerSize / 2,
-        this.center[1] - layerSize / 2,
+        center[0] - layerSize / 2,
+        center[1] - layerSize / 2,
       ];
       const layerStringCount = Math.floor(layerSize / nailSpacing);
 
@@ -138,6 +141,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       layers: new Array(layers)
         .fill(null)
         .map((_, layerIndex) => getLayerProps(layerIndex)),
+      center,
     };
   }
 
@@ -173,7 +177,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       layerStart[1] + this.calc.nailSpacing * index,
     ];
 
-    const pivot = this.center;
+    const pivot = this.calc.center;
 
     const cosAngle = Math.cos(theta);
     const sinAngle = Math.sin(theta);
@@ -269,7 +273,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     return count;
   }
 
-  drawNails() {
+  drawNails(nails: Nails) {
     const { layers } = this.config;
     for (let layer = layers - 1; layer >= 0; layer--) {
       const {
@@ -285,7 +289,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
         for (let i = 0; i <= layerStringCount; i++) {
           const sideProps = { layerStringCount, size, layerStart, angle };
-          this.nails.addNail({
+          nails.addNail({
             point: this.getPoint({
               index: i,
               rotation,

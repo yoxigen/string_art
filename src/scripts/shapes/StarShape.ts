@@ -256,7 +256,7 @@ export default class StarShape extends Shape {
     const polygon = new Polygon({
       size: [radius * 2, radius * 2],
       sides,
-      nailsSpacing: 1 / sideNails,
+      nailsPerSide: sideNails,
       margin: 0,
       rotation,
     });

@@ -6,15 +6,17 @@ import { compareObjects } from '../helpers/object_utils';
 import { getBoundingRectAspectRatio } from '../helpers/size_utils';
 import { Shape } from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
+import { createArray } from '../helpers/array_utils';
 
 export interface PolygonConfig {
   size: Dimensions;
   sides: number;
   fitSize?: boolean;
-  nailsSpacing: number;
+  nailsPerSide: number;
   margin?: number;
   rotation?: number;
   center?: Coordinates;
+  radiusNailsCountSameAsSides?: boolean;
 }
 
 interface Side {
@@ -26,8 +28,13 @@ interface Side {
   };
 }
 
+interface PolygonNailsOptions {
+  drawCenter?: boolean;
+  drawSides?: boolean;
+  drawCenterNail?: boolean;
+}
+
 interface TCalc {
-  nailsPerSide: number;
   center: Coordinates;
   radius: number;
   sideSize: number;
@@ -99,26 +106,25 @@ export default class Polygon extends Shape {
       sides: sideCount,
       center: configCenter,
       margin = 0,
-      nailsSpacing,
+      nailsPerSide,
+      radiusNailsCountSameAsSides = false,
     } = this.config;
 
     const sideAngle = PI2 / sideCount;
 
-    const sides: ReadonlyArray<Side> = new Array(sideCount)
-      .fill(null)
-      .map((_, i) => {
-        const angle = sideAngle * i + PI2 * rotation;
-        const radiusAngle = -sideAngle * (i - 0.5) - PI2 * rotation;
+    const sides: ReadonlyArray<Side> = createArray(sideCount, i => {
+      const angle = sideAngle * i + PI2 * rotation;
+      const radiusAngle = -sideAngle * (i - 0.5) - PI2 * rotation;
 
-        return {
-          cos: Math.cos(angle),
-          sin: Math.sin(angle),
-          center: {
-            cos: Math.cos(radiusAngle),
-            sin: Math.sin(radiusAngle),
-          },
-        };
-      });
+      return {
+        cos: Math.cos(angle),
+        sin: Math.sin(angle),
+        center: {
+          cos: Math.cos(radiusAngle),
+          sin: Math.sin(radiusAngle),
+        },
+      };
+    });
 
     const center =
       configCenter ?? (this.config.size.map(v => v / 2) as Coordinates);
@@ -129,12 +135,13 @@ export default class Polygon extends Shape {
       radius * Math.sin(sideAngle / 2),
       radius * Math.cos(sideAngle / 2),
     ];
-    const nailsDistance = sideSize * nailsSpacing;
-    const radiusNailsCount = Math.floor(radius / nailsDistance);
-    const radiusNailsDistance = radius / radiusNailsCount;
+    const nailsDistance = sideSize / (nailsPerSide - 1);
+    const radiusNailsCount = radiusNailsCountSameAsSides
+      ? nailsPerSide
+      : Math.max(2, Math.floor(radius / nailsDistance));
+    const radiusNailsDistance = radius / (radiusNailsCount - 1);
 
     return {
-      nailsPerSide: 1 / nailsSpacing,
       center,
       radius,
       sideSize,
@@ -147,10 +154,6 @@ export default class Polygon extends Shape {
     };
   }
 
-  get nailsPerSide(): number {
-    return this.#calc.nailsPerSide;
-  }
-
   get radiusNailsCount(): number {
     return this.#calc.radiusNailsCount;
   }
@@ -160,9 +163,11 @@ export default class Polygon extends Shape {
   }
 
   getPoint(index: number): Coordinates {
-    const position = index / this.#calc.nailsPerSide;
+    const { nailsPerSide } = this.config;
+
+    const position = index / nailsPerSide;
     const side = Math.floor(position);
-    const sideIndex = index % this.#calc.nailsPerSide;
+    const sideIndex = index % nailsPerSide;
 
     return this.getSidePoint({ side, index: sideIndex });
   }
@@ -187,6 +192,13 @@ export default class Polygon extends Shape {
   }
 
   getCenterPoint({ side, index }): Coordinates {
+    if (index < 0) {
+      throw new Error(`Can't get polygon center point for index = (${index}).`);
+    }
+
+    if (side < 0) {
+      throw new Error(`Can't get polygon center point for side = (${index}).`);
+    }
     const radius = index * this.#calc.radiusNailsDistance;
     const { sin, cos } = this.#calc.sides[side].center;
 
@@ -233,18 +245,23 @@ export default class Polygon extends Shape {
     {
       drawCenter = false,
       drawSides = true,
-      filterCenterNails,
-    }: {
-      drawCenter?: boolean;
-      drawSides?: boolean;
-      filterCenterNails?: (side: number, index: number) => boolean;
-    } = {}
+      drawCenterNail = true,
+    }: PolygonNailsOptions = {}
   ) {
+    const { nailsPerSide } = this.config;
+
+    if (drawCenter && drawCenterNail) {
+      nails.addNail({
+        point: this.getCenterPoint({ side: 0, index: 0 }),
+        number: 'C',
+      });
+    }
+
     for (let side = 0; side < this.config.sides; side++) {
-      const sideIndexStart = side * this.#calc.nailsPerSide;
+      const sideIndexStart = side * nailsPerSide;
 
       if (drawSides) {
-        for (let index = 0; index < this.#calc.nailsPerSide; index++) {
+        for (let index = 0; index < nailsPerSide - 1; index++) {
           nails.addNail({
             point: this.getSidePoint({ side, index }),
             number: sideIndexStart + index,
@@ -253,16 +270,28 @@ export default class Polygon extends Shape {
       }
 
       if (drawCenter) {
-        for (let index = 0; index < this.#calc.radiusNailsCount; index++) {
-          if (!filterCenterNails || filterCenterNails(side, index)) {
-            nails.addNail({
-              point: this.getCenterPoint({ side, index }),
-              number: `${side}_${index}`,
-            });
-          }
+        for (let index = 1; index < this.#calc.radiusNailsCount - 1; index++) {
+          nails.addNail({
+            point: this.getCenterPoint({ side, index }),
+            number: `${side}_${index}`,
+          });
         }
       }
     }
+  }
+
+  getNailsCount({
+    drawCenter = false,
+    drawSides = true,
+    drawCenterNail = true,
+  }: PolygonNailsOptions = {}): number {
+    const nailsPerSide =
+      (drawSides ? this.config.nailsPerSide - 1 : 0) +
+      (drawCenter ? this.#calc.radiusNailsCount - 2 : 0);
+
+    return (
+      this.config.sides * nailsPerSide + (drawCenter && drawCenterNail ? 1 : 0)
+    );
   }
 
   static rotationConfig: ControlConfig<{ rotation: number; sides: number }> = {

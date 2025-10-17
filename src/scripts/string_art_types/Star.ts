@@ -5,8 +5,9 @@ import { ColorValue } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
-import { Coordinates } from '../types/general.types';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
+import Nails from '../Nails';
 
 interface StarConfig {
   sides: number;
@@ -135,7 +136,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     const { sides, rotation, distortion, sideNails, margin = 0 } = this.config;
     const circleConfig: CircleConfig = {
       size: size,
-      n: sideNails * sides - sides,
+      n: sides * (sideNails - 1),
       margin,
       rotation: rotation ? rotation / sides : 0,
       distortion,
@@ -146,7 +147,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     const starConfig: StarShapeConfig = {
       ...this.config,
       radius: circle.radius,
-      size: this.size,
+      size,
     };
 
     return {
@@ -267,10 +268,9 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     }
   }
 
-  drawNails(): void {
-    this.calc.circle.drawNails(this.nails);
-    this.calc.star.drawNails(this.nails);
-    this.calc.circle.drawNails(this.nails);
+  drawNails(nails: Nails): void {
+    this.calc.circle.drawNails(nails);
+    this.calc.star.drawNails(nails);
   }
 
   getStepCount(options: CalcOptions): number {
@@ -286,6 +286,12 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       circleRounds * (circleLinesPerRound + 1) - circleStepsToRemove - 1;
     const starCount = renderStar ? StarShape.getStepCount(this.config) : 0;
     return circleCount + ringCount + starCount;
+  }
+
+  getNailCount(): number {
+    const { sides, sideNails } = this.config;
+    const circleNails = sides * (sideNails - 1);
+    return sides * sideNails + circleNails;
   }
 
   thumbnailConfig = ({ sideNails }) => ({

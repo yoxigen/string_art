@@ -4,8 +4,9 @@ import {
 } from './helpers/config_utils';
 import EventBus from './helpers/EventBus';
 import { compareObjects } from './helpers/object_utils';
-import { areDimensionsEqual } from './helpers/size_utils';
+import { areDimensionsEqual, mapDimensions } from './helpers/size_utils';
 import Nails from './Nails';
+import { MeasureRenderer } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
 import type {
   CommonConfig,
@@ -31,6 +32,7 @@ export interface DrawOptions {
   redrawStrings?: boolean;
   bufferSize?: number;
   bufferFrom?: number;
+  sizeChanged?: boolean;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -164,8 +166,6 @@ abstract class StringArt<
   defaultValues: Partial<Config<TConfig>> = {};
   stepCount: number | null = null;
   size: Dimensions = null;
-  center: Coordinates = null;
-  nails: Nails = null;
   position: number = 0;
   stringsIterator: Iterator<void>;
 
@@ -184,10 +184,16 @@ abstract class StringArt<
     super();
   }
 
-  abstract drawNails(): void;
+  abstract drawNails(nails: Nails): void;
   abstract drawStrings(renderer: Renderer): Generator<void>;
   abstract getStepCount(options: CalcOptions): number;
   abstract getAspectRatio(options: CalcOptions): number;
+
+  getNailCount(size: Dimensions): number {
+    const renderer = new MeasureRenderer(size);
+    this.draw(renderer);
+    return renderer.nailCount;
+  }
 
   thumbnailConfig:
     | Partial<Config<TConfig>>
@@ -342,10 +348,6 @@ abstract class StringArt<
     }
   }
 
-  getSize(): Dimensions {
-    return this.size;
-  }
-
   setUpDraw(options?: CalcOptions) {
     if (!this.calc) {
       this.calc = this.getCalc(options);
@@ -354,16 +356,6 @@ abstract class StringArt<
 
   afterDraw() {
     this.emit('drawdone', null);
-  }
-
-  setSize(size: Dimensions): void {
-    const sizeChanged = this.size && !areDimensionsEqual(size, this.size);
-    this.size = size;
-    this.center = size.map(v => v / 2) as Coordinates;
-
-    if (sizeChanged) {
-      this.onResize();
-    }
   }
 
   /**
@@ -377,9 +369,11 @@ abstract class StringArt<
    */
   initDraw(
     renderer: Renderer,
-    { redrawNails = true, redrawStrings = true }: DrawOptions = {}
+    { redrawNails = true, redrawStrings = true, sizeChanged }: DrawOptions = {}
   ) {
-    this.setSize(renderer.getSize());
+    if (sizeChanged) {
+      this.resetStructure();
+    }
 
     if (redrawStrings) {
       renderer.resetStrings();
@@ -389,16 +383,12 @@ abstract class StringArt<
       renderer.resetNails();
     }
 
-    if (this.nails) {
-      this.nails.setConfig(this.config);
-    } else {
-      this.nails = new Nails(this.config);
-    }
-
     renderer.clearInstructions();
     renderer.setLineWidth(this.config.stringWidth);
 
-    this.setUpDraw({ size: this.size });
+    const size = renderer.getSize();
+
+    this.setUpDraw({ size, center: mapDimensions(size, v => v / 2) });
   }
 
   /**
@@ -436,8 +426,9 @@ abstract class StringArt<
     );
 
     if (showNails && drawOptions.redrawNails !== false) {
-      this.drawNails();
-      this.nails.draw(renderer, { drawNumbers: showNailNumbers });
+      const nails = new Nails(this.config);
+      this.drawNails(nails);
+      nails.draw(renderer, { drawNumbers: showNailNumbers });
     }
 
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {

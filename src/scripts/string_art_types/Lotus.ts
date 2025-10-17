@@ -13,6 +13,7 @@ import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
 } from '../helpers/size_utils';
+import Nails from '../Nails';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -34,6 +35,7 @@ interface TCalc {
   nailsPerCircle: number;
   removedSections: number;
   centerCircle?: Circle;
+  center: Coordinates;
 }
 
 export default class Lotus extends StringArt<LotusConfig, TCalc> {
@@ -147,7 +149,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
 
   #color: Color;
 
-  getCalc({ size }: CalcOptions): TCalc {
+  getCalc({ size, center }: CalcOptions): TCalc {
     const {
       sides,
       density,
@@ -213,7 +215,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     const helperCircle = new Circle({
       n: sides,
       size: size.map(v => v * d - margin) as Dimensions,
-      center: this.center,
+      center,
       radius: radius - margin / 2,
       rotation,
     });
@@ -237,6 +239,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
         baseCircleConfig.n / (sides - 2 * petalSectionsToRemove)
       ),
       nailsPerCircle: baseCircleConfig.n,
+      center,
     };
 
     if (renderCenter && centerRadiusPercent) {
@@ -406,12 +409,12 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     }
   }
 
-  drawNails() {
+  drawNails(nails: Nails) {
     const { renderCenter, renderCenterNails } = this.config;
     const { circles, centerCircle } = this.calc;
 
     circles.forEach((circle, circleIndex) => {
-      circle.drawNails(this.nails, {
+      circle.drawNails(nails, {
         getNumber: i => `${circleIndex + 1}_${i}`,
         excludedNailRanges: renderCenterNails
           ? null
@@ -421,9 +424,9 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
 
     if (renderCenter) {
       if (centerCircle) {
-        centerCircle.drawNails(this.nails, { getNumber: i => `C_${i + 1}` });
+        centerCircle.drawNails(nails, { getNumber: i => `C_${i + 1}` });
       } else {
-        this.nails.addNail({ point: this.center, number: 'C' });
+        nails.addNail({ point: this.calc.center, number: 'C' });
       }
     }
   }

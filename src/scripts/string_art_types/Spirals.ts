@@ -7,6 +7,7 @@ import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
+import Nails from '../Nails';
 
 interface SpiralsConfig extends ColorConfig {
   radiusIncrease: number;
@@ -20,6 +21,7 @@ interface TCalc {
   rotationAngle: number;
   nailsPerSpiral: number;
   angleIncrease: number;
+  center: Coordinates;
 }
 
 class Spirals extends StringArt<SpiralsConfig, TCalc> {
@@ -76,10 +78,10 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
   color: Color;
   colorMap: ColorMap;
 
-  getCalc(): TCalc {
+  getCalc({ size, center }: CalcOptions): TCalc {
     const { nSpirals, rotation, margin, radiusIncrease, angleStep } =
       this.config;
-    const maxRadius = Math.min(...this.size) / 2 - margin;
+    const maxRadius = Math.min(...size) / 2 - margin;
 
     return {
       spiralRotations: new Array(nSpirals)
@@ -88,6 +90,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
       rotationAngle: -PI2 * rotation,
       nailsPerSpiral: Math.floor(maxRadius / radiusIncrease),
       angleIncrease: angleStep / (maxRadius / 50),
+      center,
     };
   }
 
@@ -122,7 +125,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
   }
 
   getPoint(spiralIndex: number, index: number): Coordinates {
-    const [centerx, centery] = this.center;
+    const [centerx, centery] = this.calc.center;
     const { radiusIncrease } = this.config;
 
     const angle =
@@ -141,7 +144,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     const points = this.generatePoints();
     let index = 0;
     renderer.setColor(this.color.getColor(0));
-    let lastPoint = this.center;
+    let lastPoint = this.calc.center;
 
     for (const { point } of points) {
       if (this.colorMap) {
@@ -167,10 +170,10 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return n * nSpirals;
   }
 
-  drawNails() {
+  drawNails(nails: Nails) {
     const points = this.generatePoints();
     for (const { point, nailNumber } of points) {
-      this.nails.addNail({ point, number: nailNumber });
+      nails.addNail({ point, number: nailNumber });
     }
   }
 

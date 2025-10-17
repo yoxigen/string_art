@@ -11,6 +11,7 @@ import {
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';
+import Nails from '../Nails';
 
 interface FreestyleConfig {
   n: number;
@@ -322,7 +323,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
 
       const circle = new Circle({
         radius: props.radius,
-        size: this.size,
+        size,
         center: props.position.map(
           (v, i) =>
             props.radius + margin + (size[i] - (props.radius + margin) * 2) * v
@@ -380,9 +381,9 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
     }
   }
 
-  drawNails() {
+  drawNails(nails: Nails) {
     this.calc.layers.forEach(({ circle }, layerIndex) =>
-      circle.drawNails(this.nails, {
+      circle.drawNails(nails, {
         getNumber: i => `${layerIndex + 1}_${i + 1}`,
       })
     );

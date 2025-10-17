@@ -18,6 +18,7 @@ import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
 } from '../helpers/size_utils';
+import Nails from '../Nails';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;
@@ -403,17 +404,17 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     yield* this.generateLayers(renderer);
   }
 
-  drawNails() {
+  drawNails(nails: Nails) {
     const { backdropSize, backdropNailsColor, backdropNailsRadius } =
       this.config;
 
-    this.calc.star.drawNails(this.nails);
+    this.calc.star.drawNails(nails);
     if (backdropSize) {
       const circleNails = [];
       for (const circleNail of this.calc.circle.generateNails()) {
         circleNails.push(circleNail);
       }
-      this.nails.addGroup(circleNails, {
+      nails.addGroup(circleNails, {
         color: backdropNailsColor,
         radius: backdropNailsRadius,
       });

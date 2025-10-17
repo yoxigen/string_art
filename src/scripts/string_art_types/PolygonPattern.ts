@@ -5,6 +5,7 @@ import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
+import Nails from '../Nails';
 
 interface PolygonPatternConfig extends ColorConfig {
   sides: number;
@@ -97,7 +98,7 @@ export default class PolygonPattern extends StringArt<
       rotation: rotation / (sides * 2),
       margin,
       size,
-      nailsSpacing: 1 / n,
+      nailsPerSide: n,
       fitSize: true,
     };
 
@@ -144,7 +145,7 @@ export default class PolygonPattern extends StringArt<
       if (this.colorMap) {
         renderer.setColor(this.colorMap.get(step));
       }
-      for (let index = 0; index < this.calc.polygon.nailsPerSide; index++) {
+      for (let index = 0; index < this.config.n; index++) {
         renderer.renderLine(
           this.calc.polygon.getSidePoint({ side, index }),
           this.calc.polygon.getSidePoint({ side: nextSide, index })
@@ -161,8 +162,8 @@ export default class PolygonPattern extends StringArt<
     return sides * n;
   }
 
-  drawNails() {
-    this.calc.polygon.drawNails(this.nails);
+  drawNails(nails: Nails) {
+    this.calc.polygon.drawNails(nails);
   }
 
   thumbnailConfig = ({ n }) => ({

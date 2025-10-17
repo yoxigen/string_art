@@ -10,10 +10,11 @@ import {
   formatFractionAsPercent,
 } from '../helpers/string_utils';
 import { Line, LineConfig } from '../shapes/Line';
-import { Coordinates } from '../types/general.types';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { getShapesBoundingRect } from '../helpers/shape_utils';
 import { createArray } from '../helpers/array_utils';
 import { PI2 } from '../helpers/math_utils';
+import Nails from '../Nails';
 
 type CrossesOrientation = 'v' | 'h';
 
@@ -425,8 +426,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   color: Color;
 
-  getCalc({ size }: CalcOptions): TCalc {
-    const center = this.center;
+  getCalc({ size, center }: CalcOptions): TCalc {
     const {
       n,
       orientation,
@@ -856,19 +856,23 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     return 10 * (3 * n - 1);
   }
 
-  drawNails() {
+  getNailCount(): number {
+    return this.config.n * 10;
+  }
+
+  drawNails(nails: Nails) {
     this.calc.verticalLines.forEach((line, i) =>
-      line.drawNails(this.nails, {
+      line.drawNails(nails, {
         getNumber: sideIndex =>
           `${String.fromCharCode(65 + i)}_${sideIndex + 1}`,
       })
     );
 
     this.calc.horizontalLines.forEach(([startLine, endLine], row) => {
-      startLine.drawNails(this.nails, {
+      startLine.drawNails(nails, {
         getNumber: sideIndex => `1_${row + 1}_${sideIndex}`,
       });
-      endLine.drawNails(this.nails, {
+      endLine.drawNails(nails, {
         getNumber: sideIndex => `2_${row + 1}_${sideIndex}`,
       });
     });

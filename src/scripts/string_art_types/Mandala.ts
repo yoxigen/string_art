@@ -5,6 +5,8 @@ import { ColorConfig } from '../helpers/color/color.types';
 import { ControlsConfig } from '../types/config.types';
 import Renderer from '../renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
+import Nails from '../Nails';
+import { Dimensions } from '../types/general.types';
 
 export interface MandalaConfig extends ColorConfig {
   n: number;
@@ -154,8 +156,8 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     }
   }
 
-  drawNails() {
-    this.calc.circle.drawNails(this.nails);
+  drawNails(nails: Nails) {
+    this.calc.circle.drawNails(nails);
   }
 
   getStepCount(options: CalcOptions): number {
@@ -164,6 +166,14 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     const stringsPerLayer = layerFill ? Math.floor(n * layerFill) : n;
     return (layers ?? 1) * stringsPerLayer * 2;
   }
+
+  getNailCount(): number {
+    const { n: nConfig, layers } = this.config;
+
+    const extraNails = nConfig % layers;
+    return nConfig - extraNails;
+  }
+
   // @ts-ignore
   thumbnailConfig = ({ n }) => ({
     n: Math.min(n, 70),

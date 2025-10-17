@@ -91,7 +91,7 @@ export default class Viewer extends EventBus<{
 
   #updateOnSizeChange(size: Dimensions) {
     if (size[0] && size[1]) {
-      this.pattern?.draw(this.renderer);
+      this.pattern?.draw(this.renderer, { sizeChanged: true });
     }
   }
 

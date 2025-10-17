@@ -6,6 +6,8 @@ import {
 import { TestRenderer } from '../renderers/TestRenderer';
 import { Dimensions } from '../types/general.types';
 import type StringArt from '../StringArt';
+import { mapDimensions } from '../helpers/size_utils';
+import { MeasureRenderer } from '../renderers/MeasureRenderer';
 
 const size: Dimensions = [1000, 1000];
 
@@ -17,6 +19,28 @@ describe('StringArt', () => {
       const renderer = new TestRenderer(size);
       test(`Draw ${pattern.name}`, () => {
         expect(() => pattern.draw(renderer)).not.toThrow();
+      });
+
+      describe('getNailsCount', () => {
+        const measureRenderer = new MeasureRenderer(size);
+        test(`${pattern.name} getNailCount`, () => {
+          pattern.draw(measureRenderer);
+          expect(pattern.getNailCount(size)).toEqual(measureRenderer.nailCount);
+        });
+        if (pattern.testStepCountConfig) {
+          let testId = 2;
+          for (const testConfig of pattern.testStepCountConfig) {
+            test(`${pattern.name} getNailCount #${testId}`, () => {
+              const patternConfig = pattern.copy();
+              patternConfig.assignConfig(testConfig);
+              patternConfig.draw(measureRenderer);
+              expect(patternConfig.getNailCount(size)).toEqual(
+                measureRenderer.nailCount
+              );
+            });
+            testId++;
+          }
+        }
       });
     }
   });
@@ -41,7 +65,9 @@ describe('StringArt', () => {
         drawCount++;
       }
 
-      expect(pattern.getStepCount({ size })).toEqual(drawCount);
+      expect(
+        pattern.getStepCount({ size, center: mapDimensions(size, v => v / 2) })
+      ).toEqual(drawCount);
     }
 
     for (const pattern of patterns) {

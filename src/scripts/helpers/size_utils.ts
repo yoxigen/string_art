@@ -62,7 +62,7 @@ const LENGTH_UNITS: ReadonlySet<string> = new Set(['cm', 'inch']);
 
 export function mapDimensions(
   dimensions: Dimensions,
-  mapper: (dimension: number) => number
+  mapper: (dimension: number, index?: number) => number
 ): Dimensions {
   return dimensions.map(mapper) as Dimensions;
 }

@@ -10,6 +10,7 @@ import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
+import Nails from '../Nails';
 
 export interface MaurerRoseConfig extends ColorConfig {
   n: number;
@@ -37,6 +38,7 @@ interface TCalc {
   radius: number;
   currentSize: Dimensions;
   rotationAngle: number;
+  center: Coordinates;
 }
 
 export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
@@ -135,7 +137,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     const polygon = new Polygon({
       size,
       sides: n % 2 ? n : n * 2,
-      nailsSpacing: 0.1,
+      nailsPerSide: 10,
       margin,
       rotation,
       center: size.map(v => v / 2) as Dimensions,
@@ -144,7 +146,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     return polygon.getAspectRatio();
   }
 
-  getCalc({ size }: CalcOptions): TCalc {
+  getCalc({ size, center }: CalcOptions): TCalc {
     const { angle, rotation, maxSteps, margin } = this.config;
 
     return {
@@ -152,11 +154,12 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
       radius: Math.min(...size) / 2 - margin,
       currentSize: mapDimensions(size, v => v - margin * 2),
       rotationAngle: -Math.PI * 2 * rotation,
+      center,
     };
   }
 
   getPoint(index: number): Coordinates {
-    const { rotationAngle, angleRadians, radius } = this.calc;
+    const { rotationAngle, angleRadians, radius, center } = this.calc;
 
     if (this.points.has(index)) {
       return this.points.get(index);
@@ -166,8 +169,8 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     const r = radius * Math.sin(this.config.n * k);
 
     const point = [
-      this.center[0] - r * Math.cos(k - rotationAngle),
-      this.center[1] - r * Math.sin(k - rotationAngle),
+      center[0] - r * Math.cos(k - rotationAngle),
+      center[1] - r * Math.sin(k - rotationAngle),
     ] as Coordinates;
     this.points.set(index, point);
     return point;
@@ -222,10 +225,10 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     return Math.round(steps);
   }
 
-  drawNails() {
+  drawNails(nails: Nails) {
     const points = this.generatePoints();
     for (const { point, index } of points) {
-      this.nails.addNail({ point, number: index });
+      nails.addNail({ point, number: index });
     }
   }
 }

@@ -2,8 +2,10 @@ import StringArt from '../StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
-import { Coordinates } from '../types/general.types';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
+import Nails from '../Nails';
+import { mapDimensions } from '../helpers/size_utils';
 
 const LAYER_DEFAULTS = [
   { size: 0.25, end: 1, color: '#a94fb0' },
@@ -156,13 +158,7 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
       distortion,
     };
 
-    let circle: Circle;
-    if (this.calc?.circle) {
-      circle = this.calc.circle;
-      this.calc.circle.setConfig(circleConfig);
-    } else {
-      circle = new Circle(circleConfig);
-    }
+    const circle = new Circle(circleConfig);
 
     let lineSpacing = circle.indexAngle * circle.radius;
     const lineNailCount = Math.floor(circle.radius / lineSpacing) - 1;
@@ -266,13 +262,13 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     }
   }
 
-  drawNails() {
-    this.calc.circle.drawNails(this.nails, {
+  drawNails(nails: Nails) {
+    this.calc.circle.drawNails(nails, {
       nailsNumberStart: this.calc.lineNailCount,
     });
 
     for (let i = 0; i < this.calc.lineNailCount; i++) {
-      this.nails.addNail({ point: this.getPoint(i), number: i });
+      nails.addNail({ point: this.getPoint(i), number: i });
     }
   }
 
@@ -282,6 +278,14 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
       (stepCount, layer) => stepCount + layer.endIndex * 2 + 1,
       0
     );
+  }
+
+  getNailCount(size: Dimensions): number {
+    const calc = this.getCalc({
+      size,
+      center: mapDimensions(size, v => v / 2),
+    });
+    return calc.circle.config.n + calc.lineNailCount;
   }
 
   thumbnailConfig = ({ n }) => ({ n: Math.min(n, 50) });

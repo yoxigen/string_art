@@ -7,8 +7,11 @@ import {
   getBoundingRectAspectRatio,
 } from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
-import { ControlsConfig } from '../types/config.types';
+import { Config, ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
+import Nails from '../Nails';
+import { Dimensions } from '../types/general.types';
+import { createArray } from '../helpers/array_utils';
 
 export interface FlowerConfig extends ColorConfig {
   sides: number;
@@ -48,7 +51,7 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
       type: 'range',
       attr: {
         min: 3,
-        max: 10,
+        max: 20,
         step: 1,
       },
       isStructural: true,
@@ -59,7 +62,7 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
       defaultValue: 60,
       type: 'range',
       attr: {
-        min: 1,
+        min: 2,
         max: 100,
         step: 1,
       },
@@ -94,13 +97,14 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
 
     const layerAngleShift = 1 / (sides * layers);
 
-    const polygons = new Array(layers).fill(null).map((_, i) => {
+    const polygons = createArray(layers, i => {
       const polygonConfig = {
         sides,
         rotation: rotation / sides + i * layerAngleShift,
         margin,
         size,
-        nailsSpacing: 1 / n,
+        nailsPerSide: n,
+        radiusNailsCountSameAsSides: true,
       };
 
       return new Polygon(polygonConfig);
@@ -129,7 +133,7 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
   }
 
   *drawStrings(renderer: Renderer) {
-    const { sides, layers } = this.config;
+    const { sides, layers, n } = this.config;
 
     let step = 0;
 
@@ -138,13 +142,10 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
       const polygon = this.calc.polygons[layer];
 
       for (let side = 0; side < sides; side++) {
-        const leftSide = side === sides - 1 ? 0 : side + 1;
+        const leftSide = (side + 1) % sides;
 
-        for (let index = 0; index <= polygon.nailsPerSide; index++) {
-          const centerIndexes = this.getCenterIndexes({
-            polygon,
-            sideIndex: index,
-          });
+        for (let index = 0; index < n; index++) {
+          const centerIndexes = [index, this.config.n - index - 1];
 
           renderer.renderLine(
             polygon.getCenterPoint({
@@ -170,41 +171,43 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     }
   }
 
-  getCenterIndexes({
-    polygon,
-    sideIndex,
-  }: {
-    polygon: Polygon;
-    sideIndex: number;
-  }): [number, number] {
-    const extraNailCount = polygon.nailsPerSide - polygon.radiusNailsCount;
+  drawNails(nails: Nails) {
+    nails.addNail({
+      point: this.calc.polygons[0].getCenterPoint({ side: 0, index: 0 }),
+      number: 'C',
+    });
 
-    return [
-      sideIndex < extraNailCount
-        ? -extraNailCount + sideIndex
-        : sideIndex - extraNailCount,
-      polygon.radiusNailsCount - sideIndex,
-    ];
+    this.calc.polygons.forEach(polygon =>
+      polygon.drawNails(nails, { drawCenter: true, drawCenterNail: false })
+    );
   }
 
   getStepCount(): number {
     const { sides, n, layers } = this.config;
-    return sides * (n + 1) * 2 * layers;
+    return sides * n * 2 * layers;
   }
 
-  drawNails() {
-    const firstNailIndex =
-      this.calc.polygons[0].radiusNailsCount -
-      this.calc.polygons[0].nailsPerSide;
-    const filterCenterNails =
-      firstNailIndex > 0 ? (_, index) => index >= firstNailIndex : null;
+  getNailCount(size: Dimensions): number {
+    const { layers, n } = this.config;
+    const calc = this.getCalc({ size, center: size });
+    const polygon = calc.polygons[0];
 
-    this.calc.polygons.forEach(polygon =>
-      polygon.drawNails(this.nails, { drawCenter: true, filterCenterNails })
+    return (
+      layers *
+        polygon.getNailsCount({ drawCenter: true, drawCenterNail: false }) +
+      1
     );
   }
 
   thumbnailConfig = ({ n }) => ({
     n: Math.min(n, 20),
   });
+
+  testStepCountConfig = [
+    {
+      sides: 3,
+      n: 2,
+      layers: 1,
+    },
+  ];
 }

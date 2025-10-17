@@ -115,7 +115,7 @@ export default class Circle extends Shape {
       sides: n,
       rotation,
       size: [this.radius * 2, this.radius * 2],
-      nailsSpacing: 1,
+      nailsPerSide: 1,
     });
 
     return polygon.getBoundingRect();

@@ -20,4 +20,5 @@ export type ID = string;
 
 export interface CalcOptions {
   size: Dimensions;
+  center: Coordinates;
 }

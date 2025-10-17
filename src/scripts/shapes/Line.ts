@@ -1,5 +1,6 @@
 import { ColorValue } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
+import { mapDimensions } from '../helpers/size_utils';
 import Nails from '../Nails';
 import { BoundingRect, Coordinates } from '../types/general.types';
 import { Shape } from './Shape';
@@ -18,6 +19,11 @@ export class Line extends Shape {
   config: LineConfig;
   from: Coordinates;
   to: Coordinates;
+  /**
+   * distance between from and to, [x,y]
+   */
+  distance: [number, number];
+  spaces: number;
 
   constructor(config: LineConfig) {
     super();
@@ -27,7 +33,7 @@ export class Line extends Shape {
 
     this.config = config;
 
-    const { rotation, from, to } = config;
+    const { rotation, from, to, n } = config;
 
     if (rotation) {
       const rotationAngle = -PI2 * rotation;
@@ -39,6 +45,9 @@ export class Line extends Shape {
       this.from = config.from;
       this.to = config.to;
     }
+
+    this.distance = [this.to[0] - this.from[0], this.to[1] - this.from[1]];
+    this.spaces = n - 1;
   }
 
   #getRotationCenterCoordinates(): Coordinates {
@@ -83,13 +92,12 @@ export class Line extends Shape {
   }
 
   getPoint(index: number): Coordinates {
-    const { n } = this.config;
-    const { from, to } = this;
+    const { from } = this;
 
-    return [
-      from[0] + ((to[0] - from[0]) * (n - index - 1)) / (n - 1),
-      from[1] + ((to[1] - from[1]) * (n - index - 1)) / (n - 1),
-    ];
+    return mapDimensions(
+      from,
+      (v, i) => v + (this.distance[i] * index) / this.spaces
+    );
   }
 
   drawNails(
@@ -115,8 +123,8 @@ export class Line extends Shape {
     const { from, to } = this;
 
     return {
-      width: Math.abs(to[0] - from[0]),
-      height: Math.abs(to[1] - from[1]),
+      width: Math.abs(this.distance[0]),
+      height: Math.abs(this.distance[1]),
       top: Math.min(to[1], from[1]),
       bottom: Math.max(to[1], from[1]),
       left: Math.min(from[0], to[0]),
