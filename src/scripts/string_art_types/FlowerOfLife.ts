@@ -439,8 +439,9 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
           return {
             rotation: Math.atan(trianglePosition[0] / trianglePosition[1]),
-            distanceFromCenter: Math.sqrt(
-              trianglePosition[0] ** 2 + trianglePosition[1] ** 2
+            distanceFromCenter: Math.hypot(
+              trianglePosition[0],
+              trianglePosition[1]
             ),
           };
         });

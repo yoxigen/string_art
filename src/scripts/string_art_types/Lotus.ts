@@ -5,7 +5,7 @@ import type { ControlsConfig } from '../types/config.types';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
-import { PI2 } from '../helpers/math_utils';
+import { getDistanceBetweenCoordinates, PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import Renderer from '../renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
@@ -247,10 +247,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
         lastSection * calc.nailsPerSection
       );
       const maxCenterRadius = Math.floor(
-        Math.sqrt(
-          Math.abs(helperCircle.center[0] - maxCenterRadiusPoint[0]) ** 2 +
-            Math.abs(helperCircle.center[1] - maxCenterRadiusPoint[1]) ** 2
-        )
+        getDistanceBetweenCoordinates(helperCircle.center, maxCenterRadiusPoint)
       );
       const centerCircleRadius = centerRadiusPercent * maxCenterRadius;
       calc.centerCircle = new Circle({

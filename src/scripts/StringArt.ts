@@ -494,7 +494,6 @@ abstract class StringArt<
       this.draw(renderer, {
         position,
         redrawNails: false,
-        showInstructions,
       });
     }
 

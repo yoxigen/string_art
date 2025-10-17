@@ -1,3 +1,5 @@
+import { Coordinates } from '../types/general.types';
+
 /**
  * Returns the greatest common divisor of two integers
  * https://en.wikipedia.org/wiki/Euclidean_algorithm
@@ -17,4 +19,11 @@ export function distortionToAspectRatio(distortion: number): [number, number] {
   return distortion < 0
     ? [1 - Math.abs(distortion), 1]
     : [1 / (1 - distortion), 1];
+}
+
+export function getDistanceBetweenCoordinates(
+  from: Coordinates,
+  to: Coordinates
+): number {
+  return Math.hypot(to[0] - from[0], to[1] - from[1]);
 }

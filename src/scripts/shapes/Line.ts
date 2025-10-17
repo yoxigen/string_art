@@ -65,7 +65,7 @@ export class Line extends Shape {
     const xDist = point[0] - rotationCenter[0];
     const yDist = point[1] - rotationCenter[1];
 
-    const pointDistanceToCenter = Math.sqrt(xDist ** 2 + yDist ** 2);
+    const pointDistanceToCenter = Math.hypot(xDist, yDist);
 
     if (!pointDistanceToCenter) {
       return point;
