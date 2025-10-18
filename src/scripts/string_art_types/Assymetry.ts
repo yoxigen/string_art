@@ -5,7 +5,6 @@ import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
-import { mapDimensions } from '../helpers/size_utils';
 
 const LAYER_DEFAULTS = [
   { size: 0.25, end: 1, color: '#a94fb0' },
@@ -283,7 +282,6 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
   getNailCount(size: Dimensions): number {
     const calc = this.getCalc({
       size,
-      center: mapDimensions(size, v => v / 2),
     });
     return calc.circle.config.n + calc.lineNailCount;
   }

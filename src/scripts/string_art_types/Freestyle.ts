@@ -2,12 +2,7 @@ import StringArt from '../StringArt';
 import Circle from '../shapes/Circle';
 import { ColorValue } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
-import {
-  ControlConfig,
-  ControlsConfig,
-  ControlType,
-  GroupValue,
-} from '../types/config.types';
+import { ControlsConfig, ControlType, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';

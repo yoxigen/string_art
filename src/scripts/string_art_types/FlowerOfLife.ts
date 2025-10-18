@@ -2,7 +2,7 @@ import { PI2 } from '../helpers/math_utils';
 import StringArt from '../StringArt';
 import Color from '../helpers/color/Color';
 import Polygon from '../shapes/Polygon';
-import Circle, { CircleConfig } from '../shapes/Circle';
+import Circle from '../shapes/Circle';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import {
   ColorConfig,
@@ -14,6 +14,8 @@ import { Coordinates } from '../types/general.types';
 import Renderer from '../renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
+import { getCenter } from '../helpers/size_utils';
+import { createArray } from '../helpers/array_utils';
 
 interface FlowerOfLifeConfig extends ColorConfig {
   levels: number;
@@ -309,7 +311,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
     return {
       ...calc,
-      points: this.#getPoints(calc, options),
+      points: this.#getPoints(calc, getCenter(size)),
     };
   }
 
@@ -405,13 +407,15 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     return trianglePoints;
   }
 
-  #getPoints(calc: Omit<TCalc, 'points'>, { center }: CalcOptions): Points {
+  #getPoints(calc: Omit<TCalc, 'points'>, center: Coordinates): Points {
     const { levels, renderCaps } = this.config;
 
     const largeDistance = calc.nailsLength;
     const smallDistance = calc.triangleHeight - largeDistance;
     const levelsPoints: Points = [];
 
+    // Points looks like this:
+    //
     const levelsCount = renderCaps ? levels + 1 : levels;
 
     for (let level = 0; level < levelsCount; level++) {
@@ -423,24 +427,22 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       const levelSideTriangleCount = calc.countPerLevelSide[level];
 
       // Caching distances to avoid repeated calculations for each side:
-      const levelPositions = new Array(levelSideTriangleCount)
-        .fill(null)
-        .map((_, n) => {
-          const isFlipped = n % 2 === 0;
-          const trianglePosition = [
-            calc.triangleCenterDistance * (n - level),
-            level * calc.triangleHeight +
-              (isFlipped ? largeDistance : smallDistance),
-          ];
+      const levelPositions = createArray(levelSideTriangleCount, n => {
+        const isFlipped = n % 2 === 0;
+        const trianglePosition = [
+          calc.triangleCenterDistance * (n - level),
+          level * calc.triangleHeight +
+            (isFlipped ? largeDistance : smallDistance),
+        ];
 
-          return {
-            rotation: Math.atan(trianglePosition[0] / trianglePosition[1]),
-            distanceFromCenter: Math.hypot(
-              trianglePosition[0],
-              trianglePosition[1]
-            ),
-          };
-        });
+        return {
+          rotation: Math.atan(trianglePosition[0] / trianglePosition[1]),
+          distanceFromCenter: Math.hypot(
+            trianglePosition[0],
+            trianglePosition[1]
+          ),
+        };
+      });
 
       for (let side = 0; side < 6; side++) {
         const sideRotation = SIDE_ANGLES[side];

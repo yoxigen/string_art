@@ -8,6 +8,7 @@ import { ControlsConfig } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
+import { getCenter } from '../helpers/size_utils';
 
 interface SpiralsConfig extends ColorConfig {
   radiusIncrease: number;
@@ -78,7 +79,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
   color: Color;
   colorMap: ColorMap;
 
-  getCalc({ size, center }: CalcOptions): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const { nSpirals, rotation, margin, radiusIncrease, angleStep } =
       this.config;
     const maxRadius = Math.min(...size) / 2 - margin;
@@ -90,7 +91,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
       rotationAngle: -PI2 * rotation,
       nailsPerSpiral: Math.floor(maxRadius / radiusIncrease),
       angleIncrease: angleStep / (maxRadius / 50),
-      center,
+      center: getCenter(size),
     };
   }
 

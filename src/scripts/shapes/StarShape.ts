@@ -13,7 +13,7 @@ import {
   formatFractionAsPercent,
 } from '../helpers/string_utils';
 import { Shape } from './Shape';
-import { getBoundingRectAspectRatio } from '../helpers/size_utils';
+import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
 
 export interface StarShapeConfig {
   sideNails: number;
@@ -115,8 +115,7 @@ export default class StarShape extends Shape {
       );
     }
 
-    const center =
-      config.center ?? (config.size.map(v => v / 2) as Coordinates);
+    const center = config.center ?? getCenter(config.size);
 
     this.config = config;
     this.center = center;

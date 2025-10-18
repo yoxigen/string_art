@@ -6,7 +6,6 @@ import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
-import { Dimensions } from '../types/general.types';
 
 type SpreadModeType = 'evenly' | 'distance';
 

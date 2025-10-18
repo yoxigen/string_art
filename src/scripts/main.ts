@@ -2,28 +2,19 @@ import Player from './editor/Player';
 import EditorControls, {
   ControlValueChangeEventData,
 } from './editor/EditorControls';
-// import EditorSizeControls from './editor/EditorSizeControls';
 import { Thumbnails } from './thumbnails/Thumbnails';
 import { isShareSupported, share } from './share';
 import { initServiceWorker } from './pwa';
 import SVGRenderer from './renderers/SVGRenderer';
 import './components/components';
-import { Config, PrimitiveValue } from './types/config.types';
 import Persistance from './Persistance';
 import StringArt from './StringArt';
-import { compareObjects } from './helpers/object_utils';
 import { confirm } from './helpers/dialogs';
 import Viewer from './viewer/Viewer';
 import type DownloadDialog from './components/dialogs/download_dialog/DownloadDialog';
 import { findPatternById } from './helpers/pattern_utils';
 import routing from './routing';
 import { hide, unHide } from './helpers/dom_utils';
-
-interface SetPatternOptions {
-  config?: Record<string, PrimitiveValue>;
-  draw?: boolean;
-  isDefaultConfig?: boolean;
-}
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
@@ -50,7 +41,6 @@ async function main() {
   let controls: EditorControls<any>;
 
   let currentPattern: Pattern;
-  let currentPatternDefaultConfig: Config;
   const viewer = new Viewer();
   const player = new Player(document.querySelector('#player'), viewer);
 
@@ -189,7 +179,6 @@ async function main() {
 
   function selectPattern(pattern: Pattern) {
     currentPattern = pattern;
-    currentPatternDefaultConfig = pattern.defaultConfig;
 
     viewer.setPattern(pattern);
     controls?.destroy();

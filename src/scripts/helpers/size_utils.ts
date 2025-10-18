@@ -1,4 +1,9 @@
-import { BoundingRect, Dimensions, SizeUnit } from '../types/general.types';
+import {
+  BoundingRect,
+  Coordinates,
+  Dimensions,
+  SizeUnit,
+} from '../types/general.types';
 
 export interface StandardSize {
   id: string;
@@ -180,4 +185,13 @@ export function getBoundingRectAspectRatio(boundingRect: BoundingRect): number {
 export function fitInside(size1: Dimensions, size2: Dimensions): Dimensions {
   const ratio = Math.min(size2[0] / size1[0], size2[1] / size1[1]);
   return mapDimensions(size1, v => v * ratio);
+}
+
+/**
+ * Returns the center coordinates of a plane, given its dimensions
+ * @param size
+ * @returns
+ */
+export function getCenter(size: Dimensions): Coordinates {
+  return mapDimensions(size, v => v / 2);
 }

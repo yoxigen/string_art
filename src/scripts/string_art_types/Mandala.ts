@@ -6,7 +6,6 @@ import { ControlsConfig } from '../types/config.types';
 import Renderer from '../renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
-import { Dimensions } from '../types/general.types';
 
 export interface MandalaConfig extends ColorConfig {
   n: number;

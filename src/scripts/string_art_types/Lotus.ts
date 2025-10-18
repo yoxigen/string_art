@@ -12,6 +12,7 @@ import { CalcOptions } from '../types/stringart.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
+  getCenter,
 } from '../helpers/size_utils';
 import Nails from '../Nails';
 
@@ -149,7 +150,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
 
   #color: Color;
 
-  getCalc({ size, center }: CalcOptions): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const {
       sides,
       density,
@@ -160,6 +161,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       renderCenter,
     } = this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
+    const center = getCenter(size);
     let radius = (Math.min(...size) * d) / 2;
 
     const sideAngle = PI2 / sides;

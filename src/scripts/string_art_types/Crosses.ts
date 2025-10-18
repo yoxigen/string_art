@@ -2,7 +2,7 @@ import StringArt from '../StringArt';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import Renderer from '../renderers/Renderer';
-import { Config, ControlsConfig, GroupValue } from '../types/config.types';
+import { ControlsConfig, GroupValue } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import {
   capitalize,
@@ -10,11 +10,12 @@ import {
   formatFractionAsPercent,
 } from '../helpers/string_utils';
 import { Line, LineConfig } from '../shapes/Line';
-import { Coordinates, Dimensions } from '../types/general.types';
+import { Coordinates } from '../types/general.types';
 import { getShapesBoundingRect } from '../helpers/shape_utils';
 import { createArray } from '../helpers/array_utils';
 import { PI2 } from '../helpers/math_utils';
 import Nails from '../Nails';
+import { getCenter } from '../helpers/size_utils';
 
 type CrossesOrientation = 'v' | 'h';
 
@@ -426,7 +427,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   color: Color;
 
-  getCalc({ size, center }: CalcOptions): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const {
       n,
       orientation,
@@ -450,6 +451,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       edgesWidthSpread,
       sidesRotation,
     } = this.config;
+    const center = getCenter(size);
+
     const isVertical = orientation === 'v';
     let height = (isVertical ? size[1] : size[0]) - 2 * margin;
     const maxVerticalGap = (height * 0.8) / 3;

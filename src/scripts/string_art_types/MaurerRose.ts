@@ -5,7 +5,7 @@ import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { gcd, PI2 } from '../helpers/math_utils';
-import { mapDimensions } from '../helpers/size_utils';
+import { getCenter, mapDimensions } from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
@@ -140,13 +140,13 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
       nailsPerSide: 10,
       margin,
       rotation,
-      center: size.map(v => v / 2) as Dimensions,
+      center: getCenter(size),
     });
 
     return polygon.getAspectRatio();
   }
 
-  getCalc({ size, center }: CalcOptions): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const { angle, rotation, maxSteps, margin } = this.config;
 
     return {
@@ -154,7 +154,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
       radius: Math.min(...size) / 2 - margin,
       currentSize: mapDimensions(size, v => v - margin * 2),
       rotationAngle: -Math.PI * 2 * rotation,
-      center,
+      center: getCenter(size),
     };
   }
 

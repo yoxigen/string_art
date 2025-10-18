@@ -10,7 +10,7 @@ import {
 } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import { Shape } from '../shapes/Shape';
-import { mapDimensions } from '../helpers/size_utils';
+import { getCenter, mapDimensions } from '../helpers/size_utils';
 import Polygon from '../shapes/Polygon';
 import {
   formatFractionAsAngle,
@@ -217,8 +217,9 @@ export default class DanceOfPlanets extends StringArt<
   color: Color;
   colorMap: ColorMap;
 
-  getCalc({ size, center }: CalcOptions): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const { margin } = this.config;
+    const center = getCenter(size);
 
     function getShape({
       type,
@@ -393,7 +394,6 @@ export default class DanceOfPlanets extends StringArt<
   getNailCount(size: Dimensions): number {
     const calc = this.getCalc({
       size,
-      center: mapDimensions(size, v => v / 2),
     });
     return calc.shape1NailCount + calc.shape2NailCount;
   }

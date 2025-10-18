@@ -7,7 +7,7 @@ import {
   getBoundingRectAspectRatio,
 } from '../helpers/size_utils';
 import Renderer from '../renderers/Renderer';
-import { Config, ControlsConfig } from '../types/config.types';
+import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
 import { Dimensions } from '../types/general.types';
@@ -188,8 +188,8 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
   }
 
   getNailCount(size: Dimensions): number {
-    const { layers, n } = this.config;
-    const calc = this.getCalc({ size, center: size });
+    const { layers } = this.config;
+    const calc = this.calc ?? this.getCalc({ size });
     const polygon = calc.polygons[0];
 
     return (

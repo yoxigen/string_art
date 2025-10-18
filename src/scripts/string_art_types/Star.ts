@@ -5,7 +5,7 @@ import { ColorValue } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import Renderer from '../renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
-import { Coordinates, Dimensions } from '../types/general.types';
+import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
 

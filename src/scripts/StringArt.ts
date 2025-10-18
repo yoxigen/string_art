@@ -4,7 +4,6 @@ import {
 } from './helpers/config_utils';
 import EventBus from './helpers/EventBus';
 import { compareObjects } from './helpers/object_utils';
-import { areDimensionsEqual, mapDimensions } from './helpers/size_utils';
 import Nails from './Nails';
 import { MeasureRenderer } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
@@ -15,7 +14,7 @@ import type {
   ControlsConfig,
   PrimitiveValue,
 } from './types/config.types';
-import { Coordinates, Dimensions } from './types/general.types';
+import { Dimensions } from './types/general.types';
 import { CalcOptions } from './types/stringart.types';
 
 const COLORS = {
@@ -388,7 +387,7 @@ abstract class StringArt<
 
     const size = renderer.getSize();
 
-    this.setUpDraw({ size, center: mapDimensions(size, v => v / 2) });
+    this.setUpDraw({ size });
   }
 
   /**

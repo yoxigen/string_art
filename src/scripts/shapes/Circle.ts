@@ -8,7 +8,7 @@ import easing from '../helpers/easing';
 import { distortionToAspectRatio, PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
-import { fitInside } from '../helpers/size_utils';
+import { fitInside, getCenter } from '../helpers/size_utils';
 import { Shape } from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 
@@ -134,9 +134,8 @@ export default class Circle extends Shape {
         angleStart,
         angleEnd,
       } = config;
-      const center = configCenter ?? size.map(v => v / 2);
-      const clampedRadius =
-        (radius ?? Math.min(...size.map(v => v / 2))) - margin;
+      const center = configCenter ?? getCenter(size);
+      const clampedRadius = (radius ?? Math.min(...getCenter(size))) - margin;
       let xyRadius = [clampedRadius, clampedRadius];
 
       if (config.distortion) {

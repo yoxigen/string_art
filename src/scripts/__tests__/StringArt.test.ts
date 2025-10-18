@@ -6,7 +6,6 @@ import {
 import { TestRenderer } from '../renderers/TestRenderer';
 import { Dimensions } from '../types/general.types';
 import type StringArt from '../StringArt';
-import { mapDimensions } from '../helpers/size_utils';
 import { MeasureRenderer } from '../renderers/MeasureRenderer';
 
 const size: Dimensions = [1000, 1000];
@@ -65,9 +64,7 @@ describe('StringArt', () => {
         drawCount++;
       }
 
-      expect(
-        pattern.getStepCount({ size, center: mapDimensions(size, v => v / 2) })
-      ).toEqual(drawCount);
+      expect(pattern.getStepCount({ size })).toEqual(drawCount);
     }
 
     for (const pattern of patterns) {

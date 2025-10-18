@@ -1,4 +1,3 @@
-import patternTypes from '../pattern_types';
 import CanvasRenderer from '../renderers/CanvasRenderer';
 import type StringArt from '../StringArt';
 import Persistance from '../Persistance';

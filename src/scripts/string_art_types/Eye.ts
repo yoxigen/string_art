@@ -1,11 +1,12 @@
+import { createArray } from '../helpers/array_utils';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
-import { mapDimensions } from '../helpers/size_utils';
+import { getCenter } from '../helpers/size_utils';
 import Nails from '../Nails';
 import Renderer from '../renderers/Renderer';
 import StringArt from '../StringArt';
 import { Config, ControlsConfig } from '../types/config.types';
-import { Coordinates, Dimensions } from '../types/general.types';
+import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 
 type Side = 'left' | 'bottom' | 'right' | 'top';
@@ -109,8 +110,9 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
   color: Color;
 
-  getCalc({ size, center }: CalcOptions): TCalc {
+  getCalc({ size }: CalcOptions): TCalc {
     const { n, angle, layers, margin } = this.config;
+    const center = getCenter(size);
 
     const maxSize = Math.min(...size) - 2 * margin;
     const nailSpacing = maxSize / (n - 1);
@@ -138,9 +140,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       maxSize,
       nailSpacing,
       layerAngle,
-      layers: new Array(layers)
-        .fill(null)
-        .map((_, layerIndex) => getLayerProps(layerIndex)),
+      layers: createArray(layers, layerIndex => getLayerProps(layerIndex)),
       center,
     };
   }

@@ -3,7 +3,7 @@ import { ControlConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
-import { getBoundingRectAspectRatio } from '../helpers/size_utils';
+import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
 import { Shape } from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import { createArray } from '../helpers/array_utils';
@@ -126,8 +126,7 @@ export default class Polygon extends Shape {
       };
     });
 
-    const center =
-      configCenter ?? (this.config.size.map(v => v / 2) as Coordinates);
+    const center = configCenter ?? getCenter(size);
 
     const radius = Math.min(...size) / 2 - margin;
     const sideSize = 2 * radius * Math.sin(sideAngle / 2);

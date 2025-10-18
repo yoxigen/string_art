@@ -17,6 +17,7 @@ import { CalcOptions } from '../types/stringart.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
+  getCenter,
 } from '../helpers/size_utils';
 import Nails from '../Nails';
 
@@ -280,7 +281,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
       sides,
       starRadius: starRadiusConfig = 1,
     } = this.config;
-    const center = size.map(v => v / 2);
+    const center = getCenter(size);
     const radius = Math.min(...center) - margin;
     const starRadius =
       backdropSize && starRadiusConfig < backdropRadiusConfig
