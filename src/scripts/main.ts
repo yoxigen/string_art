@@ -207,6 +207,7 @@ async function main() {
     viewer.update();
 
     player.update(viewer.getStepCount(), { draw: false });
+    info.update(pattern, viewer.size);
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
     setIsDefaultConfig();

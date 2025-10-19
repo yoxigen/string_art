@@ -5,7 +5,7 @@ import {
 import EventBus from './helpers/EventBus';
 import { compareObjects } from './helpers/object_utils';
 import Nails from './Nails';
-import { MeasureRenderer } from './renderers/MeasureRenderer';
+import { MeasureRenderer, ThreadsLength } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
 import type {
   CommonConfig,
@@ -15,6 +15,7 @@ import type {
   PrimitiveValue,
 } from './types/config.types';
 import { Dimensions } from './types/general.types';
+import { PatternInfo } from './types/info.types';
 import { CalcOptions } from './types/stringart.types';
 
 const COLORS = {
@@ -192,6 +193,18 @@ abstract class StringArt<
     const renderer = new MeasureRenderer(size);
     this.draw(renderer);
     return renderer.nailCount;
+  }
+
+  getThreadLengths(size: Dimensions): ThreadsLength {
+    const renderer = new MeasureRenderer(size);
+    this.draw(renderer);
+    return renderer.threadsLength;
+  }
+
+  getInfo(size: Dimensions): PatternInfo {
+    const renderer = new MeasureRenderer(size);
+    this.draw(renderer);
+    return renderer.getInfo();
   }
 
   thumbnailConfig:

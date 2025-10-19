@@ -1,6 +1,41 @@
 #info_panel {
-  padding: 16px var(--horizontal-padding);
+  padding: 8px var(--horizontal-padding);
   overflow-y: auto;
-  border-top: solid 1px var(--border-light);
+  border-top: solid 1px var(--border-dialog);
   min-height: 300px;
+}
+
+#info_panel h4 {
+  margin-bottom: 0.5em;
+  font-weight: 400;
+}
+#info__data dt {
+  display: inline-block;
+}
+
+#info__data dt::after {
+  content: ':';
+}
+
+#info__data dd {
+  display: inline-block;
+  margin-inline-start: 1em;
+  font-weight: 500;
+}
+
+#threads_per_color {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#threads_per_color li {
+  margin-bottom: 4px;
+}
+.info__thread_color_value {
+  text-align: center;
+  transform-origin: left;
+  font-size: 10pt;
+  padding: 1px 0;
+  height: 13px;
 }
