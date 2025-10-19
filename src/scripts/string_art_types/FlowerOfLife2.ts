@@ -48,7 +48,7 @@ interface TCalc {
   globalRotationRadians: number;
   radius: number;
   ringCircle: Circle;
-  points: Points;
+  points: FlowerOfLifePoints;
 }
 
 const COLOR_CONFIG = Color.getConfig({
@@ -75,6 +75,81 @@ const COLOR_CONFIG = Color.getConfig({
     },
   ],
 });
+
+interface FlowerOfLifePointPosition {
+  level: number;
+  side: number;
+  triangleIndex: number;
+  sideIndex: number;
+  index: number;
+}
+
+class FlowerOfLifePoints {
+  #points: Float32Array;
+  #levelStartingIndex: ReadonlyArray<number>;
+  #valuesPerTriangle: number;
+
+  constructor({
+    levels,
+    pointsPerTriangleSide,
+    withCaps,
+  }: {
+    levels: number;
+    pointsPerTriangleSide: number;
+    withCaps: boolean;
+  }) {
+    /**
+     *
+     * @param level Returns the total number of triangles at a level. Level starts at 0 for the first level.
+     * @returns
+     */
+    function getTriangleSumAtLevel(level: number) {
+      return 6 * (level + 1) ** 2;
+    }
+
+    const triangleCount = getTriangleSumAtLevel(levels);
+    const capsTriangleCount = withCaps ? levels * 6 : 0;
+    this.#valuesPerTriangle = pointsPerTriangleSide * 6; // 3 sides, two coordinates for each point, so 3 * 2 = 6
+
+    // TODO: center should be added just once, so subtract 2 here, but also consider the touching edges of triangles
+
+    const numberOfSides = triangleCount * 3 + capsTriangleCount * 2;
+
+    const size = numberOfSides * pointsPerTriangleSide * 2; // Each coordinate has two values
+    this.#points = new Float32Array(size);
+    this.#levelStartingIndex = createArray(
+      levels,
+      level => getTriangleSumAtLevel(level - 1) * this.#valuesPerTriangle
+    );
+  }
+
+  #getPointPosition({
+    level,
+    side,
+    triangleIndex,
+    sideIndex,
+    index,
+  }: FlowerOfLifePointPosition): number {
+    const trianglesPerSideAtLevel = (level + 1) ** 2;
+    return (
+      this.#levelStartingIndex[level] +
+      this.#valuesPerTriangle *
+        (side * trianglesPerSideAtLevel + triangleIndex + sideIndex) +
+      index
+    );
+  }
+
+  setPoint(position: FlowerOfLifePointPosition, point: Coordinates) {
+    const index = this.#getPointPosition(position);
+    this.#points[index] = point[0];
+    this.#points[index + 1] = point[1];
+  }
+
+  getPoint(position: FlowerOfLifePointPosition): Coordinates {
+    const index = this.#getPointPosition(position);
+    return [this.#points[index], this.#points[index + 1]];
+  }
+}
 
 const ANGLE = -PI2 / 6; // The angle of a equilateral triangle;
 const SIDE_ANGLES = new Array(6)
@@ -108,7 +183,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       type: 'range',
       attr: {
         min: 1,
-
         max: 50,
         step: 1,
       },
@@ -369,60 +443,84 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
    * @param param1
    * @returns
    */
-  #getTrianglePoints(
+  #addTrianglePoints(
+    points: FlowerOfLifePoints,
     calc: Omit<TCalc, 'points'>,
     {
       center,
       rotation,
       isCapLevel,
       triangleIndexInSide,
+      level,
+      side,
     }: {
+      level: number;
+      side: number;
       center: Coordinates;
       rotation: number;
       isCapLevel: boolean;
       triangleIndexInSide: number;
     }
-  ): Coordinates[][] {
+  ): void {
     let missingSide: number;
     if (isCapLevel) {
       const triangleIndex = (triangleIndexInSide + 2) % 3;
       missingSide = this.#getNextIndexInTriangle(triangleIndex);
     }
 
+    function addPoint(triangleSide: number, index: number, point: Coordinates) {
+      points.setPoint(
+        {
+          level,
+          side,
+          triangleIndex: triangleIndexInSide,
+          sideIndex: triangleSide,
+          index,
+        },
+        point
+      );
+    }
+
     // For each side of the triangle, the first point is the center of the triangle:
-    const trianglePoints = new Array(3)
-      .fill(null)
-      .map((_, i) => (i === missingSide ? [] : [center]));
+    for (let i = 0; i < 3; i++) {
+      if (i === missingSide) {
+        addPoint(i, 0, center);
+      }
+    }
 
     for (let side = 0; side < 3; side++) {
       if (isCapLevel && side === missingSide) {
         continue;
       }
       const sideAngle = rotation + side * (PI2 / 3);
-      const triangleSidePoints = trianglePoints[side];
-
       const cosSideAngle = Math.cos(sideAngle);
       const sinSideAngle = Math.sin(sideAngle);
 
       for (let n = 1; n <= this.config.density; n++) {
         const nNailDistance = n * calc.nailDistance;
 
-        triangleSidePoints.push([
+        addPoint(side, n, [
           center[0] + nNailDistance * cosSideAngle,
           center[1] + nNailDistance * sinSideAngle,
         ]);
       }
     }
-
-    return trianglePoints;
   }
 
-  #getPoints(calc: Omit<TCalc, 'points'>, center: Coordinates): Points {
-    const { levels, renderCaps } = this.config;
+  #getPoints(
+    calc: Omit<TCalc, 'points'>,
+    center: Coordinates
+  ): FlowerOfLifePoints {
+    const { levels, renderCaps, density } = this.config;
 
     const largeDistance = calc.nailsLength;
     const smallDistance = calc.triangleHeight - largeDistance;
-    const levelsPoints: Points = [];
+
+    const points = new FlowerOfLifePoints({
+      levels,
+      withCaps: renderCaps,
+      pointsPerTriangleSide: density + 1,
+    });
 
     /**
      * Points looks like this:
@@ -434,9 +532,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
     for (let level = 0; level < levelsCount; level++) {
       const isCapLevel = renderCaps && level === levels;
-
-      const levelTrianglesPoints: Coordinates[][][] = [];
-      levelsPoints.push(levelTrianglesPoints);
 
       const levelSideTriangleCount = calc.triangleCountPerLevelSide[level];
 
@@ -463,8 +558,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
         for (let n = 0; n < levelSideTriangleCount; n++) {
           if (isCapLevel && n % 2 === 0) {
-            // Cap triangles are only odd indexes
-            levelTrianglesPoints.push(null);
             continue;
           }
 

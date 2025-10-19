@@ -15,6 +15,7 @@ import Sun from './string_art_types/Sun';
 import Lotus from './string_art_types/Lotus';
 import DanceOfPlanets from './string_art_types/DanceOfPlanets';
 import Crosses from './string_art_types/Crosses';
+import FlowerOfLife3 from './string_art_types/FlowerOfLife3';
 
 const patternTypes = [
   Star,
@@ -28,7 +29,7 @@ const patternTypes = [
   PolygonPattern,
   Flower,
   MaurerRose,
-  FlowerOfLife,
+  FlowerOfLife3,
   Comet,
   Sun,
   Lotus,
