@@ -55,6 +55,8 @@ button {
   overflow: hidden;
   background: var(--color-config);
   box-shadow: 1px 0 0px black;
+  display: flex;
+  flex-direction: column;
 }
 
 #main_header {

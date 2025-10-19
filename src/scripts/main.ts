@@ -15,6 +15,7 @@ import type DownloadDialog from './components/dialogs/download_dialog/DownloadDi
 import { findPatternById } from './helpers/pattern_utils';
 import routing from './routing';
 import { hide, unHide } from './helpers/dom_utils';
+import info from './Info';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
@@ -169,6 +170,7 @@ async function main() {
     });
 
     setIsDefaultConfig();
+    info.update(currentPattern, viewer.size);
   }
 
   function setIsDefaultConfig() {

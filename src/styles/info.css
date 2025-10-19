@@ -1,0 +1,6 @@
+#info_panel {
+  padding: 16px var(--horizontal-padding);
+  overflow-y: auto;
+  border-top: solid 1px var(--border-light);
+  min-height: 300px;
+}

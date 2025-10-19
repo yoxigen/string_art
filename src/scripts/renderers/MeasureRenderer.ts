@@ -6,6 +6,7 @@ import { TestRenderer } from './TestRenderer';
 export class MeasureRenderer extends TestRenderer {
   #threadsLength = 0;
   #nailCount = 0;
+  #lastPoint;
 
   get threadsLength(): number {
     return this.#threadsLength;
@@ -32,4 +33,10 @@ export class MeasureRenderer extends TestRenderer {
     const nailCircumference = PI2 * radius * 2; // Assuming two rounds around each nail, to be on the safe side when measuring total thread length
     this.#threadsLength += nails.length * nailCircumference;
   }
+
+  setStartingPoint(coordinates: Coordinates): void {
+    this.#lastPoint = coordinates;
+  }
+
+  lineTo(to: Coordinates): void {}
 }
