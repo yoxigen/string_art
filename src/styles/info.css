@@ -1,13 +1,16 @@
 #info_panel {
   padding: 8px var(--horizontal-padding);
   overflow-y: auto;
-  border-top: solid 1px var(--border-dialog);
-  min-height: 300px;
+  border-top: var(--border-dialog);
+  min-height: 350px;
 }
 
 #info_panel h4 {
   margin-bottom: 0.5em;
   font-weight: 400;
+}
+#info_panel label {
+  margin-bottom: 4px;
 }
 #info__data dt {
   display: inline-block;

@@ -111,14 +111,26 @@ export default class Circle extends Shape {
   getBoundingRect(): BoundingRect {
     const { n, rotation } = this.config;
 
-    const polygon = new Polygon({
-      sides: n,
-      rotation,
-      size: [this.radius * 2, this.radius * 2],
-      nailsPerSide: 1,
-    });
+    if (n < 16) {
+      const polygon = new Polygon({
+        sides: n,
+        rotation,
+        size: [this.radius * 2, this.radius * 2],
+        nailsPerSide: 1,
+        center: this.center,
+      });
 
-    return polygon.getBoundingRect();
+      return polygon.getBoundingRect();
+    }
+
+    return {
+      top: this.center[1] - this.xyRadius[1],
+      left: this.center[0] - this.xyRadius[0],
+      right: this.center[0] + this.xyRadius[0],
+      bottom: this.center[1] + this.xyRadius[1],
+      width: this.xyRadius[0] * 2,
+      height: this.xyRadius[1] * 2,
+    };
   }
 
   setConfig(config: CircleConfig): void {

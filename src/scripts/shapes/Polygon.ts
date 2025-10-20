@@ -208,7 +208,7 @@ export default class Polygon extends Shape {
   }
 
   getBoundingRect(): BoundingRect {
-    const points = this.#calc.sides.map((_, side) =>
+    const points = createArray(this.config.sides, side =>
       this.getSidePoint({ side, index: 0 })
     );
     const firstPoint = points[0];

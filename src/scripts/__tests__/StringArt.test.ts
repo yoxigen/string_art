@@ -11,7 +11,7 @@ import { MeasureRenderer } from '../renderers/MeasureRenderer';
 const size: Dimensions = [1000, 1000];
 
 describe('StringArt', () => {
-  describe('draw patterns', () => {
+  describe('patterns', () => {
     const patterns = getAllPatternsTypes();
 
     for (const pattern of patterns) {
@@ -40,6 +40,10 @@ describe('StringArt', () => {
             testId++;
           }
         }
+      });
+
+      test(`getAspectRatio ${pattern.name}`, () => {
+        expect(pattern.getAspectRatio({ size })).not.toBeNaN();
       });
     }
   });

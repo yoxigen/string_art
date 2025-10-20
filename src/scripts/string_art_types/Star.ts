@@ -160,7 +160,6 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     const { circle, star } = this.getCalc(options);
     const circleRect = circle.getBoundingRect();
     const starRect = star.getBoundingRect();
-
     const width = Math.max(circleRect.width, starRect.width);
     const height = Math.max(circleRect.height, starRect.height);
 

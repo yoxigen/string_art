@@ -170,7 +170,7 @@ async function main() {
     });
 
     setIsDefaultConfig();
-    info.update(currentPattern, viewer.size);
+    info.update(viewer.size);
   }
 
   function setIsDefaultConfig() {
@@ -207,7 +207,7 @@ async function main() {
     viewer.update();
 
     player.update(viewer.getStepCount(), { draw: false });
-    info.update(pattern, viewer.size);
+    info.setPattern(pattern, viewer.size);
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
     setIsDefaultConfig();

@@ -131,10 +131,24 @@
           <div id="controls"></div>
         </div>
         <div id="info_panel" class="pattern_only">
+          <label for="info_dimensions">Size:</label>
+          <dimensions-input
+            id="info_dimensions"
+            floating-points="1"
+            min-width="5"
+            min-height="5"
+            max-width="200"
+            max-height="200"
+          ></dimensions-input>
+          cm
           <dl id="info__data">
             <div>
-              <dt>🔨 Nails count</dt>
+              <dt>Nails count</dt>
               <dd><span id="nails_count"></span></dd>
+            </div>
+            <div>
+              <dt>Max density</dt>
+              <dd id="closest_distance_between_nails"></dd>
             </div>
             <h4>🧵 Thread length</h4>
             <div>

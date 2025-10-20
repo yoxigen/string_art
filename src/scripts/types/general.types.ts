@@ -11,3 +11,4 @@ export interface BoundingRect {
   width: number;
   height: number;
 }
+export type MetricLengthUnits = 'mm' | 'cm' | 'm';

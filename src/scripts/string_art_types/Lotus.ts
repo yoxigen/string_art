@@ -62,11 +62,11 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       key: 'density',
       label: 'Density',
       type: 'range',
-      defaultValue: 222,
+      defaultValue: 15,
       attr: {
         min: 1,
-        max: 500,
-        step: ({ sides }) => sides,
+        max: 30,
+        step: 1,
       },
       isStructural: true,
     },
@@ -165,7 +165,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     let radius = (Math.min(...size) * d) / 2;
 
     const sideAngle = PI2 / sides;
-    const densityNailCount = fixNailsCount(density);
+    const densityNailCount = density * sides;
     const baseCircleConfig: CircleConfig = {
       n: densityNailCount,
       center: [0, 0],
@@ -197,7 +197,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
         2 * radius * Math.sin((Math.PI - angleStart) / 2);
       const fitAspectRatio = (2 * radius - margin) / topSectionHeight;
       baseCircleConfig.n = removeSectionsNailCount(
-        fixNailsCount(density * fitAspectRatio),
+        fixNailsCount(densityNailCount * fitAspectRatio),
         petalSectionsToRemove
       );
       radius *= fitAspectRatio;
@@ -459,7 +459,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
   }
 
   thumbnailConfig = ({ density }) => ({
-    density: Math.min(density, 70),
+    density: Math.min(density, 3),
   });
 }
 

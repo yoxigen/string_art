@@ -13,4 +13,5 @@ export type ThreadsLength = {
 export interface PatternInfo {
   nailsCount: number;
   threadsLength: ThreadsLength;
+  closestDistanceBetweenNails: number;
 }

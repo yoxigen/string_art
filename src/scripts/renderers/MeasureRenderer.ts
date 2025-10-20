@@ -1,5 +1,9 @@
 import { ColorValue } from '../helpers/color/color.types';
-import { getDistanceBetweenCoordinates, PI2 } from '../helpers/math_utils';
+import {
+  getClosestDistance,
+  getDistanceBetweenCoordinates,
+  PI2,
+} from '../helpers/math_utils';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { PatternInfo } from '../types/info.types';
 import { Nail, NailsRenderOptions } from '../types/stringart.types';
@@ -16,10 +20,12 @@ export class MeasureRenderer extends TestRenderer {
   #lastPoint: Coordinates;
   #currentColor: ColorValue;
   #threadsLengthPerColor: Map<ColorValue, number>;
+  #nailCoords: Coordinates[];
 
   constructor(size: Dimensions) {
     super(size);
     this.#threadsLengthPerColor = new Map();
+    this.#nailCoords = [];
   }
 
   get threadsLength(): ThreadsLength {
@@ -37,6 +43,7 @@ export class MeasureRenderer extends TestRenderer {
 
   resetStrings(): void {
     this.#threadsLength = 0;
+    this.#threadsLengthPerColor = new Map();
   }
 
   renderLine(from: Coordinates, to: Coordinates): void {
@@ -51,12 +58,14 @@ export class MeasureRenderer extends TestRenderer {
 
   resetNails(): void {
     this.#nailCount = 0;
+    this.#nailCoords = [];
   }
 
   renderNails(nails: Nail[], { radius }: NailsRenderOptions) {
     this.#nailCount += nails.length;
     const nailCircumference = PI2 * radius * 2; // Assuming two rounds around each nail, to be on the safe side when measuring total thread length
     this.#threadsLength += nails.length * nailCircumference;
+    this.#nailCoords = this.#nailCoords.concat(nails.map(({ point }) => point));
   }
 
   setStartingPoint(coordinates: Coordinates): void {
@@ -82,6 +91,7 @@ export class MeasureRenderer extends TestRenderer {
     return {
       nailsCount: this.#nailCount,
       threadsLength: this.threadsLength,
+      closestDistanceBetweenNails: getClosestDistance(this.#nailCoords),
     };
   }
 }
