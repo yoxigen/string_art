@@ -19,14 +19,16 @@
       'controls';
   }
 
-  .dialog_sidebar_form main {
+  .dialog_sidebar_form main,
+  .dialog_info main {
     grid-template-rows: var(--select-height) 100vw;
     grid-template-areas:
       'pattern_select'
       'canvas';
   }
 
-  body[data-pattern].dialog_sidebar_form main {
+  body[data-pattern].dialog_sidebar_form main,
+  body[data-pattern].dialog_info main {
     grid-template-columns: 1fr;
     grid-template-rows: var(--select-height) 100vw 1fr var(--controls-height);
     grid-template-areas:
@@ -34,6 +36,10 @@
       'canvas'
       'config'
       'controls';
+  }
+
+  body[data-pattern].dialog_info main {
+    grid-template-rows: var(--select-height) 60vw 1fr var(--controls-height);
   }
 
   #main_header {
@@ -55,7 +61,8 @@
     display: block;
   }
 
-  .dialog_sidebar_form #player {
+  .dialog_sidebar_form #player,
+  .dialog_info #player {
     display: none !important;
   }
 
@@ -75,5 +82,10 @@
 @media only screen and (min-width: 601px) {
   .large_only {
     display: inherit !important;
+  }
+
+  #info {
+    position: relative;
+    top: 400px;
   }
 }

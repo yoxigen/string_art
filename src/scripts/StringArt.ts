@@ -15,7 +15,6 @@ import type {
   PrimitiveValue,
 } from './types/config.types';
 import { Dimensions } from './types/general.types';
-import { PatternInfo } from './types/info.types';
 import { CalcOptions } from './types/stringart.types';
 
 const COLORS = {
@@ -199,12 +198,6 @@ abstract class StringArt<
     const renderer = new MeasureRenderer(size);
     this.draw(renderer);
     return renderer.threadsLength;
-  }
-
-  getInfo(size: Dimensions): PatternInfo {
-    const renderer = new MeasureRenderer(size);
-    this.draw(renderer);
-    return renderer.getInfo();
   }
 
   thumbnailConfig:

@@ -1,9 +1,14 @@
 import DimensionsInput from './components/inputs/DimensionsInput';
 import { fitInside, prettifyLength } from './helpers/size_utils';
+import { MeasureRenderer } from './renderers/MeasureRenderer';
 import StringArt from './StringArt';
 import { Dimensions } from './types/general.types';
+import { PatternInfo } from './types/info.types';
+import 'scheduler-polyfill';
 
 const DEFAULT_TARGET_SIZE_CM: Dimensions = [30, 30];
+
+let controller: TaskController;
 
 class Info {
   elements: {
@@ -15,9 +20,11 @@ class Info {
     dimensions: DimensionsInput;
   };
 
-  targetSizeCm: Dimensions = [30, 30];
+  targetSizeCm: Dimensions = DEFAULT_TARGET_SIZE_CM;
   pattern: StringArt;
   lastSize: Dimensions;
+  patternMargin: number;
+  patternNailRadius: number;
 
   constructor() {
     this.elements = {
@@ -40,46 +47,61 @@ class Info {
       }>) => {
         this.targetSizeCm = dimensions;
         if (this.pattern) {
-          this.update(this.lastSize);
+          this.update();
         }
       }
     );
+
+    const sizeDisplay = document.querySelector('#info_size_range_display');
+    document.querySelector('#info_size_range').addEventListener('input', e => {
+      const value = Number(e.target.value);
+      this.targetSizeCm = [value, value];
+      sizeDisplay.textContent = this.targetSizeCm.join('x') + 'cm';
+      this.update();
+    });
   }
 
   setPattern(pattern: StringArt, size: Dimensions) {
-    this.pattern = pattern;
-    this.targetSizeCm = DEFAULT_TARGET_SIZE_CM;
-    this.update(size);
+    this.pattern = pattern.copy();
+    this.lastSize = size;
+    this.patternMargin = pattern.config.margin;
+    this.patternNailRadius = pattern.config.nailRadius;
+    this.update();
   }
 
-  update(size: Dimensions) {
+  async update() {
     if (!this.pattern) {
       throw new Error("Can't update info - no pattern.");
     }
 
-    this.lastSize = size;
+    controller?.abort();
 
-    const aspectRatio = this.pattern.getAspectRatio({ size });
-    const fittedPatternSize = fitInside([aspectRatio, 1], size);
-
-    this.elements.dimensions.aspectRatio = aspectRatio;
-    this.elements.dimensions.value = fitInside(
-      fittedPatternSize,
-      this.targetSizeCm
+    const fittedSize = fitInside(this.lastSize, this.targetSizeCm);
+    const sizeRatio = Math.min(
+      fittedSize[0] / this.lastSize[0],
+      fittedSize[1] / this.lastSize[1]
     );
 
+    this.pattern.assignConfig({
+      margin: this.patternMargin * sizeRatio,
+      nailRadius: this.patternNailRadius * sizeRatio,
+    });
+
+    this.elements.dimensions.value = this.targetSizeCm;
+
+    controller = new TaskController({ priority: 'background' });
+
     const { nailsCount, threadsLength, closestDistanceBetweenNails } =
-      this.pattern.getInfo(size);
+      await scheduler.postTask(() => this.getInfo(this.targetSizeCm), {
+        signal: controller.signal,
+      });
 
     this.elements.nailsCount.textContent = nailsCount.toLocaleString();
     this.elements.threadsTotalLength.textContent = String(
-      this.#threadLengthToDistance(threadsLength.total, fittedPatternSize)
+      this.#threadLengthToDistance(threadsLength.total)
     );
     this.elements.closestDistanceBetweenNails.textContent = String(
-      this.#threadLengthToDistance(
-        closestDistanceBetweenNails,
-        fittedPatternSize
-      )
+      this.#threadLengthToDistance(closestDistanceBetweenNails)
     );
     this.elements.threadsPerColor.innerHTML = '';
 
@@ -91,10 +113,7 @@ class Info {
       const colorEl = document.createElement('li');
       const colorValueEl = document.createElement('div');
       colorEl.appendChild(colorValueEl);
-      colorValueEl.innerText = this.#threadLengthToDistance(
-        length,
-        fittedPatternSize
-      );
+      colorValueEl.innerText = this.#threadLengthToDistance(length);
       colorValueEl.style.background = color;
       colorValueEl.className = 'info__thread_color_value';
       colorValueEl.style.transform = `scaleX(${length / maxColorLength})`;
@@ -106,13 +125,18 @@ class Info {
    *
    * @param length Converts a pixel length unit to physical distance units
    */
-  #threadLengthToDistance(length: number, sourceSize: Dimensions): string {
-    const fittedSize = fitInside(sourceSize, this.targetSizeCm);
-    const ratio = Math.min(
-      fittedSize[0] / sourceSize[0],
-      fittedSize[1] / sourceSize[1]
-    );
+  #threadLengthToDistance(length: number, ratio = 1): string {
     return prettifyLength(length * ratio, 'cm');
+  }
+
+  getInfo(size: Dimensions): PatternInfo {
+    const renderer = new MeasureRenderer(size);
+    this.pattern.draw(renderer, {
+      sizeChanged: true,
+      redrawStrings: true,
+      redrawNails: true,
+    });
+    return renderer.getInfo();
   }
 }
 

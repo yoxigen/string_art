@@ -1,15 +1,23 @@
-#info_panel {
+#info {
   padding: 8px var(--horizontal-padding);
   overflow-y: auto;
   border-top: var(--border-dialog);
   min-height: 350px;
+  display: none;
+  grid-area: config;
+  background: var(--color-config);
+  z-index: 10;
 }
 
-#info_panel h4 {
+#info.open {
+  display: block;
+}
+
+#info h4 {
   margin-bottom: 0.5em;
   font-weight: 400;
 }
-#info_panel label {
+#info label {
   margin-bottom: 4px;
 }
 #info__data dt {

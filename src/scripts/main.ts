@@ -30,6 +30,7 @@ async function main() {
     resetBtn: document.querySelector('#reset_btn'),
     shareBtn: document.querySelector('#share_btn'),
     playerBtn: document.querySelector('#player_btn'),
+    infoBtn: document.querySelector('#info_btn'),
     buttons: document.querySelector('#buttons'),
     instructionsLink: document.querySelector(
       '#pattern_select_dropdown_instructions'
@@ -42,6 +43,8 @@ async function main() {
   let controls: EditorControls<any>;
 
   let currentPattern: Pattern;
+  let showInfo = false;
+
   const viewer = new Viewer();
   const player = new Player(document.querySelector('#player'), viewer);
 
@@ -97,6 +100,13 @@ async function main() {
         toggledElement.classList.toggle('open');
         document.body.classList.toggle('dialog_' + dialogId);
         currentPattern && viewer.update();
+      }
+
+      if (dialogId === 'info') {
+        showInfo = toggleBtn.classList.contains('active');
+        if (showInfo) {
+          info.setPattern(currentPattern, viewer.size);
+        }
       }
     }
   });
@@ -170,7 +180,9 @@ async function main() {
     });
 
     setIsDefaultConfig();
-    info.update(viewer.size);
+    if (showInfo) {
+      info.setPattern(currentPattern, viewer.size);
+    }
   }
 
   function setIsDefaultConfig() {
@@ -207,7 +219,9 @@ async function main() {
     viewer.update();
 
     player.update(viewer.getStepCount(), { draw: false });
-    info.setPattern(pattern, viewer.size);
+    if (showInfo) {
+      info.setPattern(pattern, viewer.size);
+    }
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
     setIsDefaultConfig();

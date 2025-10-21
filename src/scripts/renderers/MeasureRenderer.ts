@@ -14,6 +14,8 @@ export type ThreadsLength = {
   perColor: ReadonlyArray<{ color: ColorValue; length: number }>;
 };
 
+const DEFAULT_NAIL_RADIUS = 1.5;
+
 export class MeasureRenderer extends TestRenderer {
   #threadsLength = 0;
   #nailCount = 0;
@@ -21,11 +23,13 @@ export class MeasureRenderer extends TestRenderer {
   #currentColor: ColorValue;
   #threadsLengthPerColor: Map<ColorValue, number>;
   #nailCoords: Coordinates[];
+  #nailThreadLength: number;
 
   constructor(size: Dimensions) {
     super(size);
     this.#threadsLengthPerColor = new Map();
     this.#nailCoords = [];
+    this.#nailThreadLength = this.#getNailThreadLength(DEFAULT_NAIL_RADIUS);
   }
 
   get threadsLength(): ThreadsLength {
@@ -47,8 +51,9 @@ export class MeasureRenderer extends TestRenderer {
   }
 
   renderLine(from: Coordinates, to: Coordinates): void {
-    const lineLength = getDistanceBetweenCoordinates(from, to);
-    this.#threadsLength += getDistanceBetweenCoordinates(from, to);
+    const lineLength =
+      getDistanceBetweenCoordinates(from, to) + this.#nailThreadLength;
+    this.#threadsLength += lineLength;
     this.#threadsLengthPerColor.set(
       this.#currentColor,
       this.#threadsLengthPerColor.get(this.#currentColor) + lineLength
@@ -63,8 +68,8 @@ export class MeasureRenderer extends TestRenderer {
 
   renderNails(nails: Nail[], { radius }: NailsRenderOptions) {
     this.#nailCount += nails.length;
-    const nailCircumference = PI2 * radius * 2; // Assuming two rounds around each nail, to be on the safe side when measuring total thread length
-    this.#threadsLength += nails.length * nailCircumference;
+    this.#nailThreadLength = this.#getNailThreadLength(radius);
+
     this.#nailCoords = this.#nailCoords.concat(nails.map(({ point }) => point));
   }
 
@@ -93,5 +98,10 @@ export class MeasureRenderer extends TestRenderer {
       threadsLength: this.threadsLength,
       closestDistanceBetweenNails: getClosestDistance(this.#nailCoords),
     };
+  }
+
+  #getNailThreadLength(nailRadius: number): number {
+    // Assuming two rounds around each nail, to be on the safe side when measuring total thread length
+    return PI2 * nailRadius * 2;
   }
 }

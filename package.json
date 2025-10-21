@@ -50,5 +50,8 @@
       "distDir": "./dist",
       "publicUrl": "./"
     }
+  },
+  "dependencies": {
+    "scheduler-polyfill": "^1.3.0"
   }
 }

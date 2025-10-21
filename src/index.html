@@ -130,36 +130,38 @@
         <div id="controls_panel" class="pattern_only">
           <div id="controls"></div>
         </div>
-        <div id="info_panel" class="pattern_only">
-          <label for="info_dimensions">Size:</label>
-          <dimensions-input
-            id="info_dimensions"
-            floating-points="1"
-            min-width="5"
-            min-height="5"
-            max-width="200"
-            max-height="200"
-          ></dimensions-input>
-          cm
-          <dl id="info__data">
-            <div>
-              <dt>Nails count</dt>
-              <dd><span id="nails_count"></span></dd>
-            </div>
-            <div>
-              <dt>Max density</dt>
-              <dd id="closest_distance_between_nails"></dd>
-            </div>
-            <h4>🧵 Thread length</h4>
-            <div>
-              <dt>Total</dt>
-              <dd><span id="threads_total_length"></span></dd>
-            </div>
-          </dl>
-          <h4>Per color:</h4>
-          <ul id="threads_per_color"></ul>
-        </div>
       </form>
+      <div id="info" class="pattern_only noprint">
+        <label for="info_dimensions">Size:</label>
+        <dimensions-input
+          id="info_dimensions"
+          floating-points="1"
+          min-width="5"
+          min-height="5"
+          max-width="200"
+          max-height="200"
+        ></dimensions-input>
+        cm
+        <input type="range" id="info_size_range" min="20" max="200" step="10" />
+        <span id="info_size_range_display"></span>
+        <dl id="info__data">
+          <div>
+            <dt>Nails count</dt>
+            <dd><span id="nails_count"></span></dd>
+          </div>
+          <div>
+            <dt>Max density</dt>
+            <dd id="closest_distance_between_nails"></dd>
+          </div>
+          <h4>🧵 Thread length</h4>
+          <div>
+            <dt>Total</dt>
+            <dd><span id="threads_total_length"></span></dd>
+          </div>
+        </dl>
+        <h4>Per color:</h4>
+        <ul id="threads_per_color"></ul>
+      </div>
       <article id="canvas_panel" class="pattern_only"></article>
       <nav id="player" class="noprint pattern_only">
         <div id="player_controls">
@@ -221,6 +223,15 @@
           title="Reset config to default"
         >
           <i class="icon-refresh"></i>
+        </button>
+        <button
+          type="button"
+          id="info_btn"
+          class="circular_btn"
+          title="Info"
+          data-toggle-for="info"
+        >
+          <i class="icon-info">i</i>
         </button>
       </footer>
       <download-dialog id="download_dialog"> </download-dialog>
