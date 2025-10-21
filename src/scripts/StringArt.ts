@@ -16,6 +16,7 @@ import type {
 } from './types/config.types';
 import { Dimensions } from './types/general.types';
 import { CalcOptions } from './types/stringart.types';
+import 'scheduler-polyfill';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -30,7 +31,6 @@ export interface DrawOptions {
   redrawNails?: boolean;
   redrawStrings?: boolean;
   bufferSize?: number;
-  bufferFrom?: number;
   sizeChanged?: boolean;
 }
 
@@ -178,6 +178,7 @@ abstract class StringArt<
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
+  #controller: TaskController;
 
   constructor() {
     super();
@@ -392,23 +393,48 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
-
     this.setUpDraw({ size });
+  }
+
+  draw(
+    renderer: Renderer,
+    options: { position?: number; enableScheduler?: boolean } & DrawOptions = {}
+  ): () => void {
+    if (!options.enableScheduler) {
+      this.#draw(renderer, options);
+      return () => {};
+    }
+
+    if (this.#controller && !this.#controller.signal.aborted) {
+      this.#controller.abort('Redraw');
+    }
+
+    this.#controller = new TaskController({ priority: 'background' });
+    this.#controller.signal.addEventListener('abort', e =>
+      console.log('ABORTED ' + e)
+    );
+    scheduler
+      .postTask(() => this.#draw(renderer, options), {
+        signal: this.#controller.signal,
+      })
+      .catch(reason => {});
+
+    return () => {
+      this.#controller?.abort('Cancelled');
+    };
   }
 
   /**
    * Draws the string art on the renderer
    */
-  draw(
+  #draw(
     renderer: Renderer,
     {
       position,
       bufferSize,
-      bufferFrom,
       ...drawOptions
     }: { position?: number } & DrawOptions = {}
   ): () => void {
-    let abortController = new AbortController();
     this.initDraw(renderer, drawOptions);
 
     const {
@@ -442,7 +468,7 @@ abstract class StringArt<
       let chunkId = 0;
 
       const drawBuffer = bufferSize
-        ? () => {
+        ? async () => {
             chunkId++;
 
             let i = 0;
@@ -453,15 +479,16 @@ abstract class StringArt<
               !(isDone =
                 this.drawNext().done ||
                 (position != null && this.position >= position) ||
-                abortController.signal.aborted)
+                this.#controller.signal.aborted)
             ) {
               i++;
             }
 
             if (!isDone) {
-              // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
-              // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
-              setTimeout(drawBuffer, 0);
+              this.#controller = new TaskController({ priority: 'background' });
+              await scheduler.postTask(drawBuffer, {
+                signal: this.#controller.signal,
+              });
             }
           }
         : () => {
@@ -471,11 +498,16 @@ abstract class StringArt<
             );
           };
 
-      drawBuffer();
+      if (bufferSize) {
+        this.#controller = new TaskController({ priority: 'background' });
+        scheduler.postTask(drawBuffer, { signal: this.#controller.signal });
+      } else {
+        drawBuffer();
+      }
     }
 
     return () => {
-      abortController.abort();
+      this.#controller?.abort('Cancelled');
     };
   }
 

@@ -459,7 +459,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
   }
 
   thumbnailConfig = ({ density }) => ({
-    density: Math.min(density, 3),
+    density: Math.min(density, 5),
   });
 }
 
