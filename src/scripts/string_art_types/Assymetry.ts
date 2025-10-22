@@ -141,8 +141,8 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     },
   ];
 
-  getAspectRatio(calcOptions: CalcOptions): number {
-    const calc = this.getCalc(calcOptions);
+  getAspectRatio(): number {
+    const calc = this.calc ?? this.getCalc({ size: [100, 100] });
     return calc.circle.getAspectRatio();
   }
 
