@@ -75,6 +75,8 @@ class Info {
           `<option value="${DEFAULT_SIZES_CM[i]}">${size.join('x')} cm`
       )
       .join('\n');
+
+    this.elements.dimensionsSelect.value = this.targetSizeCm[0].toString();
   }
 
   setPattern(pattern: StringArt, size: Dimensions) {
