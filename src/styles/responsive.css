@@ -85,7 +85,8 @@
   }
 
   #info {
-    position: relative;
-    top: 400px;
+    grid-area: info;
+    border-right: var(--border-light);
+    box-shadow: 0 -2px 6px rgb(0 0 0 / 30%);
   }
 }

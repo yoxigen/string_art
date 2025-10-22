@@ -134,9 +134,9 @@ class Info {
         colorEl.appendChild(colorValueEl);
         colorValueEl.style.background = color;
         colorValueEl.className = 'info__thread_color_value';
-        colorValueEl.style.width = `calc(${
+        colorValueEl.style.width = `max(calc(${
           (100 * length) / maxColorLength
-        }% - 70px)`;
+        }% - 70px), 6px)`;
 
         const colorValueDisplay = document.createElement('span');
         colorValueDisplay.innerText = this.#threadLengthToDistance(length);

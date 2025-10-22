@@ -132,6 +132,7 @@
         </div>
       </form>
       <div id="info" class="pattern_only noprint">
+        <h3 class="small_title">Info</h3>
         <label for="info_dimensions_select">Size:</label>
         <select id="info_dimensions_select"></select>
         <dimensions-input
@@ -152,7 +153,7 @@
           hidden
         />
         <span id="info_size_range_display"></span>
-        <dl id="info__data">
+        <dl class="info__data">
           <div>
             <dt>Nails count</dt>
             <dd><span id="nails_count"></span></dd>
@@ -161,13 +162,13 @@
             <dt>Max density</dt>
             <dd id="closest_distance_between_nails"></dd>
           </div>
-          <h4>🧵 Thread length</h4>
-          <div>
-            <dt>Total</dt>
-            <dd><span id="threads_total_length"></span></dd>
-          </div>
         </dl>
-        <h4>Per color:</h4>
+        <h4>Thread length 🧵</h4>
+        <dl class="info__data">
+          <dt>Total length</dt>
+          <dd><span id="threads_total_length"></span></dd>
+        </dl>
+        <h5>Length per color:</h5>
         <ul id="threads_per_color"></ul>
       </div>
       <article id="canvas_panel" class="pattern_only"></article>
@@ -232,15 +233,15 @@
         >
           <i class="icon-refresh"></i>
         </button>
-        <!-- <button
+        <button
           type="button"
           id="info_btn"
           class="circular_btn"
           title="Info"
           data-toggle-for="info"
         >
-          <i class="icon-info">i</i>
-        </button> -->
+          <span class="info_icon">i</span>
+        </button>
       </footer>
       <download-dialog id="download_dialog"> </download-dialog>
       <article id="mobile_menu">

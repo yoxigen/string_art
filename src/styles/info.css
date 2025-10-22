@@ -1,12 +1,11 @@
 #info {
-  padding: 8px var(--horizontal-padding);
+  padding: 16px var(--horizontal-padding) 8px;
   overflow-y: auto;
   border-top: var(--border-dialog);
   min-height: 350px;
   display: none;
   grid-area: config;
   background: var(--color-config);
-  z-index: 10;
 }
 
 #info.open {
@@ -14,23 +13,40 @@
 }
 
 #info h4 {
+  margin-bottom: 0.7em;
+  font-weight: 400;
+  padding-bottom: 4px;
+  border-bottom: var(--border-dialog);
+}
+
+#info h5 {
+  margin-top: 1em;
   margin-bottom: 0.5em;
   font-weight: 400;
 }
+
 #info label {
   margin-bottom: 4px;
 }
-#info__data dt {
+
+.info__data {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.info__data dt {
   display: inline-block;
 }
 
-#info__data dt::after {
+.info__data > div {
+  margin-bottom: 4px;
+}
+.info__data dt::after {
   content: ':';
 }
 
-#info__data dd {
+.info__data dd {
   display: inline-block;
-  margin-inline-start: 1em;
+  margin-inline-start: 4px;
   font-weight: 500;
 }
 
@@ -41,7 +57,7 @@
 }
 
 #threads_per_color li {
-  margin-bottom: 2px;
+  margin-bottom: 0;
   white-space: nowrap;
 }
 
@@ -49,8 +65,7 @@
   text-align: center;
   transform-origin: left;
   font-size: 10pt;
-  padding: 1px 0;
-  height: 14px;
+  height: 12px;
   border: solid 1px rgba(255, 255, 255, 0.1);
   display: inline-block;
   margin-inline-end: 4px;
