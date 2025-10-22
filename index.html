@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang=en><script type=importmap>{"imports":{"4MJz9":"./string_art_studio.1b94de2f.woff","84IIk":"./string_art_studio.fdd2d459.ttf","fiZTa":"./string_art_studio.54ea39b0.svg"}}</script><title>String Art Studio</title><link rel=stylesheet href=string_art.ddc780b5.css><script type=module src=string_art.7c3b7732.js></script><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Yossi Kolesnicov"><meta name=description content="An app to design and help produce string art projects"><meta name=theme-color content=#262629><link rel=icon type=image/png href=favicon-16.2f1470d8.png sizes=16x16><link rel=icon type=image/png href=favicon-32.c9a5c761.png sizes=32x32><link rel=icon type=image/png href=favicon-96.f47611a0.png sizes=96x96><link rel=apple-touch-icon-precomposed type=image/png href=favicon-152.c9bfea9e.png sizes=152x152><link rel=icon type=image/png href=favicon-196.815ccb95.png sizes=196x196><link rel=manifest href=manifest.webmanifest><script async src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-1QTWZCWLPY");</script><body class=dialog_sidebar_form>
+<!DOCTYPE html><html lang=en><script type=importmap>{"imports":{"4MJz9":"./string_art_studio.1b94de2f.woff","84IIk":"./string_art_studio.fdd2d459.ttf","fiZTa":"./string_art_studio.54ea39b0.svg"}}</script><title>String Art Studio</title><link rel=stylesheet href=string_art.2fcc6f75.css><script type=module src=string_art.bd09d86f.js></script><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Yossi Kolesnicov"><meta name=description content="An app to design and help produce string art projects"><meta name=theme-color content=#262629><link rel=icon type=image/png href=favicon-16.2f1470d8.png sizes=16x16><link rel=icon type=image/png href=favicon-32.c9a5c761.png sizes=32x32><link rel=icon type=image/png href=favicon-96.f47611a0.png sizes=96x96><link rel=apple-touch-icon-precomposed type=image/png href=favicon-152.c9bfea9e.png sizes=152x152><link rel=icon type=image/png href=favicon-196.815ccb95.png sizes=196x196><link rel=manifest href=manifest.webmanifest><script async src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-1QTWZCWLPY");</script><body class=dialog_sidebar_form>
     <main hidden data-is-template=unknown data-is-default-config=unknown>
       <header id=main_header>
         <h1>
@@ -46,6 +46,31 @@
           <div id=controls></div>
         </div>
       </form>
+      <div id=info class="noprint pattern_only">
+        <h3 class=small_title>Info</h3>
+        <label for=info_dimensions_select>Size:</label>
+        <select id=info_dimensions_select></select>
+        <dimensions-input id=info_dimensions floating-points=1 min-width=5 min-height=5 max-width=200 max-height=200 hidden></dimensions-input>
+        <input type=range id=info_size_range min=20 max=200 step=10 hidden>
+        <span id=info_size_range_display></span>
+        <dl class=info__data>
+          <div>
+            <dt>Nails count</dt>
+            <dd><span id=nails_count></span></dd>
+          </div>
+          <div>
+            <dt>Max density</dt>
+            <dd id=closest_distance_between_nails></dd>
+          </div>
+        </dl>
+        <h4>Thread length 🧵</h4>
+        <dl class=info__data>
+          <dt>Total length</dt>
+          <dd><span id=threads_total_length></span></dd>
+        </dl>
+        <h5>Length per color:</h5>
+        <ul id=threads_per_color></ul>
+      </div>
       <article id=canvas_panel class=pattern_only></article>
       <nav id=player class="noprint pattern_only">
         <div id=player_controls>
@@ -81,6 +106,7 @@
         <button type=button id=reset_btn class=circular_btn title="Reset config to default">
           <i class=icon-refresh></i>
         </button>
+        
       </footer>
       <download-dialog id=download_dialog> </download-dialog>
       <article id=mobile_menu>
