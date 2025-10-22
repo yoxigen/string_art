@@ -15,6 +15,7 @@ import type DownloadDialog from './components/dialogs/download_dialog/DownloadDi
 import { findPatternById } from './helpers/pattern_utils';
 import routing from './routing';
 import { hide, unHide } from './helpers/dom_utils';
+import info from './Info';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
@@ -29,6 +30,7 @@ async function main() {
     resetBtn: document.querySelector('#reset_btn'),
     shareBtn: document.querySelector('#share_btn'),
     playerBtn: document.querySelector('#player_btn'),
+    infoBtn: document.querySelector('#info_btn'),
     buttons: document.querySelector('#buttons'),
     instructionsLink: document.querySelector(
       '#pattern_select_dropdown_instructions'
@@ -41,6 +43,8 @@ async function main() {
   let controls: EditorControls<any>;
 
   let currentPattern: Pattern;
+  let showInfo = false;
+
   const viewer = new Viewer();
   const player = new Player(document.querySelector('#player'), viewer);
 
@@ -96,6 +100,13 @@ async function main() {
         toggledElement.classList.toggle('open');
         document.body.classList.toggle('dialog_' + dialogId);
         currentPattern && viewer.update();
+      }
+
+      if (dialogId === 'info') {
+        showInfo = toggleBtn.classList.contains('active');
+        if (showInfo) {
+          info.setPattern(currentPattern, viewer.size);
+        }
       }
     }
   });
@@ -169,6 +180,9 @@ async function main() {
     });
 
     setIsDefaultConfig();
+    if (showInfo) {
+      info.setPattern(currentPattern, viewer.size);
+    }
   }
 
   function setIsDefaultConfig() {
@@ -192,6 +206,7 @@ async function main() {
         viewer.update({
           redrawNails: control.affectsNails !== false,
           redrawStrings: control.affectsStrings !== false,
+          enableScheduler: true,
         });
       }
     });
@@ -205,6 +220,9 @@ async function main() {
     viewer.update();
 
     player.update(viewer.getStepCount(), { draw: false });
+    if (showInfo) {
+      info.setPattern(pattern, viewer.size);
+    }
 
     elements.main.dataset.isTemplate = String(currentPattern.isTemplate);
     setIsDefaultConfig();

@@ -124,8 +124,8 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     });
   }
 
-  getAspectRatio(calcOptions: CalcOptions): number {
-    const calc = this.getCalc(calcOptions);
+  getAspectRatio(): number {
+    const calc = this.calc ?? this.getCalc({ size: [100, 100] });
     const boundingRect = combineBoundingRects(
       ...calc.polygons.map(p => p.getBoundingRect())
     );

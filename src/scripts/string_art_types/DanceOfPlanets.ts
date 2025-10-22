@@ -324,8 +324,8 @@ export default class DanceOfPlanets extends StringArt<
     }
   }
 
-  getAspectRatio(calcOptions: CalcOptions): number {
-    const { shape1, shape2 } = this.getCalc(calcOptions);
+  getAspectRatio(): number {
+    const { shape1, shape2 } = this.calc ?? this.getCalc({ size: [100, 100] });
     const rect1 = shape1.getBoundingRect();
     const rect2 = shape2.getBoundingRect();
 

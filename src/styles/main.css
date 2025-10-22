@@ -43,6 +43,18 @@ main {
       'config canvas'
       'controls player';
   }
+
+  body.dialog_info[data-pattern] main {
+    grid-template-rows: var(--header-height) var(--select-height) 1fr 1fr var(
+        --controls-height
+      );
+    grid-template-areas:
+      'header canvas'
+      'pattern_select canvas'
+      'config canvas'
+      'info canvas'
+      'controls player';
+  }
 }
 
 button {
@@ -55,6 +67,8 @@ button {
   overflow: hidden;
   background: var(--color-config);
   box-shadow: 1px 0 0px black;
+  display: flex;
+  flex-direction: column;
 }
 
 #main_header {
@@ -128,11 +142,18 @@ a:hover {
 }
 
 .small_title {
-  font-weight: 400;
-  font-size: 1.2em;
+  font-size: 1.4em;
   margin-top: 0;
-  color: White;
+  font-weight: 400;
+  color: var(--color-accent);
   text-shadow: 1px 1px 1px Black;
+}
+
+.info_icon {
+  font-family: Times, serif;
+  font-size: 1.2em;
+  font-style: italic;
+  font-weight: bold;
 }
 
 [data-is-template='true'] .non-template-only,

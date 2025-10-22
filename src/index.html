@@ -131,6 +131,46 @@
           <div id="controls"></div>
         </div>
       </form>
+      <div id="info" class="pattern_only noprint">
+        <h3 class="small_title">Info</h3>
+        <label for="info_dimensions_select">Size:</label>
+        <select id="info_dimensions_select"></select>
+        <dimensions-input
+          id="info_dimensions"
+          floating-points="1"
+          min-width="5"
+          min-height="5"
+          max-width="200"
+          max-height="200"
+          hidden
+        ></dimensions-input>
+        <input
+          type="range"
+          id="info_size_range"
+          min="20"
+          max="200"
+          step="10"
+          hidden
+        />
+        <span id="info_size_range_display"></span>
+        <dl class="info__data">
+          <div>
+            <dt>Nails count</dt>
+            <dd><span id="nails_count"></span></dd>
+          </div>
+          <div>
+            <dt>Max density</dt>
+            <dd id="closest_distance_between_nails"></dd>
+          </div>
+        </dl>
+        <h4>Thread length 🧵</h4>
+        <dl class="info__data">
+          <dt>Total length</dt>
+          <dd><span id="threads_total_length"></span></dd>
+        </dl>
+        <h5>Length per color:</h5>
+        <ul id="threads_per_color"></ul>
+      </div>
       <article id="canvas_panel" class="pattern_only"></article>
       <nav id="player" class="noprint pattern_only">
         <div id="player_controls">
@@ -193,6 +233,15 @@
         >
           <i class="icon-refresh"></i>
         </button>
+        <!-- <button
+          type="button"
+          id="info_btn"
+          class="circular_btn"
+          title="Info"
+          data-toggle-for="info"
+        >
+          <span class="info_icon">i</span>
+        </button> -->
       </footer>
       <download-dialog id="download_dialog"> </download-dialog>
       <article id="mobile_menu">

@@ -278,6 +278,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
   ];
 
   getAspectRatio({ size }: CalcOptions): number {
+    // TODO: Move the aspect ratio of this pattern to a config, then remove the options param from StringArt.getAspectRatio.
     return size[0] / size[1];
   }
 

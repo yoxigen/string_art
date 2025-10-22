@@ -2,8 +2,10 @@ import {
   BoundingRect,
   Coordinates,
   Dimensions,
+  MetricLengthUnits,
   SizeUnit,
 } from '../types/general.types';
+import { roundNumber } from './math_utils';
 
 export interface StandardSize {
   id: string;
@@ -194,4 +196,26 @@ export function fitInside(size1: Dimensions, size2: Dimensions): Dimensions {
  */
 export function getCenter(size: Dimensions): Coordinates {
   return mapDimensions(size, v => v / 2);
+}
+
+const METRIC_UNITS = {
+  m: 1,
+  cm: 0.01,
+  mm: 0.001,
+};
+
+export function prettifyLength(
+  length: number,
+  sourceUnits: MetricLengthUnits,
+  decimalPoints = 1
+): string {
+  const meters = length * METRIC_UNITS[sourceUnits];
+
+  if (meters >= 1) {
+    return roundNumber(meters, decimalPoints).toLocaleString() + ' m';
+  } else if (meters < 0.01) {
+    return roundNumber(meters * 1000, decimalPoints).toLocaleString() + ' mm';
+  } else {
+    return roundNumber(meters * 100, decimalPoints).toLocaleString() + ' cm';
+  }
 }

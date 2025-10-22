@@ -5,7 +5,7 @@ import {
 import EventBus from './helpers/EventBus';
 import { compareObjects } from './helpers/object_utils';
 import Nails from './Nails';
-import { MeasureRenderer } from './renderers/MeasureRenderer';
+import { MeasureRenderer, ThreadsLength } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
 import type {
   CommonConfig,
@@ -16,6 +16,7 @@ import type {
 } from './types/config.types';
 import { Dimensions } from './types/general.types';
 import { CalcOptions } from './types/stringart.types';
+import 'scheduler-polyfill';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -29,9 +30,8 @@ export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
 export interface DrawOptions {
   redrawNails?: boolean;
   redrawStrings?: boolean;
-  bufferSize?: number;
-  bufferFrom?: number;
   sizeChanged?: boolean;
+  enableScheduler?: boolean;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -178,6 +178,7 @@ abstract class StringArt<
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Config<TConfig> | null;
+  #controller: TaskController;
 
   constructor() {
     super();
@@ -192,6 +193,12 @@ abstract class StringArt<
     const renderer = new MeasureRenderer(size);
     this.draw(renderer);
     return renderer.nailCount;
+  }
+
+  getThreadLengths(size: Dimensions): ThreadsLength {
+    const renderer = new MeasureRenderer(size);
+    this.draw(renderer);
+    return renderer.threadsLength;
   }
 
   thumbnailConfig:
@@ -303,6 +310,11 @@ abstract class StringArt<
     this.calc = null;
   }
 
+  /**
+   * Base method for getCalc
+   * @param options
+   * @returns
+   */
   getCalc(options: CalcOptions): TCalc {
     return {} as TCalc;
   }
@@ -386,23 +398,43 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
-
     this.setUpDraw({ size });
+  }
+
+  draw(
+    renderer: Renderer,
+    options: { position?: number } & DrawOptions = {}
+  ): () => void {
+    if (!options.enableScheduler) {
+      this.#draw(renderer, options);
+      return () => {};
+    }
+
+    if (this.#controller && !this.#controller.signal.aborted) {
+      this.#controller.abort('Redraw');
+    }
+
+    this.#controller = new TaskController({ priority: 'background' });
+    scheduler
+      .postTask(() => this.#draw(renderer, options), {
+        signal: this.#controller.signal,
+      })
+      .catch(reason => {
+        // The controller was aborted
+      });
+
+    return () => {
+      this.#controller?.abort('Cancelled');
+    };
   }
 
   /**
    * Draws the string art on the renderer
    */
-  draw(
+  #draw(
     renderer: Renderer,
-    {
-      position,
-      bufferSize,
-      bufferFrom,
-      ...drawOptions
-    }: { position?: number } & DrawOptions = {}
+    { position, ...drawOptions }: { position?: number } & DrawOptions = {}
   ): () => void {
-    let abortController = new AbortController();
     this.initDraw(renderer, drawOptions);
 
     const {
@@ -433,43 +465,15 @@ abstract class StringArt<
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
       this.stringsIterator = this.drawStrings(renderer);
       this.position = 0;
-      let chunkId = 0;
 
-      const drawBuffer = bufferSize
-        ? () => {
-            chunkId++;
-
-            let i = 0;
-            let isDone = false;
-
-            while (
-              (bufferSize == null || i < bufferSize) &&
-              !(isDone =
-                this.drawNext().done ||
-                (position != null && this.position >= position) ||
-                abortController.signal.aborted)
-            ) {
-              i++;
-            }
-
-            if (!isDone) {
-              // Continuing by setTimeout allows the event loop to "breathe", and for aborting to be possible, if user changes inputs rapidly, for example.
-              // If no bufferSize is specified, this doesn't happen anyway, since drawing will be done in one go.
-              setTimeout(drawBuffer, 0);
-            }
-          }
-        : () => {
-            while (
-              !this.drawNext().done &&
-              (position == null || this.position < position)
-            );
-          };
-
-      drawBuffer();
+      while (
+        !this.drawNext().done &&
+        (position == null || this.position < position)
+      );
     }
 
     return () => {
-      abortController.abort();
+      this.#controller?.abort('Cancelled');
     };
   }
 
