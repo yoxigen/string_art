@@ -7,6 +7,7 @@ import { PatternInfo } from './types/info.types';
 import 'scheduler-polyfill';
 
 const DEFAULT_TARGET_SIZE_CM: Dimensions = [30, 30];
+const DEFAULT_SIZES_CM = [20, 30, 40, 50, 60, 70, 80, 90, 100];
 
 let controller: TaskController;
 
@@ -18,6 +19,7 @@ class Info {
     threadsPerColor: HTMLDivElement;
     closestDistanceBetweenNails: HTMLDataElement;
     dimensions: DimensionsInput;
+    dimensionsSelect: HTMLSelectElement;
   };
 
   targetSizeCm: Dimensions = DEFAULT_TARGET_SIZE_CM;
@@ -36,6 +38,7 @@ class Info {
         '#closest_distance_between_nails'
       ),
       dimensions: document.querySelector('#info_dimensions'),
+      dimensionsSelect: document.querySelector('#info_dimensions_select'),
     };
 
     this.elements.dimensions.addEventListener(
@@ -52,13 +55,26 @@ class Info {
       }
     );
 
-    const sizeDisplay = document.querySelector('#info_size_range_display');
-    document.querySelector('#info_size_range').addEventListener('input', e => {
-      const value = Number(e.target.value);
+    this.elements.dimensionsSelect.addEventListener('change', e => {
+      const value = Number(this.elements.dimensionsSelect.value);
       this.targetSizeCm = [value, value];
-      sizeDisplay.textContent = this.targetSizeCm.join('x') + 'cm';
       this.update();
     });
+  }
+
+  #setAvailableDimensions() {
+    const aspectRatio = this.pattern.getAspectRatio({ size: [100, 100] });
+    const sizes = DEFAULT_SIZES_CM.map(v =>
+      aspectRatio >= 1
+        ? [v, Math.round(v / aspectRatio)]
+        : [Math.round(v * aspectRatio), v]
+    );
+    this.elements.dimensionsSelect.innerHTML = sizes
+      .map(
+        (size, i) =>
+          `<option value="${DEFAULT_SIZES_CM[i]}">${size.join('x')} cm`
+      )
+      .join('\n');
   }
 
   setPattern(pattern: StringArt, size: Dimensions) {
@@ -67,6 +83,7 @@ class Info {
     this.patternMargin = pattern.config.margin;
     this.patternNailRadius = pattern.config.nailRadius;
     this.update();
+    this.#setAvailableDimensions();
   }
 
   async update() {
@@ -109,16 +126,24 @@ class Info {
       ...threadsLength.perColor.map(({ length }) => length)
     );
 
-    threadsLength.perColor.forEach(({ color, length }) => {
-      const colorEl = document.createElement('li');
-      const colorValueEl = document.createElement('div');
-      colorEl.appendChild(colorValueEl);
-      colorValueEl.innerText = this.#threadLengthToDistance(length);
-      colorValueEl.style.background = color;
-      colorValueEl.className = 'info__thread_color_value';
-      colorValueEl.style.transform = `scaleX(${length / maxColorLength})`;
-      this.elements.threadsPerColor.appendChild(colorEl);
-    });
+    [...threadsLength.perColor]
+      .sort((a, b) => b.length - a.length)
+      .forEach(({ color, length }) => {
+        const colorEl = document.createElement('li');
+        const colorValueEl = document.createElement('div');
+        colorEl.appendChild(colorValueEl);
+        colorValueEl.style.background = color;
+        colorValueEl.className = 'info__thread_color_value';
+        colorValueEl.style.width = `calc(${
+          (100 * length) / maxColorLength
+        }% - 70px)`;
+
+        const colorValueDisplay = document.createElement('span');
+        colorValueDisplay.innerText = this.#threadLengthToDistance(length);
+        colorValueDisplay.className = 'info__thread_color_value_text';
+        colorEl.appendChild(colorValueDisplay);
+        this.elements.threadsPerColor.appendChild(colorEl);
+      });
   }
 
   /**

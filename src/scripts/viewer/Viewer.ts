@@ -126,8 +126,7 @@ export default class Viewer extends EventBus<{
   update(options?: DrawOptions) {
     viewOptions.showInstructions = false;
     this.#withRenderer();
-    this.cancelDraw?.();
-    this.cancelDraw = this.pattern?.draw(this.renderer, options);
+    this.pattern?.draw(this.renderer, options);
   }
 
   goto(position: number) {

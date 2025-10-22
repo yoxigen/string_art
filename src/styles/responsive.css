@@ -39,7 +39,7 @@
   }
 
   body[data-pattern].dialog_info main {
-    grid-template-rows: var(--select-height) 60vw 1fr var(--controls-height);
+    grid-template-rows: var(--select-height) 70vw 1fr var(--controls-height);
   }
 
   #main_header {

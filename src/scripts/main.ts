@@ -206,7 +206,7 @@ async function main() {
         viewer.update({
           redrawNails: control.affectsNails !== false,
           redrawStrings: control.affectsStrings !== false,
-          //bufferSize: 1000,
+          enableScheduler: true,
         });
       }
     });

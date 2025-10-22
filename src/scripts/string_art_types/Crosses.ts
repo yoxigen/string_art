@@ -764,7 +764,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
   }
 
   getAspectRatio(): number {
-    const { verticalLines, horizontalLines } = this.calc;
+    const { verticalLines, horizontalLines } =
+      this.calc ?? this.getCalc({ size: [100, 100] });
     const boundingRect = getShapesBoundingRect(
       ...verticalLines.concat(horizontalLines.flat())
     );

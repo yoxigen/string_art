@@ -30,8 +30,8 @@ export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
 export interface DrawOptions {
   redrawNails?: boolean;
   redrawStrings?: boolean;
-  bufferSize?: number;
   sizeChanged?: boolean;
+  enableScheduler?: boolean;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -310,6 +310,11 @@ abstract class StringArt<
     this.calc = null;
   }
 
+  /**
+   * Base method for getCalc
+   * @param options
+   * @returns
+   */
   getCalc(options: CalcOptions): TCalc {
     return {} as TCalc;
   }
@@ -398,7 +403,7 @@ abstract class StringArt<
 
   draw(
     renderer: Renderer,
-    options: { position?: number; enableScheduler?: boolean } & DrawOptions = {}
+    options: { position?: number } & DrawOptions = {}
   ): () => void {
     if (!options.enableScheduler) {
       this.#draw(renderer, options);
@@ -410,14 +415,13 @@ abstract class StringArt<
     }
 
     this.#controller = new TaskController({ priority: 'background' });
-    this.#controller.signal.addEventListener('abort', e =>
-      console.log('ABORTED ' + e)
-    );
     scheduler
       .postTask(() => this.#draw(renderer, options), {
         signal: this.#controller.signal,
       })
-      .catch(reason => {});
+      .catch(reason => {
+        // The controller was aborted
+      });
 
     return () => {
       this.#controller?.abort('Cancelled');
@@ -429,11 +433,7 @@ abstract class StringArt<
    */
   #draw(
     renderer: Renderer,
-    {
-      position,
-      bufferSize,
-      ...drawOptions
-    }: { position?: number } & DrawOptions = {}
+    { position, ...drawOptions }: { position?: number } & DrawOptions = {}
   ): () => void {
     this.initDraw(renderer, drawOptions);
 
@@ -465,45 +465,11 @@ abstract class StringArt<
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
       this.stringsIterator = this.drawStrings(renderer);
       this.position = 0;
-      let chunkId = 0;
 
-      const drawBuffer = bufferSize
-        ? async () => {
-            chunkId++;
-
-            let i = 0;
-            let isDone = false;
-
-            while (
-              (bufferSize == null || i < bufferSize) &&
-              !(isDone =
-                this.drawNext().done ||
-                (position != null && this.position >= position) ||
-                this.#controller.signal.aborted)
-            ) {
-              i++;
-            }
-
-            if (!isDone) {
-              this.#controller = new TaskController({ priority: 'background' });
-              await scheduler.postTask(drawBuffer, {
-                signal: this.#controller.signal,
-              });
-            }
-          }
-        : () => {
-            while (
-              !this.drawNext().done &&
-              (position == null || this.position < position)
-            );
-          };
-
-      if (bufferSize) {
-        this.#controller = new TaskController({ priority: 'background' });
-        scheduler.postTask(drawBuffer, { signal: this.#controller.signal });
-      } else {
-        drawBuffer();
-      }
+      while (
+        !this.drawNext().done &&
+        (position == null || this.position < position)
+      );
     }
 
     return () => {

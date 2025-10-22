@@ -132,7 +132,8 @@
         </div>
       </form>
       <div id="info" class="pattern_only noprint">
-        <label for="info_dimensions">Size:</label>
+        <label for="info_dimensions_select">Size:</label>
+        <select id="info_dimensions_select"></select>
         <dimensions-input
           id="info_dimensions"
           floating-points="1"
@@ -140,9 +141,16 @@
           min-height="5"
           max-width="200"
           max-height="200"
+          hidden
         ></dimensions-input>
-        cm
-        <input type="range" id="info_size_range" min="20" max="200" step="10" />
+        <input
+          type="range"
+          id="info_size_range"
+          min="20"
+          max="200"
+          step="10"
+          hidden
+        />
         <span id="info_size_range_display"></span>
         <dl id="info__data">
           <div>
@@ -230,7 +238,6 @@
           class="circular_btn"
           title="Info"
           data-toggle-for="info"
-          hidden
         >
           <i class="icon-info">i</i>
         </button>

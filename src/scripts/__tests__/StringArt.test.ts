@@ -1,4 +1,4 @@
-import { describe, test, expect } from '@jest/globals';
+import { describe, test, expect, beforeEach } from '@jest/globals';
 import {
   createPatternInstance,
   getAllPatternsTypes,
@@ -12,7 +12,7 @@ const size: Dimensions = [1000, 1000];
 
 describe('StringArt', () => {
   describe('patterns', () => {
-    const patterns = getAllPatternsTypes();
+    let patterns = getAllPatternsTypes();
 
     for (const pattern of patterns) {
       const renderer = new TestRenderer(size);
@@ -41,10 +41,6 @@ describe('StringArt', () => {
           }
         }
       });
-
-      test(`getAspectRatio ${pattern.name}`, () => {
-        expect(pattern.getAspectRatio({ size })).not.toBeNaN();
-      });
     }
   });
 
@@ -53,6 +49,15 @@ describe('StringArt', () => {
     const starPattern = createPatternInstance('star');
 
     expect(starPattern.draw(renderer, { position: 20 })).not.toThrow();
+  });
+
+  describe('getAspectRatio', () => {
+    const patterns = getAllPatternsTypes();
+    for (const pattern of patterns) {
+      test(`getAspectRatio ${pattern.name}`, () => {
+        expect(pattern.getAspectRatio({ size })).not.toBeNaN();
+      });
+    }
   });
 
   describe('step count equals draw yields', () => {
