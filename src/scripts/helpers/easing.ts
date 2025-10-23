@@ -8,6 +8,9 @@ const easing = {
   easeOutQuint(x: number): number {
     return 1 - Math.pow(1 - x, 5);
   },
+  easeOutCubic(x: number): number {
+    return 1 - Math.pow(1 - x, 4);
+  },
   fastSlowFast(t: number): number {
     // Clamp t to [0,1] just to be safe
     t = Math.max(0, Math.min(1, t));
@@ -45,6 +48,19 @@ const easing = {
       ? (1 - Math.pow(1 - x * 2, pow)) / 2
       : 0.5 + Math.pow(x * 2 - 1, pow) / 2;
   },
+  easeOutFixed(pow: number, fixedAreaSize: number, x: number): number {
+    const fixedAreaStart = 1 - fixedAreaSize;
+
+    if (x < fixedAreaStart) {
+      return 1 - Math.pow(1 - x, pow);
+    }
+
+    const fixedAreaResultStart = 1 - Math.pow(1 - fixedAreaStart, pow);
+    return (
+      fixedAreaResultStart +
+      ((1 - fixedAreaResultStart) * (x - fixedAreaStart)) / fixedAreaSize
+    );
+  },
 };
 
 // @ts-ignore
@@ -53,5 +69,8 @@ easing.fastInOut.requirePower = true;
 easing.fastInOutFixed.requirePower = true;
 // @ts-ignore
 easing.fastInOutFixed.requireFastArea = true;
-
+// @ts-ignore
+easing.easeOutFixed.requirePower = true;
+// @ts-ignore
+easing.easeOutFixed.requireFastArea = true;
 export default easing;

@@ -1,5 +1,9 @@
 import { describe, test, expect } from '@jest/globals';
-import { combineBoundingRects, prettifyLength } from '../size_utils';
+import {
+  combineBoundingRects,
+  getBoundingRectForCoordinates,
+  prettifyLength,
+} from '../size_utils';
 
 describe('Size utils', () => {
   describe('combineBoundingRects', () => {
@@ -81,6 +85,41 @@ describe('Size utils', () => {
 
     test('cm for source size mm', () => {
       expect(prettifyLength(73.45, 'mm')).toEqual('7.3 cm');
+    });
+  });
+
+  describe('getBoundingRectForCoordinates', () => {
+    test('returns rect for two points', () => {
+      expect(
+        getBoundingRectForCoordinates([
+          [0, 0],
+          [3, 4],
+        ])
+      ).toEqual({
+        top: 0,
+        left: 0,
+        right: 3,
+        bottom: 4,
+        width: 3,
+        height: 4,
+      });
+    });
+
+    test('returns rect for three points', () => {
+      expect(
+        getBoundingRectForCoordinates([
+          [0.5, 7],
+          [6, 1],
+          [3, 9],
+        ])
+      ).toEqual({
+        top: 1,
+        left: 0.5,
+        right: 6,
+        bottom: 9,
+        width: 5.5,
+        height: 8,
+      });
     });
   });
 });

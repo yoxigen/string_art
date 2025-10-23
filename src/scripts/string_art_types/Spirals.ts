@@ -8,21 +8,33 @@ import { ControlsConfig } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
-import { getCenter } from '../helpers/size_utils';
+import {
+  getBoundingRectForCoordinates,
+  getCenter,
+} from '../helpers/size_utils';
+import { createArray } from '../helpers/array_utils';
+import { formatFractionAsAngle } from '../helpers/string_utils';
+import easing from '../helpers/easing';
 
 interface SpiralsConfig extends ColorConfig {
-  radiusIncrease: number;
+  // radiusIncrease: number;
   angleStep: number;
+  angle: number;
   nSpirals: number;
   rotation: number;
+  nailsPerSpiral: number;
+  radiusEasing: number;
+  angleEasing: number;
+  alternate: boolean;
 }
 
 interface TCalc {
   spiralRotations: number[];
   rotationAngle: number;
   nailsPerSpiral: number;
-  angleIncrease: number;
   center: Coordinates;
+  angle: number;
+  radius: number;
 }
 
 class Spirals extends StringArt<SpiralsConfig, TCalc> {
@@ -34,32 +46,60 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     'https://www.etsy.com/il-en/listing/974865185/3d-string-art-spiral-mandala-wall?ref=shop_home_active_10&frs=1';
   controls: ControlsConfig<SpiralsConfig> = [
     {
-      key: 'radiusIncrease',
-      label: 'Radius change',
-      defaultValue: 5.7,
-      type: 'range',
-      attr: { min: 1, max: 20, step: 0.1 },
-      isStructural: true,
-    },
-    {
-      key: 'angleStep',
-      label: 'Angle step',
-      defaultValue: 0.45,
-      type: 'range',
-      attr: { min: 0, max: 1, step: 0.01 },
-      isStructural: true,
-    },
-    {
       key: 'nSpirals',
       label: 'Number of spirals',
       defaultValue: 3,
       type: 'range',
-      attr: { min: 1, max: 20, step: 1 },
+      attr: { min: 2, max: 20, step: 1 },
       isStructural: true,
     },
     {
+      key: 'nailsPerSpiral',
+      label: 'Nails per spiral',
+      type: 'range',
+      defaultValue: 80,
+      attr: {
+        min: 3,
+        max: 300,
+        step: 1,
+      },
+      isStructural: true,
+    },
+    {
+      key: 'angle',
+      label: 'Angle',
+      type: 'range',
+      defaultValue: 0.52,
+      attr: {
+        min: 0,
+        max: 2,
+        step: 0.026,
+      },
+      displayValue: ({ angle }) => formatFractionAsAngle(angle),
+      isStructural: true,
+      affectsStepCount: false,
+    },
+    {
+      key: 'radiusEasing',
+      label: 'Radius easing',
+      defaultValue: 1.8,
+      type: 'range',
+      attr: { min: 1, max: 10, step: 0.1 },
+      isStructural: true,
+      affectsStepCount: false,
+    },
+    {
+      key: 'angleEasing',
+      label: 'Angle easing',
+      defaultValue: 1.3,
+      type: 'range',
+      attr: { min: 1, max: 10, step: 0.1 },
+      isStructural: true,
+      affectsStepCount: false,
+    },
+    {
       ...Circle.rotationConfig,
-      defaultValue: 330 / 360,
+      defaultValue: 65 / 360,
     },
     Color.getConfig({
       defaults: {
@@ -80,18 +120,16 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
   colorMap: ColorMap;
 
   getCalc({ size }: CalcOptions): TCalc {
-    const { nSpirals, rotation, margin, radiusIncrease, angleStep } =
-      this.config;
+    const { nSpirals, rotation, margin, angle, nailsPerSpiral } = this.config;
     const maxRadius = Math.min(...size) / 2 - margin;
 
     return {
-      spiralRotations: new Array(nSpirals)
-        .fill(null)
-        .map((_, i) => (i * PI2) / nSpirals),
+      spiralRotations: createArray(nSpirals, i => (i * PI2) / nSpirals),
       rotationAngle: -PI2 * rotation,
-      nailsPerSpiral: Math.floor(maxRadius / radiusIncrease),
-      angleIncrease: angleStep / (maxRadius / 50),
+      nailsPerSpiral,
+      angle: angle * PI2,
       center: getCenter(size),
+      radius: maxRadius,
     };
   }
 
@@ -102,7 +140,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
 
     this.color = new Color(this.config);
     this.colorMap = this.color.getColorMap({
-      stepCount: this.getStepCount(options),
+      stepCount: this.getStepCount(),
       colorCount,
     });
   }
@@ -114,30 +152,36 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return 1;
   }
 
-  *generatePoints() {
-    const { nSpirals } = this.config;
+  *generatePoints(
+    withNailNumbers = true
+  ): Generator<{ point: Coordinates; nailNumber: string }> {
+    const { nSpirals, alternate, nailsPerSpiral } = this.config;
 
-    for (let i = 0; i < this.calc.nailsPerSpiral; i++) {
+    for (let i = 0; i < nailsPerSpiral; i++) {
       for (let s = 0; s < nSpirals; s++) {
-        const point = this.getPoint(s, i);
-        yield { point, nailNumber: `${s}_${i}` };
+        const point = this.getPoint(
+          s,
+          alternate && s % 2 ? nailsPerSpiral - i - 1 : i
+        );
+        yield { point, nailNumber: withNailNumbers ? `${s}_${i}` : null };
       }
     }
   }
 
   getPoint(spiralIndex: number, index: number): Coordinates {
-    const [centerx, centery] = this.calc.center;
-    const { radiusIncrease } = this.config;
+    const { center, radius: maxRadius, angle: totalAngle } = this.calc;
+    const { nailsPerSpiral, radiusEasing, angleEasing } = this.config;
+    const position = index / (nailsPerSpiral - 1);
 
     const angle =
       this.calc.rotationAngle +
-      this.calc.angleIncrease * index +
+      easing.easeOutFixed(angleEasing, 0, position) * totalAngle +
       this.calc.spiralRotations[spiralIndex];
-    const radius = index * radiusIncrease;
+    const radius = easing.easeOutFixed(radiusEasing, 0, position) * maxRadius;
 
     return [
-      centerx + radius * Math.sin(angle),
-      centery + radius * Math.cos(angle),
+      center[0] + radius * Math.sin(angle),
+      center[1] + radius * Math.cos(angle),
     ];
   }
 
@@ -164,11 +208,9 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     }
   }
 
-  getStepCount({ size }: CalcOptions): number {
-    const { nSpirals, radiusIncrease, margin } = this.config;
-    const maxRadius = Math.min(...size) / 2 - margin;
-    const n = Math.floor(maxRadius / radiusIncrease);
-    return n * nSpirals;
+  getStepCount(): number {
+    const { nSpirals, nailsPerSpiral } = this.config;
+    return nailsPerSpiral * nSpirals;
   }
 
   drawNails(nails: Nails) {
@@ -178,7 +220,9 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     }
   }
 
-  thumbnailConfig = { radiusIncrease: 1.4, angleStep: 0.11 };
+  thumbnailConfig = ({ nailsPerSpiral }) => ({
+    nailsPerSpiral: Math.min(30, nailsPerSpiral),
+  });
 }
 
 export default Spirals;
