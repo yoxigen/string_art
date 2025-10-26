@@ -22,14 +22,14 @@ export default class Nails {
   nailsColor: ColorValue = DEFAULT_OPTIONS.color;
   nailNumbersFontSize: number = DEFAULT_OPTIONS.fontSize;
   nails: Array<Nail>;
-  addedPoints: Set<string>;
+  addedPoints: Map<number, Set<number>>;
 
   #nailGroups: NailsGroup[] = [];
 
   constructor(config: NailsConfig) {
     this.setConfig(config);
     this.nails = [];
-    this.addedPoints = new Set();
+    this.addedPoints = new Map();
   }
 
   setConfig({ nailRadius, nailsColor, nailNumbersFontSize }: NailsConfig) {
@@ -44,10 +44,13 @@ export default class Nails {
 
   // Adds a nail to be rendered. nail: { point, number }
   addNail(nail: Nail) {
-    const nailPoint = nail.point.map(Math.round).join('_');
-    if (!this.addedPoints.has(nailPoint)) {
+    const addedNailsSet = this.addedPoints.get(nail.point[0]);
+    if (!addedNailsSet) {
+      this.addedPoints.set(nail.point[0], new Set([nail.point[1]]));
       this.nails.push(nail);
-      this.addedPoints.add(nailPoint);
+    } else if (!addedNailsSet.has(nail.point[1])) {
+      addedNailsSet.add(nail.point[1]);
+      this.nails.push(nail);
     }
   }
 

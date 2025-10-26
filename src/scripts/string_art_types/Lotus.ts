@@ -15,6 +15,7 @@ import {
   getCenter,
 } from '../helpers/size_utils';
 import Nails from '../Nails';
+import { createArray } from '../helpers/array_utils';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -222,8 +223,9 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       rotation,
     });
 
-    const circles = new Array(sides).fill(null).map(
-      (_, i) =>
+    const circles = createArray(
+      sides,
+      i =>
         new Circle({
           ...baseCircleConfig,
           center: helperCircle.getPoint(i),

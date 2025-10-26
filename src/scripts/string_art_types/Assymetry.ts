@@ -5,6 +5,8 @@ import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../Nails';
+import { PI2 } from '../helpers/math_utils';
+import { formatFractionAsPercent } from '../helpers/string_utils';
 
 const LAYER_DEFAULTS = [
   { size: 0.25, end: 1, color: '#a94fb0' },
@@ -159,10 +161,11 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
 
     const circle = new Circle(circleConfig);
 
-    let lineSpacing = circle.indexAngle * circle.radius;
-    const lineNailCount = Math.floor(circle.radius / lineSpacing) - 1;
-    lineSpacing +=
-      (circle.radius - lineSpacing * lineNailCount) / lineNailCount;
+    const circleDistanceBetweenPoints = (PI2 * circle.radius) / n;
+
+    const lineSize = circle.radius;
+    const lineNailCount = Math.round(lineSize / circleDistanceBetweenPoints);
+    const lineSpacing = lineSize / lineNailCount;
     const firstCirclePoint = circle.getPoint(0);
     const totalNailCount = lineNailCount + n;
     const totalIndexCount = totalNailCount + lineNailCount;
@@ -265,7 +268,6 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     this.calc.circle.drawNails(nails, {
       nailsNumberStart: this.calc.lineNailCount,
     });
-
     for (let i = 0; i < this.calc.lineNailCount; i++) {
       nails.addNail({ point: this.getPoint(i), number: i });
     }

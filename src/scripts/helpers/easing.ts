@@ -51,7 +51,7 @@ const easing = {
   easeOutFixed(pow: number, fixedAreaSize: number, x: number): number {
     const fixedAreaStart = 1 - fixedAreaSize;
 
-    if (x < fixedAreaStart) {
+    if (x < fixedAreaStart || fixedAreaSize === 0) {
       return 1 - Math.pow(1 - x, pow);
     }
 

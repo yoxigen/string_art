@@ -8,7 +8,7 @@ import { Dimensions } from '../types/general.types';
 import type StringArt from '../StringArt';
 import { MeasureRenderer } from '../renderers/MeasureRenderer';
 
-const size: Dimensions = [1000, 1000];
+const size: Dimensions = [100, 100];
 
 describe('StringArt', () => {
   describe('patterns', () => {
@@ -26,6 +26,7 @@ describe('StringArt', () => {
           pattern.draw(measureRenderer);
           expect(pattern.getNailCount(size)).toEqual(measureRenderer.nailCount);
         });
+
         if (pattern.testStepCountConfig) {
           let testId = 2;
           for (const testConfig of pattern.testStepCountConfig) {
