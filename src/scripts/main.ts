@@ -27,7 +27,7 @@ async function main() {
   const elements = {
     main: document.querySelector('main'),
     downloadBtn: document.querySelector('#download_btn'),
-    resetBtn: document.querySelector('#reset_btn'),
+    resetBtn: document.querySelector('#controls_reset_btn'),
     shareBtn: document.querySelector('#share_btn'),
     playerBtn: document.querySelector('#player_btn'),
     infoBtn: document.querySelector('#info_btn'),

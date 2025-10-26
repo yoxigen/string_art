@@ -1,3 +1,4 @@
+import { ExpandablePanel } from '../components/expandable_panel/ExpandablePanel';
 import StringArtCheckbox from '../components/inputs/StringArtCheckbox';
 import StringArtHueInput from '../components/inputs/StringArtHueInput';
 import StringArtRangeInput from '../components/inputs/StringArtRangeInput';
@@ -100,6 +101,33 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
     );
     this.controlElements = {};
     this.renderControls();
+
+    const menu = document.querySelector('#controls_menu');
+    const controlsPanel = document.querySelector('#controls_panel');
+    menu.addEventListener('click', e => {
+      if (e.target instanceof HTMLElement) {
+        const href = e.target
+          .closest('.controls_menu_item')
+          .getAttribute('href');
+        e.preventDefault();
+        if (href) {
+          if (href === '#controls_top') {
+            controlsPanel.scrollTo({
+              top: 0,
+              behavior: 'smooth',
+            });
+          } else {
+            const menuTarget = document.querySelector(href);
+            if (menuTarget instanceof ExpandablePanel) {
+              menuTarget.open();
+              menuTarget.scrollIntoView({
+                behavior: 'smooth',
+              });
+            }
+          }
+        }
+      }
+    });
   }
 
   destroy() {

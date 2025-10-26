@@ -51,6 +51,8 @@
     border-top: var(--border-light);
     box-shadow: 0 -5px 8px rgb(0 0 0 / 40%), 0 -1px 0 black;
     display: none;
+    padding-top: 0;
+    padding-left: 56px;
   }
 
   #pattern_select_panel {
