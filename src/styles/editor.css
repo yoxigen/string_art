@@ -137,28 +137,32 @@ select {
   border: 1px solid #ccc;
 }
 
-main[data-is-default-config='true'] #controls_reset_btn {
-  visibility: hidden;
+#controls_menu #controls_reset_btn {
+  transition: opacity 1s ease-out;
+}
+
+main[data-is-default-config='true'] #controls_menu #controls_reset_btn {
+  opacity: 0;
   cursor: default;
   pointer-events: none;
 }
 
 @media only screen and (max-width: 600px) {
   #controls_menu {
-    width: 40px;
+    width: 72px;
     flex-direction: column;
     gap: 10px;
     height: 90%;
     margin-top: 8px;
     margin-inline-start: 16px;
     border: none;
+    margin-inline-start: 0;
   }
 
-  .controls_menu_item {
+  #controls_menu .controls_menu_item.circular_btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 30px;
-    text-decoration: none;
+    width: 100%;
   }
 }
