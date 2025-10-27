@@ -108,7 +108,7 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
       if (e.target instanceof HTMLElement) {
         const href = e.target
           .closest('.controls_menu_item')
-          .getAttribute('href');
+          ?.getAttribute('href');
         e.preventDefault();
         if (href) {
           if (href === '#controls_top') {

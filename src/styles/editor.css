@@ -108,6 +108,7 @@ select {
   text-decoration: none;
   font-size: 1.2em;
   cursor: pointer;
+  padding: 0;
 }
 
 .controls_menu_item:hover {
@@ -117,11 +118,12 @@ select {
 #controls_menu .circular_btn {
   width: 40px;
   height: 40px;
+  font-size: 22px;
 }
 .color-wheel-icon {
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: conic-gradient(
     red 0deg,
@@ -133,6 +135,12 @@ select {
     red 360deg
   );
   border: 1px solid #ccc;
+}
+
+main[data-is-default-config='true'] #controls_reset_btn {
+  visibility: hidden;
+  cursor: default;
+  pointer-events: none;
 }
 
 @media only screen and (max-width: 600px) {
