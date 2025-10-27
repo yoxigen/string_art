@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang=en><script type=importmap>{"imports":{"4MJz9":"./string_art_studio.1b94de2f.woff","84IIk":"./string_art_studio.fdd2d459.ttf","fiZTa":"./string_art_studio.54ea39b0.svg"}}</script><title>String Art Studio</title><link rel=stylesheet href=string_art.2fcc6f75.css><script type=module src=string_art.285130bf.js></script><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Yossi Kolesnicov"><meta name=description content="An app to design and help produce string art projects"><meta name=theme-color content=#262629><link rel=icon type=image/png href=favicon-16.2f1470d8.png sizes=16x16><link rel=icon type=image/png href=favicon-32.c9a5c761.png sizes=32x32><link rel=icon type=image/png href=favicon-96.f47611a0.png sizes=96x96><link rel=apple-touch-icon-precomposed type=image/png href=favicon-152.c9bfea9e.png sizes=152x152><link rel=icon type=image/png href=favicon-196.815ccb95.png sizes=196x196><link rel=manifest href=manifest.webmanifest><script async src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-1QTWZCWLPY");</script><body class=dialog_sidebar_form>
+<!DOCTYPE html><html lang=en><script type=importmap>{"imports":{"4cH1g":"./string_art_studio.09832b61.ttf","9Sgq7":"./string_art_studio.ca3bae77.woff","gBDvu":"./string_art_studio.3d53e5dd.svg"}}</script><title>String Art Studio</title><link rel=stylesheet href=string_art.9c609c8c.css><script type=module src=string_art.a47d4c29.js></script><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Yossi Kolesnicov"><meta name=description content="An app to design and help produce string art projects"><meta name=theme-color content=#262629><link rel=icon type=image/png href=favicon-16.2f1470d8.png sizes=16x16><link rel=icon type=image/png href=favicon-32.c9a5c761.png sizes=32x32><link rel=icon type=image/png href=favicon-96.f47611a0.png sizes=96x96><link rel=apple-touch-icon-precomposed type=image/png href=favicon-152.c9bfea9e.png sizes=152x152><link rel=icon type=image/png href=favicon-196.815ccb95.png sizes=196x196><link rel=manifest href=manifest.webmanifest><script async src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-1QTWZCWLPY");</script><body class=dialog_sidebar_form>
     <main hidden data-is-template=unknown data-is-default-config=unknown>
       <header id=main_header>
         <h1>
@@ -42,6 +42,21 @@
         </div>
       </div>
       <form id=sidebar_form class="noprint open">
+        <menu id=controls_menu>
+          <a href=#controls_top class="circular_btn controls_menu_item">
+            <i class=icon-options></i>
+          </a>
+          <a href=#control_colorGroup class="circular_btn controls_menu_item">
+            <span class=color-wheel-icon></span>
+          </a>
+          <a href=#control_strings class="circular_btn controls_menu_item">
+            <i class=icon-thread></i>
+          </a>
+          <a href=#control_nails class="circular_btn controls_menu_item">🔨</a>
+          <button id=controls_reset_btn class="circular_btn controls_menu_item" title="Reset to default settings">
+            <i class=icon-refresh></i>
+          </button>
+        </menu>
         <div id=controls_panel class=pattern_only>
           <div id=controls></div>
         </div>
@@ -102,9 +117,6 @@
         </button>
         <button id=player_btn type=button class="circular_btn small_only" title=Player data-toggle-for=player>
           <i class=icon-play></i>
-        </button>
-        <button type=button id=reset_btn class=circular_btn title="Reset config to default">
-          <i class=icon-refresh></i>
         </button>
         <button type=button id=info_btn class=circular_btn title=Info data-toggle-for=info>
           <span class=info_icon>i</span>
