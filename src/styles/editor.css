@@ -142,7 +142,7 @@ select {
 }
 
 main[data-is-default-config='true'] #controls_menu #controls_reset_btn {
-  opacity: 0;
+  opacity: 0.2;
   cursor: default;
   pointer-events: none;
 }
