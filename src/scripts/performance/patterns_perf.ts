@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import patternTypes from '../pattern_types';
 import { fileURLToPath } from 'url';
 import StringArt from '../StringArt';
 import { Dimensions } from '../types/general.types';

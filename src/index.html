@@ -127,6 +127,27 @@
         </div>
       </div>
       <form id="sidebar_form" class="noprint open">
+        <menu id="controls_menu">
+          <a href="#controls_top" class="controls_menu_item circular_btn">
+            <i class="icon-options"></i>
+          </a>
+          <a href="#control_colorGroup" class="controls_menu_item circular_btn">
+            <span class="color-wheel-icon"></span>
+          </a>
+          <a href="#control_strings" class="controls_menu_item circular_btn">
+            <i class="icon-thread"></i>
+          </a>
+          <a href="#control_nails" class="controls_menu_item circular_btn"
+            >🔨</a
+          >
+          <button
+            id="controls_reset_btn"
+            class="controls_menu_item circular_btn"
+            title="Reset to default settings"
+          >
+            <i class="icon-refresh"></i>
+          </button>
+        </menu>
         <div id="controls_panel" class="pattern_only">
           <div id="controls"></div>
         </div>
@@ -224,14 +245,6 @@
           data-toggle-for="player"
         >
           <i class="icon-play"></i>
-        </button>
-        <button
-          type="button"
-          id="reset_btn"
-          class="circular_btn"
-          title="Reset config to default"
-        >
-          <i class="icon-refresh"></i>
         </button>
         <button
           type="button"

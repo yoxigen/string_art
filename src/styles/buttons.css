@@ -56,6 +56,7 @@
 
 .circular_btn:hover {
   background: rgba(0, 0, 0, 0.3);
+  color: var(--color-text);
 }
 
 .circular_btn img {

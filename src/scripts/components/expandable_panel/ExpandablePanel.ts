@@ -58,11 +58,11 @@ export class ExpandablePanel extends HTMLElement {
     this.#fieldset.classList.toggle('minimized');
   }
 
-  private open(): void {
+  open(): void {
     this.#fieldset.classList.remove('minimized');
   }
 
-  private close(): void {
+  close(): void {
     this.#fieldset.classList.add('minimized');
   }
 }
