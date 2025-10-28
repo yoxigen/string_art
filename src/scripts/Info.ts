@@ -4,7 +4,6 @@ import { MeasureRenderer } from './renderers/MeasureRenderer';
 import StringArt from './StringArt';
 import { Dimensions } from './types/general.types';
 import { PatternInfo } from './types/info.types';
-import 'scheduler-polyfill';
 
 const DEFAULT_TARGET_SIZE_CM: Dimensions = [30, 30];
 const DEFAULT_SIZES_CM = [20, 30, 40, 50, 60, 70, 80, 90, 100];

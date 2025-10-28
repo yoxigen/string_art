@@ -16,6 +16,7 @@ import { findPatternById } from './helpers/pattern_utils';
 import routing from './routing';
 import { hide, unHide } from './helpers/dom_utils';
 import info from './Info';
+import 'scheduler-polyfill';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);

@@ -16,7 +16,6 @@ import type {
 } from './types/config.types';
 import { Dimensions } from './types/general.types';
 import { CalcOptions } from './types/stringart.types';
-import 'scheduler-polyfill';
 
 const COLORS = {
   dark: '#0e0e0e',
