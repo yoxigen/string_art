@@ -147,10 +147,11 @@ export default class Circle extends Shape {
         angleEnd,
       } = config;
       const center = configCenter ?? getCenter(size);
-      const clampedRadius = (radius ?? Math.min(...getCenter(size))) - margin;
-      if (clampedRadius <= 0) {
-        throw new Error("Margin is larger than radius, can't render circle!");
-      }
+      const clampedRadius = Math.max(
+        1,
+        (radius ?? Math.min(...getCenter(size))) - margin
+      );
+
       let xyRadius = [clampedRadius, clampedRadius];
 
       if (config.distortion) {
@@ -160,7 +161,7 @@ export default class Circle extends Shape {
         ) as Dimensions;
         xyRadius = fitInside(
           distortedBox,
-          size.map(v => v / 2 - margin) as Dimensions
+          size.map(v => Math.max(0, v / 2 - margin)) as Dimensions
         );
       }
 
