@@ -511,11 +511,10 @@ abstract class StringArt<
     return result;
   }
 
-  copy(): StringArt<TConfig> {
-    const config = this.config;
+  copy(overrideConfig?: Partial<TConfig>): StringArt<TConfig> {
     // @ts-ignore
     const patternCopy = new this.constructor();
-    patternCopy.config = config;
+    patternCopy.config = { ...this.config, overrideConfig };
     return patternCopy;
   }
 }

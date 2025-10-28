@@ -149,7 +149,11 @@ export default class Circle extends Shape {
       const center = configCenter ?? getCenter(size);
       const clampedRadius = (radius ?? Math.min(...getCenter(size))) - margin;
       if (clampedRadius <= 0) {
-        throw new Error("Margin is larger than radius, can't render circle!");
+        throw new Error(
+          `Margin (${margin}) is larger or equal than radius (${
+            radius ?? Math.min(...getCenter(size))
+          }) (size=${size.join(',')}), can't render circle!`
+        );
       }
       let xyRadius = [clampedRadius, clampedRadius];
 

@@ -8,6 +8,7 @@ type NailsGroup = {
   options: Partial<NailsRenderOptions>;
 };
 const NUMBER_MARGIN = 4;
+const precision = 1000;
 
 const DEFAULT_OPTIONS: NailsRenderOptions = {
   color: '#ffffff',
@@ -45,13 +46,15 @@ export default class Nails {
   }
 
   #addNailToSets(nail: Nail) {
-    // if (this.addedNumbers.has(nail.number)) {
-    //   throw new Error(`Nails already contains number ${nail.number}.`);
-    // } else {
-    //   this.addedNumbers.add(nail.number);
-    // }
+    if (this.addedNumbers.has(nail.number)) {
+      throw new Error(`Nails already contains number ${nail.number}.`);
+    } else {
+      this.addedNumbers.add(nail.number);
+    }
 
-    const key = nail.point[0] * 1e9 + nail.point[1];
+    const key =
+      Math.round(nail.point[0] * precision) * 1e7 +
+      Math.round(nail.point[1] * precision);
     if (!this.addedPoints.has(key)) {
       this.addedPoints.add(key);
       return true;

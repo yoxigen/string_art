@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import StringArt from '../StringArt';
+import StringArt, { DrawOptions } from '../StringArt';
 import { Dimensions } from '../types/general.types';
 import { TestRenderer } from '../renderers/TestRenderer';
 import { getAllPatternsTypes } from '../helpers/pattern_utils';
+import { sizeConvert } from '../helpers/size_utils';
 
 export interface PatternPerfResult {
   stepCount: number;
@@ -58,17 +59,21 @@ export function measurePattern(pattern: StringArt): PatternPerfResult {
   const size: Dimensions = [1000, 1000];
 
   const renderer = new TestRenderer(size);
-
+  const options: DrawOptions = {
+    sizeChanged: true,
+    redrawNails: true,
+    redrawStrings: true,
+  };
   // warmup
   for (let i = 0; i < warmupDrawCount; i++) {
-    pattern.draw(renderer);
+    pattern.draw(renderer, options);
   }
 
   const timeStart = performance.now();
 
   for (let cycle = 0; cycle < cycles; cycle++) {
     for (let i = 0; i < drawCountPerCycle; i++) {
-      pattern.draw(renderer);
+      pattern.draw(renderer, options);
     }
   }
 
