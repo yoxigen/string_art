@@ -4,7 +4,7 @@ import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
-import { Shape } from './Shape';
+import { Shape, ShapeNailsOptions } from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import { createArray } from '../helpers/array_utils';
 
@@ -242,10 +242,12 @@ export default class Polygon extends Shape {
   drawNails(
     nails: Nails,
     {
+      nailsNumberStart = 0,
+      getNumber,
       drawCenter = false,
       drawSides = true,
       drawCenterNail = true,
-    }: PolygonNailsOptions = {}
+    }: PolygonNailsOptions & ShapeNailsOptions = {}
   ) {
     const { nailsPerSide } = this.config;
 
@@ -257,22 +259,24 @@ export default class Polygon extends Shape {
     }
 
     for (let side = 0; side < this.config.sides; side++) {
-      const sideIndexStart = side * nailsPerSide;
+      const sideIndexStart = nailsNumberStart + side * nailsPerSide;
 
       if (drawSides) {
         for (let index = 0; index < nailsPerSide - 1; index++) {
+          const number = sideIndexStart + index;
           nails.addNail({
             point: this.getSidePoint({ side, index }),
-            number: sideIndexStart + index,
+            number: getNumber ? getNumber(number) : number,
           });
         }
       }
 
       if (drawCenter) {
         for (let index = 1; index < this.#calc.radiusNailsCount - 1; index++) {
+          const number = `${side}_${index}`;
           nails.addNail({
             point: this.getCenterPoint({ side, index }),
-            number: `${side}_${index}`,
+            number: getNumber ? getNumber(number) : number,
           });
         }
       }

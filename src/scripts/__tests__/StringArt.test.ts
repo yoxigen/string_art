@@ -33,7 +33,7 @@ describe('StringArt', () => {
             test(`${pattern.name} getNailCount #${testId}`, () => {
               const patternConfig = pattern.copy();
               patternConfig.assignConfig(testConfig);
-              patternConfig.draw(measureRenderer);
+              patternConfig.draw(measureRenderer, { redrawNails: true });
               expect(patternConfig.getNailCount(size)).toEqual(
                 measureRenderer.nailCount
               );

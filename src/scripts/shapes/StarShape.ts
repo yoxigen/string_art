@@ -134,25 +134,38 @@ export default class StarShape extends Shape {
       ...nailsConfig
     }: Partial<
       {
-        getNumber?: (side: number, sideIndex: number) => string;
+        getNumber?: (number: string) => string;
         reverseOrder?: boolean;
         excludeSides?: ReadonlyArray<number>;
       } & NailsConfig
     > = {}
   ): void {
-    const { sides, sideNails } = this.config;
+    const { sides, sideNails, centerRadius } = this.config;
 
     const groupNails = [];
+    const renderCenterNail = centerRadius == null || centerRadius === 0;
+
+    if (renderCenterNail) {
+      nails.addGroup(
+        [
+          {
+            point: this.getSidePoint(0, 0),
+            number: 'C',
+          },
+        ],
+        nailsConfig
+      );
+    }
 
     for (let side = 0; side < sides; side++) {
       if (!excludeSides || !excludeSides.includes(side)) {
-        for (let i = 0; i < sideNails; i++) {
+        for (let i = renderCenterNail ? 1 : 0; i < sideNails; i++) {
           const sideIndex = reverseOrder ? sideNails - i : i;
           groupNails.push({
             point: this.getSidePoint(side, sideIndex),
             number: getNumber
-              ? getNumber(side, sideIndex)
-              : sideIndex || this.config.centerRadius
+              ? getNumber(`${side}_${sideIndex}`)
+              : sideIndex || !renderCenterNail
               ? `${side}_${sideIndex}`
               : 0,
           });

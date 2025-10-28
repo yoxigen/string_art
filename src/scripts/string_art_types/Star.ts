@@ -288,9 +288,9 @@ export default class Star extends StringArt<StarConfig, TCalc> {
   }
 
   getNailCount(): number {
-    const { sides, sideNails } = this.config;
+    const { sides, sideNails, centerRadius } = this.config;
     const circleNails = sides * (sideNails - 1);
-    return sides * sideNails + circleNails;
+    return sides * sideNails + circleNails - (centerRadius ? 0 : sides - 1);
   }
 
   thumbnailConfig = ({ sideNails }) => ({

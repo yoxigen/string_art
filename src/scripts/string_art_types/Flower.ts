@@ -177,8 +177,12 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
       number: 'C',
     });
 
-    this.calc.polygons.forEach(polygon =>
-      polygon.drawNails(nails, { drawCenter: true, drawCenterNail: false })
+    this.calc.polygons.forEach((polygon, i) =>
+      polygon.drawNails(nails, {
+        drawCenter: true,
+        drawCenterNail: false,
+        getNumber: n => `${String.fromCharCode(65 + i)}_${n}`,
+      })
     );
   }
 

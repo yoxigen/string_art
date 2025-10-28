@@ -399,8 +399,8 @@ export default class DanceOfPlanets extends StringArt<
   }
 
   drawNails(nails: Nails) {
-    this.calc.shape1.drawNails(nails);
-    this.calc.shape2.drawNails(nails);
+    this.calc.shape1.drawNails(nails, { getNumber: n => `A_${n}` });
+    this.calc.shape2.drawNails(nails, { getNumber: n => `B_${n}` });
   }
 
   thumbnailConfig = (

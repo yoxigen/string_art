@@ -23,6 +23,7 @@ export default class Nails {
   nailNumbersFontSize: number = DEFAULT_OPTIONS.fontSize;
   nails: Array<Nail>;
   addedPoints: Map<number, Set<number>>;
+  addedNumbers: Set<string | number>;
 
   #nailGroups: NailsGroup[] = [];
 
@@ -30,6 +31,7 @@ export default class Nails {
     this.setConfig(config);
     this.nails = [];
     this.addedPoints = new Map();
+    this.addedNumbers = new Set();
   }
 
   setConfig({ nailRadius, nailsColor, nailNumbersFontSize }: NailsConfig) {
@@ -42,19 +44,34 @@ export default class Nails {
     }
   }
 
-  // Adds a nail to be rendered. nail: { point, number }
-  addNail(nail: Nail) {
+  #addNailToSets(nail: Nail) {
+    if (this.addedNumbers.has(nail.number)) {
+      throw new Error(`Nails already contains number ${nail.number}.`);
+    } else {
+      this.addedNumbers.add(nail.number);
+    }
+
     const addedNailsSet = this.addedPoints.get(nail.point[0]);
     if (!addedNailsSet) {
       this.addedPoints.set(nail.point[0], new Set([nail.point[1]]));
-      this.nails.push(nail);
+      return true;
     } else if (!addedNailsSet.has(nail.point[1])) {
       addedNailsSet.add(nail.point[1]);
+      return true;
+    }
+
+    return false;
+  }
+
+  // Adds a nail to be rendered. nail: { point, number }
+  addNail(nail: Nail) {
+    if (this.#addNailToSets(nail)) {
       this.nails.push(nail);
     }
   }
 
   addGroup(nails: ReadonlyArray<Nail>, options: Partial<NailsRenderOptions>) {
+    nails.forEach(nail => this.#addNailToSets(nail));
     this.#nailGroups.push({ nails, options });
   }
 

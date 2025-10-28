@@ -765,7 +765,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
   drawNails(nails: Nails) {
     const triangleLevels = this.calc.points;
-    let index = 0;
+    let index = 1;
     for (const level of triangleLevels) {
       for (const triangle of level) {
         if (triangle != null) {
@@ -780,7 +780,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     }
 
     if (this.calc.ringCircle) {
-      this.calc.ringCircle.drawNails(nails);
+      this.calc.ringCircle.drawNails(nails, { nailsNumberStart: index });
     }
   }
 
