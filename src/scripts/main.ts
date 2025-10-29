@@ -5,10 +5,10 @@ import EditorControls, {
 import { Thumbnails } from './thumbnails/Thumbnails';
 import { isShareSupported, share } from './share';
 import { initServiceWorker } from './pwa';
-import SVGRenderer from './renderers/SVGRenderer';
+import SVGRenderer from './infra/renderers/SVGRenderer';
 import './components/components';
 import Persistance from './Persistance';
-import StringArt from './StringArt';
+import StringArt from './infra/StringArt';
 import { confirm } from './helpers/dialogs';
 import Viewer from './viewer/Viewer';
 import type DownloadDialog from './components/dialogs/download_dialog/DownloadDialog';

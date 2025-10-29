@@ -1,10 +1,10 @@
 import {
   getConfigDefaultValues,
   getControlsIndex,
-} from './helpers/config_utils';
-import EventBus from './helpers/EventBus';
-import { compareObjects } from './helpers/object_utils';
-import Nails from './Nails';
+} from '../helpers/config_utils';
+import EventBus from '../helpers/EventBus';
+import { compareObjects } from '../helpers/object_utils';
+import Nails from './nails/Nails';
 import { MeasureRenderer, ThreadsLength } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
 import type {
@@ -13,9 +13,9 @@ import type {
   ControlConfig,
   ControlsConfig,
   PrimitiveValue,
-} from './types/config.types';
-import { Dimensions } from './types/general.types';
-import { CalcOptions } from './types/stringart.types';
+} from '../types/config.types';
+import { Dimensions } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
 
 const COLORS = {
   dark: '#0e0e0e',

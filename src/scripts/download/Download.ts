@@ -1,7 +1,7 @@
 import { lengthConvert, sizeConvert } from '../helpers/size_utils';
-import CanvasRenderer from '../renderers/CanvasRenderer';
-import SVGRenderer from '../renderers/SVGRenderer';
-import StringArt from '../StringArt';
+import CanvasRenderer from '../infra/renderers/CanvasRenderer';
+import SVGRenderer from '../infra/renderers/SVGRenderer';
+import StringArt from '../infra/StringArt';
 import { CommonConfig } from '../types/config.types';
 import { Dimensions, LengthUnit, SizeUnit } from '../types/general.types';
 import { RendererType } from '../types/stringart.types';

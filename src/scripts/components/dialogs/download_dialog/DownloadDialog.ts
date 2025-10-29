@@ -1,7 +1,7 @@
 import * as styles from 'bundle-text:./DownloadDialog.css';
 import * as html from 'bundle-text:./DownloadDialog.html';
 import type ConfirmDialog from '../ConfirmDialog';
-import type StringArt from '../../../StringArt';
+import type StringArt from '../../../infra/StringArt';
 import {
   fitInside,
   lengthConvert,
@@ -16,7 +16,7 @@ import {
   ImageType,
 } from '../../../download/Download';
 import type DimensionsInput from '../../inputs/DimensionsInput';
-import CanvasRenderer from '../../../renderers/CanvasRenderer';
+import CanvasRenderer from '../../../infra/renderers/CanvasRenderer';
 import StringArtCheckbox from '../../inputs/StringArtCheckbox';
 import {
   DOWNLOAD_IMAGE_SIZES,

@@ -1,11 +1,11 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Polygon, { PolygonConfig } from '../shapes/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 
 interface PolygonPatternConfig extends ColorConfig {
   sides: number;

@@ -4,7 +4,7 @@ import Mandala, { MandalaCalc, MandalaConfig } from './Mandala';
 import { ControlsConfig } from '../types/config.types';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import { withoutAttribute } from '../helpers/config_utils';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 
 export interface WaveConfig {

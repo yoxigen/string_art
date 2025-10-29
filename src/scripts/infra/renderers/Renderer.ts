@@ -1,7 +1,7 @@
-import { ColorValue } from '../helpers/color/color.types';
-import EventBus from '../helpers/EventBus';
-import type { Coordinates, Dimensions } from '../types/general.types';
-import type { Nail, NailsRenderOptions } from '../types/stringart.types';
+import { ColorValue } from '../../helpers/color/color.types';
+import EventBus from '../../helpers/EventBus';
+import type { Coordinates, Dimensions } from '../../types/general.types';
+import type { Nail, NailsRenderOptions } from '../../types/stringart.types';
 
 export type RendererResetOptions = Partial<{
   resetStrings: boolean;

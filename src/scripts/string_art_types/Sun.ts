@@ -1,4 +1,4 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import StarShape, { StarShapeConfig } from '../shapes/StarShape';
@@ -12,14 +12,14 @@ import type {
 } from '../types/config.types';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { Coordinates } from '../types/general.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
   getCenter,
 } from '../helpers/size_utils';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;

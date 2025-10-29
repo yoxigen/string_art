@@ -1,12 +1,12 @@
-import { ColorValue } from '../helpers/color/color.types';
+import { ColorValue } from '../../helpers/color/color.types';
 import {
   getClosestDistance,
   getDistanceBetweenCoordinates,
   PI2,
-} from '../helpers/math_utils';
-import { Coordinates, Dimensions } from '../types/general.types';
-import { PatternInfo } from '../types/info.types';
-import { Nail, NailsRenderOptions } from '../types/stringart.types';
+} from '../../helpers/math_utils';
+import { Coordinates, Dimensions } from '../../types/general.types';
+import { PatternInfo } from '../../types/info.types';
+import { Nail, NailsRenderOptions } from '../../types/stringart.types';
 import { TestRenderer } from './TestRenderer';
 
 export type ThreadsLength = {

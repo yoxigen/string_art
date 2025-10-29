@@ -1,4 +1,4 @@
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { ControlConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { PI2 } from '../helpers/math_utils';

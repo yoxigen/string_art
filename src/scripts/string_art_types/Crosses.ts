@@ -1,7 +1,7 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import {
@@ -14,7 +14,7 @@ import { Coordinates } from '../types/general.types';
 import { getShapesBoundingRect } from '../helpers/shape_utils';
 import { createArray } from '../helpers/array_utils';
 import { PI2 } from '../helpers/math_utils';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { getCenter } from '../helpers/size_utils';
 
 type CrossesOrientation = 'v' | 'h';

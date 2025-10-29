@@ -1,7 +1,7 @@
 import DimensionsInput from './components/inputs/DimensionsInput';
 import { fitInside, prettifyLength } from './helpers/size_utils';
-import { MeasureRenderer } from './renderers/MeasureRenderer';
-import StringArt from './StringArt';
+import { MeasureRenderer } from './infra/renderers/MeasureRenderer';
+import StringArt from './infra/StringArt';
 import { Dimensions } from './types/general.types';
 import { PatternInfo } from './types/info.types';
 

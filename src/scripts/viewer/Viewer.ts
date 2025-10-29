@@ -1,9 +1,9 @@
 import EventBus from '../helpers/EventBus';
-import CanvasRenderer from '../renderers/CanvasRenderer';
-import Renderer from '../renderers/Renderer';
-import SVGRenderer from '../renderers/SVGRenderer';
+import CanvasRenderer from '../infra/renderers/CanvasRenderer';
+import Renderer from '../infra/renderers/Renderer';
+import SVGRenderer from '../infra/renderers/SVGRenderer';
 import routing from '../routing';
-import StringArt, { DrawOptions } from '../StringArt';
+import StringArt, { DrawOptions } from '../infra/StringArt';
 import { Dimensions } from '../types/general.types';
 import { RendererType } from '../types/stringart.types';
 import viewOptions from './ViewOptions';

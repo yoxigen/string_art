@@ -1,5 +1,5 @@
 import { PI2 } from '../helpers/math_utils';
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Color from '../helpers/color/Color';
 import Polygon from '../shapes/Polygon';
 import Circle from '../shapes/Circle';
@@ -11,9 +11,9 @@ import {
 } from '../helpers/color/color.types';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
 

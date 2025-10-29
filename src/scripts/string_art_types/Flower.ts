@@ -1,4 +1,4 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Polygon from '../shapes/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig } from '../helpers/color/color.types';
@@ -6,10 +6,10 @@ import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
 } from '../helpers/size_utils';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { Dimensions } from '../types/general.types';
 import { createArray } from '../helpers/array_utils';
 

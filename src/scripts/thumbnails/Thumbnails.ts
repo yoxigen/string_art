@@ -1,5 +1,5 @@
-import CanvasRenderer from '../renderers/CanvasRenderer';
-import type StringArt from '../StringArt';
+import CanvasRenderer from '../infra/renderers/CanvasRenderer';
+import type StringArt from '../infra/StringArt';
 import Persistance from '../Persistance';
 import EventBus from '../helpers/EventBus';
 import { getAllPatternsTypes } from '../helpers/pattern_utils';

@@ -1,5 +1,5 @@
-import Nails from '../Nails';
-import Renderer from '../renderers/Renderer';
+import Nails from '../infra/nails/Nails';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlConfig, GroupValue } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { Nail } from '../types/stringart.types';

@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeEach } from '@jest/globals';
+import { describe, test, expect } from '@jest/globals';
 import {
   createPatternInstance,
   getAllPatternsTypes,
-} from '../helpers/pattern_utils';
+} from '../../helpers/pattern_utils';
 import { TestRenderer } from '../renderers/TestRenderer';
-import { Dimensions } from '../types/general.types';
+import { Dimensions } from '../../types/general.types';
 import type StringArt from '../StringArt';
 import { MeasureRenderer } from '../renderers/MeasureRenderer';
 

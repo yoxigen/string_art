@@ -5,8 +5,8 @@ import {
   getQueryParams,
   StringArtQueryParams,
 } from './helpers/url_utils';
+import StringArt from './infra/StringArt';
 import { deserializeConfig, serializeConfig } from './Serialize';
-import StringArt from './StringArt';
 import { PrimitiveValue } from './types/config.types';
 import { RendererType } from './types/stringart.types';
 

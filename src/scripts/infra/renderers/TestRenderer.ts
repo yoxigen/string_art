@@ -1,7 +1,7 @@
-import { ColorValue } from '../helpers/color/color.types';
+import { ColorValue } from '../../helpers/color/color.types';
 import Renderer, { RendererOptions } from './Renderer';
-import { Coordinates, Dimensions } from '../types/general.types';
-import { Nail, NailsRenderOptions } from '../types/stringart.types';
+import { Coordinates, Dimensions } from '../../types/general.types';
+import { Nail, NailsRenderOptions } from '../../types/stringart.types';
 
 export class TestRenderer extends Renderer {
   strings = [];

@@ -1,8 +1,8 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import {
   ControlConfig,
   ControlsConfig,
@@ -16,7 +16,7 @@ import {
   formatFractionAsAngle,
   formatFractionAsPercent,
 } from '../helpers/string_utils';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { Dimensions } from '../types/general.types';
 
 type ShapeType = 'circle' | 'polygon';

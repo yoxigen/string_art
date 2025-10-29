@@ -1,12 +1,12 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import { ColorValue } from '../helpers/color/color.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, ControlType, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 
 interface FreestyleConfig {
   n: number;

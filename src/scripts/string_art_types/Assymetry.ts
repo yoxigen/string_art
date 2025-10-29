@@ -1,10 +1,10 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 

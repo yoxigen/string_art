@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import { TestRenderer } from '../../renderers/TestRenderer';
+import { TestRenderer } from '../../infra/renderers/TestRenderer';
 import StarShape from '../StarShape';
 import type { Dimensions } from '../../types/general.types';
 

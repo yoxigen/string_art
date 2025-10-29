@@ -1,11 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import StringArt, { DrawOptions } from '../StringArt';
+import StringArt, { DrawOptions } from '../infra/StringArt';
 import { Dimensions } from '../types/general.types';
-import { TestRenderer } from '../renderers/TestRenderer';
+import { TestRenderer } from '../infra/renderers/TestRenderer';
 import { getAllPatternsTypes } from '../helpers/pattern_utils';
-import { sizeConvert } from '../helpers/size_utils';
 
 export interface PatternPerfResult {
   stepCount: number;

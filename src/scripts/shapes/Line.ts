@@ -1,7 +1,7 @@
 import { ColorValue } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
 import { mapDimensions } from '../helpers/size_utils';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { BoundingRect, Coordinates } from '../types/general.types';
 import { Shape } from './Shape';
 

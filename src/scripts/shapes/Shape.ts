@@ -1,5 +1,4 @@
-import Nails from '../Nails';
-import { NailsConfig } from '../types/config.types';
+import Nails from '../infra/nails/Nails';
 import { BoundingRect, Coordinates } from '../types/general.types';
 
 export interface ShapeNailsOptions {

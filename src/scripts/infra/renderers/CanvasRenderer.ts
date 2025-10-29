@@ -1,10 +1,10 @@
-import Renderer, { LayerOptions, RendererOptions } from './Renderer';
-import { PI2 } from '../helpers/math_utils';
-import type { Coordinates, Dimensions } from '../types/general.types';
-import type { Nail } from '../types/stringart.types';
-import { ColorValue } from '../helpers/color/color.types';
-import { areDimensionsEqual } from '../helpers/size_utils';
-import { hide, unHide } from '../helpers/dom_utils';
+import Renderer, { RendererOptions } from './Renderer';
+import { PI2 } from '../../helpers/math_utils';
+import type { Coordinates, Dimensions } from '../../types/general.types';
+import type { Nail } from '../../types/stringart.types';
+import { ColorValue } from '../../helpers/color/color.types';
+import { areDimensionsEqual } from '../../helpers/size_utils';
+import { hide, unHide } from '../../helpers/dom_utils';
 
 let lastId = 0;
 const INSTRUCTIONS_NAIL_RADIUS = 4;

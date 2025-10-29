@@ -1,7 +1,7 @@
-import { ColorValue } from './helpers/color/color.types';
+import { ColorValue } from '../helpers/color/color.types';
 import type Renderer from './renderers/Renderer';
-import { NailsConfig } from './types/config.types';
-import { Nail, NailsRenderOptions } from './types/stringart.types';
+import { NailsConfig } from '../types/config.types';
+import { Nail, NailsRenderOptions } from '../types/stringart.types';
 
 type NailsGroup = {
   nails: ReadonlyArray<Nail>;

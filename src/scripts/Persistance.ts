@@ -1,6 +1,6 @@
 import EventBus from './helpers/EventBus';
 import patternTypes from './pattern_types';
-import StringArt, { Pattern } from './StringArt';
+import StringArt, { Pattern } from './infra/StringArt';
 import { AppData, PatternData } from './types/persistance.types';
 import type InputDialog from './components/dialogs/InputDialog';
 import { confirm, prompt } from './helpers/dialogs';
