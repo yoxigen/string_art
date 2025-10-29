@@ -290,13 +290,20 @@ export default class CanvasRenderer extends Renderer {
 
   renderNailsGroup(
     nailsGroup: NailsGroup,
-    defaultOptions: Partial<NailsRenderOptions> = {}
-  ): void {
-    const { radius, color, margin, renderNumbers, fontSize } = Object.assign(
-      {},
+    {
       defaultOptions,
-      nailsGroup.options
-    );
+      renderNumbers,
+    }: {
+      defaultOptions?: Partial<NailsRenderOptions>;
+      renderNumbers?: boolean;
+    } = {}
+  ): void {
+    const {
+      radius,
+      color,
+      margin = 4,
+      fontSize,
+    } = Object.assign({}, defaultOptions, nailsGroup.options);
     const centerX = this.stringsCanvas.width / 2;
 
     this.nailsCtx.globalCompositeOperation = 'source-over';

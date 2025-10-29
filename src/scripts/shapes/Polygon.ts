@@ -19,6 +19,7 @@ export interface PolygonConfig {
   rotation?: number;
   center?: Coordinates;
   radiusNailsCountSameAsSides?: boolean;
+  radius?: number;
 }
 
 interface Side {
@@ -110,6 +111,7 @@ export default class Polygon extends Shape {
       margin = 0,
       nailsPerSide,
       radiusNailsCountSameAsSides = false,
+      radius: radiusConfig,
     } = this.config;
 
     const sideAngle = PI2 / sideCount;
@@ -130,7 +132,7 @@ export default class Polygon extends Shape {
 
     const center = configCenter ?? getCenter(size);
 
-    const radius = Math.min(...size) / 2 - margin;
+    const radius = radiusConfig ?? Math.min(...size) / 2 - margin;
     const sideSize = 2 * radius * Math.sin(sideAngle / 2);
     const start: Coordinates = [
       radius * Math.sin(sideAngle / 2),

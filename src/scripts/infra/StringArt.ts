@@ -464,7 +464,7 @@ abstract class StringArt<
       });
 
       this.drawNails(nails);
-      nails.draw(renderer, { drawNumbers: showNailNumbers });
+      nails.draw(renderer);
     }
 
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {

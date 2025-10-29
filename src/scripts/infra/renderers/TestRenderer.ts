@@ -42,10 +42,7 @@ export class TestRenderer extends Renderer {
     this.nails.push(...nails);
   }
 
-  renderNailsGroup(
-    nailsGroup: NailsGroup,
-    overrideOptions?: Partial<NailsRenderOptions>
-  ): void {
+  renderNailsGroup(nailsGroup: NailsGroup): void {
     this.nailGroups.push(nailsGroup);
   }
 

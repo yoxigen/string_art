@@ -107,7 +107,10 @@ export default abstract class Renderer extends EventBus<{
   ): void;
   abstract renderNailsGroup(
     nailsGroup: NailsGroup,
-    defaultOptions?: Partial<NailsRenderOptions>
+    options?: {
+      defaultOptions?: Partial<NailsRenderOptions>;
+      renderNumbers?: boolean;
+    }
   ): void;
   abstract renderInstructions(from: Coordinates, to: Coordinates): void;
   abstract clearInstructions(): void;

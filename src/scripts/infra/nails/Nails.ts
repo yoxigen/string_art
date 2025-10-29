@@ -66,14 +66,17 @@ export default class Nails {
   //   });
   // }
 
-  draw(renderer: Renderer, { drawNumbers = true } = {}) {
+  draw(renderer: Renderer) {
     // this.#render(renderer, this.nails, options);
 
     //this.nails = [];
     //this.addedPoints.clear();
 
     this.#nailGroups.forEach(group =>
-      renderer.renderNailsGroup(group, this.options)
+      renderer.renderNailsGroup(group, {
+        defaultOptions: this.options,
+        renderNumbers: this.options.renderNumbers,
+      })
     );
 
     //this.#nailGroups = [];

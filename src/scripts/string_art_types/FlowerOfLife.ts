@@ -10,12 +10,13 @@ import {
   ColorValue,
 } from '../helpers/color/color.types';
 import { ControlsConfig, GroupValue } from '../types/config.types';
-import { Coordinates } from '../types/general.types';
+import { Coordinates, Dimensions } from '../types/general.types';
 import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../infra/nails/Nails';
 import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
+import NailsGroup from '../infra/nails/NailsGroup';
 
 interface FlowerOfLifeConfig extends ColorConfig {
   levels: number;
@@ -763,24 +764,116 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     );
   }
 
+  getNailCount(): number {
+    return (
+      this.#getTrianglesNailsCount() +
+      (this.config.renderRing ? this.config.ringNailCount : 0)
+    );
+  }
+
+  #getTrianglesNailsCount(): number {
+    const { levels, renderCaps, density } = this.config;
+
+    const triangleCount = 6 * levels ** 2;
+    const capsCount = renderCaps ? levels * 6 : 0;
+    // jointsCount is the number of joints that are shared by multiple triangles, not counting the center joint
+    const jointsCount = ((levels * (levels + 1)) / 2) * 6 + 1;
+    const nailsPerTriangleWithoutJoints = (density - 1) * 3 + 1;
+    const capsNailCount = capsCount * ((density - 1) * 2 + 1);
+    return (
+      triangleCount * nailsPerTriangleWithoutJoints +
+      jointsCount +
+      capsNailCount
+    );
+  }
+
   drawNails(nails: Nails) {
+    const nailsGroup = new NailsGroup(this.#getTrianglesNailsCount());
     const triangleLevels = this.calc.points;
-    let index = 1;
+    const { density } = this.config;
+
+    let index = 0;
+    let levelIndex = 0;
     for (const level of triangleLevels) {
+      let triangleIndex = 0;
       for (const triangle of level) {
         if (triangle != null) {
+          let side = 0;
           // A cap level has nulls between caps
           for (const triangleSide of triangle) {
+            let sideIndex = 0;
             for (const point of triangleSide) {
-              nails.addNail({ point, number: index++ });
+              if (shouldAddNail(levelIndex, triangleIndex, side, sideIndex)) {
+                console.log('add', {
+                  number: index + 1,
+                  level: levelIndex,
+                  triangle: triangleIndex,
+                  side,
+                  sideIndex,
+                });
+                nailsGroup.setNail(index, ...point, 1 + index++);
+              }
+              sideIndex++;
+            }
+            side++;
+          }
+        }
+        triangleIndex++;
+      }
+      levelIndex++;
+    }
+
+    nails.addGroup(nailsGroup);
+    if (this.calc.ringCircle) {
+      this.calc.ringCircle.drawNails(nails, { nailsNumberStart: index });
+    }
+
+    function shouldAddNail(
+      level: number,
+      triangleIndex: number,
+      side: number,
+      sideIndex: number
+    ): boolean {
+      if (sideIndex === 0 && side !== 0) {
+        return false;
+      }
+
+      if (sideIndex === density) {
+        const isLastTriangleOfLevel =
+          triangleIndex === triangleLevels[level].length - 1;
+        if (isLastTriangleOfLevel && side === 2) {
+          return false;
+        }
+
+        if (level === 0) {
+          if (triangleIndex && side !== 2) {
+            return false;
+          }
+        } else {
+          if (triangleIndex === 0) {
+            if (side === 0) {
+              return false;
+            }
+          } else {
+            const trianglesPerSide = level * 2 + 1;
+            const positionInSide = triangleIndex % trianglesPerSide;
+
+            if (positionInSide === 0) {
+              if (side !== 2) {
+                return false;
+              }
+            } else if (triangleIndex % 2) {
+              return false;
+            } else {
+              if (side !== 1) {
+                return false;
+              }
             }
           }
         }
       }
-    }
 
-    if (this.calc.ringCircle) {
-      this.calc.ringCircle.drawNails(nails, { nailsNumberStart: index });
+      return true;
     }
   }
 
