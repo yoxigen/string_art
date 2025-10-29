@@ -50,6 +50,7 @@ interface TCalc {
   radius: number;
   ringCircle: Circle;
   points: Points;
+  center: Coordinates;
 }
 
 const COLOR_CONFIG = Color.getConfig({
@@ -308,11 +309,12 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       globalRotationRadians,
       radius,
       ringCircle,
+      center: getCenter(size),
     };
 
     return {
       ...calc,
-      points: this.#getPoints(calc, getCenter(size)),
+      points: this.#getPoints(calc),
     };
   }
 
@@ -408,7 +410,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     return trianglePoints;
   }
 
-  #getPoints(calc: Omit<TCalc, 'points'>, center: Coordinates): Points {
+  #getPoints(calc: Omit<TCalc, 'points'>): Points {
     const { levels, renderCaps } = this.config;
 
     const largeDistance = calc.nailsLength;
@@ -461,8 +463,8 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
             sideRotation - rotation - calc.globalRotationRadians;
 
           const rotatedTrianglePosition = [
-            center[0] + distanceFromCenter * Math.cos(triangleCenterAngle),
-            center[1] - distanceFromCenter * Math.sin(triangleCenterAngle),
+            calc.center[0] + distanceFromCenter * Math.cos(triangleCenterAngle),
+            calc.center[1] - distanceFromCenter * Math.sin(triangleCenterAngle),
           ] as Coordinates;
 
           const trianglePoints = this.#getTrianglePoints(calc, {
@@ -792,7 +794,9 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     const triangleLevels = this.calc.points;
     const { density } = this.config;
 
-    let index = 0;
+    nailsGroup.setNail(0, ...this.calc.center, '1');
+
+    let index = 1;
     let levelIndex = 0;
     for (const level of triangleLevels) {
       let triangleIndex = 0;
@@ -839,36 +843,17 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       }
 
       if (sideIndex === density) {
-        const isLastTriangleOfLevel =
-          triangleIndex === triangleLevels[level].length - 1;
-        if (isLastTriangleOfLevel && side === 2) {
-          return false;
-        }
-
         if (level === 0) {
-          if (triangleIndex && side !== 2) {
+          if (side !== 2) {
             return false;
           }
         } else {
-          if (triangleIndex === 0) {
-            if (side === 0) {
-              return false;
-            }
-          } else {
-            const trianglesPerSide = level * 2 + 1;
-            const positionInSide = triangleIndex % trianglesPerSide;
-
-            if (positionInSide === 0) {
-              if (side !== 2) {
-                return false;
-              }
-            } else if (triangleIndex % 2) {
-              return false;
-            } else {
-              if (side !== 1) {
-                return false;
-              }
-            }
+          const trianglesPerSide = level * 2 + 1;
+          const positionInSide = triangleIndex % trianglesPerSide;
+          if (positionInSide % 2) {
+            return false;
+          } else if (side !== (positionInSide + 2) % 3) {
+            return false;
           }
         }
       }
