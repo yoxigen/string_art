@@ -2,10 +2,12 @@ import { ColorValue } from '../../helpers/color/color.types';
 import Renderer, { RendererOptions } from './Renderer';
 import { Coordinates, Dimensions } from '../../types/general.types';
 import { Nail, NailsRenderOptions } from '../../types/stringart.types';
+import NailsGroup from '../nails/NailsGroup';
 
 export class TestRenderer extends Renderer {
   strings = [];
   nails = [];
+  nailGroups: NailsGroup[] = [];
   lineWidth = 1;
   size: Dimensions = [0, 0];
   background: ColorValue;
@@ -38,6 +40,13 @@ export class TestRenderer extends Renderer {
 
   renderNails(nails: ReadonlyArray<Nail>, options: NailsRenderOptions) {
     this.nails.push(...nails);
+  }
+
+  renderNailsGroup(
+    nailsGroup: NailsGroup,
+    overrideOptions?: Partial<NailsRenderOptions>
+  ): void {
+    this.nailGroups.push(nailsGroup);
   }
 
   clear() {

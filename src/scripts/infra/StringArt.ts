@@ -456,7 +456,13 @@ abstract class StringArt<
     );
 
     if (showNails && drawOptions.redrawNails !== false) {
-      const nails = new Nails(this.config);
+      const nails = new Nails({
+        color: this.config.nailsColor,
+        fontSize: this.config.nailNumbersFontSize,
+        radius: this.config.nailRadius,
+        renderNumbers: this.config.showNailNumbers,
+      });
+
       this.drawNails(nails);
       nails.draw(renderer, { drawNumbers: showNailNumbers });
     }

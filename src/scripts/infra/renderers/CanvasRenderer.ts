@@ -1,10 +1,11 @@
 import Renderer, { RendererOptions } from './Renderer';
 import { PI2 } from '../../helpers/math_utils';
 import type { Coordinates, Dimensions } from '../../types/general.types';
-import type { Nail } from '../../types/stringart.types';
+import type { Nail, NailsRenderOptions } from '../../types/stringart.types';
 import { ColorValue } from '../../helpers/color/color.types';
 import { areDimensionsEqual } from '../../helpers/size_utils';
 import { hide, unHide } from '../../helpers/dom_utils';
+import NailsGroup from '../nails/NailsGroup';
 
 let lastId = 0;
 const INSTRUCTIONS_NAIL_RADIUS = 4;
@@ -269,6 +270,43 @@ export default class CanvasRenderer extends Renderer {
     const nailNumberOffset = radius + margin;
 
     nails.forEach(({ point: [x, y], number }) => {
+      this.nailsCtx.moveTo(x + radius, y);
+      this.nailsCtx.arc(x, y, radius, 0, PI2);
+      if (renderNumbers && number != null) {
+        const isRightAlign = x < centerX;
+
+        const numberPosition: Coordinates = [
+          isRightAlign ? x - nailNumberOffset : x + nailNumberOffset,
+          y,
+        ];
+
+        this.nailsCtx.textAlign = isRightAlign ? 'right' : 'left';
+        this.nailsCtx.fillText(String(number), ...numberPosition);
+      }
+    });
+
+    this.nailsCtx.fill();
+  }
+
+  renderNailsGroup(
+    nailsGroup: NailsGroup,
+    defaultOptions: Partial<NailsRenderOptions> = {}
+  ): void {
+    const { radius, color, margin, renderNumbers, fontSize } = Object.assign(
+      {},
+      defaultOptions,
+      nailsGroup.options
+    );
+    const centerX = this.stringsCanvas.width / 2;
+
+    this.nailsCtx.globalCompositeOperation = 'source-over';
+    this.nailsCtx.beginPath();
+    this.nailsCtx.fillStyle = color;
+    this.nailsCtx.textBaseline = 'middle';
+    this.nailsCtx.font = `${fontSize}px sans-serif`;
+    const nailNumberOffset = radius + margin;
+
+    nailsGroup.forEach((x, y, number) => {
       this.nailsCtx.moveTo(x + radius, y);
       this.nailsCtx.arc(x, y, radius, 0, PI2);
       if (renderNumbers && number != null) {

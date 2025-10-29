@@ -239,7 +239,7 @@ export default class DanceOfPlanets extends StringArt<
       if (type === 'circle') {
         return new Circle({
           size: mapDimensions(size, v => v * diameter),
-          n: nailCount,
+          n: Math.round(nailCount),
           radius: (Math.min(...size) * diameter) / 2,
           center,
           margin,

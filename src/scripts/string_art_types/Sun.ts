@@ -411,11 +411,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
 
     this.calc.star.drawNails(nails);
     if (backdropSize) {
-      const circleNails = [];
-      for (const circleNail of this.calc.circle.generateNails()) {
-        circleNails.push(circleNail);
-      }
-      nails.addGroup(circleNails, {
+      this.calc.circle.drawNails(nails, {
         color: backdropNailsColor,
         radius: backdropNailsRadius,
       });

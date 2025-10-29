@@ -7,6 +7,8 @@ import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
 import { Shape, ShapeNailsOptions } from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import { createArray } from '../helpers/array_utils';
+import NailsGroup from '../infra/nails/NailsGroup';
+import { NailsRenderOptions } from '../types/stringart.types';
 
 export interface PolygonConfig {
   size: Dimensions;
@@ -28,11 +30,11 @@ interface Side {
   };
 }
 
-interface PolygonNailsOptions {
+type PolygonNailsOptions = Partial<NailsRenderOptions> & {
   drawCenter?: boolean;
   drawSides?: boolean;
   drawCenterNail?: boolean;
-}
+};
 
 interface TCalc {
   center: Coordinates;
@@ -244,43 +246,54 @@ export default class Polygon extends Shape {
     {
       nailsNumberStart = 0,
       getNumber,
-      drawCenter = false,
-      drawSides = true,
-      drawCenterNail = true,
+      ...nailsOptions
     }: PolygonNailsOptions & ShapeNailsOptions = {}
   ) {
     const { nailsPerSide } = this.config;
 
-    if (drawCenter && drawCenterNail) {
-      nails.addNail({
-        point: this.getCenterPoint({ side: 0, index: 0 }),
-        number: 'C',
-      });
+    const nailsGroup = new NailsGroup(
+      this.getNailsCount(nailsOptions),
+      nailsOptions
+    );
+    let nailIndex = 0;
+    if (nailsOptions.drawCenter && nailsOptions.drawCenterNail) {
+      nailsGroup.setNail(
+        nailIndex,
+        ...this.getCenterPoint({ side: 0, index: 0 }),
+        'C'
+      );
+      nailIndex++;
     }
 
     for (let side = 0; side < this.config.sides; side++) {
       const sideIndexStart = nailsNumberStart + side * nailsPerSide;
 
-      if (drawSides) {
+      if (nailsOptions.drawSides) {
         for (let index = 0; index < nailsPerSide - 1; index++) {
           const number = sideIndexStart + index;
-          nails.addNail({
-            point: this.getSidePoint({ side, index }),
-            number: getNumber ? getNumber(number) : number,
-          });
+          nailsGroup.setNail(
+            nailIndex,
+            ...this.getSidePoint({ side, index }),
+            getNumber ? getNumber(number) : number
+          );
+          nailIndex++;
         }
       }
 
-      if (drawCenter) {
+      if (nailsOptions.drawCenter) {
         for (let index = 1; index < this.#calc.radiusNailsCount - 1; index++) {
           const number = `${side}_${index}`;
-          nails.addNail({
-            point: this.getCenterPoint({ side, index }),
-            number: getNumber ? getNumber(number) : number,
-          });
+          nailsGroup.setNail(
+            nailIndex,
+            ...this.getCenterPoint({ side, index }),
+            getNumber ? getNumber(number) : number
+          );
+          nailIndex++;
         }
       }
     }
+
+    nails.addGroup(nailsGroup);
   }
 
   getNailsCount({

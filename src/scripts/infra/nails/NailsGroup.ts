@@ -5,7 +5,10 @@ export default class NailsGroup {
   #yCoordinates: Float16Array;
   #numbers: Array<string | number>;
 
-  constructor(public length: number, public options: NailsRenderOptions) {
+  constructor(
+    public length: number,
+    public options?: Partial<NailsRenderOptions>
+  ) {
     this.#xCoordinates = new Float16Array(length);
     this.#yCoordinates = new Float16Array(length);
     this.#numbers = new Array(length);

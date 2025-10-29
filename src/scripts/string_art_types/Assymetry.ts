@@ -7,6 +7,7 @@ import { CalcOptions } from '../types/stringart.types';
 import Nails from '../infra/nails/Nails';
 import { PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
+import NailsGroup from '../infra/nails/NailsGroup';
 
 const LAYER_DEFAULTS = [
   { size: 0.25, end: 1, color: '#a94fb0' },
@@ -268,9 +269,12 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     this.calc.circle.drawNails(nails, {
       nailsNumberStart: this.calc.lineNailCount + 1,
     });
+
+    const lineNailsGroup = new NailsGroup(this.calc.lineNailCount);
     for (let i = 0; i < this.calc.lineNailCount; i++) {
-      nails.addNail({ point: this.getPoint(i), number: i + 1 });
+      lineNailsGroup.setNail(i, ...this.getPoint(i), i + 1);
     }
+    nails.addGroup(lineNailsGroup);
   }
 
   getStepCount(options: CalcOptions): number {

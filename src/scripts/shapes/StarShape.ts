@@ -14,6 +14,7 @@ import {
 } from '../helpers/string_utils';
 import { Shape } from './Shape';
 import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
+import NailsGroup from '../infra/nails/NailsGroup';
 
 export interface StarShapeConfig {
   sideNails: number;
@@ -130,50 +131,56 @@ export default class StarShape extends Shape {
     {
       getNumber,
       reverseOrder,
-      excludeSides,
+      // excludeSides,
       ...nailsConfig
     }: Partial<
       {
         getNumber?: (number: string) => string;
         reverseOrder?: boolean;
-        excludeSides?: ReadonlyArray<number>;
+        // excludeSides?: ReadonlyArray<number>;
       } & NailsConfig
     > = {}
   ): void {
     const { sides, sideNails, centerRadius } = this.config;
-
-    const groupNails = [];
     const renderCenterNail = centerRadius == null || centerRadius === 0;
+    const nailsGroup = new NailsGroup(
+      this.getNailCount() - (renderCenterNail ? 1 : 0)
+    );
 
     if (renderCenterNail) {
-      nails.addGroup(
-        [
-          {
-            point: this.getSidePoint(0, 0),
-            number: 'C',
-          },
-        ],
-        nailsConfig
-      );
+      const centerNailGroup = new NailsGroup(1);
+      centerNailGroup.setNail(0, ...this.getSidePoint(0, 0), 'C');
+      nails.addGroup(centerNailGroup);
     }
 
+    let nailIndex = 0;
     for (let side = 0; side < sides; side++) {
-      if (!excludeSides || !excludeSides.includes(side)) {
-        for (let i = renderCenterNail ? 1 : 0; i < sideNails; i++) {
-          const sideIndex = reverseOrder ? sideNails - i : i;
-          groupNails.push({
-            point: this.getSidePoint(side, sideIndex),
-            number: getNumber
-              ? getNumber(`${side}_${sideIndex}`)
-              : sideIndex || !renderCenterNail
-              ? `${side}_${sideIndex}`
-              : 0,
-          });
-        }
+      // if (!excludeSides || !excludeSides.includes(side)) {
+      for (let i = renderCenterNail ? 1 : 0; i < sideNails; i++) {
+        const sideIndex = reverseOrder ? sideNails - i : i;
+        nailsGroup.setNail(
+          nailIndex,
+          ...this.getSidePoint(side, sideIndex),
+          getNumber
+            ? getNumber(`${side}_${sideIndex}`)
+            : sideIndex || !renderCenterNail
+            ? `${side}_${sideIndex}`
+            : 0
+        );
+
+        nailIndex++;
+        // }
       }
     }
 
-    nails.addGroup(groupNails, nailsConfig);
+    nails.addGroup(nailsGroup);
+  }
+
+  getNailCount(): number {
+    const { sides, sideNails, centerRadius } = this.config;
+    const renderCenterNail = centerRadius == null || centerRadius === 0;
+
+    return sides * sideNails - (renderCenterNail ? sides - 1 : 0);
   }
 
   // In this pattern, strings are connected in a "merry-go-round" way, around the star.

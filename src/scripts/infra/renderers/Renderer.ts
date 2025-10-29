@@ -2,6 +2,7 @@ import { ColorValue } from '../../helpers/color/color.types';
 import EventBus from '../../helpers/EventBus';
 import type { Coordinates, Dimensions } from '../../types/general.types';
 import type { Nail, NailsRenderOptions } from '../../types/stringart.types';
+import NailsGroup from '../nails/NailsGroup';
 
 export type RendererResetOptions = Partial<{
   resetStrings: boolean;
@@ -103,6 +104,10 @@ export default abstract class Renderer extends EventBus<{
   abstract renderNails(
     nails: ReadonlyArray<Nail>,
     options: NailsRenderOptions
+  ): void;
+  abstract renderNailsGroup(
+    nailsGroup: NailsGroup,
+    defaultOptions?: Partial<NailsRenderOptions>
   ): void;
   abstract renderInstructions(from: Coordinates, to: Coordinates): void;
   abstract clearInstructions(): void;
