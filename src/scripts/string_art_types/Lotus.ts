@@ -16,6 +16,7 @@ import {
 } from '../helpers/size_utils';
 import Nails from '../infra/nails/Nails';
 import { createArray } from '../helpers/array_utils';
+import NailsGroup from '../infra/nails/NailsGroup';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -430,7 +431,9 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       if (centerCircle) {
         centerCircle.drawNails(nails, { getNumber: i => `C_${i + 1}` });
       } else {
-        nails.addNail({ point: this.calc.center, number: 'C' });
+        const centerNailsGroup = new NailsGroup(1);
+        centerNailsGroup.setNail(0, ...this.calc.center, 'C');
+        nails.addGroup(centerNailsGroup);
       }
     }
   }
