@@ -431,8 +431,8 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       if (centerCircle) {
         centerCircle.drawNails(nails, { getNumber: i => `C_${i + 1}` });
       } else {
-        const centerNailsGroup = new NailsGroup(1);
-        centerNailsGroup.setNail(0, ...this.calc.center, 'C');
+        const centerNailsGroup = new NailsGroup();
+        centerNailsGroup.addNail('C', this.calc.center);
         nails.addGroup(centerNailsGroup);
       }
     }

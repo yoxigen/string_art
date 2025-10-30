@@ -252,43 +252,39 @@ export default class Polygon extends Shape {
     }: PolygonNailsOptions & ShapeNailsOptions = {}
   ) {
     const { nailsPerSide } = this.config;
+    const {
+      drawCenter = false,
+      drawSides = true,
+      drawCenterNail = true,
+    } = nailsOptions;
 
-    const nailsGroup = new NailsGroup(
-      this.getNailsCount(nailsOptions),
-      nailsOptions
-    );
+    const nailsGroup = new NailsGroup(nailsOptions);
     let nailIndex = 0;
-    if (nailsOptions.drawCenter && nailsOptions.drawCenterNail) {
-      nailsGroup.setNail(
-        nailIndex,
-        ...this.getCenterPoint({ side: 0, index: 0 }),
-        'C'
-      );
+    if (drawCenter && drawCenterNail) {
+      nailsGroup.addNail('C', this.getCenterPoint({ side: 0, index: 0 }));
       nailIndex++;
     }
 
     for (let side = 0; side < this.config.sides; side++) {
       const sideIndexStart = nailsNumberStart + side * nailsPerSide;
 
-      if (nailsOptions.drawSides) {
+      if (drawSides) {
         for (let index = 0; index < nailsPerSide - 1; index++) {
           const number = sideIndexStart + index;
-          nailsGroup.setNail(
-            nailIndex,
-            ...this.getSidePoint({ side, index }),
-            getNumber ? getNumber(number) : number
+          nailsGroup.addNail(
+            getNumber ? getNumber(number) : number,
+            this.getSidePoint({ side, index })
           );
           nailIndex++;
         }
       }
 
-      if (nailsOptions.drawCenter) {
+      if (drawCenter) {
         for (let index = 1; index < this.#calc.radiusNailsCount - 1; index++) {
           const number = `${side}_${index}`;
-          nailsGroup.setNail(
-            nailIndex,
-            ...this.getCenterPoint({ side, index }),
-            getNumber ? getNumber(number) : number
+          nailsGroup.addNail(
+            getNumber ? getNumber(number) : number,
+            this.getCenterPoint({ side, index })
           );
           nailIndex++;
         }

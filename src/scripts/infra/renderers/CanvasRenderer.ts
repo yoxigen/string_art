@@ -313,22 +313,25 @@ export default class CanvasRenderer extends Renderer {
     this.nailsCtx.font = `${fontSize}px sans-serif`;
     const nailNumberOffset = radius + margin;
 
-    nailsGroup.forEach((x, y, number) => {
-      this.nailsCtx.moveTo(x + radius, y);
-      this.nailsCtx.arc(x, y, radius, 0, PI2);
-      if (renderNumbers && number != null) {
-        const isRightAlign = x < centerX;
+    try {
+      nailsGroup.forEach(([x, y], number) => {
+        this.nailsCtx.moveTo(x + radius, y);
+        this.nailsCtx.arc(x, y, radius, 0, PI2);
+        if (renderNumbers && number != null) {
+          const isRightAlign = x < centerX;
 
-        const numberPosition: Coordinates = [
-          isRightAlign ? x - nailNumberOffset : x + nailNumberOffset,
-          y,
-        ];
+          const numberPosition: Coordinates = [
+            isRightAlign ? x - nailNumberOffset : x + nailNumberOffset,
+            y,
+          ];
 
-        this.nailsCtx.textAlign = isRightAlign ? 'right' : 'left';
-        this.nailsCtx.fillText(String(number), ...numberPosition);
-      }
-    });
-
+          this.nailsCtx.textAlign = isRightAlign ? 'right' : 'left';
+          this.nailsCtx.fillText(String(number), ...numberPosition);
+        }
+      });
+    } catch (e) {
+      debugger;
+    }
     this.nailsCtx.fill();
   }
 

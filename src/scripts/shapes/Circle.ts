@@ -232,20 +232,17 @@ export default class Circle extends Shape {
     let j = 0;
 
     const nailsGroup = new NailsGroup(
-      this.config.n - (excludedNailIndexes?.size ?? 0),
+      //this.config.n - (excludedNailIndexes?.size ?? 0),
       options
     );
 
     for (let i = 0; i < this.config.n; i++) {
       if (!excludedNailIndexes?.has(i)) {
         const point = this.getPoint(i);
-        nailsGroup.setNail(
-          j,
-          point[0],
-          point[1],
-          getNumber ? getNumber(j) : j + nailsNumberStart
+        nailsGroup.addNail(
+          getNumber ? getNumber(j) : j + nailsNumberStart,
+          point
         );
-
         j++;
       }
     }

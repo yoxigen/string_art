@@ -143,13 +143,11 @@ export default class StarShape extends Shape {
   ): void {
     const { sides, sideNails, centerRadius } = this.config;
     const renderCenterNail = centerRadius == null || centerRadius === 0;
-    const nailsGroup = new NailsGroup(
-      this.getNailCount() - (renderCenterNail ? 1 : 0)
-    );
+    const nailsGroup = new NailsGroup();
 
     if (renderCenterNail) {
-      const centerNailGroup = new NailsGroup(1);
-      centerNailGroup.setNail(0, ...this.getSidePoint(0, 0), 'C');
+      const centerNailGroup = new NailsGroup();
+      centerNailGroup.addNail('C', this.getSidePoint(0, 0));
       nails.addGroup(centerNailGroup);
     }
 
@@ -158,14 +156,13 @@ export default class StarShape extends Shape {
       // if (!excludeSides || !excludeSides.includes(side)) {
       for (let i = renderCenterNail ? 1 : 0; i < sideNails; i++) {
         const sideIndex = reverseOrder ? sideNails - i : i;
-        nailsGroup.setNail(
-          nailIndex,
-          ...this.getSidePoint(side, sideIndex),
+        nailsGroup.addNail(
           getNumber
             ? getNumber(`${side}_${sideIndex}`)
             : sideIndex || !renderCenterNail
             ? `${side}_${sideIndex}`
-            : 0
+            : 0,
+          this.getSidePoint(side, sideIndex)
         );
 
         nailIndex++;

@@ -206,12 +206,12 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
   }
 
   drawNails(nails: Nails) {
-    const nailsGroup = new NailsGroup(this.getNailCount());
+    const nailsGroup = new NailsGroup();
 
     const points = this.generatePoints();
     let i = 0;
     for (const { point, nailNumber } of points) {
-      nailsGroup.setNail(i, ...point, nailNumber);
+      nailsGroup.addNail(nailNumber, point);
       i++;
     }
     nails.addGroup(nailsGroup);

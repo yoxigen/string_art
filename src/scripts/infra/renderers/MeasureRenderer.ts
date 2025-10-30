@@ -101,9 +101,7 @@ export class MeasureRenderer extends TestRenderer {
 
   getInfo(): PatternInfo {
     const nailCoords: Coordinates[] = [];
-    this.#nailGroups.forEach(group => {
-      group.forEach((x, y) => nailCoords.push([x, y]));
-    });
+    this.#nailGroups.forEach(group => nailCoords.push(...group.coordinates));
 
     return {
       nailsCount: this.#nailCount,

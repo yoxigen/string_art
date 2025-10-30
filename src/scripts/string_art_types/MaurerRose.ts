@@ -228,9 +228,9 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
 
   drawNails(nails: Nails) {
     const points = this.generatePoints();
-    const nailsGroup = new NailsGroup(this.getStepCount() + 1);
+    const nailsGroup = new NailsGroup();
     for (const { point, index } of points) {
-      nailsGroup.setNail(index, ...point, index + 1);
+      nailsGroup.addNail(index + 1, point);
     }
     nails.addGroup(nailsGroup);
   }

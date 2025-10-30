@@ -287,7 +287,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   }
   drawNails(nails: Nails) {
     const { layers } = this.config;
-    const nailsGroup = new NailsGroup(this.#getNailCount(this.calc));
+    const nailsGroup = new NailsGroup();
 
     let nailIndex = 0;
     for (let layer = layers - 1; layer >= 0; layer--) {
@@ -304,14 +304,13 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
         for (let i = 0; i <= layerSideNailCount; i++) {
           const sideProps = { layerSideNailCount, size, layerStart, angle };
-          nailsGroup.setNail(
-            nailIndex,
-            ...this.getPoint({
+          nailsGroup.addNail(
+            `${layer}_${s}_${i}`,
+            this.getPoint({
               index: i,
               rotation,
               ...sideProps,
-            }),
-            `${layer}_${s}_${i}`
+            })
           );
           nailIndex++;
         }

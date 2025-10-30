@@ -270,9 +270,9 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
       nailsNumberStart: this.calc.lineNailCount + 1,
     });
 
-    const lineNailsGroup = new NailsGroup(this.calc.lineNailCount);
+    const lineNailsGroup = new NailsGroup();
     for (let i = 0; i < this.calc.lineNailCount; i++) {
-      lineNailsGroup.setNail(i, ...this.getPoint(i), i + 1);
+      lineNailsGroup.addNail(i + 1, this.getPoint(i));
     }
     nails.addGroup(lineNailsGroup);
   }

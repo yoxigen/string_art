@@ -2,6 +2,7 @@ import { ColorValue } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
 import { mapDimensions } from '../helpers/size_utils';
 import Nails from '../infra/nails/Nails';
+import NailsGroup from '../infra/nails/NailsGroup';
 import { BoundingRect, Coordinates } from '../types/general.types';
 import { Shape } from './Shape';
 
@@ -107,16 +108,12 @@ export class Line extends Shape {
       color,
     }: { getNumber?: (n: number) => number | string; color?: ColorValue } = {}
   ): void {
-    const nailsArr = [];
-
+    const nailsGroup = new NailsGroup({ color });
     for (let i = 0; i < this.config.n; i++) {
-      nailsArr.push({
-        point: this.getPoint(i),
-        number: getNumber ? getNumber(i) : i + 1,
-      });
+      nailsGroup.addNail(getNumber ? getNumber(i) : i + 1, this.getPoint(i));
     }
 
-    nails.addGroup(nailsArr, { color });
+    nails.addGroup(nailsGroup);
   }
 
   getBoundingRect(): BoundingRect {
