@@ -314,7 +314,7 @@ export default class CanvasRenderer extends Renderer {
     const nailNumberOffset = radius + margin;
 
     try {
-      nailsGroup.forEachUnique(([x, y], number) => {
+      nailsGroup.forEach(([x, y], number) => {
         this.nailsCtx.moveTo(x + radius, y);
         this.nailsCtx.arc(x, y, radius, 0, PI2);
         if (renderNumbers && number != null) {
