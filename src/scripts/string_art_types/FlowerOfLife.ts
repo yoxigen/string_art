@@ -792,13 +792,15 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
   drawNails(nails: Nails) {
     const nailsGroup = new NailsGroup(this.#getTrianglesNailsCount());
     const triangleLevels = this.calc.points;
-    const { density } = this.config;
+    const { density, levels } = this.config;
 
     nailsGroup.setNail(0, ...this.calc.center, '1');
 
     let index = 1;
     let levelIndex = 0;
     for (const level of triangleLevels) {
+      const isCapLevel = this.config.renderCaps && levelIndex === levels;
+
       let triangleIndex = 0;
       for (const triangle of level) {
         if (triangle != null) {
@@ -807,14 +809,15 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
           for (const triangleSide of triangle) {
             let sideIndex = 0;
             for (const point of triangleSide) {
-              if (shouldAddNail(levelIndex, triangleIndex, side, sideIndex)) {
-                console.log('add', {
-                  number: index + 1,
-                  level: levelIndex,
-                  triangle: triangleIndex,
+              if (
+                shouldAddNail(
+                  levelIndex,
+                  triangleIndex,
                   side,
                   sideIndex,
-                });
+                  isCapLevel
+                )
+              ) {
                 nailsGroup.setNail(index, ...point, 1 + index++);
               }
               sideIndex++;
@@ -836,7 +839,8 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       level: number,
       triangleIndex: number,
       side: number,
-      sideIndex: number
+      sideIndex: number,
+      isCapLevel: boolean
     ): boolean {
       if (sideIndex === 0 && side !== 0) {
         return false;
