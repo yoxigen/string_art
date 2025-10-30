@@ -219,7 +219,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
 
   getNailCount(): number {
     const { nSpirals, nailsPerSpiral } = this.config;
-    return nSpirals * (nailsPerSpiral - 1) + 1;
+    return nSpirals * (nailsPerSpiral - 1);
   }
 
   thumbnailConfig = ({ nailsPerSpiral }) => ({

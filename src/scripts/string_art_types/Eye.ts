@@ -274,17 +274,17 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     return count;
   }
 
-  getNailCount(size: Dimensions): number {
-    return this.#getNailCount(this.calc ?? this.getCalc({ size }));
-  }
+  // getNailCount(size: Dimensions): number {
+  //   return this.#getNailCount(this.calc ?? this.getCalc({ size }));
+  // }
 
-  #getNailCount({ layers }: TCalc): number {
-    return layers.reduce(
-      (nailCount: number, layer) =>
-        nailCount + (layer.layerSideNailCount + 1) * SIDES.length,
-      0
-    );
-  }
+  // #getNailCount({ layers }: TCalc): number {
+  //   return layers.reduce(
+  //     (nailCount: number, layer) =>
+  //       nailCount + (layer.layerSideNailCount + 1) * SIDES.length,
+  //     0
+  //   );
+  // }
   drawNails(nails: Nails) {
     const { layers } = this.config;
     const nailsGroup = new NailsGroup();

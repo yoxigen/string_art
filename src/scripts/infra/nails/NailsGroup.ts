@@ -1,17 +1,11 @@
 import { Coordinates } from '../../types/general.types';
-import { NailsRenderOptions } from '../../types/stringart.types';
+import { Nail, NailsRenderOptions } from '../../types/stringart.types';
 
 export default class NailsGroup {
-  #xCoordinates: Float16Array;
-  #yCoordinates: Float16Array;
-  #numbers: Array<string | number>;
-
-  #nails: Map<string | number, Coordinates> = new Map();
+  #nails: Map<string | number, Coordinates>;
 
   constructor(public options?: Partial<NailsRenderOptions>) {
-    // this.#xCoordinates = new Float16Array(length);
-    // this.#yCoordinates = new Float16Array(length);
-    this.#numbers = new Array(length);
+    this.#nails = new Map();
   }
 
   get length(): number {
@@ -22,12 +16,6 @@ export default class NailsGroup {
     return this.#nails.values();
   }
 
-  // setNail(index: number, x: number, y: number, number: string | number) {
-  //   this.#xCoordinates[index] = x;
-  //   this.#yCoordinates[index] = y;
-  //   this.#numbers[index] = number;
-  // }
-
   addNail(number: string | number, coordinates: Coordinates) {
     this.#nails.set(number, coordinates);
   }
@@ -36,5 +24,29 @@ export default class NailsGroup {
     callback: (coordinates: Coordinates, number: string | number) => void
   ): void {
     this.#nails.forEach((coordinates, number) => callback(coordinates, number));
+  }
+
+  forEachUnique(
+    callback: (coordinates: Coordinates, number: string | number) => void
+  ): void {
+    const coordinatesHash = new Set<string>();
+
+    this.forEach((coordinates, number) => {
+      const hash = `${Math.round(coordinates[0] * 1000)}_${Math.round(
+        coordinates[1] * 1000
+      )}`;
+      if (!coordinatesHash.has(hash)) {
+        callback(coordinates, number);
+        coordinatesHash.add(hash);
+      } else {
+        console.log('HAS POINT ', { hash, number });
+      }
+    });
+  }
+
+  getUniqueCoordinatesCount(): number {
+    let count = 0;
+    this.forEachUnique(_ => count++);
+    return count;
   }
 }

@@ -3,6 +3,7 @@ import type Renderer from '../renderers/Renderer';
 import { NailsConfig } from '../../types/config.types';
 import { Nail, NailsRenderOptions } from '../../types/stringart.types';
 import NailsGroup from './NailsGroup';
+import { Coordinates } from '../../types/general.types';
 
 const precision = 1000;
 

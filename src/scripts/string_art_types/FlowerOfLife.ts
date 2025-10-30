@@ -792,32 +792,32 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
   drawNails(nails: Nails) {
     const nailsGroup = new NailsGroup();
     const triangleLevels = this.calc.points;
-    const { density, levels } = this.config;
+    //const { density, levels } = this.config;
 
     nailsGroup.addNail(1, this.calc.center);
 
     let index = 1;
-    let levelIndex = 0;
+    //let levelIndex = 0;
     for (const level of triangleLevels) {
-      const isCapLevel = this.config.renderCaps && levelIndex === levels;
+      //const isCapLevel = this.config.renderCaps && levelIndex === levels;
 
-      let triangleIndex = 0;
+      //let triangleIndex = 0;
       for (const triangle of level) {
         if (triangle != null) {
-          let side = 0;
+          //let side = 0;
           // A cap level has nulls between caps
           for (const triangleSide of triangle) {
-            let sideIndex = 0;
+            //let sideIndex = 0;
             for (const point of triangleSide) {
               nailsGroup.addNail(1 + index++, point);
-              sideIndex++;
+              //sideIndex++;
             }
-            side++;
+            //side++;
           }
         }
-        triangleIndex++;
+        //triangleIndex++;
       }
-      levelIndex++;
+      //levelIndex++;
     }
 
     nails.addGroup(nailsGroup);
@@ -825,35 +825,35 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       this.calc.ringCircle.drawNails(nails, { nailsNumberStart: index });
     }
 
-    function shouldAddNail(
-      level: number,
-      triangleIndex: number,
-      side: number,
-      sideIndex: number,
-      isCapLevel: boolean
-    ): boolean {
-      if (sideIndex === 0 && side !== 0) {
-        return false;
-      }
+    // function shouldAddNail(
+    //   level: number,
+    //   triangleIndex: number,
+    //   side: number,
+    //   sideIndex: number,
+    //   isCapLevel: boolean
+    // ): boolean {
+    //   if (sideIndex === 0 && side !== 0) {
+    //     return false;
+    //   }
 
-      if (sideIndex === density) {
-        if (level === 0) {
-          if (side !== 2) {
-            return false;
-          }
-        } else {
-          const trianglesPerSide = level * 2 + 1;
-          const positionInSide = triangleIndex % trianglesPerSide;
-          if (positionInSide % 2) {
-            return false;
-          } else if (side !== (positionInSide + 2) % 3) {
-            return false;
-          }
-        }
-      }
+    //   if (sideIndex === density) {
+    //     if (level === 0) {
+    //       if (side !== 2) {
+    //         return false;
+    //       }
+    //     } else {
+    //       const trianglesPerSide = level * 2 + 1;
+    //       const positionInSide = triangleIndex % trianglesPerSide;
+    //       if (positionInSide % 2) {
+    //         return false;
+    //       } else if (side !== (positionInSide + 2) % 3) {
+    //         return false;
+    //       }
+    //     }
+    //   }
 
-      return true;
-    }
+    //   return true;
+    // }
   }
 
   thumbnailConfig = ({ density }) => ({

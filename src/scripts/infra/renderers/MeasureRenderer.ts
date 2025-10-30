@@ -77,7 +77,7 @@ export class MeasureRenderer extends TestRenderer {
 
   renderNailsGroup(nailsGroup: NailsGroup): void {
     this.#nailGroups.push(nailsGroup);
-    this.#nailCount += nailsGroup.length;
+    this.#nailCount += nailsGroup.getUniqueCoordinatesCount();
   }
 
   setStartingPoint(coordinates: Coordinates): void {
