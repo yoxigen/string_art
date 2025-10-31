@@ -2,15 +2,11 @@ import { Coordinates } from '../../types/general.types';
 import { NailsRenderOptions } from '../../types/stringart.types';
 import INails from './INails';
 
-const PRECISION = 1000;
-
 export default class NailsGroup implements INails {
   #nails: Map<string | number, Coordinates>;
-  #coordinatesHash: Set<string>;
 
   constructor(public options?: Partial<NailsRenderOptions>) {
     this.#nails = new Map();
-    this.#coordinatesHash = new Set();
   }
 
   get length(): number {
@@ -22,14 +18,7 @@ export default class NailsGroup implements INails {
   }
 
   addNail(key: string | number, coordinates: Coordinates) {
-    const hash = `${Math.round(coordinates[0] * PRECISION)}_${Math.round(
-      coordinates[1] * PRECISION
-    )}`;
-
-    if (!this.#coordinatesHash.has(hash)) {
-      this.#nails.set(key, coordinates);
-      this.#coordinatesHash.add(hash);
-    }
+    this.#nails.set(key, coordinates);
   }
 
   addGroup(nailsGroup: NailsGroup): void {

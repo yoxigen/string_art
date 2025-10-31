@@ -790,68 +790,33 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
   drawNails(nails: INails) {
     const triangleLevels = this.calc.points;
-    //const { density, levels } = this.config;
 
     nails.addNail('C', this.calc.center);
-    let levelIndex = 0;
+    //let levelIndex = 0;
+    let index = 0;
     for (const level of triangleLevels) {
-      //const isCapLevel = this.config.renderCaps && levelIndex === levels;
-
-      let triangleIndex = 0;
+      //let triangleIndex = 0;
       for (const triangle of level) {
         if (triangle != null) {
-          let side = 0;
+          //let side = 0;
           // A cap level has nulls between caps
           for (const triangleSide of triangle) {
-            let sideIndex = 0;
+            //let sideIndex = 0;
             for (const point of triangleSide) {
-              nails.addNail(
-                this.#getPointKey(levelIndex, triangleIndex, side, sideIndex),
-                point
-              );
-              sideIndex++;
+              nails.addNail(index++, point);
+              //sideIndex++;
             }
-            side++;
+            //side++;
           }
         }
-        triangleIndex++;
+        //triangleIndex++;
       }
-      levelIndex++;
+      //levelIndex++;
     }
 
     if (this.calc.ringCircle) {
       this.calc.ringCircle.drawNails(nails);
     }
-
-    // function shouldAddNail(
-    //   level: number,
-    //   triangleIndex: number,
-    //   side: number,
-    //   sideIndex: number,
-    //   isCapLevel: boolean
-    // ): boolean {
-    //   if (sideIndex === 0 && side !== 0) {
-    //     return false;
-    //   }
-
-    //   if (sideIndex === density) {
-    //     if (level === 0) {
-    //       if (side !== 2) {
-    //         return false;
-    //       }
-    //     } else {
-    //       const trianglesPerSide = level * 2 + 1;
-    //       const positionInSide = triangleIndex % trianglesPerSide;
-    //       if (positionInSide % 2) {
-    //         return false;
-    //       } else if (side !== (positionInSide + 2) % 3) {
-    //         return false;
-    //       }
-    //     }
-    //   }
-
-    //   return true;
-    // }
   }
 
   #getPointKey(
