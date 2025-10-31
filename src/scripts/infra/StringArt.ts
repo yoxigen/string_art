@@ -438,7 +438,6 @@ abstract class StringArt<
 
     const {
       showNails,
-      showNailNumbers,
       darkMode,
       backgroundColor,
       customBackgroundColor,

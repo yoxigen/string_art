@@ -59,7 +59,7 @@ export function measurePattern(pattern: StringArt): PatternPerfResult {
 
   const renderer = new TestRenderer(size);
   const options: DrawOptions = {
-    sizeChanged: true,
+    sizeChanged: false,
     redrawNails: true,
     redrawStrings: true,
   };

@@ -22,6 +22,7 @@ export class TestRenderer extends Renderer {
   }
   resetNails() {
     this.nails.length = 0;
+    this.nailGroups.length = 0;
   }
 
   setLineWidth(width: number) {

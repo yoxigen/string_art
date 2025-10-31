@@ -66,7 +66,8 @@ export class MeasureRenderer extends TestRenderer {
 
   resetNails(): void {
     this.#nailCount = 0;
-    this.#nailCoords = [];
+    this.#nailCoords.length = 0;
+    this.#nailGroups.length = 0;
   }
 
   renderNails(nails: Nail[], { radius }: NailsRenderOptions) {
