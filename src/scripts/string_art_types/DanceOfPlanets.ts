@@ -9,15 +9,15 @@ import {
   GroupValue,
 } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
-import { Shape } from '../shapes/Shape';
+import type Shape from '../shapes/Shape';
 import { getCenter, mapDimensions } from '../helpers/size_utils';
 import Polygon from '../shapes/Polygon';
 import {
   formatFractionAsAngle,
   formatFractionAsPercent,
 } from '../helpers/string_utils';
-import Nails from '../infra/nails/Nails';
 import { Dimensions } from '../types/general.types';
+import INails from '../infra/nails/INails';
 
 type ShapeType = 'circle' | 'polygon';
 
@@ -398,9 +398,9 @@ export default class DanceOfPlanets extends StringArt<
     return calc.shape1NailCount + calc.shape2NailCount;
   }
 
-  drawNails(nails: Nails) {
-    this.calc.shape1.drawNails(nails, { getNumber: n => `A_${n}` });
-    this.calc.shape2.drawNails(nails, { getNumber: n => `B_${n}` });
+  drawNails(nails: INails) {
+    this.calc.shape1.drawNails(nails, { uniqueKey: 1 });
+    this.calc.shape2.drawNails(nails, { uniqueKey: 2 });
   }
 
   thumbnailConfig = (

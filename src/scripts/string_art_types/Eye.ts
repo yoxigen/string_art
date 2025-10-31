@@ -2,8 +2,7 @@ import { createArray } from '../helpers/array_utils';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { getCenter } from '../helpers/size_utils';
-import Nails from '../infra/nails/Nails';
-import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 import Renderer from '../infra/renderers/Renderer';
 import StringArt from '../infra/StringArt';
 import { Config, ControlsConfig } from '../types/config.types';
@@ -285,9 +284,8 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   //     0
   //   );
   // }
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     const { layers } = this.config;
-    const nailsGroup = new NailsGroup();
 
     let nailIndex = 0;
     for (let layer = layers - 1; layer >= 0; layer--) {
@@ -304,8 +302,8 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
         for (let i = 0; i <= layerSideNailCount; i++) {
           const sideProps = { layerSideNailCount, size, layerStart, angle };
-          nailsGroup.addNail(
-            `${layer}_${s}_${i}`,
+          nails.addNail(
+            this.#getPointKey(layer, s, i),
             this.getPoint({
               index: i,
               rotation,
@@ -316,7 +314,10 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         }
       }
     }
-    nails.addGroup(nailsGroup);
+  }
+
+  #getPointKey(layer: number, side: number, index: number): string {
+    return `${layer}_${side}_${index}`;
   }
 
   thumbnailConfig = ({ n, layers }) => ({

@@ -6,8 +6,7 @@ import {
 } from '../../helpers/math_utils';
 import { Coordinates, Dimensions } from '../../types/general.types';
 import { PatternInfo } from '../../types/info.types';
-import { Nail, NailsRenderOptions } from '../../types/stringart.types';
-import NailsGroup from '../nails/NailsGroup';
+import { NailsRenderOptions } from '../../types/stringart.types';
 import { TestRenderer } from './TestRenderer';
 
 export type ThreadsLength = {
@@ -25,14 +24,12 @@ export class MeasureRenderer extends TestRenderer {
   #threadsLengthPerColor: Map<ColorValue, number>;
   #nailCoords: Coordinates[];
   #nailThreadLength: number;
-  #nailGroups: NailsGroup[];
 
   constructor(size: Dimensions) {
     super(size);
     this.#threadsLengthPerColor = new Map();
     this.#nailCoords = [];
     this.#nailThreadLength = this.#getNailThreadLength(DEFAULT_NAIL_RADIUS);
-    this.#nailGroups = [];
   }
 
   get threadsLength(): ThreadsLength {
@@ -67,18 +64,14 @@ export class MeasureRenderer extends TestRenderer {
   resetNails(): void {
     this.#nailCount = 0;
     this.#nailCoords.length = 0;
-    this.#nailGroups.length = 0;
   }
 
-  renderNails(nails: Nail[], { radius }: NailsRenderOptions) {
-    this.#nailCount += nails.length;
+  renderNails(nails: Iterable<Coordinates>, { radius }: NailsRenderOptions) {
+    for (let nail of nails) {
+      this.#nailCount++;
+      this.#nailCoords.push(nail);
+    }
     this.#nailThreadLength = this.#getNailThreadLength(radius);
-    this.#nailCoords = this.#nailCoords.concat(nails.map(({ point }) => point));
-  }
-
-  renderNailsGroup(nailsGroup: NailsGroup): void {
-    this.#nailGroups.push(nailsGroup);
-    this.#nailCount += nailsGroup.length;
   }
 
   setStartingPoint(coordinates: Coordinates): void {
@@ -101,13 +94,10 @@ export class MeasureRenderer extends TestRenderer {
   }
 
   getInfo(): PatternInfo {
-    const nailCoords: Coordinates[] = [];
-    this.#nailGroups.forEach(group => nailCoords.push(...group.coordinates));
-
     return {
       nailsCount: this.#nailCount,
       threadsLength: this.threadsLength,
-      closestDistanceBetweenNails: getClosestDistance(nailCoords),
+      closestDistanceBetweenNails: getClosestDistance(this.#nailCoords),
     };
   }
 

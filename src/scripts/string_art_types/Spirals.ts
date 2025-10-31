@@ -13,6 +13,7 @@ import { createArray } from '../helpers/array_utils';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import easing from '../helpers/easing';
 import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 
 interface SpiralsConfig extends ColorConfig {
   // radiusIncrease: number;
@@ -147,17 +148,11 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return 1;
   }
 
-  *generatePoints(
-    withNailNumbers = true
-  ): Generator<{ point: Coordinates; nailNumber: string }> {
+  *generatePoints(): Generator<Coordinates> {
     const { nSpirals, nailsPerSpiral } = this.config;
     for (let i = 1; i < nailsPerSpiral; i++) {
       for (let s = 0; s < nSpirals; s++) {
-        const point = this.getPoint(s, i);
-        yield {
-          point,
-          nailNumber: withNailNumbers ? `${s + 1}_${i + 1}` : null,
-        };
+        yield this.getPoint(s, i);
       }
     }
   }
@@ -185,7 +180,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     renderer.setColor(this.color.getColor(0));
     renderer.setStartingPoint(this.calc.center);
 
-    for (const { point } of points) {
+    for (const point of points) {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
@@ -205,16 +200,13 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return (nailsPerSpiral - 1) * nSpirals;
   }
 
-  drawNails(nails: Nails) {
-    const nailsGroup = new NailsGroup();
-
+  drawNails(nails: INails) {
     const points = this.generatePoints();
     let i = 0;
-    for (const { point, nailNumber } of points) {
-      nailsGroup.addNail(nailNumber, point);
+    for (const point of points) {
+      nails.addNail(i, point);
       i++;
     }
-    nails.addGroup(nailsGroup);
   }
 
   getNailCount(): number {

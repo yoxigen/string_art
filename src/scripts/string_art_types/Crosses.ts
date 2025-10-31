@@ -14,8 +14,8 @@ import { Coordinates } from '../types/general.types';
 import { getShapesBoundingRect } from '../helpers/shape_utils';
 import { createArray } from '../helpers/array_utils';
 import { PI2 } from '../helpers/math_utils';
-import Nails from '../infra/nails/Nails';
 import { getCenter } from '../helpers/size_utils';
+import INails from '../infra/nails/INails';
 
 type CrossesOrientation = 'v' | 'h';
 
@@ -864,21 +864,14 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     return this.config.n * 10;
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     this.calc.verticalLines.forEach((line, i) =>
-      line.drawNails(nails, {
-        getNumber: sideIndex =>
-          `${String.fromCharCode(65 + i)}_${sideIndex + 1}`,
-      })
+      line.drawNails(nails, { uniqueKey: String.fromCharCode(65 + i) })
     );
 
     this.calc.horizontalLines.forEach(([startLine, endLine], row) => {
-      startLine.drawNails(nails, {
-        getNumber: sideIndex => `1_${row + 1}_${sideIndex}`,
-      });
-      endLine.drawNails(nails, {
-        getNumber: sideIndex => `2_${row + 1}_${sideIndex}`,
-      });
+      startLine.drawNails(nails, { uniqueKey: row * 10 });
+      endLine.drawNails(nails, { uniqueKey: row * 10 + 1 });
     });
   }
 

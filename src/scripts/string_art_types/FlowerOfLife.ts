@@ -13,10 +13,9 @@ import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../infra/nails/Nails';
 import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
-import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 
 interface FlowerOfLifeConfig extends ColorConfig {
   levels: number;
@@ -789,40 +788,39 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     );
   }
 
-  drawNails(nails: Nails) {
-    const nailsGroup = new NailsGroup();
+  drawNails(nails: INails) {
     const triangleLevels = this.calc.points;
     //const { density, levels } = this.config;
 
-    nailsGroup.addNail(1, this.calc.center);
-
-    let index = 1;
-    //let levelIndex = 0;
+    nails.addNail('C', this.calc.center);
+    let levelIndex = 0;
     for (const level of triangleLevels) {
       //const isCapLevel = this.config.renderCaps && levelIndex === levels;
 
-      //let triangleIndex = 0;
+      let triangleIndex = 0;
       for (const triangle of level) {
         if (triangle != null) {
-          //let side = 0;
+          let side = 0;
           // A cap level has nulls between caps
           for (const triangleSide of triangle) {
-            //let sideIndex = 0;
+            let sideIndex = 0;
             for (const point of triangleSide) {
-              nailsGroup.addNail(1 + index++, point);
-              //sideIndex++;
+              nails.addNail(
+                this.#getPointKey(levelIndex, triangleIndex, side, sideIndex),
+                point
+              );
+              sideIndex++;
             }
-            //side++;
+            side++;
           }
         }
-        //triangleIndex++;
+        triangleIndex++;
       }
-      //levelIndex++;
+      levelIndex++;
     }
 
-    nails.addGroup(nailsGroup);
     if (this.calc.ringCircle) {
-      this.calc.ringCircle.drawNails(nails, { nailsNumberStart: index });
+      this.calc.ringCircle.drawNails(nails);
     }
 
     // function shouldAddNail(
@@ -854,6 +852,15 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
     //   return true;
     // }
+  }
+
+  #getPointKey(
+    level: number,
+    triangle: number,
+    side: number,
+    index: number
+  ): string {
+    return `${level}_${triangle}_${side}_${index}`;
   }
 
   thumbnailConfig = ({ density }) => ({

@@ -1,54 +1,20 @@
-import { ColorValue } from '../../helpers/color/color.types';
 import type Renderer from '../renderers/Renderer';
-import { NailsConfig } from '../../types/config.types';
-import { Nail, NailsRenderOptions } from '../../types/stringart.types';
+import { NailsRenderOptions } from '../../types/stringart.types';
 import NailsGroup from './NailsGroup';
 import { Coordinates } from '../../types/general.types';
+import INails from './INails';
 
-const precision = 1000;
+export default class Nails implements INails {
+  #nailGroups: NailsGroup[];
+  #defaultNailsGroup: NailsGroup;
 
-export default class Nails {
-  // addedPoints: Set<number>;
-  // addedNumbers: Set<string | number>;
-
-  #nailGroups: NailsGroup[] = [];
-
-  constructor(public options: Partial<NailsRenderOptions>) {
-    // this.addedPoints = new Set();
-    // this.addedNumbers = new Set();
+  constructor(public options: NailsRenderOptions) {
+    this.#nailGroups = [new NailsGroup(options)];
+    this.#defaultNailsGroup = this.#nailGroups[0];
   }
 
-  // setConfig({ nailRadius, nailsColor, nailNumbersFontSize }: NailsConfig) {
-  //   this.nailRadius = nailRadius;
-  //   this.nailsColor = nailsColor;
-  //   this.nailNumbersFontSize = nailNumbersFontSize;
-  //   if (this.addedPoints) {
-  //     this.addedPoints.clear();
-  //   }
-  // }
-
-  // #addNailToSets(nail: Nail) {
-  //   if (this.addedNumbers.has(nail.number)) {
-  //     throw new Error(`Nails already contains number ${nail.number}.`);
-  //   } else {
-  //     this.addedNumbers.add(nail.number);
-  //   }
-
-  //   const key =
-  //     Math.round(nail.point[0] * precision) * 1e7 +
-  //     Math.round(nail.point[1] * precision);
-  //   if (!this.addedPoints.has(key)) {
-  //     this.addedPoints.add(key);
-  //     return true;
-  //   }
-
-  //   return false;
-  // }
-
-  addNail(nail: Nail) {
-    // if (this.#addNailToSets(nail)) {
-    //   this.nails.push(nail);
-    // }
+  addNail(key: string | number, coordinates: Coordinates) {
+    this.#defaultNailsGroup.addNail(key, coordinates);
   }
 
   addGroup(nailsGroup: NailsGroup) {
@@ -56,30 +22,16 @@ export default class Nails {
     this.#nailGroups.push(nailsGroup);
   }
 
-  // #render(
-  //   renderer: Renderer,
-  //   nails: ReadonlyArray<Nail>,
-  //   options: NailsRenderOptions
-  // ) {
-  //   renderer.renderNails(nails, {
-  //     ...DEFAULT_OPTIONS,
-  //     ...options,
-  //   });
-  // }
-
   draw(renderer: Renderer) {
-    // this.#render(renderer, this.nails, options);
+    let numbersStart = 1;
+    this.#nailGroups.forEach(group => {
+      renderer.renderNails(group.coordinates, {
+        ...this.options,
+        ...group.options,
+        numbersStart,
+      });
 
-    //this.nails = [];
-    //this.addedPoints.clear();
-
-    this.#nailGroups.forEach(group =>
-      renderer.renderNailsGroup(group, {
-        defaultOptions: this.options,
-        renderNumbers: this.options.renderNumbers,
-      })
-    );
-
-    //this.#nailGroups = [];
+      numbersStart += group.length;
+    });
   }
 }

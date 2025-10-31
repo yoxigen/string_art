@@ -1,10 +1,9 @@
-import { ColorValue } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
 import { mapDimensions } from '../helpers/size_utils';
-import Nails from '../infra/nails/Nails';
-import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 import { BoundingRect, Coordinates } from '../types/general.types';
-import { Shape } from './Shape';
+import type Shape from './Shape';
+import { ShapeNailsOptions } from './Shape';
 
 type LinePosition = 'center' | 'from' | 'to';
 
@@ -16,7 +15,7 @@ export interface LineConfig {
   rotationCenter?: Coordinates | LinePosition;
 }
 
-export class Line extends Shape {
+export class Line implements Shape {
   config: LineConfig;
   from: Coordinates;
   to: Coordinates;
@@ -27,7 +26,6 @@ export class Line extends Shape {
   spaces: number;
 
   constructor(config: LineConfig) {
-    super();
     if (config.n < 1) {
       throw new Error(`Can't create a Line with n less than 1.`);
     }
@@ -101,19 +99,10 @@ export class Line extends Shape {
     );
   }
 
-  drawNails(
-    nails: Nails,
-    {
-      getNumber,
-      color,
-    }: { getNumber?: (n: number) => number | string; color?: ColorValue } = {}
-  ): void {
-    const nailsGroup = new NailsGroup({ color });
+  drawNails(nails: INails, { uniqueKey }: ShapeNailsOptions = {}): void {
     for (let i = 0; i < this.config.n; i++) {
-      nailsGroup.addNail(getNumber ? getNumber(i) : i + 1, this.getPoint(i));
+      nails.addNail(uniqueKey ? `${uniqueKey}_${i}` : i, this.getPoint(i));
     }
-
-    nails.addGroup(nailsGroup);
   }
 
   getBoundingRect(): BoundingRect {

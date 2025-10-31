@@ -8,12 +8,16 @@ export interface Nail {
   number: string | number;
 }
 
-export interface NailsRenderOptions {
+export interface NailOptions {
   color: ColorValue;
-  fontSize: number;
   radius: number;
+}
+
+export interface NailsRenderOptions extends NailOptions {
+  fontSize: number;
   renderNumbers?: boolean;
   margin?: number;
+  numbersStart?: number;
 }
 
 export type ID = string;

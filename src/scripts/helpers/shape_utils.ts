@@ -1,4 +1,4 @@
-import { Shape } from '../shapes/Shape';
+import type Shape from '../shapes/Shape';
 import { BoundingRect } from '../types/general.types';
 
 /**

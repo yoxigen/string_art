@@ -16,6 +16,7 @@ import type {
 } from '../types/config.types';
 import { Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
+import INails from './nails/INails';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -183,7 +184,7 @@ abstract class StringArt<
     super();
   }
 
-  abstract drawNails(nails: Nails): void;
+  abstract drawNails(nails: INails): void;
   abstract drawStrings(renderer: Renderer): Generator<void>;
   abstract getStepCount(options: CalcOptions): number;
   abstract getAspectRatio(options: CalcOptions): number;

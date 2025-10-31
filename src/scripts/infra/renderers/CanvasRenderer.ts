@@ -245,20 +245,15 @@ export default class CanvasRenderer extends Renderer {
   }
 
   renderNails(
-    nails: ReadonlyArray<Nail>,
+    nails: Iterable<Coordinates>,
     {
       color,
       fontSize,
       radius,
       renderNumbers,
       margin = 0,
-    }: {
-      color: ColorValue;
-      fontSize: number;
-      radius: number;
-      renderNumbers?: boolean;
-      margin?: number;
-    }
+      numbersStart = 1,
+    }: NailsRenderOptions
   ) {
     const centerX = this.stringsCanvas.width / 2;
 
@@ -269,7 +264,8 @@ export default class CanvasRenderer extends Renderer {
     this.nailsCtx.font = `${fontSize}px sans-serif`;
     const nailNumberOffset = radius + margin;
 
-    nails.forEach(({ point: [x, y], number }) => {
+    let number = numbersStart;
+    for (let [x, y] of nails) {
       this.nailsCtx.moveTo(x + radius, y);
       this.nailsCtx.arc(x, y, radius, 0, PI2);
       if (renderNumbers && number != null) {
@@ -283,55 +279,9 @@ export default class CanvasRenderer extends Renderer {
         this.nailsCtx.textAlign = isRightAlign ? 'right' : 'left';
         this.nailsCtx.fillText(String(number), ...numberPosition);
       }
-    });
-
-    this.nailsCtx.fill();
-  }
-
-  renderNailsGroup(
-    nailsGroup: NailsGroup,
-    {
-      defaultOptions,
-      renderNumbers,
-    }: {
-      defaultOptions?: Partial<NailsRenderOptions>;
-      renderNumbers?: boolean;
-    } = {}
-  ): void {
-    const {
-      radius,
-      color,
-      margin = 4,
-      fontSize,
-    } = Object.assign({}, defaultOptions, nailsGroup.options);
-    const centerX = this.stringsCanvas.width / 2;
-
-    this.nailsCtx.globalCompositeOperation = 'source-over';
-    this.nailsCtx.beginPath();
-    this.nailsCtx.fillStyle = color;
-    this.nailsCtx.textBaseline = 'middle';
-    this.nailsCtx.font = `${fontSize}px sans-serif`;
-    const nailNumberOffset = radius + margin;
-
-    try {
-      nailsGroup.forEach(([x, y], number) => {
-        this.nailsCtx.moveTo(x + radius, y);
-        this.nailsCtx.arc(x, y, radius, 0, PI2);
-        if (renderNumbers && number != null) {
-          const isRightAlign = x < centerX;
-
-          const numberPosition: Coordinates = [
-            isRightAlign ? x - nailNumberOffset : x + nailNumberOffset,
-            y,
-          ];
-
-          this.nailsCtx.textAlign = isRightAlign ? 'right' : 'left';
-          this.nailsCtx.fillText(String(number), ...numberPosition);
-        }
-      });
-    } catch (e) {
-      debugger;
+      number++;
     }
+
     this.nailsCtx.fill();
   }
 

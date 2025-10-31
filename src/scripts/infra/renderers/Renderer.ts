@@ -102,15 +102,8 @@ export default abstract class Renderer extends EventBus<{
   abstract renderLine(from: Coordinates, to: Coordinates): void;
   abstract lineTo(to: Coordinates): void;
   abstract renderNails(
-    nails: ReadonlyArray<Nail>,
+    nails: Iterable<Coordinates>,
     options: NailsRenderOptions
-  ): void;
-  abstract renderNailsGroup(
-    nailsGroup: NailsGroup,
-    options?: {
-      defaultOptions?: Partial<NailsRenderOptions>;
-      renderNumbers?: boolean;
-    }
   ): void;
   abstract renderInstructions(from: Coordinates, to: Coordinates): void;
   abstract clearInstructions(): void;

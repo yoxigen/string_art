@@ -12,6 +12,7 @@ import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../infra/nails/Nails';
 import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 
 export interface MaurerRoseConfig extends ColorConfig {
   n: number;
@@ -226,12 +227,10 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     return Math.round(steps);
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     const points = this.generatePoints();
-    const nailsGroup = new NailsGroup();
     for (const { point, index } of points) {
-      nailsGroup.addNail(index + 1, point);
+      nails.addNail(index, point);
     }
-    nails.addGroup(nailsGroup);
   }
 }

@@ -1,14 +1,13 @@
-import Nails from '../infra/nails/Nails';
 import { ControlConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
-import { Shape, ShapeNailsOptions } from './Shape';
+import type Shape from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import { createArray } from '../helpers/array_utils';
-import NailsGroup from '../infra/nails/NailsGroup';
-import { NailsRenderOptions } from '../types/stringart.types';
+import INails from '../infra/nails/INails';
+import { ShapeNailsOptions } from './Shape';
 
 export interface PolygonConfig {
   size: Dimensions;
@@ -31,7 +30,7 @@ interface Side {
   };
 }
 
-type PolygonNailsOptions = Partial<NailsRenderOptions> & {
+type PolygonNailsOptions = ShapeNailsOptions & {
   drawCenter?: boolean;
   drawSides?: boolean;
   drawCenterNail?: boolean;
@@ -49,13 +48,12 @@ interface TCalc {
   sideAngle: number;
 }
 
-export default class Polygon extends Shape {
+export default class Polygon implements Shape {
   config: PolygonConfig;
   #points: Map<string, Coordinates>;
   #calc: TCalc;
 
   constructor(config: PolygonConfig) {
-    super();
     this.setConfig(config);
   }
 
@@ -244,35 +242,27 @@ export default class Polygon extends Shape {
   }
 
   drawNails(
-    nails: Nails,
+    nails: INails,
     {
-      nailsNumberStart = 0,
-      getNumber,
-      ...nailsOptions
-    }: PolygonNailsOptions & ShapeNailsOptions = {}
-  ) {
-    const { nailsPerSide } = this.config;
-    const {
       drawCenter = false,
       drawSides = true,
       drawCenterNail = true,
-    } = nailsOptions;
+      uniqueKey,
+    }: PolygonNailsOptions = {}
+  ) {
+    const { nailsPerSide } = this.config;
 
-    const nailsGroup = new NailsGroup(nailsOptions);
     let nailIndex = 0;
     if (drawCenter && drawCenterNail) {
-      nailsGroup.addNail('C', this.getCenterPoint({ side: 0, index: 0 }));
+      nails.addNail('C', this.getCenterPoint({ side: 0, index: 0 }));
       nailIndex++;
     }
 
     for (let side = 0; side < this.config.sides; side++) {
-      const sideIndexStart = nailsNumberStart + side * nailsPerSide;
-
       if (drawSides) {
         for (let index = 0; index < nailsPerSide - 1; index++) {
-          const number = sideIndexStart + index;
-          nailsGroup.addNail(
-            getNumber ? getNumber(number) : number,
+          nails.addNail(
+            this.#getPointKey(false, side, index, uniqueKey),
             this.getSidePoint({ side, index })
           );
           nailIndex++;
@@ -281,17 +271,23 @@ export default class Polygon extends Shape {
 
       if (drawCenter) {
         for (let index = 1; index < this.#calc.radiusNailsCount - 1; index++) {
-          const number = `${side}_${index}`;
-          nailsGroup.addNail(
-            getNumber ? getNumber(number) : number,
+          nails.addNail(
+            this.#getPointKey(true, side, index, uniqueKey),
             this.getCenterPoint({ side, index })
           );
           nailIndex++;
         }
       }
     }
+  }
 
-    nails.addGroup(nailsGroup);
+  #getPointKey(
+    isCenter: boolean,
+    side: number,
+    index: number,
+    uniqueKey: string | number
+  ): string {
+    return `${uniqueKey ?? ''}_${isCenter ? 'C_' : ''}_${side}_${index}`;
   }
 
   getNailsCount({

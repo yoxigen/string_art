@@ -1,10 +1,5 @@
-import Nails from '../infra/nails/Nails';
 import Renderer from '../infra/renderers/Renderer';
-import {
-  ControlConfig,
-  ControlsConfig,
-  NailsConfig,
-} from '../types/config.types';
+import { ControlConfig, ControlsConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
@@ -12,9 +7,10 @@ import {
   formatFractionAsAngle,
   formatFractionAsPercent,
 } from '../helpers/string_utils';
-import { Shape } from './Shape';
+import type Shape from './Shape';
 import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
-import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
+import { ShapeNailsOptions } from './Shape';
 
 export interface StarShapeConfig {
   sideNails: number;
@@ -28,13 +24,12 @@ export interface StarShapeConfig {
   sidesCenterRadiusShift?: number[];
 }
 
-export default class StarShape extends Shape {
+export default class StarShape implements Shape {
   config: StarShapeConfig;
   center: Coordinates;
   calc: ReturnType<typeof StarShape.getCalc>;
 
   constructor(config: StarShapeConfig) {
-    super();
     this.setConfig(config);
   }
 
@@ -127,50 +122,35 @@ export default class StarShape extends Shape {
    * Given a Nails instance, uses it to draw the nails of this Circle
    */
   drawNails(
-    nails: Nails,
+    nails: INails,
     {
-      getNumber,
       reverseOrder,
-      // excludeSides,
-      ...nailsConfig
-    }: Partial<
-      {
-        getNumber?: (number: string) => string;
+      uniqueKey,
+    }: // excludeSides,
+    ShapeNailsOptions &
+      Partial<{
         reverseOrder?: boolean;
-        // excludeSides?: ReadonlyArray<number>;
-      } & NailsConfig
-    > = {}
+      }> = {}
   ): void {
     const { sides, sideNails, centerRadius } = this.config;
     const renderCenterNail = centerRadius == null || centerRadius === 0;
-    const nailsGroup = new NailsGroup();
-
     if (renderCenterNail) {
-      const centerNailGroup = new NailsGroup();
-      centerNailGroup.addNail('C', this.getSidePoint(0, 0));
-      nails.addGroup(centerNailGroup);
+      nails.addNail('C' + (uniqueKey || ''), this.getSidePoint(0, 0));
     }
 
-    let nailIndex = 0;
     for (let side = 0; side < sides; side++) {
-      // if (!excludeSides || !excludeSides.includes(side)) {
       for (let i = renderCenterNail ? 1 : 0; i < sideNails; i++) {
         const sideIndex = reverseOrder ? sideNails - i : i;
-        nailsGroup.addNail(
-          getNumber
-            ? getNumber(`${side}_${sideIndex}`)
-            : sideIndex || !renderCenterNail
-            ? `${side}_${sideIndex}`
-            : 0,
+        nails.addNail(
+          this.#getPointKey(side, sideIndex, uniqueKey),
           this.getSidePoint(side, sideIndex)
         );
-
-        nailIndex++;
-        // }
       }
     }
+  }
 
-    nails.addGroup(nailsGroup);
+  #getPointKey(side: number, index: number, prefix?: string | number) {
+    return prefix ? `${prefix}_${side}_${index}` : `${side}_${index}`;
   }
 
   getNailCount(): number {

@@ -6,7 +6,7 @@ import { ControlsConfig, ControlType, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';
-import Nails from '../infra/nails/Nails';
+import INails from '../infra/nails/INails';
 
 interface FreestyleConfig {
   n: number;
@@ -377,11 +377,9 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
     }
   }
 
-  drawNails(nails: Nails) {
-    this.calc.layers.forEach(({ circle }, layerIndex) =>
-      circle.drawNails(nails, {
-        getNumber: i => `${layerIndex + 1}_${i + 1}`,
-      })
+  drawNails(nails: INails) {
+    this.calc.layers.forEach(({ circle }, i) =>
+      circle.drawNails(nails, { uniqueKey: i })
     );
   }
 

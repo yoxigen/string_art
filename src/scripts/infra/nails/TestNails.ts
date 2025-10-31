@@ -1,4 +1,4 @@
-import { Nail } from '../../types/stringart.types';
+import { Coordinates } from '../../types/general.types';
 import Nails from './Nails';
 import NailsGroup from './NailsGroup';
 
@@ -18,7 +18,7 @@ export default class TestNails extends Nails {
     });
   }
 
-  addNail(nail: Nail): void {
+  addNail(key: string | number, coordinates: Coordinates): void {
     this.#nailCount++;
   }
 

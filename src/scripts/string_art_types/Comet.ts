@@ -264,7 +264,7 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     return this.config.n;
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     this.calc.circle.drawNails(nails);
   }
 

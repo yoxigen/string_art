@@ -9,9 +9,9 @@ import {
 import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../infra/nails/Nails';
 import { Dimensions } from '../types/general.types';
 import { createArray } from '../helpers/array_utils';
+import INails from '../infra/nails/INails';
 
 export interface FlowerConfig extends ColorConfig {
   sides: number;
@@ -171,12 +171,12 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     }
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     this.calc.polygons.forEach((polygon, i) =>
       polygon.drawNails(nails, {
         drawCenter: true,
         drawCenterNail: i === 0,
-        getNumber: n => `${String.fromCharCode(65 + i)}_${n}`,
+        uniqueKey: i,
       })
     );
   }

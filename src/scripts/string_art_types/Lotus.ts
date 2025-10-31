@@ -14,9 +14,8 @@ import {
   getBoundingRectAspectRatio,
   getCenter,
 } from '../helpers/size_utils';
-import Nails from '../infra/nails/Nails';
 import { createArray } from '../helpers/array_utils';
-import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -414,28 +413,26 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     }
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     const { renderCenter, renderCenterNails } = this.config;
-    const { circles, centerCircle } = this.calc;
+    const { circles, centerCircle, nailsPerCircle } = this.calc;
 
-    circles.forEach((circle, circleIndex) => {
+    if (renderCenter) {
+      if (centerCircle) {
+        centerCircle.drawNails(nails);
+      } else {
+        nails.addNail('C', this.calc.center);
+      }
+    }
+
+    circles.forEach((circle, i) => {
       circle.drawNails(nails, {
-        getNumber: i => `${circleIndex + 1}_${i}`,
+        uniqueKey: i,
         excludedNailRanges: renderCenterNails
           ? null
           : this.#getCenterExcludedNails(),
       });
     });
-
-    if (renderCenter) {
-      if (centerCircle) {
-        centerCircle.drawNails(nails, { getNumber: i => `C_${i + 1}` });
-      } else {
-        const centerNailsGroup = new NailsGroup();
-        centerNailsGroup.addNail('C', this.calc.center);
-        nails.addGroup(centerNailsGroup);
-      }
-    }
   }
 
   #getCenterExcludedNails(): [[number, number]] {

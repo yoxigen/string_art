@@ -208,8 +208,15 @@ export default class SVGRenderer extends Renderer {
   }
 
   renderNails(
-    nails: ReadonlyArray<Nail>,
-    { color, fontSize, radius, renderNumbers, margin = 0 }: NailsRenderOptions
+    nails: Iterable<Coordinates>,
+    {
+      color,
+      fontSize,
+      radius,
+      renderNumbers,
+      margin = 0,
+      numbersStart = 1,
+    }: NailsRenderOptions
   ) {
     const centerX = this.getSize()[0] / 2;
     //this.nailsCirclesGroup.innerHTML = this.nailsTextGroup.innerHTML = '';
@@ -219,7 +226,9 @@ export default class SVGRenderer extends Renderer {
     const nailNumberOffset = radius + margin;
 
     this.nailsTextGroup.style.fontSize = String(fontSize);
-    nails.forEach(({ point: [x, y], number }) => {
+    let number = numbersStart;
+
+    for (let [x, y] of nails) {
       const circle = document.createElementNS(SVG_NS, 'circle');
       circle.setAttribute('cx', String(x));
       circle.setAttribute('cy', String(y));
@@ -243,7 +252,8 @@ export default class SVGRenderer extends Renderer {
         }
         textFragment.appendChild(textEl);
       }
-    });
+      number++;
+    }
 
     this.nailsCirclesGroup.appendChild(circlesFragment);
     this.nailsTextGroup.appendChild(textFragment);

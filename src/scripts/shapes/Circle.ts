@@ -1,17 +1,16 @@
-import Nails from '../infra/nails/Nails';
 import Renderer from '../infra/renderers/Renderer';
 import { ControlConfig, GroupValue } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
-import { Nail, NailsRenderOptions } from '../types/stringart.types';
 import { ColorValue } from '../helpers/color/color.types';
 import easing from '../helpers/easing';
 import { distortionToAspectRatio, PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
 import { fitInside, getCenter } from '../helpers/size_utils';
-import { Shape } from './Shape';
+import type Shape from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
-import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
+import { ShapeNailsOptions } from './Shape';
 
 export interface CircleConfig {
   n: number;
@@ -36,16 +35,14 @@ export interface CircleConfig {
   angleEnd?: number;
 }
 
-export type CircleNailsOptions = Partial<NailsRenderOptions> & {
-  nailsNumberStart?: number;
-  getNumber?: (n: number) => number | string;
+export type CircleNailsOptions = ShapeNailsOptions & {
   /**
    * Ranges of nails to exclude from the circle
    */
   excludedNailRanges?: ReadonlyArray<[number, number]>;
 };
 
-export default class Circle extends Shape {
+export default class Circle implements Shape {
   points: Map<number, Coordinates>;
   easingFunction: Function;
   config: CircleConfig;
@@ -60,7 +57,6 @@ export default class Circle extends Shape {
   excludedNailIndexes: ReadonlySet<number>;
 
   constructor(config: CircleConfig) {
-    super();
     this.setConfig(config);
   }
 
@@ -210,12 +206,15 @@ export default class Circle extends Shape {
     }
   }
 
-  getNailsGroup({
-    nailsNumberStart = 0,
-    getNumber,
-    excludedNailRanges,
-    ...options
-  }: CircleNailsOptions = {}): NailsGroup {
+  /**
+   * Given a Nails instance, uses it to draw the nails of this Circle
+   * @param {Nails} nails
+   * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
+   */
+  drawNails(
+    nails: INails,
+    { excludedNailRanges, uniqueKey }: CircleNailsOptions = {}
+  ): void {
     const { n } = this.config;
 
     let excludedNailIndexes: Set<number>;
@@ -229,34 +228,11 @@ export default class Circle extends Shape {
       });
     }
 
-    let j = 0;
-
-    const nailsGroup = new NailsGroup(
-      //this.config.n - (excludedNailIndexes?.size ?? 0),
-      options
-    );
-
     for (let i = 0; i < this.config.n; i++) {
       if (!excludedNailIndexes?.has(i)) {
-        const point = this.getPoint(i);
-        nailsGroup.addNail(
-          getNumber ? getNumber(j) : j + nailsNumberStart,
-          point
-        );
-        j++;
+        nails.addNail(uniqueKey ? `${uniqueKey}_${i}` : i, this.getPoint(i));
       }
     }
-
-    return nailsGroup;
-  }
-
-  /**
-   * Given a Nails instance, uses it to draw the nails of this Circle
-   * @param {Nails} nails
-   * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
-   */
-  drawNails(nails: Nails, options: CircleNailsOptions = {}): void {
-    nails.addGroup(this.getNailsGroup(options));
   }
 
   *drawRing(
