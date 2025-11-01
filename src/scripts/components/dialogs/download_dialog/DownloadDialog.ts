@@ -662,14 +662,21 @@ export default class DownloadDialog extends HTMLElement {
           }
         : {
             enableBackground: !this.isTransparentBackground,
+            showNailNumbers: false,
+            showStrings: true,
           }
     );
 
+    const previewSizeRatio = previewSize[0] / this.dimensions[0];
     previewPattern.assignConfig({
-      margin: Math.floor((this.margin / this.dimensions[0]) * previewSize[0]),
+      margin: Math.floor(this.margin * previewSizeRatio),
+      nailRadius: Math.max(
+        0.5,
+        this.currentPattern.config.nailRadius * previewSizeRatio
+      ),
     });
 
-    previewPattern.draw(renderer);
+    previewPattern.draw(renderer, { precision: 1 });
   }
 }
 
