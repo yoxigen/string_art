@@ -150,7 +150,7 @@ export default class StarShape implements Shape {
   }
 
   #getPointKey(side: number, index: number, prefix?: string | number) {
-    return prefix ? `${prefix}_${side}_${index}` : `${side}_${index}`;
+    return prefix ? `${prefix}_${side * 1e3 + index}` : `${side * 1e3 + index}`;
   }
 
   getNailCount(): number {

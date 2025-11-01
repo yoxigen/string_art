@@ -25,6 +25,10 @@ export default class NailsGroup implements INails {
     throw new Error('Adding sub groups not implemented yet.');
   }
 
+  getNailCoordinates(key: string | number): Coordinates {
+    return this.#nails.get(key);
+  }
+
   forEach(
     callback: (coordinates: Coordinates, number: string | number) => void
   ): void {

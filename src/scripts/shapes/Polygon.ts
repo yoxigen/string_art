@@ -287,7 +287,7 @@ export default class Polygon implements Shape {
     index: number,
     uniqueKey: string | number
   ): string {
-    return `${uniqueKey ?? ''}_${isCenter ? 'C_' : ''}_${side}_${index}`;
+    return `${uniqueKey ?? ''}_${side * (isCenter ? -1e4 : 1e4) + index}`;
   }
 
   getNailsCount({

@@ -268,7 +268,7 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
 
   drawNails(nails: INails) {
     for (let i = 0; i < this.calc.lineNailCount; i++) {
-      nails.addNail(`l_${i}`, this.getPoint(i));
+      nails.addNail(-i, this.getPoint(i));
     }
     this.calc.circle.drawNails(nails);
   }
