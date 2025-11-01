@@ -1,18 +1,2 @@
 Pattern type, Runs per second, Step count, Time
-Assymetry,20242,789,494
-Comet,20876,737,479
-Crosses,10940,740,914
-Dance of Planets,28653,599,349
-Eye,2034,1216,4916
-Flower,5249,960,1905
-Flower of Life,1133,5705,8823
-Freestyle,38910,225,257
-Lotus,2302,2664,4343
-Mandala,5146,2450,1943
-Maurer Rose,13297,512,752
-Polygon,8628,300,1159
-Spiral,9765,1000,1024
-Spirals,15128,237,661
-Star,17211,606,581
-Sun,3990,2320,2506
-Wave,5800,2178,1724
+Flower of Life,1181,5705,8465

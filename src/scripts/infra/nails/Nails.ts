@@ -22,10 +22,10 @@ export default class Nails implements INails {
     this.#nailGroups.push(nailsGroup);
   }
 
-  draw(renderer: Renderer) {
+  draw(renderer: Renderer, { precision }: { precision?: number } = {}) {
     let numbersStart = 1;
     this.#nailGroups.forEach(group => {
-      renderer.renderNails(group.coordinates, {
+      renderer.renderNails(group.getUniqueCoordinates(precision), {
         ...this.options,
         ...group.options,
         numbersStart,

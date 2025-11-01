@@ -29,6 +29,19 @@ export default class NailsGroup implements INails {
     return this.#nails.get(key);
   }
 
+  *getUniqueCoordinates(precision = 1000): Generator<Coordinates> {
+    const addedCoordinates = new Set<number>();
+    for (const point of this.coordinates) {
+      const hash =
+        1e5 * Math.round(point[0] * precision) +
+        Math.round(point[1] * precision);
+      if (!addedCoordinates.has(hash)) {
+        yield point;
+        addedCoordinates.add(hash);
+      }
+    }
+  }
+
   forEach(
     callback: (coordinates: Coordinates, number: string | number) => void
   ): void {

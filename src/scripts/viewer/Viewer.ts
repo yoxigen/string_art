@@ -91,7 +91,7 @@ export default class Viewer extends EventBus<{
 
   #updateOnSizeChange(size: Dimensions) {
     if (size[0] && size[1]) {
-      this.pattern?.draw(this.renderer, { sizeChanged: true });
+      this.pattern?.draw(this.renderer, { sizeChanged: true, precision: 1 });
     }
   }
 
@@ -126,7 +126,7 @@ export default class Viewer extends EventBus<{
   update(options?: DrawOptions) {
     viewOptions.showInstructions = false;
     this.#withRenderer();
-    this.pattern?.draw(this.renderer, options);
+    this.pattern?.draw(this.renderer, { ...options, precision: 1 });
   }
 
   goto(position: number) {

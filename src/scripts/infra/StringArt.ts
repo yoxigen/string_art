@@ -32,6 +32,7 @@ export interface DrawOptions {
   redrawStrings?: boolean;
   sizeChanged?: boolean;
   enableScheduler?: boolean;
+  precision?: number;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -433,7 +434,11 @@ abstract class StringArt<
    */
   #draw(
     renderer: Renderer,
-    { position, ...drawOptions }: { position?: number } & DrawOptions = {}
+    {
+      position,
+      precision,
+      ...drawOptions
+    }: { position?: number } & DrawOptions = {}
   ): () => void {
     this.initDraw(renderer, drawOptions);
 
@@ -464,7 +469,7 @@ abstract class StringArt<
       });
 
       this.drawNails(nails);
-      nails.draw(renderer);
+      nails.draw(renderer, { precision });
     }
 
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
