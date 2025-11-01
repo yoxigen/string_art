@@ -269,7 +269,9 @@ export default class Star extends StringArt<StarConfig, TCalc> {
 
   drawNails(nails: INails): void {
     this.calc.circle.drawNails(nails);
-    this.calc.star.drawNails(nails);
+    this.calc.star.drawNails(nails, {
+      getUniqueKey: k => this.calc.circle.config.n + k,
+    });
   }
 
   getStepCount(options: CalcOptions): number {
