@@ -379,7 +379,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
 
   drawNails(nails: INails) {
     this.calc.layers.forEach(({ circle }, i) =>
-      circle.drawNails(nails, { uniqueKey: i })
+      circle.drawNails(nails, { getUniqueKey: k => 1e3 * i + k })
     );
   }
 

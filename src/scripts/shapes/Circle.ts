@@ -213,7 +213,7 @@ export default class Circle implements Shape {
    */
   drawNails(
     nails: INails,
-    { excludedNailRanges, uniqueKey }: CircleNailsOptions = {}
+    { excludedNailRanges, getUniqueKey }: CircleNailsOptions = {}
   ): void {
     const { n } = this.config;
 
@@ -230,7 +230,7 @@ export default class Circle implements Shape {
 
     for (let i = 0; i < this.config.n; i++) {
       if (!excludedNailIndexes?.has(i)) {
-        nails.addNail(uniqueKey ? `${uniqueKey}_${i}` : i, this.getPoint(i));
+        nails.addNail(getUniqueKey?.(i) ?? i, this.getPoint(i));
       }
     }
   }

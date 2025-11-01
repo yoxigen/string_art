@@ -247,14 +247,14 @@ export default class Polygon implements Shape {
       drawCenter = false,
       drawSides = true,
       drawCenterNail = true,
-      uniqueKey,
+      getUniqueKey,
     }: PolygonNailsOptions = {}
   ) {
     const { nailsPerSide } = this.config;
 
     let nailIndex = 0;
     if (drawCenter && drawCenterNail) {
-      nails.addNail('C', this.getCenterPoint({ side: 0, index: 0 }));
+      nails.addNail(nailIndex, this.getCenterPoint({ side: 0, index: 0 }));
       nailIndex++;
     }
 
@@ -262,7 +262,7 @@ export default class Polygon implements Shape {
       if (drawSides) {
         for (let index = 0; index < nailsPerSide - 1; index++) {
           nails.addNail(
-            this.#getPointKey(false, side, index, uniqueKey),
+            getUniqueKey?.(nailIndex) ?? nailIndex,
             this.getSidePoint({ side, index })
           );
           nailIndex++;
@@ -272,22 +272,13 @@ export default class Polygon implements Shape {
       if (drawCenter) {
         for (let index = 1; index < this.#calc.radiusNailsCount - 1; index++) {
           nails.addNail(
-            this.#getPointKey(true, side, index, uniqueKey),
+            getUniqueKey?.(nailIndex) ?? nailIndex,
             this.getCenterPoint({ side, index })
           );
           nailIndex++;
         }
       }
     }
-  }
-
-  #getPointKey(
-    isCenter: boolean,
-    side: number,
-    index: number,
-    uniqueKey: string | number
-  ): string {
-    return `${uniqueKey ?? ''}_${side * (isCenter ? -1e4 : 1e4) + index}`;
   }
 
   getNailsCount({

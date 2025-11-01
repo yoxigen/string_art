@@ -866,12 +866,12 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
 
   drawNails(nails: INails) {
     this.calc.verticalLines.forEach((line, i) =>
-      line.drawNails(nails, { uniqueKey: String.fromCharCode(65 + i) })
+      line.drawNails(nails, { getUniqueKey: k => 1e3 * (i + i) + k })
     );
 
     this.calc.horizontalLines.forEach(([startLine, endLine], row) => {
-      startLine.drawNails(nails, { uniqueKey: row * 10 });
-      endLine.drawNails(nails, { uniqueKey: row * 10 + 1 });
+      startLine.drawNails(nails, { getUniqueKey: k => (row + 1) * 1e4 + k });
+      endLine.drawNails(nails, { getUniqueKey: k => (row + 1) * 1e5 + k });
     });
   }
 

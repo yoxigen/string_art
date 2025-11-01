@@ -99,9 +99,9 @@ export class Line implements Shape {
     );
   }
 
-  drawNails(nails: INails, { uniqueKey }: ShapeNailsOptions = {}): void {
+  drawNails(nails: INails, { getUniqueKey }: ShapeNailsOptions = {}): void {
     for (let i = 0; i < this.config.n; i++) {
-      nails.addNail(uniqueKey ? `${uniqueKey}_${i}` : i, this.getPoint(i));
+      nails.addNail(getUniqueKey?.(i) ?? i, this.getPoint(i));
     }
   }
 

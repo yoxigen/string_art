@@ -427,7 +427,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
 
     circles.forEach((circle, i) => {
       circle.drawNails(nails, {
-        uniqueKey: i,
+        getUniqueKey: k => 1e3 * i + k,
         excludedNailRanges: renderCenterNails
           ? null
           : this.#getCenterExcludedNails(),

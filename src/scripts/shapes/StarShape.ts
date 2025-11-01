@@ -125,7 +125,7 @@ export default class StarShape implements Shape {
     nails: INails,
     {
       reverseOrder,
-      uniqueKey,
+      getUniqueKey,
     }: // excludeSides,
     ShapeNailsOptions &
       Partial<{
@@ -134,23 +134,25 @@ export default class StarShape implements Shape {
   ): void {
     const { sides, sideNails, centerRadius } = this.config;
     const renderCenterNail = centerRadius == null || centerRadius === 0;
+    let nailIndex = 0;
     if (renderCenterNail) {
-      nails.addNail('C' + (uniqueKey || ''), this.getSidePoint(0, 0));
+      nails.addNail(
+        getUniqueKey?.(nailIndex) ?? nailIndex,
+        this.getSidePoint(0, 0)
+      );
+      nailIndex++;
     }
 
     for (let side = 0; side < sides; side++) {
       for (let i = renderCenterNail ? 1 : 0; i < sideNails; i++) {
         const sideIndex = reverseOrder ? sideNails - i : i;
         nails.addNail(
-          this.#getPointKey(side, sideIndex, uniqueKey),
+          getUniqueKey?.(nailIndex) ?? nailIndex,
           this.getSidePoint(side, sideIndex)
         );
+        nailIndex++;
       }
     }
-  }
-
-  #getPointKey(side: number, index: number, prefix?: string | number) {
-    return prefix ? `${prefix}_${side * 1e3 + index}` : `${side * 1e3 + index}`;
   }
 
   getNailCount(): number {
