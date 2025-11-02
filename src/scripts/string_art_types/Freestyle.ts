@@ -2,15 +2,19 @@ import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import { ColorValue } from '../helpers/color/color.types';
 import Renderer from '../infra/renderers/Renderer';
-import { ControlsConfig, ControlType, GroupValue } from '../types/config.types';
+import {
+  ControlConfig,
+  ControlsConfig,
+  ControlType,
+  GroupValue,
+} from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import INails from '../infra/nails/INails';
+import { createArray } from '../helpers/array_utils';
 
 interface FreestyleConfig {
-  n: number;
-  minNailDistance: number;
   color: ColorValue;
   layers: GroupValue;
 
@@ -21,6 +25,7 @@ interface FreestyleConfig {
   y1: number;
   rotation1: number;
   reverse1: boolean;
+  n1: number;
 
   layer2: GroupValue;
   show2: boolean;
@@ -29,6 +34,7 @@ interface FreestyleConfig {
   y2: number;
   rotation2: number;
   reverse2: boolean;
+  n2: number;
 
   layer3: GroupValue;
   show3: boolean;
@@ -37,6 +43,7 @@ interface FreestyleConfig {
   y3: number;
   rotation3: number;
   reverse3: boolean;
+  n3: number;
 }
 
 const rotationConfig = {
@@ -63,7 +70,71 @@ interface Layer {
 
 interface TCalc {
   layers: ReadonlyArray<Layer>;
-  maxShapeNailsCount: number;
+  roundsCount: number;
+}
+
+function getCircleConfig(i: number) {
+  const show = (config: FreestyleConfig) => config[`show${i}`];
+
+  return {
+    key: `layer${i}`,
+    label: `Layer ${i}`,
+    type: 'group',
+    children: [
+      {
+        key: `show${i}`,
+        label: 'Enable',
+        defaultValue: true,
+        type: 'checkbox',
+        isStructural: true,
+      },
+      {
+        key: `n${i}`,
+        label: 'Nails count',
+        type: 'range',
+        attr: { min: 1, max: 300, step: 1 },
+        show,
+        isStructural: true,
+      },
+      {
+        key: `radius${i}`,
+        label: 'Radius',
+        type: 'range',
+        attr: { min: 0.01, max: 1, step: 0.01 },
+        show,
+        isStructural: true,
+      },
+      {
+        key: `x${i}`,
+        label: 'Position X',
+        type: 'range',
+        attr: { min: 0, max: 1, step: 0.01 },
+        show,
+        isStructural: true,
+      },
+      {
+        key: `y${i}`,
+        label: 'Position Y',
+        type: 'range',
+        attr: { min: 0, max: 1, step: 0.01 },
+        show,
+        isStructural: true,
+      },
+      {
+        ...rotationConfig,
+        key: `rotation${i}`,
+        displayValue: ({ rotation1 }) => formatFractionAsAngle(rotation1),
+        show,
+      },
+      {
+        key: `reverse${i}`,
+        label: 'Reverse',
+        type: 'checkbox',
+        isStructural: true,
+        show,
+      },
+    ],
+  };
 }
 
 export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
@@ -74,22 +145,6 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
   link =
     'https://www.etsy.com/il-en/listing/1018950430/calming-wall-art-in-light-blue-for';
   controls: ControlsConfig<FreestyleConfig> = [
-    {
-      key: 'n',
-      label: 'Circle nails',
-      defaultValue: 80,
-      type: 'range',
-      attr: { min: 1, max: 300, step: 1 },
-      isStructural: true,
-    },
-    {
-      key: 'minNailDistance',
-      label: 'Min nail distance',
-      defaultValue: 20,
-      type: 'range',
-      attr: { min: 1, max: 300, step: 1 },
-      isStructural: true,
-    },
     {
       key: 'color',
       label: 'Color',
@@ -102,180 +157,28 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
       key: 'layers',
       label: 'Layers',
       type: 'group',
-      children: [
-        {
-          key: 'layer1',
-          label: 'Layer 1',
-          type: 'group',
-          children: [
-            {
-              key: 'show1',
-              label: 'Enable',
-              defaultValue: true,
-              type: 'checkbox',
-              isStructural: true,
-            },
-            {
-              key: 'radius1',
-              label: 'Radius',
-              defaultValue: 0.5,
-              type: 'range',
-              attr: { min: 0.01, max: 1, step: 0.01 },
-              show: ({ show1 }) => show1,
-              isStructural: true,
-            },
-            {
-              key: 'x1',
-              label: 'Position X',
-              defaultValue: 0.5,
-              type: 'range',
-              attr: { min: 0, max: 1, step: 0.01 },
-              show: ({ show1 }) => show1,
-              isStructural: true,
-            },
-            {
-              key: 'y1',
-              label: 'Position Y',
-              defaultValue: 0,
-              type: 'range',
-              attr: { min: 0, max: 1, step: 0.01 },
-              show: ({ show1 }) => show1,
-              isStructural: true,
-            },
-            {
-              ...rotationConfig,
-              key: 'rotation1',
-              show: ({ show1 }) => show1,
-              displayValue: ({ rotation1 }) => formatFractionAsAngle(rotation1),
-            },
-            {
-              key: 'reverse1',
-              label: 'Reverse',
-              defaultValue: false,
-              type: 'checkbox',
-              show: ({ show1 }) => show1,
-              isStructural: true,
-            },
-          ],
-        },
-        {
-          key: 'layer2',
-          label: 'Layer 2',
-          type: 'group',
-          children: [
-            {
-              key: 'show2',
-              label: 'Enable',
-              defaultValue: true,
-              type: 'checkbox',
-              isStructural: true,
-            },
-            {
-              key: 'radius2',
-              label: 'Radius',
-              defaultValue: 0.5,
-              type: 'range',
-              attr: { min: 0.01, max: 1, step: 0.01 },
-              show: ({ show2 }) => show2,
-              isStructural: true,
-            },
-            {
-              key: 'x2',
-              label: 'Position X',
-              defaultValue: 0,
-              type: 'range',
-              attr: { min: 0, max: 1, step: 0.01 },
-              show: ({ show2 }) => show2,
-              isStructural: true,
-            },
-            {
-              key: 'y2',
-              label: 'Position Y',
-              defaultValue: 1,
-              type: 'range',
-              attr: { min: 0, max: 1, step: 0.01 },
-              show: ({ show2 }) => show2,
-              isStructural: true,
-            },
-            {
-              ...rotationConfig,
-              key: 'rotation2',
-              show: ({ show2 }) => show2,
-              displayValue: ({ rotation2 }) => formatFractionAsAngle(rotation2),
-            },
-            {
-              key: 'reverse2',
-              label: 'Reverse',
-              defaultValue: false,
-              type: 'checkbox',
-              show: ({ show2 }) => show2,
-              isStructural: true,
-            },
-          ],
-        },
-        {
-          key: 'layer3',
-          label: 'Layer 3',
-          type: 'group',
-          children: [
-            {
-              key: 'show3',
-              label: 'Enable',
-              defaultValue: true,
-              type: 'checkbox',
-              isStructural: true,
-            },
-            {
-              key: 'radius3',
-              label: 'Radius',
-              defaultValue: 0.5,
-              type: 'range',
-              attr: { min: 0.01, max: 1, step: 0.01 },
-              show: ({ show3 }) => show3,
-              isStructural: true,
-            },
-            {
-              key: 'x3',
-              label: 'Position X',
-              defaultValue: 1,
-              type: 'range',
-              attr: { min: 0, max: 1, step: 0.01 },
-              show: ({ show3 }) => show3,
-              affectsStepCount: false,
-              isStructural: true,
-            },
-            {
-              key: 'y3',
-              label: 'Position Y',
-              defaultValue: 1,
-              type: 'range',
-              attr: { min: 0, max: 1, step: 0.01 },
-              show: ({ show3 }) => show3,
-              affectsStepCount: false,
-              isStructural: true,
-            },
-            {
-              ...rotationConfig,
-              key: 'rotation3',
-              show: ({ show3 }) => show3,
-              displayValue: ({ rotation3 }) => formatFractionAsAngle(rotation3),
-              affectsStepCount: false,
-            },
-            {
-              key: 'reverse3',
-              label: 'Reverse',
-              defaultValue: false,
-              type: 'checkbox',
-              show: ({ show3 }) => show3,
-              affectsNails: false,
-              affectsStepCount: false,
-              isStructural: true,
-            },
-          ],
-        },
-      ],
+      // @ts-ignore
+      children: createArray(3, i => getCircleConfig(i + 1)),
     },
   ];
+
+  defaultValues: Partial<FreestyleConfig> = {
+    n1: 80,
+    n2: 80,
+    n3: 80,
+    radius1: 0.5,
+    radius2: 0.5,
+    radius3: 0.5,
+    x1: 0.5,
+    x2: 0,
+    x3: 1,
+    y1: 0,
+    y2: 1,
+    y3: 1,
+    reverse1: false,
+    reverse2: false,
+    reverse3: false,
+  };
 
   getAspectRatio({ size }: CalcOptions): number {
     // TODO: Move the aspect ratio of this pattern to a config, then remove the options param from StringArt.getAspectRatio.
@@ -283,21 +186,16 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
   }
 
   getCalc({ size }: CalcOptions): TCalc {
-    const { n, margin = 0, minNailDistance } = this.config;
+    const { margin = 0 } = this.config;
 
     const maxRadius = Math.min(...size.map(v => v - 2 * margin)) / 2;
-    const layers = new Array(3)
-      .fill(null)
-      .map((_, i) => getLayer.call(this, i + 1))
-      .filter(({ enable }) => enable);
-
-    const maxShapeNailsCount = Math.max(
-      ...layers.map(({ circle }) => circle.config.n)
+    const layers = createArray(3, i => getLayer.call(this, i + 1)).filter(
+      ({ enable }) => enable
     );
 
     return {
       layers,
-      maxShapeNailsCount,
+      roundsCount: Math.max(...layers.map(l => l.circle.config.n)),
     };
 
     function getLayer(layerIndex: number): Layer {
@@ -311,12 +209,6 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
         rotation: prop('rotation'),
       };
 
-      const circumsference = Math.PI * 2 * props.radius;
-      const circleNails = Math.min(
-        n,
-        Math.floor(circumsference / minNailDistance)
-      );
-
       const circle = new Circle({
         radius: props.radius,
         size,
@@ -324,7 +216,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
           (v, i) =>
             props.radius + margin + (size[i] - (props.radius + margin) * 2) * v
         ) as Coordinates,
-        n: circleNails,
+        n: prop('n'),
         rotation: props.rotation,
         reverse: props.isReverse,
       });
@@ -337,11 +229,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
   }
 
   getPoint(layer: Layer, index: number): Coordinates {
-    const { circle } = layer;
-    let circleIndex = Math.round(
-      (index * circle.config.n) / this.calc.maxShapeNailsCount
-    );
-    return circle.getPoint(circleIndex);
+    return layer.circle.getPoint(index);
   }
 
   *drawStrings(renderer: Renderer): Generator<void> {
@@ -350,7 +238,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
     renderer.setColor(color);
     let prevCirclePoint: Coordinates;
 
-    for (let i = 0; i < this.calc.maxShapeNailsCount; i++) {
+    for (let i = 0; i < this.calc.roundsCount; i++) {
       for (
         let layerIndex = 0;
         layerIndex < this.calc.layers.length;
@@ -384,12 +272,18 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
   }
 
   getStepCount(options: CalcOptions) {
-    const { layers, maxShapeNailsCount } = this.getCalc(options);
-    return layers.length * maxShapeNailsCount;
+    const { layers, roundsCount } = this.getCalc(options);
+    return layers.length * roundsCount;
   }
 
-  thumbnailConfig = ({ n, minNailDistance }) => ({
-    minNailDistance: Math.min(minNailDistance, 3),
-    n: Math.min(n, 40),
+  getNailsCount(): number {
+    const { n1, n2, n3 } = this.config;
+    return n1 + n2 + n3;
+  }
+
+  thumbnailConfig = ({ n1, n2, n3 }) => ({
+    n1: Math.min(n1, 40),
+    n2: Math.min(n2, 40),
+    n3: Math.min(n3, 40),
   });
 }

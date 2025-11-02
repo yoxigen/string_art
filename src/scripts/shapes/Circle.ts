@@ -61,7 +61,7 @@ export default class Circle implements Shape {
   }
 
   getPoint(index: number): Coordinates {
-    const realIndex = this.getNailIndex(index);
+    const realIndex = this.#getNailIndex(index);
 
     if (this.points.has(index)) {
       return this.points.get(index);
@@ -84,12 +84,8 @@ export default class Circle implements Shape {
     return point;
   }
 
-  getNailIndex(index = 0): number {
-    let realIndex = this.isReverse ? this.config.n - 1 - index : index;
-    if (realIndex > this.config.n - 1) {
-      realIndex = realIndex % this.config.n;
-    }
-    return realIndex;
+  #getNailIndex(index = 0): number {
+    return (this.isReverse ? this.config.n - 1 - index : index) % this.config.n;
   }
 
   getAspectRatio(): number {
