@@ -41,6 +41,7 @@
     "parcel": "2.15.4",
     "prettier": "2.4.1",
     "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "workbox-cli": "^6.4.2"
