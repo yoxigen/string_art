@@ -1,4 +1,4 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import Polygon from '../shapes/Polygon';
 import Color from '../helpers/color/Color';
@@ -6,11 +6,13 @@ import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { gcd, PI2 } from '../helpers/math_utils';
 import { getCenter, mapDimensions } from '../helpers/size_utils';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
+import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 
 export interface MaurerRoseConfig extends ColorConfig {
   n: number;
@@ -225,10 +227,10 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     return Math.round(steps);
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     const points = this.generatePoints();
     for (const { point, index } of points) {
-      nails.addNail({ point, number: index });
+      nails.addNail(index, point);
     }
   }
 }

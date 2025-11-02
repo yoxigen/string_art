@@ -1,6 +1,7 @@
 export type Dimensions = [number, number];
 export type Dimension = 'width' | 'height';
 export type Coordinates = [number, number];
+export type LineCoordinates = [Coordinates, Coordinates];
 export type LengthUnit = 'cm' | 'inch';
 export type SizeUnit = LengthUnit | 'px';
 export interface BoundingRect {

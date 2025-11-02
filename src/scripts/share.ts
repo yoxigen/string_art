@@ -1,7 +1,7 @@
 import { getPatternURL } from './helpers/url_utils';
-import type Renderer from './renderers/Renderer';
-import SVGRenderer from './renderers/SVGRenderer';
-import type StringArt from './StringArt';
+import type Renderer from './infra/renderers/Renderer';
+import SVGRenderer from './infra/renderers/SVGRenderer';
+import type StringArt from './infra/StringArt';
 
 export interface ShareInput {
   renderer: Renderer;

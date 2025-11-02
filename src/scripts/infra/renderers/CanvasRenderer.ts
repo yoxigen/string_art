@@ -1,10 +1,11 @@
-import Renderer, { LayerOptions, RendererOptions } from './Renderer';
-import { PI2 } from '../helpers/math_utils';
-import type { Coordinates, Dimensions } from '../types/general.types';
-import type { Nail } from '../types/stringart.types';
-import { ColorValue } from '../helpers/color/color.types';
-import { areDimensionsEqual } from '../helpers/size_utils';
-import { hide, unHide } from '../helpers/dom_utils';
+import Renderer, { RendererOptions } from './Renderer';
+import { PI2 } from '../../helpers/math_utils';
+import type { Coordinates, Dimensions } from '../../types/general.types';
+import type { Nail, NailsRenderOptions } from '../../types/stringart.types';
+import { ColorValue } from '../../helpers/color/color.types';
+import { areDimensionsEqual } from '../../helpers/size_utils';
+import { hide, unHide } from '../../helpers/dom_utils';
+import NailsGroup from '../nails/NailsGroup';
 
 let lastId = 0;
 const INSTRUCTIONS_NAIL_RADIUS = 4;
@@ -244,20 +245,15 @@ export default class CanvasRenderer extends Renderer {
   }
 
   renderNails(
-    nails: ReadonlyArray<Nail>,
+    nails: Iterable<Coordinates>,
     {
       color,
       fontSize,
       radius,
       renderNumbers,
       margin = 0,
-    }: {
-      color: ColorValue;
-      fontSize: number;
-      radius: number;
-      renderNumbers?: boolean;
-      margin?: number;
-    }
+      numbersStart = 1,
+    }: NailsRenderOptions
   ) {
     const centerX = this.stringsCanvas.width / 2;
 
@@ -268,7 +264,8 @@ export default class CanvasRenderer extends Renderer {
     this.nailsCtx.font = `${fontSize}px sans-serif`;
     const nailNumberOffset = radius + margin;
 
-    nails.forEach(({ point: [x, y], number }) => {
+    let number = numbersStart;
+    for (let [x, y] of nails) {
       this.nailsCtx.moveTo(x + radius, y);
       this.nailsCtx.arc(x, y, radius, 0, PI2);
       if (renderNumbers && number != null) {
@@ -282,7 +279,8 @@ export default class CanvasRenderer extends Renderer {
         this.nailsCtx.textAlign = isRightAlign ? 'right' : 'left';
         this.nailsCtx.fillText(String(number), ...numberPosition);
       }
-    });
+      number++;
+    }
 
     this.nailsCtx.fill();
   }

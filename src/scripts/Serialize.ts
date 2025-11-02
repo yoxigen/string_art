@@ -1,4 +1,4 @@
-import StringArt from './StringArt';
+import StringArt from './infra/StringArt';
 
 const MAX_FLOAT_DECIMALS = 6;
 

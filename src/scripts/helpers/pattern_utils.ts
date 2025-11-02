@@ -1,6 +1,6 @@
 import patternTypes from '../pattern_types';
 import Persistance from '../Persistance';
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 
 export function createPatternInstance(type: string): StringArt {
   let Pattern = patternTypes.find(({ type: _type }) => _type === type);

@@ -1,10 +1,10 @@
 import {
   getConfigDefaultValues,
   getControlsIndex,
-} from './helpers/config_utils';
-import EventBus from './helpers/EventBus';
-import { compareObjects } from './helpers/object_utils';
-import Nails from './Nails';
+} from '../helpers/config_utils';
+import EventBus from '../helpers/EventBus';
+import { compareObjects } from '../helpers/object_utils';
+import Nails from './nails/Nails';
 import { MeasureRenderer, ThreadsLength } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
 import type {
@@ -13,10 +13,10 @@ import type {
   ControlConfig,
   ControlsConfig,
   PrimitiveValue,
-} from './types/config.types';
-import { Dimensions } from './types/general.types';
-import { CalcOptions } from './types/stringart.types';
-import 'scheduler-polyfill';
+} from '../types/config.types';
+import { Dimensions } from '../types/general.types';
+import { CalcOptions } from '../types/stringart.types';
+import INails from './nails/INails';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -32,6 +32,7 @@ export interface DrawOptions {
   redrawStrings?: boolean;
   sizeChanged?: boolean;
   enableScheduler?: boolean;
+  precision?: number;
 }
 
 const COMMON_CONFIG_CONTROLS: ControlsConfig = [
@@ -184,7 +185,7 @@ abstract class StringArt<
     super();
   }
 
-  abstract drawNails(nails: Nails): void;
+  abstract drawNails(nails: INails): void;
   abstract drawStrings(renderer: Renderer): Generator<void>;
   abstract getStepCount(options: CalcOptions): number;
   abstract getAspectRatio(options: CalcOptions): number;
@@ -433,13 +434,16 @@ abstract class StringArt<
    */
   #draw(
     renderer: Renderer,
-    { position, ...drawOptions }: { position?: number } & DrawOptions = {}
+    {
+      position,
+      precision,
+      ...drawOptions
+    }: { position?: number } & DrawOptions = {}
   ): () => void {
     this.initDraw(renderer, drawOptions);
 
     const {
       showNails,
-      showNailNumbers,
       darkMode,
       backgroundColor,
       customBackgroundColor,
@@ -457,9 +461,15 @@ abstract class StringArt<
     );
 
     if (showNails && drawOptions.redrawNails !== false) {
-      const nails = new Nails(this.config);
+      const nails = new Nails({
+        color: this.config.nailsColor,
+        fontSize: this.config.nailNumbersFontSize,
+        radius: this.config.nailRadius,
+        renderNumbers: this.config.showNailNumbers,
+      });
+
       this.drawNails(nails);
-      nails.draw(renderer, { drawNumbers: showNailNumbers });
+      nails.draw(renderer, { precision });
     }
 
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
@@ -512,11 +522,10 @@ abstract class StringArt<
     return result;
   }
 
-  copy(): StringArt<TConfig> {
-    const config = this.config;
+  copy(overrideConfig?: Partial<TConfig>): StringArt<TConfig> {
     // @ts-ignore
     const patternCopy = new this.constructor();
-    patternCopy.config = config;
+    patternCopy.config = { ...this.config, overrideConfig };
     return patternCopy;
   }
 }

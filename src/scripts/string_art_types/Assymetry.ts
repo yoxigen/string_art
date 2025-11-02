@@ -1,12 +1,14 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
+import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 
 const LAYER_DEFAULTS = [
   { size: 0.25, end: 1, color: '#a94fb0' },
@@ -264,13 +266,13 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     }
   }
 
-  drawNails(nails: Nails) {
-    this.calc.circle.drawNails(nails, {
-      nailsNumberStart: this.calc.lineNailCount + 1,
-    });
+  drawNails(nails: INails) {
     for (let i = 0; i < this.calc.lineNailCount; i++) {
-      nails.addNail({ point: this.getPoint(i), number: i + 1 });
+      nails.addNail(i, this.getPoint(i));
     }
+    this.calc.circle.drawNails(nails, {
+      getUniqueKey: k => this.calc.lineNailCount + k,
+    });
   }
 
   getStepCount(options: CalcOptions): number {

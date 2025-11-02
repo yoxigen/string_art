@@ -1,5 +1,5 @@
 import Color from '../helpers/color/Color';
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import { ControlsConfig } from '../types/config.types';
 import {
@@ -7,10 +7,10 @@ import {
   ColorMap,
   ColorValue,
 } from '../helpers/color/color.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import { withoutAttribute } from '../helpers/config_utils';
-import Nails from '../Nails';
+import INails from '../infra/nails/INails';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -179,7 +179,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
     return Math.round(n * (innerLength * 2) * repetition);
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     this.calc.circle.drawNails(nails);
   }
 

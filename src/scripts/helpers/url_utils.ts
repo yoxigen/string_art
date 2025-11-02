@@ -1,5 +1,5 @@
 import { serializeConfig } from '../Serialize';
-import type StringArt from '../StringArt';
+import type StringArt from '../infra/StringArt';
 import { RendererType } from '../types/stringart.types';
 
 export function getPatternURL(

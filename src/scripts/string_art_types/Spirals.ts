@@ -1,17 +1,19 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import Nails from '../infra/nails/Nails';
 import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import easing from '../helpers/easing';
+import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 
 interface SpiralsConfig extends ColorConfig {
   // radiusIncrease: number;
@@ -146,17 +148,11 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return 1;
   }
 
-  *generatePoints(
-    withNailNumbers = true
-  ): Generator<{ point: Coordinates; nailNumber: string }> {
+  *generatePoints(): Generator<Coordinates> {
     const { nSpirals, nailsPerSpiral } = this.config;
     for (let i = 1; i < nailsPerSpiral; i++) {
       for (let s = 0; s < nSpirals; s++) {
-        const point = this.getPoint(s, i);
-        yield {
-          point,
-          nailNumber: withNailNumbers ? `${s + 1}_${i + 1}` : null,
-        };
+        yield this.getPoint(s, i);
       }
     }
   }
@@ -184,7 +180,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     renderer.setColor(this.color.getColor(0));
     renderer.setStartingPoint(this.calc.center);
 
-    for (const { point } of points) {
+    for (const point of points) {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
@@ -204,17 +200,18 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return (nailsPerSpiral - 1) * nSpirals;
   }
 
-  drawNails(nails: Nails) {
-    nails.addNail({ point: this.calc.center, number: '1' });
+  drawNails(nails: INails) {
     const points = this.generatePoints();
-    for (const { point, nailNumber } of points) {
-      nails.addNail({ point, number: nailNumber });
+    let i = 0;
+    for (const point of points) {
+      nails.addNail(i, point);
+      i++;
     }
   }
 
   getNailCount(): number {
     const { nSpirals, nailsPerSpiral } = this.config;
-    return nSpirals * (nailsPerSpiral - 1) + 1;
+    return nSpirals * (nailsPerSpiral - 1);
   }
 
   thumbnailConfig = ({ nailsPerSpiral }) => ({

@@ -1,11 +1,15 @@
-import { ColorValue } from '../helpers/color/color.types';
-import Renderer, { RendererOptions } from './Renderer';
-import { Coordinates, Dimensions } from '../types/general.types';
-import { Nail, NailsRenderOptions } from '../types/stringart.types';
+import { ColorValue } from '../../helpers/color/color.types';
+import Renderer from './Renderer';
+import {
+  Coordinates,
+  Dimensions,
+  LineCoordinates,
+} from '../../types/general.types';
+import { NailsRenderOptions } from '../../types/stringart.types';
 
 export class TestRenderer extends Renderer {
-  strings = [];
-  nails = [];
+  strings: LineCoordinates[] = [];
+  nails: Coordinates[] = [];
   lineWidth = 1;
   size: Dimensions = [0, 0];
   background: ColorValue;
@@ -36,8 +40,10 @@ export class TestRenderer extends Renderer {
     this.strings.push([[0, 0], to]);
   }
 
-  renderNails(nails: ReadonlyArray<Nail>, options: NailsRenderOptions) {
-    this.nails.push(...nails);
+  renderNails(nails: Iterable<Coordinates>, options: NailsRenderOptions) {
+    for (let nail of nails) {
+      this.nails.push(nail);
+    }
   }
 
   clear() {

@@ -5,10 +5,10 @@ import EditorControls, {
 import { Thumbnails } from './thumbnails/Thumbnails';
 import { isShareSupported, share } from './share';
 import { initServiceWorker } from './pwa';
-import SVGRenderer from './renderers/SVGRenderer';
+import SVGRenderer from './infra/renderers/SVGRenderer';
 import './components/components';
 import Persistance from './Persistance';
-import StringArt from './StringArt';
+import StringArt from './infra/StringArt';
 import { confirm } from './helpers/dialogs';
 import Viewer from './viewer/Viewer';
 import type DownloadDialog from './components/dialogs/download_dialog/DownloadDialog';
@@ -16,6 +16,7 @@ import { findPatternById } from './helpers/pattern_utils';
 import routing from './routing';
 import { hide, unHide } from './helpers/dom_utils';
 import info from './Info';
+import 'scheduler-polyfill';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);

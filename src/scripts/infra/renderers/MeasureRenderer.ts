@@ -1,12 +1,12 @@
-import { ColorValue } from '../helpers/color/color.types';
+import { ColorValue } from '../../helpers/color/color.types';
 import {
   getClosestDistance,
   getDistanceBetweenCoordinates,
   PI2,
-} from '../helpers/math_utils';
-import { Coordinates, Dimensions } from '../types/general.types';
-import { PatternInfo } from '../types/info.types';
-import { Nail, NailsRenderOptions } from '../types/stringart.types';
+} from '../../helpers/math_utils';
+import { Coordinates, Dimensions } from '../../types/general.types';
+import { PatternInfo } from '../../types/info.types';
+import { NailsRenderOptions } from '../../types/stringart.types';
 import { TestRenderer } from './TestRenderer';
 
 export type ThreadsLength = {
@@ -63,14 +63,15 @@ export class MeasureRenderer extends TestRenderer {
 
   resetNails(): void {
     this.#nailCount = 0;
-    this.#nailCoords = [];
+    this.#nailCoords.length = 0;
   }
 
-  renderNails(nails: Nail[], { radius }: NailsRenderOptions) {
-    this.#nailCount += nails.length;
+  renderNails(nails: Iterable<Coordinates>, { radius }: NailsRenderOptions) {
+    for (let nail of nails) {
+      this.#nailCount++;
+      this.#nailCoords.push(nail);
+    }
     this.#nailThreadLength = this.#getNailThreadLength(radius);
-
-    this.#nailCoords = this.#nailCoords.concat(nails.map(({ point }) => point));
   }
 
   setStartingPoint(coordinates: Coordinates): void {

@@ -1,9 +1,9 @@
 import EventBus from '../helpers/EventBus';
-import CanvasRenderer from '../renderers/CanvasRenderer';
-import Renderer from '../renderers/Renderer';
-import SVGRenderer from '../renderers/SVGRenderer';
+import CanvasRenderer from '../infra/renderers/CanvasRenderer';
+import Renderer from '../infra/renderers/Renderer';
+import SVGRenderer from '../infra/renderers/SVGRenderer';
 import routing from '../routing';
-import StringArt, { DrawOptions } from '../StringArt';
+import StringArt, { DrawOptions } from '../infra/StringArt';
 import { Dimensions } from '../types/general.types';
 import { RendererType } from '../types/stringart.types';
 import viewOptions from './ViewOptions';
@@ -26,10 +26,14 @@ export default class Viewer extends EventBus<{
     this.rendererType = rendererType;
     this.element = document.querySelector('#canvas_panel');
 
-    this.element.addEventListener('wheel', ({ deltaY }) => {
-      const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
-      this.emit('positionChange', { changeBy: direction });
-    });
+    this.element.addEventListener(
+      'wheel',
+      ({ deltaY }) => {
+        const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
+        this.emit('positionChange', { changeBy: direction });
+      },
+      { passive: true }
+    );
 
     viewOptions.addEventListener(
       'showInstructionsChange',
@@ -91,7 +95,7 @@ export default class Viewer extends EventBus<{
 
   #updateOnSizeChange(size: Dimensions) {
     if (size[0] && size[1]) {
-      this.pattern?.draw(this.renderer, { sizeChanged: true });
+      this.pattern?.draw(this.renderer, { sizeChanged: true, precision: 1 });
     }
   }
 
@@ -126,7 +130,7 @@ export default class Viewer extends EventBus<{
   update(options?: DrawOptions) {
     viewOptions.showInstructions = false;
     this.#withRenderer();
-    this.pattern?.draw(this.renderer, options);
+    this.pattern?.draw(this.renderer, { ...options, precision: 1 });
   }
 
   goto(position: number) {

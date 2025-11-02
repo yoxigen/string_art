@@ -1,11 +1,11 @@
 import Color from '../helpers/color/Color';
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import { ColorConfig } from '../helpers/color/color.types';
 import { ControlsConfig } from '../types/config.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import INails from '../infra/nails/INails';
 
 export interface MandalaConfig extends ColorConfig {
   n: number;
@@ -155,7 +155,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     }
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     this.calc.circle.drawNails(nails);
   }
 

@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import StringArt from '../StringArt';
+import StringArt, { DrawOptions } from '../infra/StringArt';
 import { Dimensions } from '../types/general.types';
-import { TestRenderer } from '../renderers/TestRenderer';
+import { TestRenderer } from '../infra/renderers/TestRenderer';
 import { getAllPatternsTypes } from '../helpers/pattern_utils';
 
 export interface PatternPerfResult {
@@ -23,18 +23,28 @@ if (fs.existsSync(logFile)) {
   fs.unlinkSync(logFile);
 }
 
-const patterns = getAllPatternsTypes().sort((a, b) =>
-  a.name > b.name ? 1 : -1
-);
+const singlePatternId = process.argv.includes('-p')
+  ? process.argv[process.argv.lastIndexOf('-p') + 1]
+  : null;
+
+const patterns = getAllPatternsTypes()
+  .filter(p => !singlePatternId || p.id === singlePatternId)
+  .sort((a, b) => (a.name > b.name ? 1 : -1));
 
 const patternTimes: [string, number, number, number][] = [];
+const longestPatternNameLength = Math.max(...patterns.map(p => p.name.length));
 
 patterns.forEach((pattern, i) => {
+  const patternStr = `${pattern.name.padEnd(
+    longestPatternNameLength,
+    '_'
+  )} [${String(i + 1).padStart(2, '0')}/${patterns.length}]`;
+  process.stdout.write('\x1b[37m' + patternStr + ' \x1b[36m(working...)');
   const result = measurePattern(pattern);
-  console.log(
-    `${pattern.name} [${i + 1}/${patterns.length}] (${Math.trunc(
+  process.stdout.write(
+    `\r\x1b[37m${patternStr} (${getTimeColor(result.time)}${Math.trunc(
       result.time
-    )}ms)`
+    )}ms)               \n`
   );
   patternTimes.push([
     pattern.name,
@@ -43,6 +53,20 @@ patterns.forEach((pattern, i) => {
     result.time,
   ]);
 });
+
+function getTimeColor(time: number): string {
+  if (time < 800) {
+    return '\x1b[32m';
+  }
+  if (time > 8000) {
+    return '\x1b[31m';
+  }
+  if (time > 4000) {
+    return '\x1b[33m';
+  }
+
+  return '\x1b[37m';
+}
 
 const CSV =
   'Pattern type, Runs per second, Step count, Time\n' +
@@ -58,17 +82,21 @@ export function measurePattern(pattern: StringArt): PatternPerfResult {
   const size: Dimensions = [1000, 1000];
 
   const renderer = new TestRenderer(size);
-
+  const options: DrawOptions = {
+    sizeChanged: false,
+    redrawNails: true,
+    redrawStrings: true,
+  };
   // warmup
   for (let i = 0; i < warmupDrawCount; i++) {
-    pattern.draw(renderer);
+    pattern.draw(renderer, options);
   }
 
   const timeStart = performance.now();
 
   for (let cycle = 0; cycle < cycles; cycle++) {
     for (let i = 0; i < drawCountPerCycle; i++) {
-      pattern.draw(renderer);
+      pattern.draw(renderer, options);
     }
   }
 

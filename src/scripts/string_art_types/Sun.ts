@@ -1,4 +1,4 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import StarShape, { StarShapeConfig } from '../shapes/StarShape';
@@ -12,14 +12,15 @@ import type {
 } from '../types/config.types';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { Coordinates } from '../types/general.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
   getCenter,
 } from '../helpers/size_utils';
-import Nails from '../Nails';
+import NailsGroup from '../infra/nails/NailsGroup';
+import INails from '../infra/nails/INails';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;
@@ -405,20 +406,19 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     yield* this.generateLayers(renderer);
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     const { backdropSize, backdropNailsColor, backdropNailsRadius } =
       this.config;
 
     this.calc.star.drawNails(nails);
     if (backdropSize) {
-      const circleNails = [];
-      for (const circleNail of this.calc.circle.generateNails()) {
-        circleNails.push(circleNail);
-      }
-      nails.addGroup(circleNails, {
+      const backdropNailsGroup = new NailsGroup({
         color: backdropNailsColor,
         radius: backdropNailsRadius,
       });
+
+      this.calc.circle.drawNails(backdropNailsGroup);
+      nails.addGroup(backdropNailsGroup);
     }
   }
 

@@ -1,14 +1,14 @@
-import { describe, test, expect, beforeEach } from '@jest/globals';
+import { describe, test, expect } from '@jest/globals';
 import {
   createPatternInstance,
   getAllPatternsTypes,
-} from '../helpers/pattern_utils';
+} from '../../helpers/pattern_utils';
 import { TestRenderer } from '../renderers/TestRenderer';
-import { Dimensions } from '../types/general.types';
+import { Dimensions } from '../../types/general.types';
 import type StringArt from '../StringArt';
 import { MeasureRenderer } from '../renderers/MeasureRenderer';
 
-const size: Dimensions = [100, 100];
+const size: Dimensions = [1000, 1000];
 
 describe('StringArt', () => {
   describe('patterns', () => {
@@ -22,8 +22,10 @@ describe('StringArt', () => {
 
       describe('getNailsCount', () => {
         const measureRenderer = new MeasureRenderer(size);
+        const precision = 10;
+
         test(`${pattern.name} getNailCount`, () => {
-          pattern.draw(measureRenderer);
+          pattern.draw(measureRenderer, { precision });
           expect(pattern.getNailCount(size)).toEqual(measureRenderer.nailCount);
         });
 
@@ -33,7 +35,10 @@ describe('StringArt', () => {
             test(`${pattern.name} getNailCount #${testId}`, () => {
               const patternConfig = pattern.copy();
               patternConfig.assignConfig(testConfig);
-              patternConfig.draw(measureRenderer, { redrawNails: true });
+              patternConfig.draw(measureRenderer, {
+                redrawNails: true,
+                precision,
+              });
               expect(patternConfig.getNailCount(size)).toEqual(
                 measureRenderer.nailCount
               );

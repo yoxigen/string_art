@@ -1,4 +1,4 @@
-import StringArtRangeInput from './StringArtRangeInput';
+import StringArtRangeInput from './infra/StringArtRangeInput';
 
 const DEFAULT_THUMB_COLOR = 'white';
 const FULL_GAMUT_GRADIENT =

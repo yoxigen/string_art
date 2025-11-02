@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import { TestRenderer } from '../../renderers/TestRenderer';
+import { TestRenderer } from '../../infra/renderers/TestRenderer';
 import StarShape from '../StarShape';
 import type { Dimensions } from '../../types/general.types';
 
@@ -29,5 +29,28 @@ describe('StarShape', () => {
       test(`sideNails = ${config.sideNails}, sides = ${config.sides}`, () =>
         expect(star.getStepCount()).toEqual(drawCount));
     }
+  });
+
+  describe('getNailCount', () => {
+    test('with center nail', () => {
+      const star = new StarShape({
+        sides: 3,
+        sideNails: 10,
+        size: [100, 100],
+      });
+
+      expect(star.getNailCount()).toBe(28);
+    });
+
+    test('without center nail', () => {
+      const star = new StarShape({
+        sides: 3,
+        sideNails: 10,
+        size: [100, 100],
+        centerRadius: 20,
+      });
+
+      expect(star.getNailCount()).toBe(30);
+    });
   });
 });

@@ -1,12 +1,12 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import { ColorValue } from '../helpers/color/color.types';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, ControlType, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';
-import Nails from '../Nails';
+import INails from '../infra/nails/INails';
 
 interface FreestyleConfig {
   n: number;
@@ -377,11 +377,9 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
     }
   }
 
-  drawNails(nails: Nails) {
-    this.calc.layers.forEach(({ circle }, layerIndex) =>
-      circle.drawNails(nails, {
-        getNumber: i => `${layerIndex + 1}_${i + 1}`,
-      })
+  drawNails(nails: INails) {
+    this.calc.layers.forEach(({ circle }, i) =>
+      circle.drawNails(nails, { getUniqueKey: k => 1e3 * i + k })
     );
   }
 

@@ -1,7 +1,6 @@
 import { describe, test, expect } from '@jest/globals';
 import Polygon from '../Polygon';
-import { MeasureRenderer } from '../../renderers/MeasureRenderer';
-import TestNails from '../../TestNails';
+import TestNails from '../../infra/nails/TestNails';
 
 describe('Polygon', () => {
   test('getPoint 0', () => {

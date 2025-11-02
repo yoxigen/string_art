@@ -91,7 +91,11 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
     this.#wrappedOnInput = this.#onInput.bind(this);
     elements.controls.addEventListener('input', this.#wrappedOnInput);
     this.#wrappedOnTouchStart = this.#onTouchStart.bind(this);
-    elements.controls.addEventListener('touchstart', this.#wrappedOnTouchStart);
+    elements.controls.addEventListener(
+      'touchstart',
+      this.#wrappedOnTouchStart,
+      { passive: true }
+    );
     elements.controls.addEventListener('mousedown', this.#onMouseDown);
     this.#boundToggleFieldset = this.#toggleFieldset.bind(this);
     elements.sidebarForm.addEventListener('click', this.#boundToggleFieldset);
@@ -192,7 +196,9 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
         this.#postponeRangeInput = false;
       }, RANGE_SCROLL_LOCK_TIMEOUT);
       this.#wrappedOnTouchEnd = this.#onTouchEnd.bind(this);
-      document.body.addEventListener('touchend', this.#wrappedOnTouchEnd);
+      document.body.addEventListener('touchend', this.#wrappedOnTouchEnd, {
+        passive: true,
+      });
       this.#wrappedOnRangeScroll = this.#onRangeScroll.bind(this);
       elements.controlsPanel.addEventListener(
         'scroll',

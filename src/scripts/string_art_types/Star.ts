@@ -1,13 +1,13 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import StarShape, { StarShapeConfig } from '../shapes/StarShape';
 import { ColorValue } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
+import INails from '../infra/nails/INails';
 
 interface StarConfig {
   sides: number;
@@ -267,9 +267,11 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     }
   }
 
-  drawNails(nails: Nails): void {
+  drawNails(nails: INails): void {
     this.calc.circle.drawNails(nails);
-    this.calc.star.drawNails(nails);
+    this.calc.star.drawNails(nails, {
+      getUniqueKey: k => this.calc.circle.config.n + k,
+    });
   }
 
   getStepCount(options: CalcOptions): number {
@@ -290,7 +292,9 @@ export default class Star extends StringArt<StarConfig, TCalc> {
   getNailCount(): number {
     const { sides, sideNails, centerRadius } = this.config;
     const circleNails = sides * (sideNails - 1);
-    return sides * sideNails + circleNails - (centerRadius ? 0 : sides - 1);
+    return (
+      sides * (sideNails - 1) + circleNails - (centerRadius ? 0 : sides - 1)
+    );
   }
 
   thumbnailConfig = ({ sideNails }) => ({

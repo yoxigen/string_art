@@ -1,7 +1,7 @@
 import * as styles from 'bundle-text:./DownloadDialog.css';
 import * as html from 'bundle-text:./DownloadDialog.html';
 import type ConfirmDialog from '../ConfirmDialog';
-import type StringArt from '../../../StringArt';
+import type StringArt from '../../../infra/StringArt';
 import {
   fitInside,
   lengthConvert,
@@ -16,7 +16,7 @@ import {
   ImageType,
 } from '../../../download/Download';
 import type DimensionsInput from '../../inputs/DimensionsInput';
-import CanvasRenderer from '../../../renderers/CanvasRenderer';
+import CanvasRenderer from '../../../infra/renderers/CanvasRenderer';
 import StringArtCheckbox from '../../inputs/StringArtCheckbox';
 import {
   DOWNLOAD_IMAGE_SIZES,
@@ -662,14 +662,21 @@ export default class DownloadDialog extends HTMLElement {
           }
         : {
             enableBackground: !this.isTransparentBackground,
+            showNailNumbers: false,
+            showStrings: true,
           }
     );
 
+    const previewSizeRatio = previewSize[0] / this.dimensions[0];
     previewPattern.assignConfig({
-      margin: Math.floor((this.margin / this.dimensions[0]) * previewSize[0]),
+      margin: Math.floor(this.margin * previewSizeRatio),
+      nailRadius: Math.max(
+        0.5,
+        this.currentPattern.config.nailRadius * previewSizeRatio
+      ),
     });
 
-    previewPattern.draw(renderer);
+    previewPattern.draw(renderer, { precision: 1 });
   }
 }
 

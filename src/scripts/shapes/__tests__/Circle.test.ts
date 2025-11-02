@@ -1,6 +1,6 @@
 import { describe, test, expect } from '@jest/globals';
 import Circle from '../Circle';
-import { TestRenderer } from '../../renderers/TestRenderer';
+import { TestRenderer } from '../../infra/renderers/TestRenderer';
 
 describe('Circle', () => {
   describe('aspectRatio', () => {

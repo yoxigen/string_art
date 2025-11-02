@@ -2,11 +2,11 @@ import { createArray } from '../helpers/array_utils';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { getCenter } from '../helpers/size_utils';
-import Nails from '../Nails';
-import Renderer from '../renderers/Renderer';
-import StringArt from '../StringArt';
+import INails from '../infra/nails/INails';
+import Renderer from '../infra/renderers/Renderer';
+import StringArt from '../infra/StringArt';
 import { Config, ControlsConfig } from '../types/config.types';
-import { Coordinates } from '../types/general.types';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 
 type Side = 'left' | 'bottom' | 'right' | 'top';
@@ -36,7 +36,7 @@ interface Layer {
   layerAngle: number;
   layerSize: number;
   layerStart: Coordinates;
-  layerStringCount: number;
+  layerSideNailCount: number;
 }
 interface TCalc {
   maxSize: number;
@@ -126,13 +126,13 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         center[0] - layerSize / 2,
         center[1] - layerSize / 2,
       ];
-      const layerStringCount = Math.floor(layerSize / nailSpacing);
+      const layerSideNailCount = Math.floor(layerSize / nailSpacing);
 
       return {
         layerAngle: layerAngle * layerIndex,
         layerSize,
         layerStart,
-        layerStringCount,
+        layerSideNailCount,
       };
     };
 
@@ -200,14 +200,14 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       angle,
       size,
       layerStart,
-      layerStringCount,
+      layerSideNailCount,
     }: {
       side: Side;
       color: ColorValue;
       angle: number;
       size: number;
       layerStart: Coordinates;
-      layerStringCount: number;
+      layerSideNailCount: number;
     }
   ): Generator<void> {
     const sideIndex = SIDES.indexOf(side);
@@ -215,10 +215,10 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     const rotation = SIDES_ROTATION[side];
     const nextSideRotation = SIDES_ROTATION[nextSide];
 
-    const sideProps = { layerStringCount, size, layerStart, angle };
+    const sideProps = { layerSideNailCount, size, layerStart, angle };
     renderer.setColor(color);
 
-    for (let i = 0; i <= layerStringCount; i++) {
+    for (let i = 0; i <= layerSideNailCount; i++) {
       renderer.renderLine(
         this.getPoint({ index: i, rotation, ...sideProps }),
         this.getPoint({
@@ -235,7 +235,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
     const { colorPerLayer } = this.config;
 
-    const { layerAngle, layerSize, layerStart, layerStringCount } =
+    const { layerAngle, layerSize, layerStart, layerSideNailCount } =
       this.calc.layers[layerIndex];
 
     for (let i = 0; i < SIDES.length; i++) {
@@ -245,7 +245,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         angle: layerAngle,
         size: layerSize,
         layerStart,
-        layerStringCount,
+        layerSideNailCount,
       });
     }
   }
@@ -273,33 +273,51 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     return count;
   }
 
-  drawNails(nails: Nails) {
+  // getNailCount(size: Dimensions): number {
+  //   return this.#getNailCount(this.calc ?? this.getCalc({ size }));
+  // }
+
+  // #getNailCount({ layers }: TCalc): number {
+  //   return layers.reduce(
+  //     (nailCount: number, layer) =>
+  //       nailCount + (layer.layerSideNailCount + 1) * SIDES.length,
+  //     0
+  //   );
+  // }
+  drawNails(nails: INails) {
     const { layers } = this.config;
+
+    let nailIndex = 0;
     for (let layer = layers - 1; layer >= 0; layer--) {
       const {
         layerAngle: angle,
         layerSize: size,
         layerStart,
-        layerStringCount,
+        layerSideNailCount,
       } = this.calc.layers[layer];
 
       for (let s = 0; s < SIDES.length; s++) {
         const sideOrder = SIDES_ORDER[s];
         const rotation = SIDES_ROTATION[sideOrder];
 
-        for (let i = 0; i <= layerStringCount; i++) {
-          const sideProps = { layerStringCount, size, layerStart, angle };
-          nails.addNail({
-            point: this.getPoint({
+        for (let i = 0; i <= layerSideNailCount; i++) {
+          const sideProps = { layerSideNailCount, size, layerStart, angle };
+          nails.addNail(
+            this.#getPointKey(layer, s, i),
+            this.getPoint({
               index: i,
               rotation,
               ...sideProps,
-            }),
-            number: `${layer}_${s}_${i}`,
-          });
+            })
+          );
+          nailIndex++;
         }
       }
     }
+  }
+
+  #getPointKey(layer: number, side: number, index: number): string {
+    return `${layer}_${side}_${index}`;
   }
 
   thumbnailConfig = ({ n, layers }) => ({

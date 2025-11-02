@@ -1,4 +1,4 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import type { ControlsConfig } from '../types/config.types';
@@ -7,15 +7,15 @@ import { Coordinates, Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { getDistanceBetweenCoordinates, PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
   getCenter,
 } from '../helpers/size_utils';
-import Nails from '../Nails';
 import { createArray } from '../helpers/array_utils';
+import INails from '../infra/nails/INails';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -413,26 +413,27 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     }
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: INails) {
     const { renderCenter, renderCenterNails } = this.config;
-    const { circles, centerCircle } = this.calc;
+    const { circles, centerCircle, nailsPerCircle } = this.calc;
 
-    circles.forEach((circle, circleIndex) => {
+    if (renderCenter) {
+      if (centerCircle) {
+        centerCircle.drawNails(nails);
+      } else {
+        nails.addNail('C', this.calc.center);
+      }
+    }
+
+    circles.forEach((circle, i) => {
+      const circleIndexStart = centerCircle.config.n + nailsPerCircle * i;
       circle.drawNails(nails, {
-        getNumber: i => `${circleIndex + 1}_${i}`,
+        getUniqueKey: k => circleIndexStart + k,
         excludedNailRanges: renderCenterNails
           ? null
           : this.#getCenterExcludedNails(),
       });
     });
-
-    if (renderCenter) {
-      if (centerCircle) {
-        centerCircle.drawNails(nails, { getNumber: i => `C_${i + 1}` });
-      } else {
-        nails.addNail({ point: this.calc.center, number: 'C' });
-      }
-    }
   }
 
   #getCenterExcludedNails(): [[number, number]] {

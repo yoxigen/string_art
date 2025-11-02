@@ -1,8 +1,8 @@
 import Renderer from './Renderer';
-import type { Coordinates, Dimensions } from '../types/general.types';
-import { ColorValue } from '../helpers/color/color.types';
-import { Nail, NailsRenderOptions } from '../types/stringart.types';
-import { areDimensionsEqual } from '../helpers/size_utils';
+import type { Coordinates, Dimensions } from '../../types/general.types';
+import { ColorValue } from '../../helpers/color/color.types';
+import { Nail, NailsRenderOptions } from '../../types/stringart.types';
+import { areDimensionsEqual } from '../../helpers/size_utils';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -167,13 +167,24 @@ export default class SVGRenderer extends Renderer {
   }
 
   renderLine(from: Coordinates, to: Coordinates): void {
+    this.lastStringCoordinates = from;
+    this.lineTo(to);
+  }
+
+  lineTo(to: Coordinates) {
+    if (!this.lastStringCoordinates) {
+      throw new Error("no last string coordinates, can't lineTo");
+    }
+
     const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', String(Math.trunc(from[0])));
-    line.setAttribute('y1', String(Math.trunc(from[1])));
+    line.setAttribute('x1', String(Math.trunc(this.lastStringCoordinates[0])));
+    line.setAttribute('y1', String(Math.trunc(this.lastStringCoordinates[1])));
     line.setAttribute('x2', String(Math.trunc(to[0])));
     line.setAttribute('y2', String(Math.trunc(to[1])));
 
     this.currentLineGroup.appendChild(line);
+
+    this.lastStringCoordinates = to;
   }
 
   clearInstructions(): void {
@@ -197,18 +208,27 @@ export default class SVGRenderer extends Renderer {
   }
 
   renderNails(
-    nails: ReadonlyArray<Nail>,
-    { color, fontSize, radius, renderNumbers, margin = 0 }: NailsRenderOptions
+    nails: Iterable<Coordinates>,
+    {
+      color,
+      fontSize,
+      radius,
+      renderNumbers,
+      margin = 0,
+      numbersStart = 1,
+    }: NailsRenderOptions
   ) {
     const centerX = this.getSize()[0] / 2;
-    this.nailsCirclesGroup.innerHTML = this.nailsTextGroup.innerHTML = '';
+    //this.nailsCirclesGroup.innerHTML = this.nailsTextGroup.innerHTML = '';
     const circlesFragment = document.createDocumentFragment();
     const textFragment = document.createDocumentFragment();
 
     const nailNumberOffset = radius + margin;
 
     this.nailsTextGroup.style.fontSize = String(fontSize);
-    nails.forEach(({ point: [x, y], number }) => {
+    let number = numbersStart;
+
+    for (let [x, y] of nails) {
       const circle = document.createElementNS(SVG_NS, 'circle');
       circle.setAttribute('cx', String(x));
       circle.setAttribute('cy', String(y));
@@ -232,7 +252,8 @@ export default class SVGRenderer extends Renderer {
         }
         textFragment.appendChild(textEl);
       }
-    });
+      number++;
+    }
 
     this.nailsCirclesGroup.appendChild(circlesFragment);
     this.nailsTextGroup.appendChild(textFragment);

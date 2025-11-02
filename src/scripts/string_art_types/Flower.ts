@@ -1,4 +1,4 @@
-import StringArt from '../StringArt';
+import StringArt from '../infra/StringArt';
 import Polygon from '../shapes/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig } from '../helpers/color/color.types';
@@ -6,12 +6,12 @@ import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
 } from '../helpers/size_utils';
-import Renderer from '../renderers/Renderer';
+import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../Nails';
 import { Dimensions } from '../types/general.types';
 import { createArray } from '../helpers/array_utils';
+import INails from '../infra/nails/INails';
 
 export interface FlowerConfig extends ColorConfig {
   sides: number;
@@ -171,17 +171,20 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     }
   }
 
-  drawNails(nails: Nails) {
-    nails.addNail({
-      point: this.calc.polygons[0].getCenterPoint({ side: 0, index: 0 }),
-      number: 'C',
-    });
+  drawNails(nails: INails) {
+    const layerNailCount =
+      this.config.layers > 1
+        ? this.calc.polygons[1].getNailsCount({
+            drawCenter: true,
+            drawCenterNail: false,
+          })
+        : null;
 
     this.calc.polygons.forEach((polygon, i) =>
       polygon.drawNails(nails, {
         drawCenter: true,
-        drawCenterNail: false,
-        getNumber: n => `${String.fromCharCode(65 + i)}_${n}`,
+        drawCenterNail: i === 0,
+        getUniqueKey: i ? k => i * layerNailCount + 1 + k : undefined,
       })
     );
   }
