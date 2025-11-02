@@ -19,7 +19,9 @@ export default class NailsGroup implements INails {
 
   addNail(key: string | number, coordinates: Coordinates) {
     if (this.#nails.has(key)) {
-      console.log('ALREADY EXISTS', key);
+      console.warn(
+        `Attempting to add a nail to NailsGroup, with already existing key, [${key}].`
+      );
     }
     this.#nails.set(key, coordinates);
   }

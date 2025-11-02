@@ -172,16 +172,19 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
   }
 
   drawNails(nails: INails) {
-    const firstLayerNailCount = this.calc.polygons[0].getNailsCount({
-      drawCenter: true,
-      drawCenterNail: true,
-    });
+    const layerNailCount =
+      this.config.layers > 1
+        ? this.calc.polygons[1].getNailsCount({
+            drawCenter: true,
+            drawCenterNail: false,
+          })
+        : null;
 
     this.calc.polygons.forEach((polygon, i) =>
       polygon.drawNails(nails, {
         drawCenter: true,
         drawCenterNail: i === 0,
-        getUniqueKey: i ? k => firstLayerNailCount + k : undefined,
+        getUniqueKey: i ? k => i * layerNailCount + 1 + k : undefined,
       })
     );
   }

@@ -26,10 +26,14 @@ export default class Viewer extends EventBus<{
     this.rendererType = rendererType;
     this.element = document.querySelector('#canvas_panel');
 
-    this.element.addEventListener('wheel', ({ deltaY }) => {
-      const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
-      this.emit('positionChange', { changeBy: direction });
-    });
+    this.element.addEventListener(
+      'wheel',
+      ({ deltaY }) => {
+        const direction = -deltaY / Math.abs(deltaY); // Up is 1, down is -1
+        this.emit('positionChange', { changeBy: direction });
+      },
+      { passive: true }
+    );
 
     viewOptions.addEventListener(
       'showInstructionsChange',
