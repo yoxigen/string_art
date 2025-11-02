@@ -5,7 +5,7 @@ import { ColorConfig } from '../helpers/color/color.types';
 import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../infra/nails/Nails';
+import INails from '../infra/nails/INails';
 
 type SpreadModeType = 'evenly' | 'distance';
 
