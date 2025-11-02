@@ -628,15 +628,17 @@ export default class DownloadDialog extends HTMLElement {
     }
 
     this.elements.canvas.innerHTML = '';
-
+    const dimensionsInPx = sizeConvert(
+      this.dimensions,
+      this.units,
+      'px',
+      this.dpi
+    );
     if (this.elements.canvas.clientWidth) {
-      const pxDimensions = fitInside(
-        sizeConvert(this.dimensions, this.units, 'px', this.dpi),
-        [
-          this.elements.canvas.clientWidth || 200,
-          this.elements.canvas.clientHeight || 300,
-        ]
-      );
+      const pxDimensions = fitInside(dimensionsInPx, [
+        this.elements.canvas.clientWidth || 200,
+        this.elements.canvas.clientHeight || 300,
+      ]);
       this.elements.canvas.style.width = pxDimensions[0] + 'px';
       this.elements.canvas.style.height = pxDimensions[1] + 'px';
     }
@@ -673,7 +675,7 @@ export default class DownloadDialog extends HTMLElement {
           }
     );
 
-    const previewSizeRatio = previewSize[0] / this.dimensions[0];
+    const previewSizeRatio = previewSize[0] / dimensionsInPx[0];
     previewPattern.assignConfig({
       margin: Math.floor(this.margin * previewSizeRatio),
       nailRadius: Math.max(
