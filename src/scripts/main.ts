@@ -91,6 +91,10 @@ async function main() {
   thumbnails.addEventListener('select', ({ patternId }) => {
     const pattern = findPatternById(patternId);
     routing.navigateToPattern(pattern);
+    posthog.capture('thumbnail_select', {
+      pattern: pattern.type,
+      isTemplate: pattern.isTemplate,
+    });
   });
 
   document.body.addEventListener('click', e => {
@@ -128,6 +132,13 @@ async function main() {
 
   persistance.addEventListener('save', ({ pattern }) => {
     routing.navigateToPattern(pattern);
+  });
+
+  persistance.addEventListener('newPattern', ({ pattern }) => {
+    posthog.capture('save_new_pattern', {
+      pattern: pattern.type,
+      config: JSON.stringify(pattern.config),
+    });
   });
 
   unHide(document.querySelector('main'));
