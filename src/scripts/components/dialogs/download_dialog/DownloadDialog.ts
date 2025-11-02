@@ -25,6 +25,7 @@ import {
 } from './download_image_sizes';
 import Persistance from '../../../Persistance';
 import { hide, toggleHide, unHide } from '../../../helpers/dom_utils';
+import posthog from 'posthog-js';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(String(styles));
@@ -524,6 +525,11 @@ export default class DownloadDialog extends HTMLElement {
         Persistance.savePatternDownloadData(pattern.id, downloadOptions);
 
         await downloadPattern(pattern, downloadOptions);
+        posthog.capture('download', {
+          pattern: pattern.type,
+          isTemplate: pattern.isTemplate,
+          ...downloadOptions,
+        });
       });
   }
 

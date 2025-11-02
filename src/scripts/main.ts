@@ -17,6 +17,7 @@ import routing from './routing';
 import { hide, unHide } from './helpers/dom_utils';
 import info from './Info';
 import 'scheduler-polyfill';
+import posthog from 'posthog-js';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
@@ -37,6 +38,11 @@ async function main() {
       '#pattern_select_dropdown_instructions'
     ),
   };
+
+  posthog.init('phc_hYSU225vNE9x5Xz1f9YBYf89Gzzqo0GAdXuMiu0NQII', {
+    api_host: 'https://us.i.posthog.com',
+    person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+  });
 
   const persistance = new Persistance();
   const thumbnails = new Thumbnails(persistance);

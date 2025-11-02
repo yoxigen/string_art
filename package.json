@@ -52,6 +52,7 @@
     }
   },
   "dependencies": {
+    "posthog-js": "^1.284.0",
     "scheduler-polyfill": "^1.3.0"
   }
 }
