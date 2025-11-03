@@ -9,7 +9,7 @@
     "postbuild": "workbox generateSW workbox-config.cjs",
     "test": "jest",
     "test:watch": "jest --watch",
-    "performance": "npx tsx src/scripts/performance/patterns_perf.ts"
+    "performance": "npx tsx src/scripts/performance/patterns_perf.ts -p maurer_rose"
   },
   "repository": {
     "type": "git",

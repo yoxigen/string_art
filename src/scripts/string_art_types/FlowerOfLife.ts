@@ -17,6 +17,7 @@ import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
 import INails from '../infra/nails/INails';
 import NailsGroup from '../infra/nails/NailsGroup';
+import Nails from '../infra/nails/Nails';
 
 interface FlowerOfLifeConfig extends ColorConfig {
   levels: number;
@@ -48,7 +49,6 @@ interface TCalc {
   radius: number;
   ringCircle: Circle;
   center: Coordinates;
-  nailsGroup: NailsGroup;
 }
 
 const COLOR_CONFIG = Color.getConfig({
@@ -296,7 +296,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       .fill(null)
       .map((_, level) => level * 2 + 1);
 
-    const calc = {
+    return {
       edgeSize,
       triangleHeight: (edgeSize * Math.sqrt(3)) / 2,
       nailsLength,
@@ -308,11 +308,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       radius,
       ringCircle,
       center: getCenter(size),
-    };
-
-    return {
-      ...calc,
-      ...this.#getPoints(calc),
     };
   }
 
@@ -413,27 +408,24 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     return trianglePoints;
   }
 
-  #getPoints(calc: Omit<TCalc, 'nailsGroup'>): {
-    nailsGroup: NailsGroup;
-  } {
+  drawNails(nails: Nails) {
     const { levels, renderCaps } = this.config;
 
-    const largeDistance = calc.nailsLength;
-    const smallDistance = calc.triangleHeight - largeDistance;
-    const nailsGroup = new NailsGroup();
+    const largeDistance = this.calc.nailsLength;
+    const smallDistance = this.calc.triangleHeight - largeDistance;
     const levelsCount = renderCaps ? levels + 1 : levels;
 
     for (let level = 0; level < levelsCount; level++) {
       const isCapLevel = renderCaps && level === levels;
 
-      const levelSideTriangleCount = calc.countPerLevelSide[level];
+      const levelSideTriangleCount = this.calc.countPerLevelSide[level];
 
       // Caching distances to avoid repeated calculations for each side:
       const levelPositions = createArray(levelSideTriangleCount, n => {
         const isFlipped = n % 2 === 0;
         const trianglePosition = [
-          calc.triangleCenterDistance * (n - level),
-          level * calc.triangleHeight +
+          this.calc.triangleCenterDistance * (n - level),
+          level * this.calc.triangleHeight +
             (isFlipped ? largeDistance : smallDistance),
         ];
 
@@ -461,24 +453,26 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
           const { distanceFromCenter, rotation } = levelPositions[n];
 
           const triangleCenterAngle =
-            sideRotation - rotation - calc.globalRotationRadians;
+            sideRotation - rotation - this.calc.globalRotationRadians;
 
           const rotatedTrianglePosition = [
-            calc.center[0] + distanceFromCenter * Math.cos(triangleCenterAngle),
-            calc.center[1] - distanceFromCenter * Math.sin(triangleCenterAngle),
+            this.calc.center[0] +
+              distanceFromCenter * Math.cos(triangleCenterAngle),
+            this.calc.center[1] -
+              distanceFromCenter * Math.sin(triangleCenterAngle),
           ] as Coordinates;
 
-          this.#getTrianglePoints(calc, {
+          this.#getTrianglePoints(this.calc, {
             center: rotatedTrianglePosition,
             rotation:
               sideRotation +
               (side * PI2) / 3 -
               n * ANGLE +
-              calc.globalRotationRadians,
+              this.calc.globalRotationRadians,
             isCapLevel,
             triangleIndexInSide: n,
             withPoint: (side, index, point) => {
-              nailsGroup.addNail(
+              nails.addNail(
                 this.#getPointKey(level, triangleIndexInLevel, side, index),
                 point
               );
@@ -490,7 +484,11 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       }
     }
 
-    return { nailsGroup };
+    if (this.config.renderRing) {
+      const ringNailsGroup = new NailsGroup();
+      this.calc.ringCircle.drawNails(ringNailsGroup);
+      nails.addGroup(ringNailsGroup, 'ring');
+    }
   }
 
   *generateTriangleStrings(
@@ -518,7 +516,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
     for (let side = initialSide; side <= lastSide; side++) {
       const nextSide = this.#getNextIndexInTriangle(side, 1);
-      let prevPoint = this.calc.nailsGroup.getNailCoordinates(
+      let prevPoint = this.nails.getNailCoordinates(
         this.#getPointKey(level, triangleIndex, 0, 0)
       );
 
@@ -527,7 +525,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
         const nextSidePoint = isNextSide ? density - n : n;
         const targetSide = isNextSide ? nextSide : side;
-        const targetPoint = this.calc.nailsGroup.getNailCoordinates(
+        const targetPoint = this.nails.getNailCoordinates(
           this.#getPointKey(level, triangleIndex, targetSide, nextSidePoint)
         );
 
@@ -535,7 +533,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
         yield;
 
         if (n < density) {
-          prevPoint = this.calc.nailsGroup.getNailCoordinates(
+          prevPoint = this.nails.getNailCoordinates(
             this.#getPointKey(
               level,
               triangleIndex,
@@ -595,7 +593,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
       for (const { pointIndex, triangle1Side, triangle2Side } of order) {
         renderer.renderLine(
-          this.calc.nailsGroup.getNailCoordinates(
+          this.nails.getNailCoordinates(
             this.#getPointKey(
               triangle1Level,
               triangle1Index,
@@ -603,7 +601,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
               pointIndex
             )
           ),
-          this.calc.nailsGroup.getNailCoordinates(
+          this.nails.getNailCoordinates(
             this.#getPointKey(
               triangle2Level,
               triangle2Index,
@@ -814,14 +812,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       jointsCount +
       capsNailCount
     );
-  }
-
-  drawNails(nails: INails) {
-    nails.addGroup(this.calc.nailsGroup);
-
-    if (this.calc.ringCircle) {
-      this.calc.ringCircle.drawNails(nails);
-    }
   }
 
   #getPointKey(

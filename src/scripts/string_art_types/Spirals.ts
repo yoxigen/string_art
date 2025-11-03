@@ -148,11 +148,11 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return 1;
   }
 
-  *generatePoints(): Generator<Coordinates> {
+  *generatePoints(): Generator<[number, number]> {
     const { nSpirals, nailsPerSpiral } = this.config;
     for (let i = 1; i < nailsPerSpiral; i++) {
       for (let s = 0; s < nSpirals; s++) {
-        yield this.getPoint(s, i);
+        yield [s, i];
       }
     }
   }
@@ -180,7 +180,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     renderer.setColor(this.color.getColor(0));
     renderer.setStartingPoint(this.calc.center);
 
-    for (const point of points) {
+    for (const _ of points) {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
@@ -188,7 +188,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
         }
       }
 
-      renderer.lineTo(point);
+      renderer.lineTo(this.nails.getNailCoordinates(index));
       yield;
 
       index++;
@@ -203,8 +203,8 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
   drawNails(nails: INails) {
     const points = this.generatePoints();
     let i = 0;
-    for (const point of points) {
-      nails.addNail(i, point);
+    for (const [side, index] of points) {
+      nails.addNail(i, this.getPoint(side, index));
       i++;
     }
   }
