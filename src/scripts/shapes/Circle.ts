@@ -37,9 +37,9 @@ export interface CircleConfig {
 
 export type CircleNailsOptions = ShapeNailsOptions & {
   /**
-   * Ranges of nails to exclude from the circle
+   * Filters the nails that are added. Return false to not draw the nail with the specified index
    */
-  excludedNailRanges?: ReadonlyArray<[number, number]>;
+  filter?: (nailIndex: number) => boolean;
 };
 
 export default class Circle implements Shape {
@@ -206,23 +206,10 @@ export default class Circle implements Shape {
    */
   drawNails(
     nails: INails,
-    { excludedNailRanges, getUniqueKey }: CircleNailsOptions = {}
+    { filter, getUniqueKey }: CircleNailsOptions = {}
   ): void {
-    const { n } = this.config;
-
-    let excludedNailIndexes: Set<number>;
-    if (excludedNailRanges) {
-      excludedNailIndexes = new Set<number>();
-      excludedNailRanges.forEach(([start, end]) => {
-        const max = Math.min(end, n);
-        for (let i = Math.max(0, start); i <= max; i++) {
-          excludedNailIndexes.add(i);
-        }
-      });
-    }
-
     for (let i = 0; i < this.config.n; i++) {
-      if (!excludedNailIndexes?.has(i)) {
+      if (!filter || filter(i)) {
         nails.addNail(getUniqueKey?.(i) ?? i, this.getPoint(i));
       }
     }

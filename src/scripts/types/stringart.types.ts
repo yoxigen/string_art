@@ -3,9 +3,12 @@ import type { Coordinates, Dimensions } from './general.types';
 
 export type RendererType = 'canvas' | 'svg';
 
+export type NailKey = string | number;
+export type NailGroupKey = string | number | null;
+
 export interface Nail {
   point: Coordinates;
-  number: string | number;
+  number: NailKey;
 }
 
 export interface NailOptions {

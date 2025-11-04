@@ -684,7 +684,7 @@ export default class DownloadDialog extends HTMLElement {
       ),
     });
 
-    previewPattern.draw(renderer, { precision: 1 });
+    previewPattern.draw(renderer);
   }
 }
 

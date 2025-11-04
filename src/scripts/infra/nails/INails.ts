@@ -1,7 +1,8 @@
 import { Coordinates } from '../../types/general.types';
+import { NailGroupKey } from '../../types/stringart.types';
 import NailsGroup from './NailsGroup';
 
 export default interface INails {
   addNail(key: string | number, coordinates: Coordinates): void;
-  addGroup(nailsGroup: NailsGroup): void;
+  addGroup(nailsGroup: NailsGroup, key: NailGroupKey): void;
 }

@@ -30,7 +30,6 @@ interface LotusConfig extends ColorConfig {
 
 interface TCalc {
   circles: ReadonlyArray<Circle>;
-  circleNailsCount: number;
   sideAngle: number;
   sections: number;
   nailsPerSection: number;
@@ -38,6 +37,8 @@ interface TCalc {
   removedSections: number;
   centerCircle?: Circle;
   center: Coordinates;
+  excludedNailRange: [number, number];
+  circlesNailKeyStart: number[];
 }
 
 export default class Lotus extends StringArt<LotusConfig, TCalc> {
@@ -117,7 +118,6 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       type: 'checkbox',
       defaultValue: false,
       isStructural: true,
-      show: ({ renderCenter }) => renderCenter,
     },
     Color.getConfig({
       defaults: {
@@ -160,6 +160,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       removeSections,
       centerRadius: centerRadiusPercent,
       renderCenter,
+      renderCenterNails,
     } = this.config;
     const d = 0.5; // The helper circle's center is right between the pattern center and the edge
     const center = getCenter(size);
@@ -186,7 +187,6 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
         maxPetalSectionsToRemove,
         Math.round(removeSections * maxPetalSectionsToRemove)
       );
-
       const angleStart = sideAngle * petalSectionsToRemove;
 
       // Since we removed sections and now the pattern is smaller than the canvas size, we fit the remaining shape to fit on canvas
@@ -233,9 +233,33 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
         })
     );
 
+    const sections = getSectionsCount(sides);
+    const nailsPerSection = Math.floor(
+      baseCircleConfig.n / (sides - 2 * petalSectionsToRemove)
+    );
+
+    let excludedNailRange: [number, number] | null = null;
+    if (!renderCenterNails) {
+      const innerSectionNailsStart =
+        (sections - 1 - petalSectionsToRemove - (renderCenter ? 0 : 1)) *
+          nailsPerSection +
+        1;
+      const innerSectionNailsEnd =
+        baseCircleConfig.n -
+        innerSectionNailsStart -
+        (petalSectionsToRemove ? 1 : 0);
+
+      excludedNailRange = [innerSectionNailsStart, innerSectionNailsEnd];
+    }
+
+    const nailsCountBeforeCircles = renderCenter
+      ? centerRadiusPercent
+        ? sides
+        : 1
+      : 0;
+
     const calc: TCalc = {
       circles,
-      circleNailsCount: baseCircleConfig.n,
       sideAngle,
       sections: getSectionsCount(sides),
       removedSections: petalSectionsToRemove,
@@ -244,6 +268,11 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       ),
       nailsPerCircle: baseCircleConfig.n,
       center,
+      excludedNailRange,
+      circlesNailKeyStart: createArray(
+        sides,
+        i => nailsCountBeforeCircles + baseCircleConfig.n * i
+      ),
     };
 
     if (renderCenter && centerRadiusPercent) {
@@ -323,56 +352,66 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
   ): Generator<void> {
     const { sides } = this.config;
     const {
-      circles,
+      circlesNailKeyStart,
       sections,
       nailsPerSection,
       nailsPerCircle,
       removedSections,
+      centerCircle,
     } = this.calc;
 
     const color = this.#getPatchColor(circleIndex, section);
-    const circle = circles[circleIndex];
+    const circleStart = circlesNailKeyStart[circleIndex];
 
     renderer.setColor(color);
 
-    const prevCircle =
-      this.calc.circles[circleIndex === 0 ? sides - 1 : circleIndex - 1];
+    const prevCircleIndex = circleIndex === 0 ? sides - 1 : circleIndex - 1;
+    const prevCircleIndexStart = circlesNailKeyStart[prevCircleIndex];
 
     if (section === 0) {
       // For first section (outtermost): connectPoint is `prevCircle[sideAngle * 2]
-      const connectPoint: Coordinates = prevCircle.getPoint(
-        nailsPerSection * 2
+      const connectPoint: Coordinates = this.nails.getNailCoordinates(
+        prevCircleIndexStart + nailsPerSection * 2
       );
       for (let i = nailsPerCircle - nailsPerSection; i < nailsPerCircle; i++) {
-        renderer.renderLine(circle.getPoint(i), connectPoint);
+        renderer.renderLine(
+          this.nails.getNailCoordinates(circleStart + i),
+          connectPoint
+        );
         yield;
       }
       for (let i = 0; i <= nailsPerSection; i++) {
-        renderer.renderLine(circle.getPoint(i), connectPoint);
+        renderer.renderLine(
+          this.nails.getNailCoordinates(circleStart + i),
+          connectPoint
+        );
         yield;
       }
     } else {
       // For middle sections, connectPoint is `circleIndex - 1`, (sideAngle * section + 1). Connect circleIndex[section] and `circleIndex + section`[section]
 
       const isLastSection = section === sections - 2;
-      const connectPoint: Coordinates =
-        isLastSection && this.calc.centerCircle
-          ? this.calc.centerCircle.getPoint(circleIndex)
-          : prevCircle.getPoint(
+      const connectPoint: Coordinates = isLastSection
+        ? this.calc.centerCircle
+          ? this.nails.getNailCoordinates(circleIndex)
+          : this.nails.getNailCoordinates('C')
+        : this.nails.getNailCoordinates(
+            prevCircleIndexStart +
               nailsPerSection * (section + 2 - removedSections) -
-                (sides % 2 && section === sections - 2
-                  ? nailsPerSection / 2
-                  : 0)
-            );
-      const firstCircle = circles[(circleIndex + section) % sides];
+              (sides % 2 && section === sections - 2 ? nailsPerSection / 2 : 0)
+          );
+      const firstCircleIndex = (circleIndex + section) % sides;
+      const firstCircleIndexStart = circlesNailKeyStart[firstCircleIndex];
+
       const firstCircleStart =
+        firstCircleIndexStart +
         nailsPerCircle -
         (section + 1 - removedSections) * nailsPerSection -
         (removedSections ? 1 : 0);
 
       for (let i = 0; i <= nailsPerSection; i++) {
         renderer.renderLine(
-          firstCircle.getPoint(firstCircleStart + i),
+          this.nails.getNailCoordinates(firstCircleStart + i),
           connectPoint
         );
         yield;
@@ -380,7 +419,10 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
 
       const startIndex = (section - removedSections) * nailsPerSection + 1;
       for (let i = startIndex; i < startIndex + nailsPerSection; i++) {
-        renderer.renderLine(circle.getPoint(i), connectPoint);
+        renderer.renderLine(
+          this.nails.getNailCoordinates(circleStart + i),
+          connectPoint
+        );
         yield;
       }
     }
@@ -414,8 +456,14 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
   }
 
   drawNails(nails: INails) {
-    const { renderCenter, renderCenterNails } = this.config;
-    const { circles, centerCircle, nailsPerCircle } = this.calc;
+    const { renderCenter, density } = this.config;
+    const {
+      circles,
+      centerCircle,
+      excludedNailRange,
+      circlesNailKeyStart,
+      nailsPerSection,
+    } = this.calc;
 
     if (renderCenter) {
       if (centerCircle) {
@@ -426,33 +474,29 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     }
 
     circles.forEach((circle, i) => {
-      const circleIndexStart = centerCircle.config.n + nailsPerCircle * i;
       circle.drawNails(nails, {
-        getUniqueKey: k => circleIndexStart + k,
-        excludedNailRanges: renderCenterNails
-          ? null
-          : this.#getCenterExcludedNails(),
+        getUniqueKey: k => circlesNailKeyStart[i] + k,
+        filter: excludedNailRange
+          ? (circleNailIndex: number) => {
+              if (
+                !renderCenter &&
+                circleNailIndex === excludedNailRange[0] + nailsPerSection - 1
+              ) {
+                return true;
+              }
+              return (
+                circleNailIndex < excludedNailRange[0] ||
+                circleNailIndex > excludedNailRange[1]
+              );
+            }
+          : undefined,
       });
     });
   }
 
-  #getCenterExcludedNails(): [[number, number]] {
-    const { renderCenter } = this.config;
-    const { sections, nailsPerSection, nailsPerCircle, removedSections } =
-      this.calc;
-
-    const innerSectionNailsStart =
-      (sections - 1 - removedSections - (renderCenter ? 0 : 1)) *
-        nailsPerSection +
-      1;
-    const innerSectionNailsEnd = nailsPerCircle - innerSectionNailsStart;
-
-    return [[innerSectionNailsStart, innerSectionNailsEnd]];
-  }
-
   getStepCount(options: CalcOptions) {
     const { nailsPerSection, sections, removedSections } =
-      this.getCalc(options);
+      this.calc ?? this.getCalc(options);
     const { sides } = this.config;
 
     const patchCount = 2 * nailsPerSection + 1;
@@ -471,5 +515,5 @@ function getSectionsCount(sides: number): number {
 }
 
 function getSectionCountToRemove(sides: number, renderCenter: boolean): number {
-  return getSectionsCount(sides) - (renderCenter ? 2 : 3);
+  return getSectionsCount(sides) - 3;
 }

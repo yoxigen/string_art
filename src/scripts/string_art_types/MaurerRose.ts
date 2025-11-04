@@ -92,25 +92,12 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     COLOR_CONFIG,
   ];
 
-  points: Map<number, Coordinates>;
   color: Color;
   colorMap: ColorMap;
-
-  resetStructure() {
-    super.resetStructure();
-
-    if (this.points) {
-      this.points.clear();
-    }
-  }
 
   setUpDraw(options: CalcOptions) {
     super.setUpDraw(options);
     const { isMultiColor, colorCount } = this.config;
-
-    if (!this.points) {
-      this.points = new Map();
-    }
 
     if (!this.stepCount) {
       this.stepCount = this.getStepCount();
@@ -163,10 +150,6 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
   getPoint(index: number): Coordinates {
     const { rotationAngle, angleRadians, radius, center } = this.calc;
 
-    if (this.points.has(index)) {
-      return this.points.get(index);
-    }
-
     const k = index * angleRadians;
     const r = radius * Math.sin(this.config.n * k);
 
@@ -174,15 +157,14 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
       center[0] - r * Math.cos(k - rotationAngle),
       center[1] - r * Math.sin(k - rotationAngle),
     ] as Coordinates;
-    this.points.set(index, point);
     return point;
   }
 
-  *generatePoints(): Generator<{ point: Coordinates; index: number }> {
-    const count = this.stepCount;
+  *generatePoints(): Generator<number> {
+    const count = this.getStepCount();
 
     for (let i = 0; i < count + 1; i++) {
-      yield { point: this.getPoint(i), index: i };
+      yield i;
     }
   }
 
@@ -192,7 +174,8 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     let prevPoint: Coordinates;
     renderer.setColor(this.color.getColor(0));
 
-    for (const { point, index } of points) {
+    for (const index of points) {
+      const point = this.nails.getNailCoordinates(index);
       if (!prevPoint) {
         prevPoint = point;
         continue;
@@ -229,8 +212,8 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
 
   drawNails(nails: INails) {
     const points = this.generatePoints();
-    for (const { point, index } of points) {
-      nails.addNail(index, point);
+    for (const index of points) {
+      nails.addNail(index, this.getPoint(index));
     }
   }
 }

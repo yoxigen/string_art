@@ -17,6 +17,7 @@ import type {
 import { Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import INails from './nails/INails';
+import Controller from './Controller';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -175,6 +176,8 @@ abstract class StringArt<
   linkText: string;
 
   protected calc: TCalc;
+  protected controller: Controller;
+  protected nails: Nails;
 
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
@@ -363,6 +366,9 @@ abstract class StringArt<
   setUpDraw(options?: CalcOptions) {
     if (!this.calc) {
       this.calc = this.getCalc(options);
+      this.nails = new Nails();
+
+      this.drawNails(this.nails);
     }
   }
 
@@ -399,6 +405,15 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
+    this.controller = new Controller(renderer, {
+      nailsOptions: {
+        color: this.config.nailsColor,
+        fontSize: this.config.nailNumbersFontSize,
+        radius: this.config.nailRadius,
+        renderNumbers: this.config.showNailNumbers,
+      },
+    });
+
     this.setUpDraw({ size });
   }
 
@@ -461,15 +476,13 @@ abstract class StringArt<
     );
 
     if (showNails && drawOptions.redrawNails !== false) {
-      const nails = new Nails({
+      this.nails.draw(renderer, {
+        precision,
         color: this.config.nailsColor,
         fontSize: this.config.nailNumbersFontSize,
         radius: this.config.nailRadius,
         renderNumbers: this.config.showNailNumbers,
       });
-
-      this.drawNails(nails);
-      nails.draw(renderer, { precision });
     }
 
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
