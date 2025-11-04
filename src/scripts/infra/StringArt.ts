@@ -366,8 +366,10 @@ abstract class StringArt<
   setUpDraw(options?: CalcOptions) {
     if (!this.calc) {
       this.calc = this.getCalc(options);
-      this.nails = new Nails();
+    }
 
+    if (!this.nails) {
+      this.nails = new Nails();
       this.drawNails(this.nails);
     }
   }
@@ -398,6 +400,7 @@ abstract class StringArt<
     }
 
     if (redrawNails) {
+      this.nails = null;
       renderer.resetNails();
     }
 

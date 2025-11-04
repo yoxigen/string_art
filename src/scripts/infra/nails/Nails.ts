@@ -44,7 +44,7 @@ export default class Nails implements INails {
     { precision, ...options }: { precision?: number } & NailsRenderOptions
   ) {
     let numbersStart = 1;
-    this.#groups.values().forEach(group => {
+    for (const group of this.#groups.values()) {
       renderer.renderNails(
         precision || options.renderNumbers
           ? group.getUniqueNails(precision)
@@ -57,6 +57,6 @@ export default class Nails implements INails {
       );
 
       numbersStart += group.length;
-    });
+    }
   }
 }
