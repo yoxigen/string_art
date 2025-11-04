@@ -161,6 +161,7 @@ class Info {
       sizeChanged: true,
       redrawStrings: true,
       redrawNails: true,
+      precision: 100, // Setting precision to sub-millimeter
     });
     return renderer.getInfo();
   }

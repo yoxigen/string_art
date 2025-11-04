@@ -34,15 +34,14 @@ export default class NailsGroup implements INails {
     return this.#nails.get(key);
   }
 
-  *getUniqueNails(precision = 1000): Generator<[NailKey, Coordinates]> {
+  *getUniqueNails(precision = 1): Generator<Coordinates> {
     const addedCoordinates = new Set<number>();
-    for (const entry of this.#nails.entries()) {
-      const coordinates = entry[1];
+    for (const coordinates of this.#nails.values()) {
       const hash =
         1e5 * Math.round(coordinates[0] * precision) +
         Math.round(coordinates[1] * precision);
       if (!addedCoordinates.has(hash)) {
-        yield entry;
+        yield coordinates;
         addedCoordinates.add(hash);
       }
     }

@@ -32,7 +32,11 @@ export default class Nails implements INails {
     nailKey: NailKey,
     groupKey: NailGroupKey = null
   ): Coordinates {
-    return this.#groups.get(groupKey)?.getNailCoordinates(nailKey);
+    const coordinates = this.#groups.get(groupKey)?.getNailCoordinates(nailKey);
+    if (!coordinates) {
+      throw new Error(`Key [${nailKey}] not found in group [${groupKey}].`);
+    }
+    return coordinates;
   }
 
   draw(
@@ -41,11 +45,14 @@ export default class Nails implements INails {
   ) {
     let numbersStart = 1;
     this.#groups.values().forEach(group => {
-      renderer.renderNails(group.coordinates, {
-        ...options,
-        ...group.options,
-        numbersStart,
-      });
+      renderer.renderNails(
+        precision ? group.getUniqueNails(precision) : group.coordinates,
+        {
+          ...options,
+          ...group.options,
+          numbersStart,
+        }
+      );
 
       numbersStart += group.length;
     });

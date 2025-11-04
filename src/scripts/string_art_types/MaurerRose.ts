@@ -95,10 +95,6 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
   color: Color;
   colorMap: ColorMap;
 
-  resetStructure() {
-    super.resetStructure();
-  }
-
   setUpDraw(options: CalcOptions) {
     super.setUpDraw(options);
     const { isMultiColor, colorCount } = this.config;
