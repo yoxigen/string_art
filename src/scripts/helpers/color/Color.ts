@@ -161,7 +161,7 @@ export default class Color {
             finalControl.attr.max = maxColorCount;
           }
 
-          return Object.freeze(finalControl);
+          return finalControl;
         });
     }
   }

@@ -276,7 +276,7 @@ export default class Circle implements Shape {
     affectsStepCount: false,
   };
 
-  static nailsConfig = Object.freeze({
+  static nailsConfig: Readonly<ControlConfig<CircleConfig>> = {
     key: 'n',
     label: 'Number of nails',
     defaultValue: 144,
@@ -287,9 +287,9 @@ export default class Circle implements Shape {
       step: 1,
     },
     isStructural: true,
-  });
+  };
 
-  static displacementConfig: ControlConfig<CircleConfig> = {
+  static displacementConfig: Readonly<ControlConfig<CircleConfig>> = {
     key: 'displacement',
     label: 'Displacement',
     type: 'group',
@@ -337,7 +337,7 @@ export default class Circle implements Shape {
     ],
   };
 
-  static distortionConfig: ControlConfig<{ distortion?: number }> = {
+  static distortionConfig: Readonly<ControlConfig<{ distortion?: number }>> = {
     key: 'distortion',
     label: 'Distortion',
     defaultValue: 0,

@@ -266,25 +266,25 @@ export default class StarShape implements Shape {
     return getBoundingRectAspectRatio(this.getBoundingRect());
   }
 
-  static nailsConfig: ControlConfig<StarShapeConfig> = Object.freeze({
+  static nailsConfig: Readonly<ControlConfig<StarShapeConfig>> = {
     key: 'sideNails',
     label: 'Nails per side',
     defaultValue: 40,
     type: 'range',
     attr: { min: 1, max: 200, step: 1 },
     isStructural: true,
-  });
+  };
 
-  static sidesConfig: ControlConfig<StarShapeConfig> = Object.freeze({
+  static sidesConfig: Readonly<ControlConfig<StarShapeConfig>> = {
     key: 'sides',
     label: 'Sides',
     defaultValue: 3,
     type: 'range',
     attr: { min: 3, max: 40, step: 1 },
     isStructural: true,
-  });
+  };
 
-  static maxCurveSize: ControlConfig<StarShapeConfig> = {
+  static maxCurveSize: Readonly<ControlConfig<StarShapeConfig>> = {
     key: 'maxCurveSize',
     label: 'Max curve size',
     description:
@@ -301,7 +301,7 @@ export default class StarShape implements Shape {
     isStructural: true,
   };
 
-  static centerRadiusConfig: ControlConfig<StarShapeConfig> = {
+  static centerRadiusConfig: Readonly<ControlConfig<StarShapeConfig>> = {
     key: 'centerRadius',
     label: 'Center radius',
     defaultValue: 0,
@@ -315,7 +315,7 @@ export default class StarShape implements Shape {
     isStructural: true,
   };
 
-  static rotationConfig: ControlConfig<StarShapeConfig> = {
+  static rotationConfig: Readonly<ControlConfig<StarShapeConfig>> = {
     key: 'rotation',
     label: 'Rotation',
     defaultValue: 0,
@@ -332,7 +332,7 @@ export default class StarShape implements Shape {
     affectsStepCount: false,
   };
 
-  static StarConfig: ControlsConfig<StarShapeConfig> = [
+  static StarConfig: Readonly<ControlsConfig<StarShapeConfig>> = [
     StarShape.nailsConfig,
     StarShape.sidesConfig,
     StarShape.centerRadiusConfig,

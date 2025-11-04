@@ -181,7 +181,7 @@ abstract class StringArt<
 
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
-  #defaultConfig: Config<TConfig> | null;
+  #defaultConfig: Readonly<Config<TConfig>> | null;
   #controller: TaskController;
 
   constructor() {
@@ -244,12 +244,10 @@ abstract class StringArt<
 
   get defaultConfig(): Config<TConfig> {
     if (!this.#defaultConfig) {
-      this.#defaultConfig = Object.freeze(
-        Object.assign(
-          getConfigDefaultValues(this.configControls),
-          this.defaultValues
-        ) as Config<TConfig>
-      );
+      this.#defaultConfig = Object.assign(
+        getConfigDefaultValues(this.configControls),
+        this.defaultValues
+      ) as Config<TConfig>;
     }
 
     return this.#defaultConfig;
@@ -349,10 +347,10 @@ abstract class StringArt<
       return;
     }
 
-    this.#config = Object.freeze({
+    this.#config = {
       ...(this.#config ?? this.defaultConfig),
       [controlKey]: value,
-    });
+    };
 
     if (this.onConfigChange) {
       this.onConfigChange(
