@@ -46,7 +46,9 @@ export default class Nails implements INails {
     let numbersStart = 1;
     this.#groups.values().forEach(group => {
       renderer.renderNails(
-        precision ? group.getUniqueNails(precision) : group.coordinates,
+        precision || options.renderNumbers
+          ? group.getUniqueNails(precision)
+          : group.coordinates,
         {
           ...options,
           ...group.options,
