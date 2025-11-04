@@ -193,9 +193,9 @@ abstract class StringArt<
   abstract getStepCount(options: CalcOptions): number;
   abstract getAspectRatio(options: CalcOptions): number;
 
-  getNailCount(size: Dimensions): number {
+  getNailCount(size: Dimensions, precision?: number): number {
     const renderer = new MeasureRenderer(size);
-    this.draw(renderer);
+    this.draw(renderer, { precision });
     return renderer.nailCount;
   }
 

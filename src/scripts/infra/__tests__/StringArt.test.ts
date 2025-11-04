@@ -22,11 +22,13 @@ describe('StringArt', () => {
 
       describe('getNailsCount', () => {
         const measureRenderer = new MeasureRenderer(size);
-        const precision = 10;
+        const precision = 1;
 
         test(`${pattern.name} getNailCount`, () => {
           pattern.draw(measureRenderer, { precision });
-          expect(pattern.getNailCount(size)).toEqual(measureRenderer.nailCount);
+          expect(pattern.getNailCount(size, 1)).toEqual(
+            measureRenderer.nailCount
+          );
         });
 
         if (pattern.testStepCountConfig) {
@@ -39,7 +41,7 @@ describe('StringArt', () => {
                 redrawNails: true,
                 precision,
               });
-              expect(patternConfig.getNailCount(size)).toEqual(
+              expect(patternConfig.getNailCount(size, 1)).toEqual(
                 measureRenderer.nailCount
               );
             });
