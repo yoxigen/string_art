@@ -9,32 +9,33 @@ import { PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import NailsGroup from '../infra/nails/NailsGroup';
 import INails from '../infra/nails/INails';
+import { createArray } from '../helpers/array_utils';
 
 const LAYER_DEFAULTS = [
-  { size: 0.25, end: 1, color: '#a94fb0' },
-  { size: 0.125, end: 0.888, color: '#ec6ad0' },
-  { size: 0, end: 0.826, color: '#f08ad5', reverse: true },
+  { start: 0.25, end: 1, color: '#a94fb0' },
+  { start: 0.125, end: 0.888, color: '#ec6ad0' },
+  { start: 0, end: 0.826, color: '#f08ad5', reverse: true },
 ];
 
 interface AssymetryConfig extends CircleConfig {
   layers: GroupValue;
   layer1: GroupValue;
   show1: boolean;
-  size1: number;
+  start1: number;
   end1: number;
   color1: number;
   reverse1: number;
 
   layer2: GroupValue;
   show2: boolean;
-  size2: number;
+  start2: number;
   end2: number;
   color2: number;
   reverse2: number;
 
   layer3: GroupValue;
   show3: boolean;
-  size3: number;
+  start3: number;
   end3: number;
   color3: number;
   reverse3: number;
@@ -44,7 +45,7 @@ interface AssymetryConfig extends CircleConfig {
 
 interface Layer {
   enable: boolean;
-  size: number;
+  start: number;
   endIndex: number;
   color: number;
   isReverse: number;
@@ -68,7 +69,7 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
   link =
     'https://www.etsy.com/il-en/listing/1018950430/calming-wall-art-in-light-blue-for';
   controls: ControlsConfig<AssymetryConfig> = [
-    Circle.nailsConfig,
+    { ...Circle.nailsConfig, label: 'Circle number of nails' },
     Circle.rotationConfig,
     Circle.distortionConfig,
     {
@@ -76,7 +77,7 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
       label: 'Layers',
       type: 'group',
       // @ts-expect-error: dynamic key is safe because we know the keys match Layers
-      children: LAYER_DEFAULTS.map(({ size, end, color, reverse }, i) => {
+      children: LAYER_DEFAULTS.map(({ start, end, color, reverse }, i) => {
         const layer = i + 1;
         return {
           key: `layer${layer}`,
@@ -91,9 +92,9 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
               isStructural: true,
             },
             {
-              key: `size${layer}`,
-              label: 'Size',
-              defaultValue: size,
+              key: `start${layer}`,
+              label: 'Star position',
+              defaultValue: start,
               type: 'range',
               attr: {
                 min: 0,
@@ -101,7 +102,7 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
                 step: ({ n }) => 1 / n,
               },
               displayValue: config =>
-                Math.round(config.n * config[`size${layer}`]),
+                Math.round(config.n * config[`start${layer}`]),
               show: config => config[`show${layer}`],
               isStructural: true,
             },
@@ -171,10 +172,9 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     const firstCirclePoint = circle.getPoint(0);
     const totalNailCount = lineNailCount + n;
     const totalIndexCount = totalNailCount + lineNailCount;
-    const layers = new Array(3)
-      .fill(null)
-      .map((_, i) => getLayer.call(this, i + 1))
-      .filter(({ enable }) => enable);
+    const layers = createArray(3, i => getLayer.call(this, i + 1)).filter(
+      ({ enable }) => enable
+    );
 
     return {
       circle,
@@ -187,14 +187,20 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     };
 
     function getLayer(layerIndex: number): Layer {
-      const size =
-        Math.round(n * this.config['size' + layerIndex]) + lineNailCount;
+      const start =
+        Math.round(n * this.config['start' + layerIndex]) + lineNailCount;
+
+      let endIndex =
+        Math.round(this.config['end' + layerIndex] * totalIndexCount) - start;
+
+      // Making sure that we get to the last possible nail (due to fractions in the `step` property of the end control, that doesn't reach to 1)
+      if (endIndex === totalIndexCount - start - 1) {
+        endIndex++;
+      }
+
       return {
-        size,
-        endIndex:
-          Math.round(
-            this.config['end' + layerIndex] * (totalNailCount + lineNailCount)
-          ) - size,
+        start,
+        endIndex,
         color: this.config['color' + layerIndex],
         enable: this.config['show' + layerIndex],
         isReverse: this.config['reverse' + layerIndex],
@@ -225,30 +231,36 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     }
   }
 
+  #getCoordinatesForIndex(index: number): Coordinates {
+    const exceeds = index - (this.calc.totalNailCount - 1);
+    if (exceeds > 0) {
+      return this.nails.getNailCoordinates(
+        this.calc.lineNailCount - exceeds + 1
+      );
+    }
+
+    return this.nails.getNailCoordinates(index % this.calc.totalNailCount);
+  }
+
   *drawCircle(
     renderer: Renderer,
-    { endIndex, color, isReverse, size }
+    { endIndex, color, isReverse, start }
   ): Generator<void> {
-    let prevPoint: Coordinates;
     let prevPointIndex: number;
     let isPrevSide = false;
     renderer.setColor(color);
     const self = this;
     const advance = isReverse ? -1 : 1;
 
+    renderer.setStartingPoint(this.#getCoordinatesForIndex(getPointIndex(0)));
+
     for (let index = 0; index <= endIndex; index++) {
-      if (prevPoint) {
-        renderer.renderLine(prevPoint, this.getPoint(prevPointIndex + advance));
+      if (index) {
+        renderer.lineTo(this.#getCoordinatesForIndex(prevPointIndex + advance));
         yield;
       }
-
-      const startPoint = prevPoint
-        ? this.getPoint(prevPointIndex + advance)
-        : this.getPoint(getPointIndex(index));
-      prevPointIndex = getPointIndex(isPrevSide ? index : index + size);
-      prevPoint = this.getPoint(prevPointIndex);
-
-      renderer.renderLine(startPoint, prevPoint);
+      prevPointIndex = getPointIndex(isPrevSide ? index : index + start);
+      renderer.lineTo(this.#getCoordinatesForIndex(prevPointIndex));
 
       yield;
 

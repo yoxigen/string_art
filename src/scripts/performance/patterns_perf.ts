@@ -42,9 +42,9 @@ patterns.forEach((pattern, i) => {
   process.stdout.write('\x1b[37m' + patternStr + ' \x1b[36m(working...)');
   const result = measurePattern(pattern);
   process.stdout.write(
-    `\r\x1b[37m${patternStr} (${getTimeColor(result.time)}${Math.trunc(
-      result.time
-    )}ms)               \n`
+    `\r\x1b[37m${patternStr} ${getTimeColor(result.time)}${String(
+      Math.trunc(result.time)
+    ).padStart(5)} ms               \n`
   );
   patternTimes.push([
     pattern.name,

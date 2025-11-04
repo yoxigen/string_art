@@ -418,7 +418,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
       });
 
       this.calc.circle.drawNails(backdropNailsGroup);
-      nails.addGroup(backdropNailsGroup);
+      nails.addGroup(backdropNailsGroup, 'backdrop');
     }
   }
 
