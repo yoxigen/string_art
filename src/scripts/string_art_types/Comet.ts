@@ -216,23 +216,17 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     const { n } = this.config;
     const ringDistance = this.getLayerRingDistance(layerIndex);
     const stepCount = n - ringDistance + 1;
-
-    let prevPoint = this.calc.circle.getPoint(0);
+    renderer.setStartingPoint(this.nails.getNailCoordinates(0));
     let prevPointIndex = 0;
     renderer.setColor(this.color.getColor(layerIndex));
 
-    for (let i = 0; i < n - ringDistance + 1; i++) {
-      const pointIndex = i + ringDistance;
-      const point = this.calc.circle.getPoint(pointIndex);
-
-      renderer.renderLine(prevPoint, point);
+    for (let i = 0; i <= n - ringDistance; i++) {
+      renderer.lineTo(this.nails.getNailCoordinates((i + ringDistance) % n));
       yield;
 
       if (i !== stepCount - 1) {
         prevPointIndex = i + 1;
-        prevPoint = this.calc.circle.getPoint(prevPointIndex);
-
-        renderer.renderLine(point, prevPoint);
+        renderer.lineTo(this.nails.getNailCoordinates(prevPointIndex));
 
         yield;
       }
