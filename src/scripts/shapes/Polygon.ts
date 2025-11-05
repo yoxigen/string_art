@@ -81,7 +81,7 @@ export default class Polygon implements Shape {
     size: Dimensions;
     center: Coordinates;
   } {
-    const { size: configSize, margin } = this.config;
+    const { size: configSize, margin = 0 } = this.config;
 
     const boundingRect = this.getBoundingRect();
     const scale = Math.min(

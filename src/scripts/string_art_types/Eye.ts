@@ -1,10 +1,12 @@
 import { createArray } from '../helpers/array_utils';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
+import { PI2 } from '../helpers/math_utils';
 import { getCenter } from '../helpers/size_utils';
 import INails from '../infra/nails/INails';
 import Renderer from '../infra/renderers/Renderer';
 import StringArt from '../infra/StringArt';
+import Polygon from '../shapes/Polygon';
 import { Config, ControlsConfig } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
@@ -35,15 +37,17 @@ interface EyeConfig extends ColorConfig {
 interface Layer {
   layerAngle: number;
   layerSize: number;
-  layerStart: Coordinates;
   layerSideNailCount: number;
+  layerSpaceCount: number;
+  polygon: Polygon;
 }
 interface TCalc {
   maxSize: number;
   nailSpacing: number;
-  layerAngle: number;
   layers: ReadonlyArray<Layer>;
   center: Coordinates;
+  layersIndexStart: ReadonlyArray<number>;
+  layersCount: number;
 }
 
 class Eye extends StringArt<EyeConfig, TCalc> {
@@ -59,7 +63,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       label: 'Number of nails per side',
       defaultValue: 82,
       type: 'range',
-      attr: { min: 2, max: 200, step: 1 },
+      attr: { min: 3, max: 200, step: 1 },
       isStructural: true,
     },
     {
@@ -73,11 +77,12 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     {
       key: 'angle',
       label: 'Layer angle',
-      defaultValue: 30,
+      defaultValue: 0.65,
       displayValue: ({ angle }) => `${angle}°`,
       type: 'range',
-      attr: { min: 0, max: 45, step: 1 },
+      attr: { min: 0.01, max: 1, step: 0.01 },
       isStructural: true,
+      show: ({ layers }) => layers > 1,
     },
     Color.getConfig({
       defaults: {
@@ -111,37 +116,88 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   color: Color;
 
   getCalc({ size }: CalcOptions): TCalc {
-    const { n, angle, layers, margin } = this.config;
+    const { n, angle, layers: layerCount, margin } = this.config;
     const center = getCenter(size);
 
     const maxSize = Math.min(...size) - 2 * margin;
     const nailSpacing = maxSize / (n - 1);
-    const layerAngle = (angle * Math.PI) / 180;
+    const spacesChangePerLayer = Math.max(1, Math.round((angle * n) / 2));
+    const maxLayersCount = Math.floor((n - 1) / spacesChangePerLayer) + 1;
+    const layersCount = Math.min(layerCount, maxLayersCount);
 
-    const getLayerProps = (layerIndex: number): Layer => {
-      const layerSize =
-        maxSize /
-        Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layerIndex);
-      const layerStart: Coordinates = [
-        center[0] - layerSize / 2,
-        center[1] - layerSize / 2,
-      ];
-      const layerSideNailCount = Math.floor(layerSize / nailSpacing);
+    const SIDES = 4;
+    const piSides = Math.PI / SIDES;
 
-      return {
-        layerAngle: layerAngle * layerIndex,
-        layerSize,
-        layerStart,
-        layerSideNailCount,
-      };
-    };
+    const layers: Layer[] = new Array(layersCount)
+      .fill(null)
+      .reduce((layers: Layer[], _, layerIndex) => {
+        const previousLayer = layerIndex ? layers[layerIndex - 1] : null;
 
+        if (
+          layerIndex &&
+          (!previousLayer ||
+            previousLayer.layerSpaceCount <= spacesChangePerLayer)
+        ) {
+          return layers;
+        }
+
+        const layerAngle = layerIndex
+          ? Math.atan(
+              spacesChangePerLayer /
+                (previousLayer.layerSpaceCount - spacesChangePerLayer)
+            )
+          : 0;
+
+        const layerSize = layerIndex
+          ? maxSize /
+            Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layerIndex)
+          : maxSize;
+
+        const layerSideNailCount = Math.trunc(layerSize / nailSpacing);
+
+        const polygonSideSize = layerIndex ? previousLayer.layerSize : maxSize;
+        const radius = layerIndex
+          ? (previousLayer.polygon.config.radius * Math.cos(piSides)) /
+            Math.cos(layerAngle - piSides)
+          : Math.hypot(polygonSideSize / 2, polygonSideSize / 2);
+
+        const polygon = new Polygon({
+          size: [polygonSideSize, polygonSideSize],
+          radius,
+          sides: SIDES,
+          nailsPerSide: layerSideNailCount,
+          rotation:
+            layerAngle / PI2 + (previousLayer?.polygon.config.rotation ?? 0),
+          center,
+        });
+        const layer: Layer = {
+          layerAngle: layerAngle * layerIndex,
+          layerSize,
+          layerSideNailCount,
+          layerSpaceCount: layerSideNailCount - 1,
+          polygon,
+        };
+
+        return [...layers, layer];
+      }, [] as Layer[]);
+
+    const layersIndexStart = layers
+      .reduce(
+        (result, { polygon }, i) => [
+          ...result,
+          result[i] +
+            polygon.getNailsCount({ drawCenter: false, drawCenterNail: false }),
+        ],
+        [0]
+      )
+      .slice(0, layers.length);
     return {
       maxSize,
       nailSpacing,
-      layerAngle,
-      layers: createArray(layers, layerIndex => getLayerProps(layerIndex)),
+      layers,
       center,
+      layersIndexStart,
+      layersCount,
     };
   }
 
@@ -158,74 +214,31 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     return 1;
   }
 
-  // Sides: top, right, bottom, left
-  getPoint({
-    index,
-    angle,
-    layerStart,
-    rotation,
-  }: {
-    index: number;
-    angle: number;
-    layerStart: Coordinates;
-    rotation: number;
-  }): Coordinates {
-    const theta = angle + rotation;
-
-    const point: Coordinates = [
-      layerStart[0],
-      layerStart[1] + this.calc.nailSpacing * index,
-    ];
-
-    const pivot = this.calc.center;
-
-    const cosAngle = Math.cos(theta);
-    const sinAngle = Math.sin(theta);
-
-    return [
-      cosAngle * (point[0] - pivot[0]) -
-        sinAngle * (point[1] - pivot[1]) +
-        pivot[0],
-      sinAngle * (point[0] - pivot[0]) +
-        cosAngle * (point[1] - pivot[1]) +
-        pivot[1],
-    ];
-  }
-
   *drawSide(
     renderer: Renderer,
     {
       side,
       color = '#ffffff',
-      angle,
-      size,
-      layerStart,
       layerSideNailCount,
+      layerIndexStart,
     }: {
-      side: Side;
+      side: number;
       color: ColorValue;
-      angle: number;
-      size: number;
-      layerStart: Coordinates;
       layerSideNailCount: number;
+      layerIndexStart: number;
     }
   ): Generator<void> {
-    const sideIndex = SIDES.indexOf(side);
-    const nextSide = SIDES[sideIndex === SIDES.length - 1 ? 0 : sideIndex + 1];
-    const rotation = SIDES_ROTATION[side];
-    const nextSideRotation = SIDES_ROTATION[nextSide];
-
-    const sideProps = { layerSideNailCount, size, layerStart, angle };
+    const nextSide = (side + 1) % 4;
     renderer.setColor(color);
 
-    for (let i = 0; i <= layerSideNailCount; i++) {
+    for (let i = 0; i < layerSideNailCount; i++) {
+      const nonSideStart = layerIndexStart + i;
+
       renderer.renderLine(
-        this.getPoint({ index: i, rotation, ...sideProps }),
-        this.getPoint({
-          index: i,
-          rotation: nextSideRotation,
-          ...sideProps,
-        })
+        this.nails.getNailCoordinates(nonSideStart + side * layerSideNailCount),
+        this.nails.getNailCoordinates(
+          nonSideStart + nextSide * layerSideNailCount
+        )
       );
 
       yield;
@@ -235,24 +248,22 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
     const { colorPerLayer } = this.config;
 
-    const { layerAngle, layerSize, layerStart, layerSideNailCount } =
-      this.calc.layers[layerIndex];
+    const { layerSpaceCount } = this.calc.layers[layerIndex];
+
+    const layerIndexStart = this.calc.layersIndexStart[layerIndex];
 
     for (let i = 0; i < SIDES.length; i++) {
       yield* this.drawSide(renderer, {
         color: this.color.getColor(colorPerLayer ? layerIndex : i),
-        side: SIDES_ORDER[i],
-        angle: layerAngle,
-        size: layerSize,
-        layerStart,
-        layerSideNailCount,
+        side: i,
+        layerSideNailCount: layerSpaceCount,
+        layerIndexStart,
       });
     }
   }
 
   *drawStrings(renderer: Renderer) {
-    const { layers } = this.config;
-    for (let layer = layers - 1; layer >= 0; layer--) {
+    for (let layer = this.calc.layers.length - 1; layer >= 0; layer--) {
       yield* this.drawLayer(renderer, layer);
     }
   }
@@ -264,10 +275,14 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     const maxSize = Math.min(...size) - 2 * margin;
     const nailSpacing = maxSize / (n - 1);
 
-    for (let layer = 0; layer < layers; layer++) {
+    const spacesChangePerLayer = Math.round((angle * n) / 2);
+    const maxLayersCount = Math.floor((n - 1) / spacesChangePerLayer) + 1;
+    const layersCount = Math.min(layers, maxLayersCount);
+
+    for (let layer = 0; layer < layersCount; layer++) {
       const layerSize =
         maxSize / Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layer);
-      count += 4 * (Math.floor(layerSize / nailSpacing) + 1);
+      count += 4 * (Math.round(layerSize / nailSpacing) + 1);
     }
 
     return count;
@@ -287,37 +302,12 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   drawNails(nails: INails) {
     const { layers } = this.config;
 
-    let nailIndex = 0;
-    for (let layer = layers - 1; layer >= 0; layer--) {
-      const {
-        layerAngle: angle,
-        layerSize: size,
-        layerStart,
-        layerSideNailCount,
-      } = this.calc.layers[layer];
-
-      for (let s = 0; s < SIDES.length; s++) {
-        const sideOrder = SIDES_ORDER[s];
-        const rotation = SIDES_ROTATION[sideOrder];
-
-        for (let i = 0; i <= layerSideNailCount; i++) {
-          const sideProps = { layerSideNailCount, size, layerStart, angle };
-          nails.addNail(
-            this.#getPointKey(layer, s, i),
-            this.getPoint({
-              index: i,
-              rotation,
-              ...sideProps,
-            })
-          );
-          nailIndex++;
-        }
-      }
+    for (let layer = 0; layer < this.calc.layersCount; layer++) {
+      const { polygon } = this.calc.layers[layer];
+      polygon.drawNails(nails, {
+        getUniqueKey: k => this.calc.layersIndexStart[layer] + k,
+      });
     }
-  }
-
-  #getPointKey(layer: number, side: number, index: number): string {
-    return `${layer}_${side}_${index}`;
   }
 
   thumbnailConfig = ({ n, layers }) => ({
