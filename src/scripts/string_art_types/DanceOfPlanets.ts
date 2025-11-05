@@ -262,52 +262,48 @@ export default class DanceOfPlanets extends StringArt<
       }
     }
 
-    let shape1NailCount = this.#getShapeNailCount(
-      this.config.shape1Type,
-      this.config.shape1NailCount,
-      this.config.shape1Sides
-    );
+    function getShapeNailCount(shape: Shape): number {
+      if (shape instanceof Polygon)
+        return shape.getNailsCount({
+          drawCenter: false,
+          drawSides: true,
+          drawCenterNail: false,
+        });
 
-    let shape2NailCount = this.config.identicalNailCount
-      ? shape1NailCount
-      : this.config.shape2NailCount;
+      if (shape instanceof Circle) {
+        return shape.config.n;
+      }
 
-    shape2NailCount = this.#getShapeNailCount(
-      this.config.shape2Type,
-      shape2NailCount,
-      this.config.shape2Sides
-    );
-    return {
-      shape1: getShape({
-        type: this.config.shape1Type,
-        nailCount: shape1NailCount,
-        sides: this.config.shape1Sides,
-        rotation: this.config.shape1Rotation,
-        distortion: this.config.shape1Distortion,
-      }),
-      shape2: getShape({
-        type: this.config.shape2Type,
-        diameter: this.config.shape2Size,
-        nailCount: shape2NailCount,
-        sides: this.config.shape2Sides,
-        rotation: this.config.shape2Rotation,
-        distortion: this.config.shape2Distortion,
-      }),
-      shape1NailCount,
-      shape2NailCount,
-    };
-  }
-
-  #getShapeNailCount(
-    shapeType: ShapeType,
-    nailCount: number,
-    sides: number
-  ): number {
-    if (shapeType === 'circle') {
-      return nailCount;
+      return NaN;
     }
 
-    return nailCount <= sides ? sides : nailCount - (nailCount % sides);
+    const shape1 = getShape({
+      type: this.config.shape1Type,
+      nailCount: this.config.shape1NailCount,
+      sides: this.config.shape1Sides,
+      rotation: this.config.shape1Rotation,
+      distortion: this.config.shape1Distortion,
+    });
+
+    const shape1NailCount = getShapeNailCount(shape1);
+
+    const shape2 = getShape({
+      type: this.config.shape2Type,
+      diameter: this.config.shape2Size,
+      nailCount: this.config.identicalNailCount
+        ? shape1NailCount
+        : this.config.shape2NailCount,
+      sides: this.config.shape2Sides,
+      rotation: this.config.shape2Rotation,
+      distortion: this.config.shape2Distortion,
+    });
+
+    return {
+      shape1,
+      shape2,
+      shape1NailCount,
+      shape2NailCount: getShapeNailCount(shape2),
+    };
   }
 
   setUpDraw(options: CalcOptions) {
@@ -342,20 +338,22 @@ export default class DanceOfPlanets extends StringArt<
   }
 
   *drawStrings(renderer: Renderer) {
-    const { shape1, shape2, shape1NailCount, shape2NailCount } = this.calc;
+    const { shape1NailCount, shape2NailCount } = this.calc;
     const { reverse } = this.config;
 
     const steps = this.#getConnectionCount();
 
     renderer.setColor('#ffffff');
-    renderer.setStartingPoint(shape1.getPoint(0));
+    renderer.setStartingPoint(this.nails.getNailCoordinates(0));
 
     let toShape2 = true;
 
     const getShape2Index = reverse
       ? (step: number) =>
-          shape2NailCount - (step % shape2NailCount || shape2NailCount)
-      : (step: number) => step % shape2NailCount;
+          shape1NailCount +
+          shape2NailCount -
+          (step % shape2NailCount || shape2NailCount)
+      : (step: number) => shape1NailCount + (step % shape2NailCount);
 
     for (let step = 0; step < steps; step++) {
       const stepColor = this.colorMap.get(step);
@@ -365,16 +363,16 @@ export default class DanceOfPlanets extends StringArt<
 
       renderer.lineTo(
         toShape2
-          ? shape2.getPoint(getShape2Index(step))
-          : shape1.getPoint(step % shape1NailCount)
+          ? this.nails.getNailCoordinates(getShape2Index(step))
+          : this.nails.getNailCoordinates(step % shape1NailCount)
       );
       yield;
 
       if (step !== steps - 1) {
         renderer.lineTo(
           toShape2
-            ? shape2.getPoint(getShape2Index(step + 1))
-            : shape1.getPoint((step + 1) % shape1NailCount)
+            ? this.nails.getNailCoordinates(getShape2Index(step + 1))
+            : this.nails.getNailCoordinates((step + 1) % shape1NailCount)
         );
         yield;
 
@@ -401,8 +399,20 @@ export default class DanceOfPlanets extends StringArt<
   drawNails(nails: INails) {
     this.calc.shape1.drawNails(nails);
     this.calc.shape2.drawNails(nails, {
-      getUniqueKey: k => k + this.config.shape1NailCount,
+      getUniqueKey: k => k + this.calc.shape1NailCount,
     });
+  }
+
+  #getShapeNailCount(
+    shapeType: ShapeType,
+    nailCount: number,
+    sides: number
+  ): number {
+    if (shapeType === 'circle') {
+      return nailCount;
+    }
+
+    return nailCount <= sides ? sides : nailCount - (nailCount % sides);
   }
 
   thumbnailConfig = (
