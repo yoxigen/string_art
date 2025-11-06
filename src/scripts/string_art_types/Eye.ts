@@ -168,13 +168,13 @@ class Eye extends StringArt<EyeConfig, TCalc> {
           : Math.hypot(polygonSideSize / 2, polygonSideSize / 2);
 
         const polygon = new Polygon({
-          size: [polygonSideSize, polygonSideSize],
-          radius,
+          size: layerIndex === 0 ? size : [polygonSideSize, polygonSideSize],
           sides,
           nailsPerSide: layerSideNailCount,
           rotation:
             layerAngle / PI2 + (previousLayer?.polygon.config.rotation ?? 0),
           center,
+          fitSize: layerIndex === 0,
         });
         const layer: Layer = {
           layerAngle: layerAngle * layerIndex,
