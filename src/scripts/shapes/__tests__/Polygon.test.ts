@@ -24,26 +24,44 @@ describe('Polygon', () => {
   });
 
   describe('getNailCount', () => {
-    const polygon = new Polygon({
-      size: [100, 100],
-      sides: 3,
-      nailsPerSide: 2,
-      margin: 0,
-      radiusNailsCountSameAsSides: true,
-    });
-
     test('getNailCount', () => {
-      const nails = new TestNails();
-      polygon.drawNails(nails);
-      expect(polygon.getNailsCount()).toEqual(nails.nailCount);
+      const polygon = new Polygon({
+        size: [100, 100],
+        sides: 3,
+        nailsPerSide: 2,
+        margin: 0,
+        radiusNailsCountSameAsSides: true,
+      });
+
+      expect(polygon.getNailsCount()).toEqual(3);
     });
 
     test('getNailCount with center', () => {
+      const polygon = new Polygon({
+        size: [100, 100],
+        sides: 3,
+        nailsPerSide: 2,
+        margin: 0,
+        radiusNailsCountSameAsSides: true,
+        drawCenter: true,
+      });
+
+      expect(polygon.getNailsCount()).toEqual(4);
+    });
+
+    test('getNailCount same as nails drawn', () => {
+      const polygonWithCenter = new Polygon({
+        size: [100, 100],
+        sides: 3,
+        nailsPerSide: 2,
+        margin: 0,
+        radiusNailsCountSameAsSides: true,
+        drawCenter: true,
+      });
+
       const nails = new TestNails();
-      polygon.drawNails(nails, { drawCenter: true });
-      expect(polygon.getNailsCount({ drawCenter: true })).toEqual(
-        nails.nailCount
-      );
+      polygonWithCenter.drawNails(nails);
+      expect(polygonWithCenter.getNailsCount()).toEqual(nails.nailCount);
     });
   });
 });

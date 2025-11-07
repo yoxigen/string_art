@@ -263,12 +263,7 @@ export default class DanceOfPlanets extends StringArt<
     }
 
     function getShapeNailCount(shape: Shape): number {
-      if (shape instanceof Polygon)
-        return shape.getNailsCount({
-          drawCenter: false,
-          drawSides: true,
-          drawCenterNail: false,
-        });
+      if (shape instanceof Polygon) return shape.getNailsCount();
 
       if (shape instanceof Circle) {
         return shape.config.n;

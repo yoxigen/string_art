@@ -27,13 +27,9 @@ export interface PolygonConfig {
   radiusNailsCountSameAsSides?: boolean;
   radius?: number;
   drawCenter?: boolean;
-}
-
-type PolygonNailsOptions = ShapeNailsOptions & {
-  drawCenter?: boolean;
   drawSides?: boolean;
   drawCenterNail?: boolean;
-};
+}
 
 interface TCalc {
   center: Coordinates;
@@ -104,10 +100,8 @@ export default class Polygon implements Shape {
     const centerdFittedRect = centerRect(fittedRect, center);
 
     const newCenter = [
-      centerdFittedRect.right -
-        fittedRadius * verticesCosSin[maxPointIndexes[0]][0],
-      centerdFittedRect.bottom -
-        fittedRadius * verticesCosSin[maxPointIndexes[1]][1],
+      centerdFittedRect.right - boundingRect.right * scale,
+      centerdFittedRect.bottom - boundingRect.bottom * scale,
     ] as Coordinates;
 
     return {
@@ -123,7 +117,7 @@ export default class Polygon implements Shape {
       size,
       sides,
       center: configCenter,
-      margin,
+      margin = 0,
       radius: radiusConfig,
     } = this.config;
     const rotationRadians = PI2 * rotation;
@@ -131,7 +125,7 @@ export default class Polygon implements Shape {
     let center = configCenter ?? getCenter(size);
     const angle = PI2 / sides;
     const startingAngle =
-      sides % 2 ? Math.PI / 2 : (sides / 2) % 2 ? 0 : Math.PI / sides;
+      sides % 2 ? -Math.PI / 2 : (sides / 2) % 2 ? 0 : Math.PI / sides;
 
     const verticesCosSin = createArray(sides, s => {
       const pointAngle = angle * s + startingAngle + rotationRadians;
@@ -176,7 +170,7 @@ export default class Polygon implements Shape {
         new Line({
           from: vertices[side],
           to: vertices[(side + 1) % this.config.sides],
-          n: this.config.nailsPerSide,
+          n: this.config.nailsPerSide - 1,
         })
     );
   }
@@ -192,7 +186,7 @@ export default class Polygon implements Shape {
         new Line({
           from: center,
           to: vertices[side],
-          n,
+          n: this.config.drawSides !== false ? n - 1 : n,
         })
     );
   }
@@ -267,17 +261,15 @@ export default class Polygon implements Shape {
     return getBoundingRectAspectRatio(this.getBoundingRect());
   }
 
-  drawNails(
-    nails: INails,
-    {
-      drawCenter = false,
-      drawSides = true,
-      drawCenterNail = true,
-      getUniqueKey,
-    }: PolygonNailsOptions = {}
-  ) {
+  drawNails(nails: INails, { getUniqueKey }: ShapeNailsOptions = {}) {
     const { sideLines, centerLines, radiusNailsCount, center } = this.#calc;
-    const { sides, nailsPerSide } = this.config;
+    const {
+      sides,
+      nailsPerSide,
+      drawCenter = false,
+      drawCenterNail = true,
+      drawSides = true,
+    } = this.config;
 
     let startIndex = 0;
     const lineGetUniqueKey = getUniqueKey
@@ -285,7 +277,7 @@ export default class Polygon implements Shape {
       : (k: number) => k;
 
     if (drawCenter) {
-      if (drawCenterNail) {
+      if (drawCenterNail !== false) {
         nails.addNail(0, center);
         startIndex = 1;
       }
@@ -310,11 +302,12 @@ export default class Polygon implements Shape {
     }
   }
 
-  getNailsCount({
-    drawCenter = false,
-    drawSides = true,
-    drawCenterNail = true,
-  }: PolygonNailsOptions = {}): number {
+  getNailsCount(): number {
+    const {
+      drawCenter = false,
+      drawCenterNail = true,
+      drawSides = true,
+    } = this.config;
     const nailsPerSide =
       (drawSides ? this.config.nailsPerSide - 1 : 0) +
       (drawCenter ? this.#calc.radiusNailsCount - 2 : 0);

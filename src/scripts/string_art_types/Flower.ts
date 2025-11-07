@@ -108,6 +108,7 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
           nailsPerSide: n,
           radiusNailsCountSameAsSides: true,
           drawCenter: true,
+          drawCenterNail: i === 0,
         })
     );
 
@@ -174,17 +175,10 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
 
   drawNails(nails: INails) {
     const layerNailCount =
-      this.config.layers > 1
-        ? this.calc.polygons[1].getNailsCount({
-            drawCenter: true,
-            drawCenterNail: false,
-          })
-        : null;
+      this.config.layers > 1 ? this.calc.polygons[1].getNailsCount() : null;
 
     this.calc.polygons.forEach((polygon, i) =>
       polygon.drawNails(nails, {
-        drawCenter: true,
-        drawCenterNail: i === 0,
         getUniqueKey: i ? k => i * layerNailCount + 1 + k : undefined,
       })
     );

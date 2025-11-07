@@ -139,7 +139,9 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
         if (
           layerIndex &&
-          (!previousLayer || previousLayer.layerSpaceCount <= spaces)
+          (!previousLayer ||
+            previousLayer.layerSpaceCount <= 3 ||
+            previousLayer.layerSpaceCount <= spaces)
         ) {
           return layers;
         }
@@ -175,6 +177,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
             layerAngle / PI2 + (previousLayer?.polygon.config.rotation ?? 0),
           center,
           fitSize: layerIndex === 0,
+          radius,
         });
         const layer: Layer = {
           layerAngle: layerAngle * layerIndex,
@@ -192,8 +195,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     const layersIndexStart = layers.reduce(
       (result, { polygon }, i) => [
         ...result,
-        result[i] +
-          polygon.getNailsCount({ drawCenter: false, drawCenterNail: false }),
+        result[i] + polygon.getNailsCount(),
       ],
       [0]
     );
