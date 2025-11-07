@@ -97,18 +97,19 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
 
     const layerAngleShift = 1 / (sides * layers);
 
-    const polygons = createArray(layers, i => {
-      const polygonConfig = {
-        sides,
-        rotation: rotation / sides + i * layerAngleShift,
-        margin,
-        size,
-        nailsPerSide: n,
-        radiusNailsCountSameAsSides: true,
-      };
-
-      return new Polygon(polygonConfig);
-    });
+    const polygons = createArray(
+      layers,
+      i =>
+        new Polygon({
+          sides,
+          rotation: rotation / sides + i * layerAngleShift,
+          margin,
+          size,
+          nailsPerSide: n,
+          radiusNailsCountSameAsSides: true,
+          drawCenter: true,
+        })
+    );
 
     return { polygons };
   }
