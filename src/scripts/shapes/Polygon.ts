@@ -1,18 +1,21 @@
 import { ControlConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
-import { PI2 } from '../helpers/math_utils';
+import { getDistanceBetweenCoordinates, PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import {
+  centerRect,
   fitInside,
   getBoundingRectAspectRatio,
   getBoundingRectForCoordinates,
   getCenter,
+  mapDimensions,
 } from '../helpers/size_utils';
 import type Shape from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import { createArray } from '../helpers/array_utils';
 import INails from '../infra/nails/INails';
 import { ShapeNailsOptions } from './Shape';
+import { Line } from './Line';
 
 export interface PolygonConfig {
   size: Dimensions;
@@ -50,7 +53,6 @@ interface TCalc {
   radiusNailsCount: number;
   radiusNailsDistance: number;
   sides: ReadonlyArray<Side>;
-  sideAngle: number;
 }
 
 export default class Polygon implements Shape {
@@ -78,34 +80,128 @@ export default class Polygon implements Shape {
 
   #fitSize({
     center,
-    radius,
-    rotation = 0,
     size: configSize,
+    verticesCosSin,
   }: {
     center: Coordinates;
-    radius: number;
-    rotation?: number;
     size: Dimensions;
-  }): { scale: number; center: Coordinates } {
-    const angle = PI2 / this.config.sides;
-    const points = createArray(this.config.sides, s => [
-      center[0] + radius * Math.cos(s * angle + rotation - angle / 2),
-      center[1] + radius * Math.sin(s * angle + rotation - angle / 2),
-    ]) as Coordinates[];
-    const boundingRect = getBoundingRectForCoordinates(points);
+    verticesCosSin: [number, number][];
+  }): { radius: number; center: Coordinates } {
+    const radius = 1;
+
+    const maxPointIndexes = [0, 0];
+    const maxCoordinates = [...verticesCosSin[0]];
+
+    for (let s = 1; s < this.config.sides; s++) {
+      if (verticesCosSin[s][0] > maxCoordinates[0]) {
+        maxPointIndexes[0] = s;
+      }
+
+      if (verticesCosSin[s][1] > maxCoordinates[1]) {
+        maxPointIndexes[1] = s;
+      }
+    }
+    const boundingRect = getBoundingRectForCoordinates(verticesCosSin);
     const scale = Math.min(
       configSize[0] / boundingRect.width,
       configSize[1] / boundingRect.height
     );
+    const fittedRect = mapDimensions(
+      [boundingRect.width, boundingRect.height],
+      v => v * scale
+    );
+    const fittedRadius = radius * scale;
+    const centerdFittedRect = centerRect(fittedRect, center);
 
     const newCenter = [
-      center[0] -
-        (scale * (boundingRect.left - configSize[0] + boundingRect.right)) / 2,
-      center[1] -
-        (scale * (boundingRect.top - configSize[1] + boundingRect.bottom)) / 2,
+      centerdFittedRect.right -
+        fittedRadius * verticesCosSin[maxPointIndexes[0]][0],
+      centerdFittedRect.bottom -
+        fittedRadius * verticesCosSin[maxPointIndexes[1]][1],
     ] as Coordinates;
 
-    return { center: newCenter, scale };
+    return {
+      center: newCenter,
+      radius: fittedRadius,
+    };
+  }
+
+  #getPoints(): { center: Coordinates; vertices: Coordinates[] } {
+    const {
+      fitSize,
+      rotation,
+      size,
+      sides,
+      center: configCenter,
+      margin,
+      radius: radiusConfig,
+    } = this.config;
+    const rotationRadians = PI2 * rotation;
+    const sizeWithoutMargin = mapDimensions(size, v => v - 2 * margin);
+    let center = configCenter ?? getCenter(size);
+    const angle = PI2 / sides;
+
+    const verticesCosSin = createArray(this.config.sides, s => {
+      const pointAngle = angle * (s + 0.5) + rotationRadians;
+
+      return [Math.cos(pointAngle), Math.sin(pointAngle)];
+    }) as Coordinates[];
+
+    let radius: number = 0;
+
+    if (fitSize) {
+      const fitted = this.#fitSize({
+        center,
+        size: sizeWithoutMargin,
+        verticesCosSin,
+      });
+      center = fitted.center;
+      radius = fitted.radius;
+    }
+
+    const getRadius = (): number => {
+      const smallestSide = Math.min(...sizeWithoutMargin);
+      return sides % 2
+        ? smallestSide / (Math.sin(Math.PI / this.config.sides) + 1)
+        : smallestSide / 2;
+    };
+
+    radius = radiusConfig ?? getRadius();
+
+    return {
+      center,
+      vertices: verticesCosSin.map(cosSin =>
+        cosSin.map((v, i) => center[i] + v * radius)
+      ) as Coordinates[],
+    };
+  }
+
+  #getSideLines(vertices: Coordinates[]): Line[] {
+    return createArray(
+      this.config.sides,
+      side =>
+        new Line({
+          from: vertices[side],
+          to: vertices[(side + 1) % this.config.sides],
+          n: this.config.nailsPerSide,
+        })
+    );
+  }
+
+  #getCenterLines(
+    center: Coordinates,
+    vertices: Coordinates[],
+    n: number
+  ): Line[] {
+    return createArray(
+      this.config.sides,
+      side =>
+        new Line({
+          from: center,
+          to: vertices[side],
+          n,
+        })
+    );
   }
 
   #getCalc(): TCalc {
@@ -121,42 +217,9 @@ export default class Polygon implements Shape {
       fitSize,
     } = this.config;
 
-    const sideAngle = PI2 / sideCount;
-    const rotationRadians = PI2 * rotation;
-    const sides: ReadonlyArray<Side> = createArray(sideCount, i => {
-      const angle = sideAngle * i + rotationRadians;
-      const radiusAngle = -sideAngle * (i - 0.5) - rotationRadians;
+    const { center, vertices } = this.#getPoints();
 
-      return {
-        cos: Math.cos(angle),
-        sin: Math.sin(angle),
-        center: {
-          cos: Math.cos(radiusAngle),
-          sin: Math.sin(radiusAngle),
-        },
-      };
-    });
-
-    const getRadius = (): number => {
-      const smallestSide = Math.min(...configSize) - 2 * margin;
-      return this.config.sides % 2
-        ? smallestSide / (Math.sin(Math.PI / this.config.sides) + 1)
-        : smallestSide / 2;
-    };
-    let radius = radiusConfig ?? getRadius();
-    let center = configCenter ?? getCenter(configSize);
-
-    if (fitSize) {
-      const { scale, center: fittedCenter } = this.#fitSize({
-        center: configCenter ?? getCenter(configSize),
-        radius,
-        size: configSize,
-      });
-      radius *= scale;
-      center = fittedCenter;
-    }
-
-    const sideSize = 2 * radius * Math.sin(sideAngle / 2);
+    const sideSize = getDistanceBetweenCoordinates(vertices[0], vertices[1]);
     const start: Coordinates = [
       radius * Math.sin(sideAngle / 2),
       radius * Math.cos(sideAngle / 2),
@@ -176,7 +239,6 @@ export default class Polygon implements Shape {
       radiusNailsCount,
       radiusNailsDistance,
       sides,
-      sideAngle,
     };
   }
 

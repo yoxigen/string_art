@@ -229,6 +229,27 @@ export function fitInside(size1: Dimensions, size2: Dimensions): Dimensions {
 }
 
 /**
+ * Aligns the center of the  rect to the specified center, returns the first rect with different coordinates
+ * @param rect1
+ * @param rect2
+ */
+export function centerRect(
+  size: Dimensions,
+  center: Coordinates
+): BoundingRect {
+  const rectHalfSize = getCenter(size);
+
+  return {
+    width: size[0],
+    height: size[1],
+    left: center[0] - rectHalfSize[0],
+    right: center[0] + rectHalfSize[0],
+    top: center[1] - rectHalfSize[1],
+    bottom: center[1] + rectHalfSize[1],
+  };
+}
+
+/**
  * Returns the center coordinates of a plane, given its dimensions
  * @param size
  * @returns
