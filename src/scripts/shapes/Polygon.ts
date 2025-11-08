@@ -64,6 +64,10 @@ export default class Polygon implements Shape {
     }
   }
 
+  get center(): Coordinates {
+    return this.#calc.center;
+  }
+
   #fitSize({
     center,
     size: configSize,
@@ -170,7 +174,7 @@ export default class Polygon implements Shape {
         new Line({
           from: vertices[side],
           to: vertices[(side + 1) % this.config.sides],
-          n: this.config.nailsPerSide - 1,
+          n: this.config.nailsPerSide,
         })
     );
   }
@@ -265,7 +269,7 @@ export default class Polygon implements Shape {
     const { sideLines, centerLines, radiusNailsCount, center } = this.#calc;
     const {
       sides,
-      nailsPerSide,
+      nailsPerSide: nailsPerSideConfig,
       drawCenter = false,
       drawCenterNail = true,
       drawSides = true,
@@ -277,6 +281,7 @@ export default class Polygon implements Shape {
       : (k: number) => k;
 
     if (drawCenter) {
+      const nailsPerRadius = radiusNailsCount - 1;
       if (drawCenterNail !== false) {
         nails.addNail(0, center);
         startIndex = 1;
@@ -288,14 +293,16 @@ export default class Polygon implements Shape {
           getUniqueKey: k => lineGetUniqueKey(startIndex + k),
           startIndex: radiusStartIndex,
         });
-        startIndex += radiusNailsCount - 1;
+        startIndex += nailsPerRadius;
       }
     }
 
     if (drawSides) {
+      const nailsPerSide = nailsPerSideConfig - 1;
       for (let side = 0; side < sides; side++) {
         sideLines[side].drawNails(nails, {
           getUniqueKey: k => lineGetUniqueKey(startIndex + k),
+          endIndex: this.config.nailsPerSide - 1,
         });
         startIndex += nailsPerSide;
       }

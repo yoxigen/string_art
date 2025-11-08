@@ -175,9 +175,10 @@ class Eye extends StringArt<EyeConfig, TCalc> {
           nailsPerSide: layerSideNailCount,
           rotation:
             layerAngle / PI2 + (previousLayer?.polygon.config.rotation ?? 0),
-          center,
+          center: layerIndex ? layers[0].polygon.center : center,
           fitSize: layerIndex === 0,
           radius,
+          margin: margin ?? 0,
         });
         const layer: Layer = {
           layerAngle: layerAngle * layerIndex,

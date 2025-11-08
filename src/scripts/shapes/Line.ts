@@ -17,6 +17,7 @@ export interface LineConfig {
 
 export type LineNailOptions = ShapeNailsOptions & {
   startIndex?: number;
+  endIndex?: number;
 };
 
 export class Line implements Shape {
@@ -105,9 +106,10 @@ export class Line implements Shape {
 
   drawNails(
     nails: INails,
-    { getUniqueKey, startIndex = 0 }: LineNailOptions = {}
+    { getUniqueKey, startIndex = 0, endIndex }: LineNailOptions = {}
   ): void {
-    for (let i = startIndex; i < this.config.n; i++) {
+    const lastIndex = endIndex ?? this.config.n;
+    for (let i = startIndex; i < lastIndex; i++) {
       nails.addNail(getUniqueKey?.(i) ?? i, this.getPoint(i));
     }
   }
