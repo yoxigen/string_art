@@ -58,6 +58,14 @@ export default class Polygon implements Shape {
     return this.#calc.radius;
   }
 
+  get sideSize(): number {
+    return this.#calc.sideSize;
+  }
+
+  get radiusNailsCount(): number {
+    return this.#calc.radiusNailsCount;
+  }
+
   setConfig(config: PolygonConfig) {
     if (!compareObjects(config, this.config)) {
       this.config = config;
@@ -154,9 +162,7 @@ export default class Polygon implements Shape {
     } else {
       const getRadius = (): number => {
         const smallestSide = Math.min(...sizeWithoutMargin);
-        return sides % 2
-          ? smallestSide / (Math.sin(Math.PI / this.config.sides) + 1)
-          : smallestSide / 2;
+        return smallestSide / 2;
       };
 
       radius = radiusConfig ?? getRadius();
@@ -228,14 +234,6 @@ export default class Polygon implements Shape {
     };
   }
 
-  get radiusNailsCount(): number {
-    return this.#calc.radiusNailsCount;
-  }
-
-  get sideSize(): number {
-    return this.#calc.sideSize;
-  }
-
   getPoint(index: number): Coordinates {
     const { nailsPerSide } = this.config;
 
@@ -275,7 +273,7 @@ export default class Polygon implements Shape {
       sides,
       nailsPerSide: nailsPerSideConfig,
       drawCenter = false,
-      drawCenterNail = true,
+      drawCenterNail = false,
       drawSides = true,
     } = this.config;
 
@@ -284,19 +282,23 @@ export default class Polygon implements Shape {
       ? (k: number) => getUniqueKey(k)
       : (k: number) => k;
 
+    if (drawCenterNail) {
+      nails.addNail(lineGetUniqueKey(0), center);
+      startIndex = 1;
+    }
+
     if (drawCenter) {
-      const nailsPerRadius = radiusNailsCount - 1;
-      if (drawCenterNail !== false) {
-        nails.addNail(0, center);
-        startIndex = 1;
+      let nailsPerRadius = radiusNailsCount - 1;
+
+      if (drawSides) {
+        nailsPerRadius--;
       }
-      const radiusStartIndex = drawCenterNail ? 1 : 0;
 
       for (let side = 0; side < sides; side++) {
         centerLines[side].drawNails(nails, {
           getUniqueKey: k => lineGetUniqueKey(startIndex + k),
-          startIndex: radiusStartIndex,
-          endIndex: radiusNailsCount,
+          startIndex: 1,
+          endIndex: drawSides ? radiusNailsCount - 1 : radiusNailsCount,
         });
         startIndex += nailsPerRadius;
       }
@@ -327,6 +329,13 @@ export default class Polygon implements Shape {
     return (
       this.config.sides * nailsPerSide + (drawCenter && drawCenterNail ? 1 : 0)
     );
+  }
+
+  /**
+   * Returns the shortest distance between the polygon's center and any of the side lines
+   */
+  getApothem(): number {
+    return this.radius * Math.cos(Math.PI / this.config.sides);
   }
 
   static rotationConfig: ControlConfig<{ rotation: number; sides: number }> = {

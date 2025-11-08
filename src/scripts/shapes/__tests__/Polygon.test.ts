@@ -57,6 +57,23 @@ describe('Polygon', () => {
         margin: 0,
         radiusNailsCountSameAsSides: true,
         drawCenter: true,
+        drawCenterNail: true,
+      });
+
+      const nails = new TestNails();
+      polygonWithCenter.drawNails(nails);
+      expect(polygonWithCenter.getNailsCount()).toEqual(nails.nailCount);
+    });
+
+    test('getNailCount with no center nail', () => {
+      const polygonWithCenter = new Polygon({
+        size: [100, 100],
+        sides: 3,
+        nailsPerSide: 10,
+        margin: 0,
+        radiusNailsCountSameAsSides: true,
+        drawCenter: true,
+        drawCenterNail: false,
       });
 
       const nails = new TestNails();

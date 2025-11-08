@@ -110,7 +110,8 @@ export class Line implements Shape {
   ): void {
     const lastIndex = endIndex ?? this.config.n;
     for (let i = startIndex; i < lastIndex; i++) {
-      nails.addNail(getUniqueKey?.(i) ?? i, this.getPoint(i));
+      const index = i - startIndex;
+      nails.addNail(getUniqueKey?.(index) ?? index, this.getPoint(i));
     }
   }
 

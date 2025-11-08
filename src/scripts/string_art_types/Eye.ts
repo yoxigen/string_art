@@ -25,6 +25,7 @@ interface Layer {
   layerSideNailCount: number;
   layerSpaceCount: number;
   polygon: Polygon;
+  nailSpacing: number;
 }
 interface TCalc {
   maxSize: number;
@@ -115,20 +116,28 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       n: nConfig,
       angle,
       layers: layerCount,
-      margin,
+      margin = 0,
       sides,
     } = this.config;
     const center = getCenter(size);
     // If the angle is 1 (meaning a inner polygon reaches the middle of an outter polygon), making sure the number of nails per side is odd, so there's a middle nail
-    const n = angle === 1 && !(nConfig % 2) ? nConfig + 1 : nConfig;
+    const n = !(nConfig % 2) ? nConfig + 1 : nConfig;
+    const basePolygon = new Polygon({
+      size,
+      sides,
+      nailsPerSide: n,
+      center,
+      fitSize: true,
+      margin,
+    });
+
     const maxSize = Math.min(...size) - 2 * margin;
     const nailSpacing = maxSize / (n - 1);
-    const spacesChangePerLayer = Math.max(1, Math.round((angle * n) / 2));
+    const spacesChangePerLayer = Math.max(1, Math.floor((angle * n) / 2));
     const piSides = Math.PI / sides;
 
-    const layers: Layer[] = new Array(layerCount)
-      .fill(null)
-      .reduce((layers: Layer[], _, layerIndex) => {
+    const layers: Layer[] = new Array(layerCount).fill(null).reduce(
+      (layers: Layer[], _, layerIndex) => {
         const previousLayer = layerIndex ? layers[layerIndex - 1] : null;
         const spaces = previousLayer
           ? Math.max(
@@ -147,8 +156,24 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         }
 
         const layerAngle = layerIndex
-          ? Math.atan(spaces / (previousLayer.layerSpaceCount - spaces))
+          ? Math.PI / sides -
+            Math.atan(
+              (previousLayer.nailSpacing *
+                (previousLayer.layerSpaceCount / 2 - spaces)) /
+                previousLayer.polygon.getApothem()
+            )
           : 0;
+
+        if (layerIndex && layerAngle <= 0) {
+          return layers;
+        }
+        if (layerIndex === 1) {
+          console.log('LAYER SPACES', {
+            spaces,
+            prev: previousLayer.layerSideNailCount,
+            layerAngle: (180 * layerAngle) / Math.PI,
+          });
+        }
 
         const layerSize = layerIndex
           ? maxSize /
@@ -161,6 +186,10 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
         if (angle === 1 && !(layerSideNailCount % 2)) {
           layerSideNailCount--;
+        }
+
+        if (layerSideNailCount < 3) {
+          return layers;
         }
 
         const polygonSideSize = layerIndex ? previousLayer.layerSize : maxSize;
@@ -180,16 +209,30 @@ class Eye extends StringArt<EyeConfig, TCalc> {
           radius,
           margin: margin ?? 0,
         });
+        const layerSpaceCount = layerSideNailCount - 1;
+
         const layer: Layer = {
           layerAngle: layerAngle * layerIndex,
           layerSize,
           layerSideNailCount,
-          layerSpaceCount: layerSideNailCount - 1,
+          layerSpaceCount,
           polygon,
+          nailSpacing: layerIndex ? layerSize / layerSpaceCount : nailSpacing,
         };
 
         return [...layers, layer];
-      }, [] as Layer[]);
+      },
+      [
+        {
+          polygon: basePolygon,
+          layerAngle: 0,
+          layerSize: basePolygon.sideSize,
+          layerSideNailCount: n,
+          layerSpaceCount: n - 1,
+          nailSpacing,
+        },
+      ] as Layer[]
+    );
 
     const layersCount = layers.length;
 
