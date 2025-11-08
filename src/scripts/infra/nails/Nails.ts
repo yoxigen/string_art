@@ -34,7 +34,11 @@ export default class Nails implements INails {
   ): Coordinates {
     const coordinates = this.#groups.get(groupKey)?.getNailCoordinates(nailKey);
     if (!coordinates) {
-      throw new Error(`Key [${nailKey}] not found in group [${groupKey}].`);
+      throw new Error(
+        `Key [${nailKey}] not found in ${
+          groupKey == null ? 'default nails group' : `nails group [${groupKey}]`
+        }.`
+      );
     }
     return coordinates;
   }
