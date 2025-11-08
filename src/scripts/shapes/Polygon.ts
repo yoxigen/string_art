@@ -126,10 +126,14 @@ export default class Polygon implements Shape {
     };
   }
 
-  #getPoints(): { center: Coordinates; vertices: Coordinates[]; radius } {
+  #getPoints(): {
+    center: Coordinates;
+    vertices: Coordinates[];
+    radius: number;
+  } {
     const {
       fitSize,
-      rotation,
+      rotation = 0,
       size,
       sides,
       center: configCenter,

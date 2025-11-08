@@ -40,7 +40,7 @@ interface TCalc {
 class Eye extends StringArt<EyeConfig, TCalc> {
   static type = 'eye';
 
-  name = 'Eye';
+  name = 'Vortex';
   id = 'eye';
   link =
     'https://www.etsy.com/listing/489853161/rose-of-space-string-art-sacred-geometry?ga_order=most_relevant&ga_search_type=all&ga_view_type=gallery&ga_search_query=string+art&ref=sr_gallery_1&epik=dj0yJnU9WXNpM1BDTnNkLVBtcWdCa3AxN1J5QUZRY1FlbkJ5Z18mcD0wJm49ZXdJb2JXZmVpNVVwN1NKQ3lXMy10ZyZ0PUFBQUFBR0ZuUzZv';
@@ -132,108 +132,86 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     });
 
     const maxSize = Math.min(...size) - 2 * margin;
-    const nailSpacing = maxSize / (n - 1);
+    const nailSpacing = basePolygon.sideSize / (n - 1);
     const spacesChangePerLayer = Math.max(1, Math.floor((angle * n) / 2));
     const piSides = Math.PI / sides;
 
-    const layers: Layer[] = new Array(layerCount).fill(null).reduce(
-      (layers: Layer[], _, layerIndex) => {
-        const previousLayer = layerIndex ? layers[layerIndex - 1] : null;
-        const spaces = previousLayer
-          ? Math.max(
-              1,
-              Math.floor((angle * previousLayer.layerSideNailCount) / 2)
-            )
-          : spacesChangePerLayer;
-
-        if (
-          layerIndex &&
-          (!previousLayer ||
-            previousLayer.layerSpaceCount <= 3 ||
-            previousLayer.layerSpaceCount <= spaces)
-        ) {
-          return layers;
-        }
-
-        const layerAngle = layerIndex
-          ? Math.PI / sides -
-            Math.atan(
-              (previousLayer.nailSpacing *
-                (previousLayer.layerSpaceCount / 2 - spaces)) /
-                previousLayer.polygon.getApothem()
-            )
-          : 0;
-
-        if (layerIndex && layerAngle <= 0) {
-          return layers;
-        }
-        if (layerIndex === 1) {
-          console.log('LAYER SPACES', {
-            spaces,
-            prev: previousLayer.layerSideNailCount,
-            layerAngle: (180 * layerAngle) / Math.PI,
-          });
-        }
-
-        const layerSize = layerIndex
-          ? maxSize /
-            Math.pow(Math.cos(layerAngle) + Math.sin(layerAngle), layerIndex)
-          : maxSize;
-
-        let layerSideNailCount = layerIndex
-          ? Math.trunc(layerSize / nailSpacing)
-          : n;
-
-        if (angle === 1 && !(layerSideNailCount % 2)) {
-          layerSideNailCount--;
-        }
-
-        if (layerSideNailCount < 3) {
-          return layers;
-        }
-
-        const polygonSideSize = layerIndex ? previousLayer.layerSize : maxSize;
-        const radius = layerIndex
-          ? (previousLayer.polygon.radius * Math.cos(piSides)) /
-            Math.cos(layerAngle - piSides)
-          : null;
-
-        const polygon = new Polygon({
-          size: layerIndex === 0 ? size : [polygonSideSize, polygonSideSize],
-          sides,
-          nailsPerSide: layerSideNailCount,
-          rotation:
-            layerAngle / PI2 + (previousLayer?.polygon.config.rotation ?? 0),
-          center: layerIndex ? layers[0].polygon.center : center,
-          fitSize: layerIndex === 0,
-          radius,
-          margin: margin ?? 0,
-        });
-        const layerSpaceCount = layerSideNailCount - 1;
-
-        const layer: Layer = {
-          layerAngle: layerAngle * layerIndex,
-          layerSize,
-          layerSideNailCount,
-          layerSpaceCount,
-          polygon,
-          nailSpacing: layerIndex ? layerSize / layerSpaceCount : nailSpacing,
-        };
-
-        return [...layers, layer];
+    const layers: Layer[] = [
+      {
+        polygon: basePolygon,
+        layerAngle: 0,
+        layerSize: basePolygon.sideSize,
+        layerSideNailCount: n,
+        layerSpaceCount: n - 1,
+        nailSpacing,
       },
-      [
-        {
-          polygon: basePolygon,
-          layerAngle: 0,
-          layerSize: basePolygon.sideSize,
-          layerSideNailCount: n,
-          layerSpaceCount: n - 1,
-          nailSpacing,
-        },
-      ] as Layer[]
-    );
+    ];
 
+    for (let layerIndex = 1; layerIndex < layerCount; layerIndex++) {
+      const previousLayer = layers[layerIndex - 1];
+      const spaces = previousLayer
+        ? Math.max(
+            1,
+            Math.floor((angle * previousLayer.layerSideNailCount) / 2)
+          )
+        : spacesChangePerLayer;
+
+      if (
+        !previousLayer ||
+        previousLayer.layerSpaceCount <= 3 ||
+        previousLayer.layerSpaceCount <= spaces
+      ) {
+        break;
+      }
+
+      const layerAngle =
+        Math.PI / sides -
+        Math.atan(
+          (previousLayer.nailSpacing *
+            (previousLayer.layerSpaceCount / 2 - spaces)) /
+            previousLayer.polygon.getApothem()
+        );
+
+      if (layerAngle <= 0) {
+        break;
+      }
+
+      const radius =
+        (previousLayer.polygon.radius * Math.cos(piSides)) /
+        Math.cos(layerAngle - piSides);
+
+      const layerSize = 2 * radius * Math.sin(Math.PI / sides);
+
+      let layerSideNailCount = Math.trunc(layerSize / nailSpacing);
+
+      if (angle === 1 && !(layerSideNailCount % 2)) {
+        layerSideNailCount--;
+      }
+
+      if (layerSideNailCount < 3) {
+        break;
+      }
+
+      const polygon = new Polygon({
+        size,
+        sides,
+        nailsPerSide: layerSideNailCount,
+        rotation:
+          layerAngle / PI2 + (previousLayer?.polygon.config.rotation ?? 0),
+        center: layers[0].polygon.center,
+        radius,
+      });
+      const layerSpaceCount = layerSideNailCount - 1;
+
+      layers.push({
+        layerAngle: layerAngle * layerIndex,
+        layerSize,
+        layerSideNailCount,
+        layerSpaceCount,
+        polygon,
+        nailSpacing: layerSize / layerSpaceCount,
+      });
+    }
     const layersCount = layers.length;
 
     const layersIndexStart = layers.reduce(
