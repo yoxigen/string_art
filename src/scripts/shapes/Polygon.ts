@@ -50,6 +50,14 @@ export default class Polygon implements Shape {
     this.setConfig(config);
   }
 
+  get center(): Coordinates {
+    return this.#calc.center;
+  }
+
+  get radius(): number {
+    return this.#calc.radius;
+  }
+
   setConfig(config: PolygonConfig) {
     if (!compareObjects(config, this.config)) {
       this.config = config;
@@ -62,10 +70,6 @@ export default class Polygon implements Shape {
 
       this.#calc = this.#getCalc();
     }
-  }
-
-  get center(): Coordinates {
-    return this.#calc.center;
   }
 
   #fitSize({
@@ -190,7 +194,7 @@ export default class Polygon implements Shape {
         new Line({
           from: center,
           to: vertices[side],
-          n: this.config.drawSides !== false ? n - 1 : n,
+          n,
         })
     );
   }
@@ -292,6 +296,7 @@ export default class Polygon implements Shape {
         centerLines[side].drawNails(nails, {
           getUniqueKey: k => lineGetUniqueKey(startIndex + k),
           startIndex: radiusStartIndex,
+          endIndex: radiusNailsCount,
         });
         startIndex += nailsPerRadius;
       }

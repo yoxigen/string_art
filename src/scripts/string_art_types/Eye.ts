@@ -165,9 +165,9 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
         const polygonSideSize = layerIndex ? previousLayer.layerSize : maxSize;
         const radius = layerIndex
-          ? (previousLayer.polygon.config.radius * Math.cos(piSides)) /
+          ? (previousLayer.polygon.radius * Math.cos(piSides)) /
             Math.cos(layerAngle - piSides)
-          : Math.hypot(polygonSideSize / 2, polygonSideSize / 2);
+          : null;
 
         const polygon = new Polygon({
           size: layerIndex === 0 ? size : [polygonSideSize, polygonSideSize],
