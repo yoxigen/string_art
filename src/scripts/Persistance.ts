@@ -6,7 +6,7 @@ import type InputDialog from './components/dialogs/InputDialog';
 import { confirm, prompt } from './helpers/dialogs';
 import { getQueryParams } from './helpers/url_utils';
 import { ID } from './types/stringart.types';
-import { DownloadPatternOptions } from './download/Download';
+import { downloadFile, DownloadPatternOptions } from './download/Download';
 import { createPatternInstance } from './helpers/pattern_utils';
 
 const APP_DATA_STORAGE_KEY = 'string_art_app_data';
@@ -44,6 +44,8 @@ export default class Persistance extends EventBus<{
         case 'rename':
           this.renameCurrentPattern();
           break;
+        case 'export':
+          this.exportAllPatterns();
       }
     });
 
@@ -214,6 +216,25 @@ export default class Persistance extends EventBus<{
         });
       },
       () => {}
+    );
+  }
+
+  exportAllPatterns() {
+    const data = Persistance.loadAppData();
+    // Create a Blob with the JSON string and specify the MIME type
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json',
+    });
+    downloadFile({ data: blob, filename: 'String Art Studio patterns.json' });
+  }
+
+  importPatterns({ patterns }: AppData) {
+    if (!patterns) {
+      throw new Error('Data does not include patterns.');
+    }
+
+    patterns.forEach(({ id, ...patternData }) =>
+      this.saveNewPattern(patternData)
     );
   }
 

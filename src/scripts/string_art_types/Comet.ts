@@ -204,7 +204,7 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
       throw new Error(`Invalid spread mode, "${this.config.layerSpread}"!`);
     }
 
-    return spread.f(layerIndex, this.config);
+    return Math.max(1, spread.f(layerIndex, this.config));
   }
 
   getLayerRingStepCount(layerIndex: number): number {
@@ -266,4 +266,15 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     n: Math.min(n, n % 2 ? 29 : 28),
     layers: Math.min(layers, 8),
   });
+
+  testStepCountConfig: Partial<CometConfig>[] = [
+    {
+      n: 28,
+      layers: 8,
+      ringSize: 0.46,
+      layerSpread: 'distance',
+      layerDistance: 2,
+      distortion: -0.33,
+    },
+  ];
 }

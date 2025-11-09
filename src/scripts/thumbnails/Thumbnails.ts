@@ -170,7 +170,14 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
         updateOnResize: false,
       });
       renderer.setSize([100, 100]);
-      pattern.draw(renderer);
+      try {
+        pattern.draw(renderer);
+      } catch (error) {
+        console.error(
+          `Failed to render thumbnail for pattern [id=${pattern.id}]`,
+          error
+        );
+      }
     });
   }
 
