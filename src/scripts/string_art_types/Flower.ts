@@ -97,18 +97,20 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
 
     const layerAngleShift = 1 / (sides * layers);
 
-    const polygons = createArray(layers, i => {
-      const polygonConfig = {
-        sides,
-        rotation: rotation / sides + i * layerAngleShift,
-        margin,
-        size,
-        nailsPerSide: n,
-        radiusNailsCountSameAsSides: true,
-      };
-
-      return new Polygon(polygonConfig);
-    });
+    const polygons = createArray(
+      layers,
+      i =>
+        new Polygon({
+          sides,
+          rotation: rotation / sides + i * layerAngleShift,
+          margin,
+          size,
+          nailsPerSide: n,
+          radiusNailsCountSameAsSides: true,
+          drawCenter: true,
+          drawCenterNail: i === 0,
+        })
+    );
 
     return { polygons };
   }
@@ -172,21 +174,14 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
   }
 
   drawNails(nails: INails) {
-    const layerNailCount =
-      this.config.layers > 1
-        ? this.calc.polygons[1].getNailsCount({
-            drawCenter: true,
-            drawCenterNail: false,
-          })
-        : null;
+    let startIndex = 0;
 
-    this.calc.polygons.forEach((polygon, i) =>
+    this.calc.polygons.forEach((polygon, i) => {
       polygon.drawNails(nails, {
-        drawCenter: true,
-        drawCenterNail: i === 0,
-        getUniqueKey: i ? k => i * layerNailCount + 1 + k : undefined,
-      })
-    );
+        getUniqueKey: i ? k => startIndex + k : undefined,
+      });
+      startIndex += polygon.getNailsCount();
+    });
   }
 
   getStepCount(): number {
@@ -199,11 +194,7 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     const calc = this.calc ?? this.getCalc({ size });
     const polygon = calc.polygons[0];
 
-    return (
-      layers *
-        polygon.getNailsCount({ drawCenter: true, drawCenterNail: false }) +
-      1
-    );
+    return layers * (polygon.getNailsCount() - 1) + 1;
   }
 
   thumbnailConfig = ({ n }) => ({

@@ -1,9 +1,11 @@
 import { describe, test, expect } from '@jest/globals';
 import {
+  centerRect,
   combineBoundingRects,
   getBoundingRectForCoordinates,
   prettifyLength,
 } from '../size_utils';
+import { Dimension, Dimensions } from '../../types/general.types';
 
 describe('Size utils', () => {
   describe('combineBoundingRects', () => {
@@ -119,6 +121,19 @@ describe('Size utils', () => {
         bottom: 9,
         width: 5.5,
         height: 8,
+      });
+    });
+  });
+
+  describe('centerRect', () => {
+    test('centers the rect', () => {
+      expect(centerRect([10, 15] as Dimensions, [20, 30])).toEqual({
+        width: 10,
+        height: 15,
+        left: 15,
+        right: 25,
+        top: 22.5,
+        bottom: 37.5,
       });
     });
   });

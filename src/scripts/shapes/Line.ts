@@ -15,6 +15,11 @@ export interface LineConfig {
   rotationCenter?: Coordinates | LinePosition;
 }
 
+export type LineNailOptions = ShapeNailsOptions & {
+  startIndex?: number;
+  endIndex?: number;
+};
+
 export class Line implements Shape {
   config: LineConfig;
   from: Coordinates;
@@ -99,9 +104,14 @@ export class Line implements Shape {
     );
   }
 
-  drawNails(nails: INails, { getUniqueKey }: ShapeNailsOptions = {}): void {
-    for (let i = 0; i < this.config.n; i++) {
-      nails.addNail(getUniqueKey?.(i) ?? i, this.getPoint(i));
+  drawNails(
+    nails: INails,
+    { getUniqueKey, startIndex = 0, endIndex }: LineNailOptions = {}
+  ): void {
+    const lastIndex = endIndex ?? this.config.n;
+    for (let i = startIndex; i < lastIndex; i++) {
+      const index = i - startIndex;
+      nails.addNail(getUniqueKey?.(index) ?? index, this.getPoint(i));
     }
   }
 
