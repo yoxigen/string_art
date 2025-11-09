@@ -1,4 +1,3 @@
-import { createArray } from '../helpers/array_utils';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
@@ -24,6 +23,7 @@ interface Layer {
   layerSize: number;
   layerSideNailCount: number;
   layerSpaceCount: number;
+  layerIndexStart: number;
   polygon: Polygon;
   nailSpacing: number;
 }
@@ -32,7 +32,6 @@ interface TCalc {
   nailSpacing: number;
   layers: ReadonlyArray<Layer>;
   center: Coordinates;
-  layersIndexStart: ReadonlyArray<number>;
   layersCount: number;
   totalNailsCount: number;
 }
@@ -143,9 +142,12 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         layerSize: basePolygon.sideSize,
         layerSideNailCount: n,
         layerSpaceCount: n - 1,
+        layerIndexStart: 0,
         nailSpacing,
       },
     ];
+
+    let totalNailsCount = basePolygon.getNailsCount();
 
     for (let layerIndex = 1; layerIndex < layerCount; layerIndex++) {
       const previousLayer = layers[layerIndex - 1];
@@ -192,6 +194,8 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         break;
       }
 
+      const layerIndexStart = totalNailsCount;
+
       const polygon = new Polygon({
         size,
         sides,
@@ -200,7 +204,11 @@ class Eye extends StringArt<EyeConfig, TCalc> {
           layerAngle / PI2 + (previousLayer?.polygon.config.rotation ?? 0),
         center: layers[0].polygon.center,
         radius,
+        getUniqueKey: layerIndexStart ? k => layerIndexStart + k : undefined,
       });
+
+      totalNailsCount += polygon.getNailsCount();
+
       const layerSpaceCount = layerSideNailCount - 1;
 
       layers.push({
@@ -210,25 +218,17 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         layerSpaceCount,
         polygon,
         nailSpacing: layerSize / layerSpaceCount,
+        layerIndexStart,
       });
     }
     const layersCount = layers.length;
-
-    const layersIndexStart = layers.reduce(
-      (result, { polygon }, i) => [
-        ...result,
-        result[i] + polygon.getNailsCount(),
-      ],
-      [0]
-    );
 
     return {
       maxSize,
       nailSpacing,
       layers,
       center,
-      totalNailsCount: layersIndexStart[layersIndexStart.length - 1],
-      layersIndexStart: layersIndexStart.slice(0, layers.length),
+      totalNailsCount,
       layersCount,
     };
   }
@@ -247,25 +247,21 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     {
       side,
       color = '#ffffff',
-      layerSideNailCount,
-      layerIndexStart,
+      layer,
     }: {
       side: number;
       color: ColorValue;
-      layerSideNailCount: number;
-      layerIndexStart: number;
+      layer: Layer;
     }
   ): Generator<void> {
     const nextSide = (side + 1) % this.config.sides;
     renderer.setColor(color);
 
-    for (let i = 0; i < layerSideNailCount; i++) {
-      const nonSideStart = layerIndexStart + i;
-
+    for (let i = 0; i < layer.layerSpaceCount; i++) {
       renderer.renderLine(
-        this.nails.getNailCoordinates(nonSideStart + side * layerSideNailCount),
+        this.nails.getNailCoordinates(layer.polygon.getSideNailIndex(side, i)),
         this.nails.getNailCoordinates(
-          nonSideStart + nextSide * layerSideNailCount
+          layer.polygon.getSideNailIndex(nextSide, i)
         )
       );
 
@@ -276,16 +272,11 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
     const { colorPerLayer, sides } = this.config;
 
-    const { layerSpaceCount } = this.calc.layers[layerIndex];
-
-    const layerIndexStart = this.calc.layersIndexStart[layerIndex];
-
     for (let i = 0; i < sides; i++) {
       yield* this.drawSide(renderer, {
         color: this.color.getColor(colorPerLayer ? layerIndex : i),
         side: i,
-        layerSideNailCount: layerSpaceCount,
-        layerIndexStart,
+        layer: this.calc.layers[layerIndex],
       });
     }
   }
@@ -303,9 +294,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   drawNails(nails: NailsSetter) {
     for (let layer = 0; layer < this.calc.layersCount; layer++) {
       const { polygon } = this.calc.layers[layer];
-      polygon.drawNails(nails, {
-        getUniqueKey: k => this.calc.layersIndexStart[layer] + k,
-      });
+      polygon.drawNails(nails);
     }
   }
 

@@ -245,7 +245,7 @@ export default class Polygon extends Shape {
       vertices,
       sideLines: this.#getSideLines(
         vertices,
-        (drawCenterNail ? 1 : 0) + radiusNailsCount * sides
+        (drawCenterNail ? 1 : 0) + (drawCenter ? radiusNailsCount * sides : 0)
       ),
       centerLines: drawCenter
         ? this.#getCenterLines(center, vertices, radiusNailsCount)
@@ -263,7 +263,7 @@ export default class Polygon extends Shape {
     return this.getSidePoint({ side, index: sideIndex });
   }
 
-  getSideNailIndex({ side, index }: { side: number; index: number }): number {
+  getSideNailIndex(side: number, index: number): number {
     return this.#calc.sideLines[side].getNailIndex(index);
   }
 
