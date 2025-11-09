@@ -7,12 +7,12 @@ import { distortionToAspectRatio, PI2 } from '../helpers/math_utils';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';
 import { fitInside, getCenter } from '../helpers/size_utils';
-import type Shape from './Shape';
+import Shape from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
-import INails from '../infra/nails/INails';
-import { ShapeNailsOptions } from './Shape';
+import NailsSetter from '../infra/nails/NailsSetter';
+import { ShapeConfig } from './Shape';
 
-export interface CircleConfig {
+export type CircleConfig = ShapeConfig & {
   n: number;
   size: Dimensions;
   margin?: number;
@@ -33,16 +33,16 @@ export interface CircleConfig {
    * The angle at which to end rendering the circle (in radians)
    */
   angleEnd?: number;
-}
+};
 
-export type CircleNailsOptions = ShapeNailsOptions & {
+export type CircleNailsOptions = {
   /**
    * Filters the nails that are added. Return false to not draw the nail with the specified index
    */
   filter?: (nailIndex: number) => boolean;
 };
 
-export default class Circle implements Shape {
+export default class Circle extends Shape {
   points: Map<number, Coordinates>;
   easingFunction: Function;
   config: CircleConfig;
@@ -57,6 +57,7 @@ export default class Circle implements Shape {
   excludedNailIndexes: ReadonlySet<number>;
 
   constructor(config: CircleConfig) {
+    super(config);
     this.setConfig(config);
   }
 
@@ -204,13 +205,10 @@ export default class Circle implements Shape {
    * @param {Nails} nails
    * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
    */
-  drawNails(
-    nails: INails,
-    { filter, getUniqueKey }: CircleNailsOptions = {}
-  ): void {
+  drawNails(nails: NailsSetter, { filter }: CircleNailsOptions = {}): void {
     for (let i = 0; i < this.config.n; i++) {
       if (!filter || filter(i)) {
-        nails.addNail(getUniqueKey?.(i) ?? i, this.getPoint(i));
+        nails.addNail(this.getUniqueKey?.(i) ?? i, this.getPoint(i));
       }
     }
   }

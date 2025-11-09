@@ -3,7 +3,7 @@ import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
 import { getCenter } from '../helpers/size_utils';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 import Renderer from '../infra/renderers/Renderer';
 import StringArt from '../infra/StringArt';
 import Polygon from '../shapes/Polygon';
@@ -300,7 +300,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     return (this.calc ?? this.getCalc(options)).totalNailsCount;
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     for (let layer = 0; layer < this.calc.layersCount; layer++) {
       const { polygon } = this.calc.layers[layer];
       polygon.drawNails(nails, {

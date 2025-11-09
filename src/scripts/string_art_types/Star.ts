@@ -7,7 +7,7 @@ import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 interface StarConfig {
   sides: number;
@@ -267,7 +267,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     }
   }
 
-  drawNails(nails: INails): void {
+  drawNails(nails: NailsSetter): void {
     this.calc.circle.drawNails(nails);
     this.calc.star.drawNails(nails, {
       getUniqueKey: k => this.calc.circle.config.n + k,

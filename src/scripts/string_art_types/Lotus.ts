@@ -15,7 +15,7 @@ import {
   getCenter,
 } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -455,7 +455,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     }
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     const { renderCenter, density } = this.config;
     const {
       circles,

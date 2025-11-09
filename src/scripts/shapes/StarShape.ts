@@ -7,12 +7,12 @@ import {
   formatFractionAsAngle,
   formatFractionAsPercent,
 } from '../helpers/string_utils';
-import type Shape from './Shape';
+import Shape from './Shape';
 import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
-import INails from '../infra/nails/INails';
-import { ShapeNailsOptions } from './Shape';
+import NailsSetter from '../infra/nails/NailsSetter';
+import { ShapeConfig } from './Shape';
 
-export interface StarShapeConfig {
+export type StarShapeConfig = ShapeConfig & {
   sideNails: number;
   sides: number;
   maxCurveSize?: number;
@@ -22,14 +22,16 @@ export interface StarShapeConfig {
   size?: Dimensions;
   radius?: number;
   sidesCenterRadiusShift?: number[];
-}
+};
 
-export default class StarShape implements Shape {
+export default class StarShape extends Shape {
   config: StarShapeConfig;
   center: Coordinates;
   calc: ReturnType<typeof StarShape.getCalc>;
 
   constructor(config: StarShapeConfig) {
+    super(config);
+
     this.setConfig(config);
   }
 
@@ -122,22 +124,20 @@ export default class StarShape implements Shape {
    * Given a Nails instance, uses it to draw the nails of this Circle
    */
   drawNails(
-    nails: INails,
+    nails: NailsSetter,
     {
       reverseOrder,
-      getUniqueKey,
     }: // excludeSides,
-    ShapeNailsOptions &
-      Partial<{
-        reverseOrder?: boolean;
-      }> = {}
+    Partial<{
+      reverseOrder?: boolean;
+    }> = {}
   ): void {
     const { sides, sideNails, centerRadius } = this.config;
     const renderCenterNail = centerRadius == null || centerRadius === 0;
     let nailIndex = 0;
     if (renderCenterNail) {
       nails.addNail(
-        getUniqueKey?.(nailIndex) ?? nailIndex,
+        this.getUniqueKey?.(nailIndex) ?? nailIndex,
         this.getSidePoint(0, 0)
       );
       nailIndex++;
@@ -147,7 +147,7 @@ export default class StarShape implements Shape {
       for (let i = renderCenterNail ? 1 : 0; i < sideNails; i++) {
         const sideIndex = reverseOrder ? sideNails - i : i;
         nails.addNail(
-          getUniqueKey?.(nailIndex) ?? nailIndex,
+          this.getUniqueKey?.(nailIndex) ?? nailIndex,
           this.getSidePoint(side, sideIndex)
         );
         nailIndex++;

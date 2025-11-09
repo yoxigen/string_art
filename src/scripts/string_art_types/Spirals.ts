@@ -13,7 +13,7 @@ import { createArray } from '../helpers/array_utils';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import easing from '../helpers/easing';
 import NailsGroup from '../infra/nails/NailsGroup';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 interface SpiralsConfig extends ColorConfig {
   // radiusIncrease: number;
@@ -200,7 +200,7 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return (nailsPerSpiral - 1) * nSpirals;
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     const points = this.generatePoints();
     let i = 0;
     for (const [side, index] of points) {

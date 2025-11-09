@@ -15,7 +15,7 @@ import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 import NailsGroup from '../infra/nails/NailsGroup';
 import Nails from '../infra/nails/Nails';
 

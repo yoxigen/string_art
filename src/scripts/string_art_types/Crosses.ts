@@ -15,7 +15,7 @@ import { getShapesBoundingRect } from '../helpers/shape_utils';
 import { createArray } from '../helpers/array_utils';
 import { PI2 } from '../helpers/math_utils';
 import { getCenter } from '../helpers/size_utils';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 type CrossesOrientation = 'v' | 'h';
 
@@ -664,7 +664,8 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         to.reverse();
       }
 
-      return new Line({ from, to, n });
+      const lineStartIndex = index * n;
+      return new Line({ from, to, n, getUniqueKey: k => lineStartIndex + k });
     }
 
     const verticalLines = createArray(4, getVerticalLine);
@@ -719,6 +720,10 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       const startLength = getHorizontalLineLength(row, 0);
       const endLength = getHorizontalLineLength(row, 1);
 
+      const horizontalLinesIndexStart = n * 4;
+      const firstRowIndexStart = horizontalLinesIndexStart + n * row * 2;
+      const secondRowIndexStart = horizontalLinesIndexStart + n * (row * 2 + 1);
+
       return [
         new Line({
           ...getRowLineRotationConfig(row, 0),
@@ -733,6 +738,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
                 to: [rowTop, horizontalStart + startLength],
                 n,
               }),
+          getUniqueKey: k => firstRowIndexStart + k,
         }),
         new Line({
           ...getRowLineRotationConfig(row, 1),
@@ -747,6 +753,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
                 to: [rowTop, horizontalEnd - endLength],
                 n,
               }),
+          getUniqueKey: k => secondRowIndexStart + k,
         }),
       ];
     });
@@ -890,20 +897,12 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     );
   }
 
-  drawNails(nails: INails) {
-    this.calc.verticalLines.forEach((line, i) =>
-      line.drawNails(nails, {
-        getUniqueKey: k => this.#getVerticalNailKey(i, k),
-      })
-    );
+  drawNails(nails: NailsSetter) {
+    this.calc.verticalLines.forEach((line, i) => line.drawNails(nails));
 
     this.calc.horizontalLines.forEach(([startLine, endLine], row) => {
-      startLine.drawNails(nails, {
-        getUniqueKey: k => this.#getHorizontalNailKey(row, 0, k),
-      });
-      endLine.drawNails(nails, {
-        getUniqueKey: k => this.#getHorizontalNailKey(row, 1, k),
-      });
+      startLine.drawNails(nails);
+      endLine.drawNails(nails);
     });
   }
 

@@ -4,11 +4,8 @@ import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../infra/nails/Nails';
 import { PI2 } from '../helpers/math_utils';
-import { formatFractionAsPercent } from '../helpers/string_utils';
-import NailsGroup from '../infra/nails/NailsGroup';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 import { createArray } from '../helpers/array_utils';
 
 const LAYER_DEFAULTS = [
@@ -154,20 +151,18 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
   getCalc({ size }: CalcOptions) {
     const { rotation, n, margin = 0, distortion } = this.config;
 
+    const lineNailCount = Math.round(n / PI2);
     const circleConfig: CircleConfig = {
       size,
       n,
       margin,
       rotation: rotation - 0.25,
       distortion,
+      getUniqueKey: k => lineNailCount + k,
     };
 
     const circle = new Circle(circleConfig);
-
-    const circleDistanceBetweenPoints = (PI2 * circle.radius) / n;
-
     const lineSize = circle.radius;
-    const lineNailCount = Math.round(lineSize / circleDistanceBetweenPoints);
     const lineSpacing = lineSize / lineNailCount;
     const firstCirclePoint = circle.getPoint(0);
     const totalNailCount = lineNailCount + n;
@@ -278,13 +273,11 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     }
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     for (let i = 0; i < this.calc.lineNailCount; i++) {
       nails.addNail(i, this.getPoint(i));
     }
-    this.calc.circle.drawNails(nails, {
-      getUniqueKey: k => this.calc.lineNailCount + k,
-    });
+    this.calc.circle.drawNails(nails);
   }
 
   getStepCount(options: CalcOptions): number {

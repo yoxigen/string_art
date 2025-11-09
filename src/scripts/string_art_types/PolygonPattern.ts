@@ -5,7 +5,7 @@ import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 interface PolygonPatternConfig extends ColorConfig {
   sides: number;
@@ -162,7 +162,7 @@ export default class PolygonPattern extends StringArt<
     return sides * n;
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     this.calc.polygon.drawNails(nails);
   }
 

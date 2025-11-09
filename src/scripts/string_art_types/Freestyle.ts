@@ -11,7 +11,7 @@ import {
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 import { createArray } from '../helpers/array_utils';
 
 interface FreestyleConfig {
@@ -265,7 +265,7 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
     }
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     this.calc.layers.forEach(({ circle }, i) =>
       circle.drawNails(nails, { getUniqueKey: k => 1e3 * i + k })
     );

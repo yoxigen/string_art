@@ -11,7 +11,7 @@ import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import { Dimensions } from '../types/general.types';
 import { createArray } from '../helpers/array_utils';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 export interface FlowerConfig extends ColorConfig {
   sides: number;
@@ -173,7 +173,7 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     }
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     let startIndex = 0;
 
     this.calc.polygons.forEach((polygon, i) => {
