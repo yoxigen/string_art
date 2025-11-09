@@ -90,6 +90,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
         minLightness: 40,
         maxLightness: 50,
         colorCount: 2,
+        repeatColors: true,
       },
       customControls: [
         {
@@ -101,7 +102,6 @@ class Eye extends StringArt<EyeConfig, TCalc> {
           affectsNails: false,
         },
       ],
-      exclude: ['colorCount', 'repeatColors'],
     }),
   ];
 
@@ -182,7 +182,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
       const layerSize = 2 * radius * Math.sin(Math.PI / sides);
 
-      let layerSideNailCount = Math.trunc(layerSize / nailSpacing);
+      let layerSideNailCount = Math.ceil(layerSize / nailSpacing);
 
       if (angle === 1 && !(layerSideNailCount % 2)) {
         layerSideNailCount--;
@@ -235,11 +235,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
   setUpDraw(options: CalcOptions) {
     super.setUpDraw(options);
-    this.color = new Color({
-      ...this.config,
-      repeatColors: true,
-      colorCount: 2,
-    });
+    this.color = new Color(this.config);
   }
 
   getAspectRatio(): number {
