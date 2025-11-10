@@ -13,11 +13,8 @@ export type LineConfig = ShapeConfig & {
   n: number;
   rotation?: number;
   rotationCenter?: Coordinates | LinePosition;
-};
-
-export type LineNailOptions = {
-  startIndex?: number;
-  endIndex?: number;
+  drawStartIndex?: number;
+  drawEndIndex?: number;
 };
 
 export class Line extends Shape {
@@ -107,13 +104,14 @@ export class Line extends Shape {
   }
 
   getNailIndex(index: number): number {
-    return this.getUniqueKey?.(index) ?? index;
+    const realIndex = index - (this.config.drawStartIndex ?? 0);
+    return this.getUniqueKey?.(realIndex) ?? realIndex;
   }
 
-  drawNails(
-    nails: NailsSetter,
-    { startIndex = 0, endIndex }: LineNailOptions = {}
-  ): void {
+  drawNails(nails: NailsSetter): void {
+    const { drawStartIndex: startIndex = 0, drawEndIndex: endIndex } =
+      this.config;
+
     const lastIndex = endIndex ?? this.config.n;
     for (let i = startIndex; i < lastIndex; i++) {
       const index = i - startIndex;
