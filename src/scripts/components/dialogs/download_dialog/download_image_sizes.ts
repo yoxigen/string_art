@@ -78,6 +78,7 @@ export const DOWNLOAD_IMAGE_SIZES: ReadonlyArray<DownloadSizeType> = [
   {
     id: 'custom',
     name: 'Custom size…',
+    units: ['px', 'cm', 'inch'],
     dimensions: ({ customDimensions, currentDimensions }) =>
       currentDimensions ?? customDimensions ?? DEFAULT_DIMENSIONS,
     allowSizeEdit: true,

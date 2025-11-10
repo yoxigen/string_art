@@ -198,15 +198,6 @@ export default class DownloadDialog extends HTMLElement {
 
     this.#toggleNailNumbers(type === 'nails_map');
 
-    const transparentBackgroundBlock = this.shadowRoot.querySelector(
-      '#transparent_background_block'
-    ) as HTMLDivElement;
-    if (type === 'nails_map') {
-      hide(transparentBackgroundBlock);
-    } else {
-      unHide(transparentBackgroundBlock);
-    }
-
     if (updatePreview) {
       this.updatePreview();
     }
@@ -231,11 +222,9 @@ export default class DownloadDialog extends HTMLElement {
     const formValues = this.getFormValues();
 
     return (
-      formValues.type !== 'nails_map' &&
       IMAGE_TYPES_WITH_TRANSPARENT_BACKGROUND.includes(
         String(formValues.format)
-      ) &&
-      formValues.transparent_background === 'on'
+      ) && formValues.transparent_background === 'on'
     );
   }
 
@@ -666,7 +655,7 @@ export default class DownloadDialog extends HTMLElement {
             showStrings: false,
             nailsColor: '#000000',
             backgroundColor: '#ffffff',
-            enableBackground: true,
+            enableBackground: !this.isTransparentBackground,
           }
         : {
             enableBackground: !this.isTransparentBackground,
