@@ -38,7 +38,6 @@ interface TCalc {
   centerCircle?: Circle;
   center: Coordinates;
   excludedNailRange: [number, number];
-  circlesNailKeyStart: number[];
 }
 
 export default class Lotus extends StringArt<LotusConfig, TCalc> {
@@ -223,15 +222,22 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       rotation,
     });
 
-    const circles = createArray(
-      sides,
-      i =>
-        new Circle({
-          ...baseCircleConfig,
-          center: helperCircle.getPoint(i),
-          rotation: rotation - i / sides,
-        })
-    );
+    const nailsCountBeforeCircles = renderCenter
+      ? centerRadiusPercent
+        ? sides
+        : 1
+      : 0;
+
+    const circles = createArray(sides, i => {
+      const circleIndexStart = nailsCountBeforeCircles + baseCircleConfig.n * i;
+
+      return new Circle({
+        ...baseCircleConfig,
+        center: helperCircle.getPoint(i),
+        rotation: rotation - i / sides,
+        getUniqueKey: k => circleIndexStart + k,
+      });
+    });
 
     const sections = getSectionsCount(sides);
     const nailsPerSection = Math.floor(
@@ -252,12 +258,6 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       excludedNailRange = [innerSectionNailsStart, innerSectionNailsEnd];
     }
 
-    const nailsCountBeforeCircles = renderCenter
-      ? centerRadiusPercent
-        ? sides
-        : 1
-      : 0;
-
     const calc: TCalc = {
       circles,
       sideAngle,
@@ -269,10 +269,6 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       nailsPerCircle: baseCircleConfig.n,
       center,
       excludedNailRange,
-      circlesNailKeyStart: createArray(
-        sides,
-        i => nailsCountBeforeCircles + baseCircleConfig.n * i
-      ),
     };
 
     if (renderCenter && centerRadiusPercent) {
@@ -351,38 +347,32 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     section: number
   ): Generator<void> {
     const { sides } = this.config;
-    const {
-      circlesNailKeyStart,
-      sections,
-      nailsPerSection,
-      nailsPerCircle,
-      removedSections,
-      centerCircle,
-    } = this.calc;
+    const { sections, nailsPerSection, nailsPerCircle, removedSections } =
+      this.calc;
 
     const color = this.#getPatchColor(circleIndex, section);
-    const circleStart = circlesNailKeyStart[circleIndex];
+    const circle = this.calc.circles[circleIndex];
+    const prevCircle =
+      this.calc.circles[circleIndex === 0 ? sides - 1 : circleIndex - 1];
 
     renderer.setColor(color);
-
-    const prevCircleIndex = circleIndex === 0 ? sides - 1 : circleIndex - 1;
-    const prevCircleIndexStart = circlesNailKeyStart[prevCircleIndex];
 
     if (section === 0) {
       // For first section (outtermost): connectPoint is `prevCircle[sideAngle * 2]
       const connectPoint: Coordinates = this.nails.getNailCoordinates(
-        prevCircleIndexStart + nailsPerSection * 2
+        prevCircle.getNailKey(nailsPerSection * 2)
       );
+
       for (let i = nailsPerCircle - nailsPerSection; i < nailsPerCircle; i++) {
         renderer.renderLine(
-          this.nails.getNailCoordinates(circleStart + i),
+          this.nails.getNailCoordinates(circle.getNailKey(i)),
           connectPoint
         );
         yield;
       }
       for (let i = 0; i <= nailsPerSection; i++) {
         renderer.renderLine(
-          this.nails.getNailCoordinates(circleStart + i),
+          this.nails.getNailCoordinates(circle.getNailKey(i)),
           connectPoint
         );
         yield;
@@ -396,22 +386,25 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
           ? this.nails.getNailCoordinates(circleIndex)
           : this.nails.getNailCoordinates('C')
         : this.nails.getNailCoordinates(
-            prevCircleIndexStart +
+            prevCircle.getNailKey(
               nailsPerSection * (section + 2 - removedSections) -
-              (sides % 2 && section === sections - 2 ? nailsPerSection / 2 : 0)
+                (sides % 2 && section === sections - 2
+                  ? nailsPerSection / 2
+                  : 0)
+            )
           );
-      const firstCircleIndex = (circleIndex + section) % sides;
-      const firstCircleIndexStart = circlesNailKeyStart[firstCircleIndex];
+      const firstCircle = this.calc.circles[(circleIndex + section) % sides];
 
       const firstCircleStart =
-        firstCircleIndexStart +
         nailsPerCircle -
         (section + 1 - removedSections) * nailsPerSection -
         (removedSections ? 1 : 0);
 
       for (let i = 0; i <= nailsPerSection; i++) {
         renderer.renderLine(
-          this.nails.getNailCoordinates(firstCircleStart + i),
+          this.nails.getNailCoordinates(
+            firstCircle.getNailKey(firstCircleStart + i)
+          ),
           connectPoint
         );
         yield;
@@ -420,7 +413,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       const startIndex = (section - removedSections) * nailsPerSection + 1;
       for (let i = startIndex; i < startIndex + nailsPerSection; i++) {
         renderer.renderLine(
-          this.nails.getNailCoordinates(circleStart + i),
+          this.nails.getNailCoordinates(circle.getNailKey(i)),
           connectPoint
         );
         yield;
@@ -457,13 +450,8 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
 
   drawNails(nails: NailsSetter) {
     const { renderCenter, density } = this.config;
-    const {
-      circles,
-      centerCircle,
-      excludedNailRange,
-      circlesNailKeyStart,
-      nailsPerSection,
-    } = this.calc;
+    const { circles, centerCircle, excludedNailRange, nailsPerSection } =
+      this.calc;
 
     if (renderCenter) {
       if (centerCircle) {
@@ -475,7 +463,6 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
 
     circles.forEach((circle, i) => {
       circle.drawNails(nails, {
-        getUniqueKey: k => circlesNailKeyStart[i] + k,
         filter: excludedNailRange
           ? (circleNailIndex: number) => {
               if (

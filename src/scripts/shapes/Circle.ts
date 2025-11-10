@@ -89,6 +89,10 @@ export default class Circle extends Shape {
     return (this.isReverse ? this.config.n - 1 - index : index) % this.config.n;
   }
 
+  getNailKey(index: number): number {
+    return this.getUniqueKey?.(index) ?? index;
+  }
+
   getAspectRatio(): number {
     if (!this.config.distortion) {
       return 1;
