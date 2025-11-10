@@ -301,7 +301,7 @@ export default class StarShape extends Shape {
     isStructural: true,
   };
 
-  static centerRadiusConfig: Readonly<ControlConfig<StarShapeConfig>> = {
+  static centerRadiusConfig = {
     key: 'centerRadius',
     label: 'Center radius',
     defaultValue: 0,
@@ -332,7 +332,7 @@ export default class StarShape extends Shape {
     affectsStepCount: false,
   };
 
-  static StarConfig: Readonly<ControlsConfig<StarShapeConfig>> = [
+  static StarConfig = [
     StarShape.nailsConfig,
     StarShape.sidesConfig,
     StarShape.centerRadiusConfig,

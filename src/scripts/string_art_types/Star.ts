@@ -54,6 +54,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       attr: { min: 1, max: 200, step: 1 },
       isStructural: true,
     },
+    // @ts-ignore
     StarShape.centerRadiusConfig,
     {
       key: 'ringSize',
@@ -148,6 +149,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       ...this.config,
       radius: circle.radius,
       size,
+      getUniqueKey: k => circleConfig.n + k,
     };
 
     return {
@@ -269,9 +271,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
 
   drawNails(nails: NailsSetter): void {
     this.calc.circle.drawNails(nails);
-    this.calc.star.drawNails(nails, {
-      getUniqueKey: k => this.calc.circle.config.n + k,
-    });
+    this.calc.star.drawNails(nails);
   }
 
   getStepCount(options: CalcOptions): number {
