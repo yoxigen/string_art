@@ -5,7 +5,7 @@ import { ColorConfig } from '../helpers/color/color.types';
 import { ControlsConfig } from '../types/config.types';
 import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 export interface MandalaConfig extends ColorConfig {
   n: number;
@@ -40,7 +40,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       label: 'Number of nails',
       defaultValue: 180,
       type: 'range',
-      attr: { min: 3, max: 240, step: 1 },
+      attr: { min: 3, max: 400, step: 1 },
       isStructural: true,
     },
     {
@@ -87,6 +87,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       distortion,
       margin,
       reverse,
+      base,
     } = this.config;
     const extraNails = nConfig % layers;
     const n = nConfig - extraNails; // The number of nails should be a multiple of the layers, so the strings are exactly on the nails.
@@ -103,7 +104,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     return {
       n,
       stringsPerLayer: layerFill ? Math.floor(n * layerFill) : n,
-      layerShift: Math.floor(n / layers),
+      layerShift: Math.floor(n / layers / (base % 2 ? 2 : 1)),
       circle: new Circle(circleConfig),
     };
   }
@@ -126,24 +127,31 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
 
   *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
     const { reverse, base } = this.config;
-    const { n, layerShift, stringsPerLayer } = this.calc;
+    const { n, layerShift, stringsPerLayer, circle } = this.calc;
+    const direction = reverse ? 1 : -1;
 
-    const shift = layerShift * layerIndex * (reverse ? 1 : -1);
+    const shift = layerShift * layerIndex * direction;
     const color = this.color.getColor(layerIndex);
     renderer.setColor(color);
+    renderer.setStartingPoint(
+      this.nails.getNailCoordinates(circle.getNailKey(shift))
+    );
 
-    let point = this.calc.circle.getPoint(shift);
+    for (let i = 1; i < stringsPerLayer; i += 2) {
+      const multipliedIndex = ((i * base) % n) + shift;
+      const positions = [
+        i + shift,
+        multipliedIndex,
+        multipliedIndex + base,
+        i + shift + 1,
+      ];
 
-    for (let i = 1; i <= stringsPerLayer; i++) {
-      const startPoint = point;
-      point = this.calc.circle.getPoint(i + shift);
-      const toIndex = (i * base) % n;
-      renderer.renderLine(startPoint, point);
-
-      yield;
-
-      renderer.renderLine(point, this.calc.circle.getPoint(toIndex + shift));
-      yield;
+      for (const position of positions) {
+        renderer.lineTo(
+          this.nails.getNailCoordinates(circle.getNailKey(position))
+        );
+        yield;
+      }
     }
   }
 
@@ -155,7 +163,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     }
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     this.calc.circle.drawNails(nails);
   }
 
@@ -163,7 +171,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     const { layers, layerFill } = this.config;
     const { n } = this.getCalc(options);
     const stringsPerLayer = layerFill ? Math.floor(n * layerFill) : n;
-    return (layers ?? 1) * stringsPerLayer * 2;
+    return (layers ?? 1) * (2 * (stringsPerLayer - 1));
   }
 
   getNailCount(): number {

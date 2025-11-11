@@ -7,7 +7,7 @@ import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 interface StarConfig {
   sides: number;
@@ -54,6 +54,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       attr: { min: 1, max: 200, step: 1 },
       isStructural: true,
     },
+    // @ts-ignore
     StarShape.centerRadiusConfig,
     {
       key: 'ringSize',
@@ -148,6 +149,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       ...this.config,
       radius: circle.radius,
       size,
+      getUniqueKey: k => circleConfig.n + k,
     };
 
     return {
@@ -267,11 +269,9 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     }
   }
 
-  drawNails(nails: INails): void {
+  drawNails(nails: NailsSetter): void {
     this.calc.circle.drawNails(nails);
-    this.calc.star.drawNails(nails, {
-      getUniqueKey: k => this.calc.circle.config.n + k,
-    });
+    this.calc.star.drawNails(nails);
   }
 
   getStepCount(options: CalcOptions): number {

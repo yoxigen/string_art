@@ -6,9 +6,9 @@ import {
 } from '../../types/stringart.types';
 import NailsGroup from './NailsGroup';
 import { Coordinates } from '../../types/general.types';
-import INails from './INails';
+import NailsSetter from './NailsSetter';
 
-export default class Nails implements INails {
+export default class Nails implements NailsSetter {
   #groups: Map<NailGroupKey, NailsGroup>;
   #defaultNailsGroup: NailsGroup;
 

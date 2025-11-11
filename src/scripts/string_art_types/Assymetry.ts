@@ -4,12 +4,11 @@ import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../infra/nails/Nails';
 import { PI2 } from '../helpers/math_utils';
-import { formatFractionAsPercent } from '../helpers/string_utils';
-import NailsGroup from '../infra/nails/NailsGroup';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 import { createArray } from '../helpers/array_utils';
+import { Line } from '../shapes/Line';
+import { getCenter } from '../helpers/size_utils';
 
 const LAYER_DEFAULTS = [
   { start: 0.25, end: 1, color: '#a94fb0' },
@@ -53,6 +52,7 @@ interface Layer {
 
 interface TCalc {
   circle: Circle;
+  line: Line;
   lineSpacing: number;
   lineNailCount: number;
   firstCirclePoint: Coordinates;
@@ -154,20 +154,20 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
   getCalc({ size }: CalcOptions) {
     const { rotation, n, margin = 0, distortion } = this.config;
 
+    const lineNailCount = Math.round(n / PI2);
+    const center = getCenter(size);
     const circleConfig: CircleConfig = {
       size,
+      center,
       n,
       margin,
       rotation: rotation - 0.25,
       distortion,
+      getUniqueKey: k => lineNailCount + k,
     };
 
     const circle = new Circle(circleConfig);
-
-    const circleDistanceBetweenPoints = (PI2 * circle.radius) / n;
-
     const lineSize = circle.radius;
-    const lineNailCount = Math.round(lineSize / circleDistanceBetweenPoints);
     const lineSpacing = lineSize / lineNailCount;
     const firstCirclePoint = circle.getPoint(0);
     const totalNailCount = lineNailCount + n;
@@ -176,8 +176,15 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
       ({ enable }) => enable
     );
 
+    const line = new Line({
+      from: center,
+      to: circle.getPoint(0),
+      n: lineNailCount + 1,
+      drawEndIndex: lineNailCount,
+    });
     return {
       circle,
+      line,
       lineSpacing,
       lineNailCount,
       firstCirclePoint,
@@ -205,29 +212,6 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
         enable: this.config['show' + layerIndex],
         isReverse: this.config['reverse' + layerIndex],
       };
-    }
-  }
-
-  /**
-   * Returns the position of a point on the line
-   */
-  getPoint(index: number): Coordinates {
-    if (index < this.calc.lineNailCount || index > this.calc.totalNailCount) {
-      const linePosition =
-        index < this.calc.lineNailCount
-          ? this.calc.lineNailCount - index
-          : index - this.calc.totalNailCount;
-
-      const indexLength = linePosition * this.calc.lineSpacing;
-      return [
-        this.calc.firstCirclePoint[0] -
-          indexLength * Math.sin(this.calc.circle.rotationAngle),
-        this.calc.firstCirclePoint[1] -
-          indexLength * Math.cos(this.calc.circle.rotationAngle),
-      ];
-    } else {
-      const circleIndex = index - this.calc.lineNailCount;
-      return this.calc.circle.getPoint(circleIndex);
     }
   }
 
@@ -278,13 +262,9 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     }
   }
 
-  drawNails(nails: INails) {
-    for (let i = 0; i < this.calc.lineNailCount; i++) {
-      nails.addNail(i, this.getPoint(i));
-    }
-    this.calc.circle.drawNails(nails, {
-      getUniqueKey: k => this.calc.lineNailCount + k,
-    });
+  drawNails(nails: NailsSetter) {
+    this.calc.line.drawNails(nails);
+    this.calc.circle.drawNails(nails);
   }
 
   getStepCount(options: CalcOptions): number {
@@ -296,9 +276,11 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
   }
 
   getNailCount(size: Dimensions): number {
-    const calc = this.getCalc({
-      size,
-    });
+    const calc =
+      this.calc ??
+      this.getCalc({
+        size,
+      });
     return calc.circle.config.n + calc.lineNailCount;
   }
 

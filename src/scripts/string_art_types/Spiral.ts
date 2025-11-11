@@ -10,7 +10,7 @@ import {
 import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import { withoutAttribute } from '../helpers/config_utils';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -43,9 +43,8 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
 
   id = 'spiral';
   name = 'Spiral';
-  link =
-    'https://www.etsy.com/il-en/listing/840974781/boho-wall-decor-artwork-spiral-round';
   controls: ControlsConfig<SpiralConfig> = [
+    // @ts-ignore
     {
       ...Circle.nailsConfig,
       defaultValue: 200,
@@ -134,15 +133,15 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
     let currentInnerLength = Math.round(innerLength * n);
     let repetitionCount = 0;
     renderer.setColor(color);
+    renderer.setStartingPoint(this.nails.getNailCoordinates(shift));
+
     let prevPointIndex = shift;
-    let prevPoint = this.calc.circle.getPoint(prevPointIndex);
     let isPrevPoint = false;
 
     for (let i = 0; currentInnerLength > 0; i++) {
       if (this.#colorMap) {
-        const stepColor = this.#colorMap.get(i);
-        if (stepColor) {
-          renderer.setColor(stepColor);
+        if (this.#colorMap.has(i)) {
+          renderer.setColor(this.#colorMap.get(i));
         }
       }
 
@@ -158,10 +157,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
         repetitionCount++;
       }
 
-      const nextPoint = this.calc.circle.getPoint(prevPointIndex);
-
-      renderer.renderLine(prevPoint, nextPoint);
-      prevPoint = nextPoint;
+      renderer.lineTo(this.nails.getNailCoordinates(prevPointIndex % n));
 
       yield;
       isPrevPoint = !isPrevPoint;
@@ -179,7 +175,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
     return Math.round(n * (innerLength * 2) * repetition);
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     this.calc.circle.drawNails(nails);
   }
 

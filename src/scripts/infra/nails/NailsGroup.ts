@@ -1,8 +1,8 @@
 import { Coordinates } from '../../types/general.types';
 import { NailKey, NailsRenderOptions } from '../../types/stringart.types';
-import INails from './INails';
+import NailsSetter from './NailsSetter';
 
-export default class NailsGroup implements INails {
+export default class NailsGroup implements NailsSetter {
   #nails: Map<NailKey, Coordinates>;
 
   constructor(public options?: Partial<NailsRenderOptions>) {

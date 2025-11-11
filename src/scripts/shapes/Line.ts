@@ -1,26 +1,23 @@
 import { PI2 } from '../helpers/math_utils';
 import { mapDimensions } from '../helpers/size_utils';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 import { BoundingRect, Coordinates } from '../types/general.types';
-import type Shape from './Shape';
-import { ShapeNailsOptions } from './Shape';
+import Shape from './Shape';
+import { ShapeConfig } from './Shape';
 
 type LinePosition = 'center' | 'from' | 'to';
 
-export interface LineConfig {
+export type LineConfig = ShapeConfig & {
   from: Coordinates;
   to: Coordinates;
   n: number;
   rotation?: number;
   rotationCenter?: Coordinates | LinePosition;
-}
-
-export type LineNailOptions = ShapeNailsOptions & {
-  startIndex?: number;
-  endIndex?: number;
+  drawStartIndex?: number;
+  drawEndIndex?: number;
 };
 
-export class Line implements Shape {
+export class Line extends Shape {
   config: LineConfig;
   from: Coordinates;
   to: Coordinates;
@@ -31,6 +28,8 @@ export class Line implements Shape {
   spaces: number;
 
   constructor(config: LineConfig) {
+    super(config);
+
     if (config.n < 1) {
       throw new Error(`Can't create a Line with n less than 1.`);
     }
@@ -104,15 +103,27 @@ export class Line implements Shape {
     );
   }
 
-  drawNails(
-    nails: INails,
-    { getUniqueKey, startIndex = 0, endIndex }: LineNailOptions = {}
-  ): void {
+  getNailIndex(index: number): number {
+    const realIndex = index - (this.config.drawStartIndex ?? 0);
+    return this.getUniqueKey?.(realIndex) ?? realIndex;
+  }
+
+  drawNails(nails: NailsSetter): void {
+    const { drawStartIndex: startIndex = 0, drawEndIndex: endIndex } =
+      this.config;
+
     const lastIndex = endIndex ?? this.config.n;
     for (let i = startIndex; i < lastIndex; i++) {
       const index = i - startIndex;
-      nails.addNail(getUniqueKey?.(index) ?? index, this.getPoint(i));
+      nails.addNail(this.getUniqueKey?.(index) ?? index, this.getPoint(i));
     }
+  }
+
+  getNailCount(): number {
+    const lastIndexCount = this.config.drawEndIndex
+      ? this.config.drawEndIndex + 1
+      : this.config.n;
+    return lastIndexCount - (this.config.drawStartIndex ?? 0);
   }
 
   getBoundingRect(): BoundingRect {

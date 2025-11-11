@@ -12,7 +12,7 @@ import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Nails from '../infra/nails/Nails';
 import NailsGroup from '../infra/nails/NailsGroup';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 export interface MaurerRoseConfig extends ColorConfig {
   n: number;
@@ -160,27 +160,20 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     return point;
   }
 
-  *generatePoints(): Generator<number> {
+  *generatePoints(start = 0): Generator<number> {
     const count = this.getStepCount();
 
-    for (let i = 0; i < count + 1; i++) {
+    for (let i = start; i < count + 1; i++) {
       yield i;
     }
   }
 
   *drawStrings(renderer: Renderer): Generator<void> {
-    const points = this.generatePoints();
+    const points = this.generatePoints(1);
 
-    let prevPoint: Coordinates;
     renderer.setColor(this.color.getColor(0));
-
+    renderer.setStartingPoint(this.nails.getNailCoordinates(0));
     for (const index of points) {
-      const point = this.nails.getNailCoordinates(index);
-      if (!prevPoint) {
-        prevPoint = point;
-        continue;
-      }
-
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
@@ -188,8 +181,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
         }
       }
 
-      renderer.renderLine(prevPoint, point);
-      prevPoint = point;
+      renderer.lineTo(this.nails.getNailCoordinates(index));
 
       yield;
     }
@@ -210,7 +202,7 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     return Math.round(steps);
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     const points = this.generatePoints();
     for (const index of points) {
       nails.addNail(index, this.getPoint(index));

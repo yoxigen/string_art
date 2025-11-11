@@ -17,7 +17,8 @@ import {
   formatFractionAsPercent,
 } from '../helpers/string_utils';
 import { Dimensions } from '../types/general.types';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
+import { ShapeConfig } from '../shapes/Shape';
 
 type ShapeType = 'circle' | 'polygon';
 
@@ -228,6 +229,7 @@ export default class DanceOfPlanets extends StringArt<
       sides,
       rotation = 0,
       distortion,
+      getUniqueKey,
     }: {
       type: ShapeType;
       diameter?: number;
@@ -235,6 +237,7 @@ export default class DanceOfPlanets extends StringArt<
       sides?: number;
       rotation?: number;
       distortion?: number;
+      getUniqueKey?: ShapeConfig['getUniqueKey'];
     }): Shape {
       if (type === 'circle') {
         return new Circle({
@@ -246,6 +249,7 @@ export default class DanceOfPlanets extends StringArt<
           reverse: true,
           rotation,
           distortion,
+          getUniqueKey,
         });
       } else {
         sides = sides ?? 3;
@@ -258,6 +262,7 @@ export default class DanceOfPlanets extends StringArt<
           center,
           margin,
           rotation,
+          getUniqueKey,
         });
       }
     }
@@ -291,6 +296,7 @@ export default class DanceOfPlanets extends StringArt<
       sides: this.config.shape2Sides,
       rotation: this.config.shape2Rotation,
       distortion: this.config.shape2Distortion,
+      getUniqueKey: k => k + shape1NailCount,
     });
 
     return {
@@ -391,11 +397,9 @@ export default class DanceOfPlanets extends StringArt<
     return calc.shape1NailCount + calc.shape2NailCount;
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     this.calc.shape1.drawNails(nails);
-    this.calc.shape2.drawNails(nails, {
-      getUniqueKey: k => k + this.calc.shape1NailCount,
-    });
+    this.calc.shape2.drawNails(nails);
   }
 
   #getShapeNailCount(

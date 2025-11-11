@@ -20,7 +20,7 @@ import {
   getCenter,
 } from '../helpers/size_utils';
 import NailsGroup from '../infra/nails/NailsGroup';
-import INails from '../infra/nails/INails';
+import NailsSetter from '../infra/nails/NailsSetter';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;
@@ -406,7 +406,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     yield* this.generateLayers(renderer);
   }
 
-  drawNails(nails: INails) {
+  drawNails(nails: NailsSetter) {
     const { backdropSize, backdropNailsColor, backdropNailsRadius } =
       this.config;
 
