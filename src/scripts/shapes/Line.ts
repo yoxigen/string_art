@@ -119,6 +119,13 @@ export class Line extends Shape {
     }
   }
 
+  getNailCount(): number {
+    const lastIndexCount = this.config.drawEndIndex
+      ? this.config.drawEndIndex + 1
+      : this.config.n;
+    return lastIndexCount - (this.config.drawStartIndex ?? 0);
+  }
+
   getBoundingRect(): BoundingRect {
     const { from, to } = this;
 

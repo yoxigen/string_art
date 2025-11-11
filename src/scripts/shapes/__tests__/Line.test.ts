@@ -39,4 +39,50 @@ describe('Line', () => {
       });
     });
   });
+
+  describe('getNailCount', () => {
+    test('regular count', () => {
+      const line = new Line({
+        from: [0, 1],
+        to: [2, 3],
+        n: 4,
+      });
+
+      expect(line.getNailCount()).toEqual(4);
+    });
+
+    test('with start index', () => {
+      const line = new Line({
+        from: [0, 1],
+        to: [2, 3],
+        n: 4,
+        drawStartIndex: 2,
+      });
+
+      expect(line.getNailCount()).toEqual(2);
+    });
+
+    test('with end index', () => {
+      const line = new Line({
+        from: [0, 1],
+        to: [2, 3],
+        n: 4,
+        drawEndIndex: 2,
+      });
+
+      expect(line.getNailCount()).toEqual(3);
+    });
+
+    test('with start and end index', () => {
+      const line = new Line({
+        from: [0, 1],
+        to: [2, 3],
+        n: 10,
+        drawStartIndex: 1,
+        drawEndIndex: 8,
+      });
+
+      expect(line.getNailCount()).toEqual(8);
+    });
+  });
 });
