@@ -52,7 +52,7 @@ async function main() {
   let currentPattern: Pattern;
   let showInfo = false;
 
-  const viewer = new Viewer();
+  const viewer = (window['viewer'] = new Viewer());
   const player = new Player(document.querySelector('#player'), viewer);
 
   await initServiceWorker();

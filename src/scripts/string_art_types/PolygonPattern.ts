@@ -58,7 +58,7 @@ export default class PolygonPattern extends StringArt<
       defaultValue: 60,
       type: 'range',
       attr: {
-        min: 1,
+        min: 2,
         max: 100,
         step: 1,
       },
@@ -190,22 +190,6 @@ export default class PolygonPattern extends StringArt<
       this.nails.getNailCoordinates(this.calc.polygon.getSideNailIndex(0, 0))
     );
     yield;
-    // for (let side = 0; side < sides; side++) {
-    //   const nextSide = (side + limitedBezier) % sides;
-
-    //   if (this.colorMap) {
-    //     renderer.setColor(this.colorMap.get(step));
-    //   }
-    //   for (let index = 0; index < this.config.n; index++) {
-    //     renderer.renderLine(
-    //       this.calc.polygon.getSidePoint({ side, index }),
-    //       this.calc.polygon.getSidePoint({ side: nextSide, index })
-    //     );
-
-    //     yield;
-    //     step++;
-    //   }
-    // }
   }
 
   getStepCount() {
