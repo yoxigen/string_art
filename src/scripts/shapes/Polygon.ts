@@ -268,17 +268,30 @@ export default class Polygon extends Shape {
     };
   }
 
-  getPoint(index: number): Coordinates {
+  #getPositionForIndex(index: number): { side: number; index: number } {
     const { nailsPerSide } = this.config;
 
     const position = index / nailsPerSide;
     const side = Math.floor(position);
     const sideIndex = index % nailsPerSide;
 
-    return this.getSidePoint({ side, index: sideIndex });
+    return { side, index: sideIndex };
   }
 
-  getSideNailIndex(side: number, index: number): number {
+  getPoint(index: number): Coordinates {
+    return this.getSidePoint(this.#getPositionForIndex(index));
+  }
+
+  getSideNailIndex(index: number): number;
+  getSideNailIndex(side: number, index: number): number;
+
+  getSideNailIndex(side: number, index?: number): number {
+    if (index == undefined) {
+      // overload where the index is for the whole polygon
+      const position = this.#getPositionForIndex(side);
+      return this.#calc.sideLines[position.side].getNailIndex(position.index);
+    }
+
     return this.#calc.sideLines[side].getNailIndex(index);
   }
 
