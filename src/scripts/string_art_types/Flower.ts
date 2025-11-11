@@ -216,7 +216,7 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
 
   getStepCount(): number {
     const { sides, n, layers } = this.config;
-    return layers * sides * (3 + 3 * (n - 1));
+    return layers * sides * (3 + 3 * (n - 2));
   }
 
   getNailCount(size: Dimensions): number {
