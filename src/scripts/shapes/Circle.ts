@@ -43,7 +43,6 @@ export type CircleNailsOptions = {
 };
 
 export default class Circle extends Shape {
-  points: Map<number, Coordinates>;
   easingFunction: Function;
   config: CircleConfig;
   center: Coordinates;
@@ -64,10 +63,6 @@ export default class Circle extends Shape {
   getPoint(index: number): Coordinates {
     const realIndex = this.#getNailIndex(index);
 
-    if (this.points.has(index)) {
-      return this.points.get(index);
-    }
-
     const angle =
       this.easingFunction(
         realIndex / (this.config.n - (this.isPartialArc ? 1 : 0))
@@ -81,12 +76,15 @@ export default class Circle extends Shape {
       this.center[1] + Math.cos(angle) * this.xyRadius[1],
     ];
 
-    this.points.set(index, point);
     return point;
   }
 
   #getNailIndex(index = 0): number {
-    return (this.isReverse ? this.config.n - 1 - index : index) % this.config.n;
+    const withReverse = this.isReverse ? this.config.n - 1 - index : index;
+    return (
+      (withReverse < 0 ? this.config.n + withReverse : withReverse) %
+      this.config.n
+    );
   }
 
   getNailKey(index: number): number {
@@ -197,11 +195,6 @@ export default class Circle extends Shape {
       this.easingFunction = easingFunctionWithParams;
       this.config = config;
       Object.assign(this, props);
-      if (this.points) {
-        this.points.clear();
-      } else {
-        this.points = new Map();
-      }
     }
   }
 

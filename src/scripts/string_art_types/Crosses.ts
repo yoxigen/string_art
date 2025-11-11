@@ -796,10 +796,12 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     }
   ): Generator<void> {
     const { n } = this.config;
+    const { verticalLines, horizontalLines } = this.calc;
+    const rowLines = horizontalLines[row];
 
     renderer.setColor(color);
     renderer.setStartingPoint(
-      this.nails.getNailCoordinates(this.#getHorizontalNailKey(row, 0, 0))
+      this.nails.getNailCoordinates(rowLines[0].getNailIndex(0))
     );
 
     let alternate = false;
@@ -808,22 +810,22 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     for (let i = 0; i < n; i++) {
       if (side != null) {
         renderer.lineTo(
-          this.nails.getNailCoordinates(
-            this.#getHorizontalNailKey(row, side, i)
-          )
+          this.nails.getNailCoordinates(rowLines[side].getNailIndex(i))
         );
         yield;
       }
       renderer.lineTo(
         this.nails.getNailCoordinates(
-          this.#getVerticalNailKey(verticalLineIndex, isReverse ? i : n - 1 - i)
+          verticalLines[verticalLineIndex].getNailIndex(
+            isReverse ? i : n - 1 - i
+          )
         )
       );
       yield;
 
       side = alternate ? 0 : 1;
       renderer.lineTo(
-        this.nails.getNailCoordinates(this.#getHorizontalNailKey(row, side, i))
+        this.nails.getNailCoordinates(rowLines[side].getNailIndex(i))
       );
       yield;
 
@@ -832,7 +834,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
   }
 
   *drawStrings(renderer: Renderer) {
-    const { setCenterColor, centerColor, isMultiColor } = this.config;
+    const { setCenterColor, centerColor } = this.config;
 
     const connections = [
       [0, 0],
@@ -885,24 +887,13 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     return this.config.n * 10;
   }
 
-  #getVerticalNailKey(lineIndex: number, index: number): number {
-    return lineIndex * this.config.n + index;
-  }
-
-  #getHorizontalNailKey(row: number, side: number, index: number): number {
-    return (
-      this.calc.horizontalLinesIndexStart +
-      this.config.n * (row * 2 + side) +
-      index
-    );
-  }
-
   drawNails(nails: NailsSetter) {
     this.calc.verticalLines.forEach((line, i) => line.drawNails(nails));
 
-    this.calc.horizontalLines.forEach(([startLine, endLine], row) => {
-      startLine.drawNails(nails);
-      endLine.drawNails(nails);
+    this.calc.horizontalLines.forEach(sideLines => {
+      for (const line of sideLines) {
+        line.drawNails(nails);
+      }
     });
   }
 
