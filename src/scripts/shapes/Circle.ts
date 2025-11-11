@@ -90,7 +90,8 @@ export default class Circle extends Shape {
   }
 
   getNailKey(index: number): number {
-    return this.getUniqueKey?.(index) ?? index;
+    const realIndex = this.#getNailIndex(index);
+    return this.getUniqueKey?.(realIndex) ?? realIndex;
   }
 
   getAspectRatio(): number {
