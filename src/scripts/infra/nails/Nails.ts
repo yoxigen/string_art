@@ -28,6 +28,14 @@ export default class Nails implements NailsSetter {
     this.#groups.set(key, nailsGroup);
   }
 
+  getGroup(groupKey: NailGroupKey): NailsGroup {
+    if (!this.#groups.has(groupKey)) {
+      throw new Error(`Nails group '${groupKey}' not found.`);
+    }
+
+    return this.#groups.get(groupKey);
+  }
+
   getNailCoordinates(
     nailKey: NailKey,
     groupKey: NailGroupKey = null

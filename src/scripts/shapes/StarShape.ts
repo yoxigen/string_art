@@ -11,6 +11,7 @@ import Shape from './Shape';
 import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from './Shape';
+import Layer from '../infra/Layer';
 
 export type StarShapeConfig = ShapeConfig & {
   sideNails: number;
@@ -67,6 +68,8 @@ export default class StarShape extends Shape {
       sidesCenterRadius: sidesCenterRadiusShift
         ? sidesCenterRadiusShift.map(v => centerRadius * v)
         : null,
+      hasCenterNail: !centerRadius,
+      sidesNailCount: centerRadius ? sideNails : sideNails - 1,
     };
   }
 
@@ -89,6 +92,15 @@ export default class StarShape extends Shape {
       this.center[0] + sinSideAngle * radius,
       this.center[1] + cosSideAngle * radius,
     ];
+  }
+
+  getSideNailKey(side: number, index: number): number {
+    if (index === 0 && this.calc.hasCenterNail) {
+      return this.config.getUniqueKey?.(0) ?? 0;
+    }
+
+    const nailIndex = side * this.calc.sidesNailCount + index;
+    return this.config.getUniqueKey?.(nailIndex) ?? nailIndex;
   }
 
   setConfig(config: StarShapeConfig) {
@@ -132,10 +144,9 @@ export default class StarShape extends Shape {
       reverseOrder?: boolean;
     }> = {}
   ): void {
-    const { sides, sideNails, centerRadius } = this.config;
-    const renderCenterNail = centerRadius == null || centerRadius === 0;
+    const { sides, sideNails } = this.config;
     let nailIndex = 0;
-    if (renderCenterNail) {
+    if (this.calc.hasCenterNail) {
       nails.addNail(
         this.getUniqueKey?.(nailIndex) ?? nailIndex,
         this.getSidePoint(0, 0)
@@ -144,7 +155,7 @@ export default class StarShape extends Shape {
     }
 
     for (let side = 0; side < sides; side++) {
-      for (let i = renderCenterNail ? 1 : 0; i < sideNails; i++) {
+      for (let i = this.calc.hasCenterNail ? 1 : 0; i < sideNails; i++) {
         const sideIndex = reverseOrder ? sideNails - i : i;
         nails.addNail(
           this.getUniqueKey?.(nailIndex) ?? nailIndex,
@@ -167,10 +178,7 @@ export default class StarShape extends Shape {
   // The threading is: star at the center (or centerRadius, if > 0), then next side at the edge (outtermost nail) or the size param which represents the count of nails to use,
   // then back to the center for the next side,   // until all sides have been connected both center and edge (for odd-side-count stars) or until all sides have been
   // connected (for odd-side-count), then move up one nail from the center and start another round.
-  *drawStrings(
-    renderer: Renderer,
-    { size }: { size?: number } = {}
-  ): Generator<void> {
+  *#genDirections({ size }: { size?: number } = {}): Generator<number> {
     const { sideNails: sideNailsConfig, sides } = this.config;
     const { sidesConnectionCount, linesPerRound } = this.calc;
 
@@ -188,7 +196,7 @@ export default class StarShape extends Shape {
         : sideNails - minNailIndex;
 
     let prevPointIndex = minNailIndex;
-    let prevPoint = this.getSidePoint(0, prevPointIndex);
+    yield this.getSideNailKey(0, minNailIndex);
 
     for (let round = 0; round < rounds; round++) {
       const isLastRound = round === rounds - 1;
@@ -200,10 +208,7 @@ export default class StarShape extends Shape {
         prevPointIndex = alternate
           ? sideNails - round - 1
           : round + minNailIndex;
-        const nextPoint = this.getSidePoint(side, prevPointIndex);
-        renderer.renderLine(prevPoint, nextPoint);
-        prevPoint = nextPoint;
-        yield;
+        yield this.getSideNailKey(side, prevPointIndex);
 
         if (isLastRound && i === sides - 1 && sides % 2 && sideNails % 2) {
           break;
@@ -212,11 +217,15 @@ export default class StarShape extends Shape {
 
       if (!isLastRound) {
         prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
-        const nextPoint = this.getSidePoint(0, prevPointIndex);
-        renderer.renderLine(prevPoint, nextPoint);
-        prevPoint = nextPoint;
+        yield this.getSideNailKey(0, prevPointIndex);
       }
     }
+  }
+
+  getLayer(options?: { size?: number }): Layer {
+    return {
+      directions: this.#genDirections(options),
+    };
   }
 
   getStepCount(size?: number) {
@@ -246,7 +255,7 @@ export default class StarShape extends Shape {
 
     const linesPerRound = sides % 2 ? sides * 2 : sides;
     const isOdd = sides % 2 && sideNails % 2;
-    return rounds * linesPerRound - (isOdd ? sides : 0);
+    return rounds * (linesPerRound + 1) - (isOdd ? sides : 0) - 1;
   }
 
   getBoundingRect(): BoundingRect {

@@ -4,14 +4,11 @@ import { ColorConfig, ColorMap, ColorValue } from './color.types';
 import COLOR_CONTROLS from './color_controls';
 
 export default class Color {
-  config: ColorConfig;
   multiColorStep: number;
   multiColorLightnessStep: number;
   colors: Array<ColorValue>;
 
-  constructor(config: ColorConfig) {
-    this.config = config;
-
+  constructor(public config: ColorConfig) {
     const {
       multicolorRange,
       colorCount,

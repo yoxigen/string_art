@@ -18,6 +18,7 @@ import { Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Controller from './Controller';
 import NailsSetter from './nails/NailsSetter';
+import Layer from './Layer';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -443,6 +444,50 @@ abstract class StringArt<
     return () => {
       this.#controller?.abort('Cancelled');
     };
+  }
+
+  protected *drawLayer(
+    renderer: Renderer,
+    nails: Nails,
+    layer: Layer
+  ): Generator<void> {
+    const nailsGroup = layer.nailsGroup
+      ? nails.getGroup(layer.nailsGroup)
+      : nails;
+
+    if (layer.color) {
+      renderer.setColor(layer.color);
+    }
+
+    const firstNailResult = layer.directions.next();
+    if (firstNailResult.done) {
+      console.warn(
+        `Layer ${layer.name ? `"${layer.name} "` : ''} has no directions.`
+      );
+    }
+
+    renderer.setStartingPoint(
+      nailsGroup.getNailCoordinates(firstNailResult.value)
+    );
+
+    for (const nailKey of layer.directions) {
+      const coordinates =
+        typeof nailKey === 'object'
+          ? nails.getGroup(nailKey.group).getNailCoordinates(nailKey.nail)
+          : nailsGroup.getNailCoordinates(nailKey);
+      renderer.lineTo(coordinates);
+      yield;
+    }
+  }
+
+  protected *drawLayers(
+    renderer: Renderer,
+    nails: Nails,
+    layers: Iterable<Layer>
+  ): Generator<void> {
+    for (const layer of layers) {
+      yield* this.drawLayer(renderer, nails, layer);
+    }
   }
 
   /**

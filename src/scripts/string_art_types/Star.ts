@@ -6,8 +6,9 @@ import { withoutAttribute } from '../helpers/config_utils';
 import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
-import { CalcOptions } from '../types/stringart.types';
+import { CalcOptions, NailKey } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Layer from '../infra/Layer';
 
 interface StarConfig {
   sides: number;
@@ -180,22 +181,26 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     );
   }
 
-  *drawStar(renderer: Renderer): Generator<void> {
+  getStarLayer(): Layer {
     const { innerColor, isSingleColor } = this.config;
 
-    if (!isSingleColor) {
-      renderer.setColor(innerColor);
-    }
-    yield* this.calc.star.drawStrings(renderer);
+    return {
+      color: !isSingleColor ? innerColor : null,
+      ...this.calc.star.getLayer(),
+    };
   }
 
-  *drawCircle(renderer: Renderer): Generator<void> {
-    const { outerColor, sides, sideNails, isSingleColor } = this.config;
+  getCircleLayer(): Layer {
+    return {
+      color: !this.config.isSingleColor ? this.config.outerColor : null,
+      directions: this.#genCircleDirections(),
+    };
+  }
+
+  *#genCircleDirections(): Generator<NailKey> {
+    const { sides, sideNails } = this.config;
     const { star } = this.calc;
 
-    if (!isSingleColor) {
-      renderer.setColor(outerColor);
-    }
     let alternate = false;
     let isStar = false;
 
@@ -203,7 +208,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     let side = 0;
     const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
 
-    renderer.setStartingPoint(star.getSidePoint(0, 0));
+    yield star.getSideNailKey(0, 0);
 
     for (let round = 0; round < rounds; round++) {
       const isLastRound = round === rounds - 1;
@@ -219,13 +224,10 @@ export default class Star extends StringArt<StarConfig, TCalc> {
           sideIndex: alternate ? sideNails - round - 1 : round,
         };
 
-        const nextPoint = isStar
-          ? star.getSidePoint(pointPosition.side, pointPosition.sideIndex)
-          : this.getArcPoint(pointPosition);
+        yield isStar
+          ? star.getSideNailKey(pointPosition.side, pointPosition.sideIndex)
+          : pointPosition.side * (sideNails - 1) + pointPosition.sideIndex;
 
-        renderer.lineTo(nextPoint);
-
-        yield;
         isStar = !isStar;
 
         if (isStar) {
@@ -234,14 +236,11 @@ export default class Star extends StringArt<StarConfig, TCalc> {
         }
       }
       if (!isLastRound) {
-        renderer.lineTo(star.getSidePoint(0, round + 1));
-        yield;
+        yield star.getSideNailKey(0, round + 1);
         isStar = false;
         alternate = false;
       }
     }
-
-    renderer.endLayer();
   }
 
   *drawStrings(renderer: Renderer): Generator<void> {
@@ -256,17 +255,17 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       renderer.setColor(singleColor);
     }
 
-    yield* this.drawCircle(renderer);
+    const layers = [
+      this.getCircleLayer(),
+      ringSize !== 0 &&
+        this.calc.circle.getRingLayer({
+          ringSize,
+          color: isSingleColor ? null : ringColor,
+        }),
+      renderStar && this.getStarLayer(),
+    ].filter(Boolean);
 
-    if (ringSize !== 0) {
-      yield* this.calc.circle.drawRing(renderer, {
-        ringSize,
-        color: isSingleColor ? null : ringColor,
-      });
-    }
-    if (renderStar) {
-      yield* this.drawStar(renderer);
-    }
+    yield* this.drawLayers(renderer, this.nails, layers);
   }
 
   drawNails(nails: NailsSetter): void {

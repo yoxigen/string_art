@@ -11,6 +11,8 @@ import Shape from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from './Shape';
+import Layer from '../infra/Layer';
+import { NailKey } from '../types/stringart.types';
 
 export type CircleConfig = ShapeConfig & {
   n: number;
@@ -211,45 +213,42 @@ export default class Circle extends Shape {
     }
   }
 
-  *drawRing(
-    renderer: Renderer,
-    { ringSize, color }: { ringSize: number; color?: ColorValue }
-  ): Generator<void> {
+  *#genRingDirections(ringDistance: number): Generator<NailKey> {
     const { n } = this.config;
-    const ringDistance = Math.floor(ringSize * n);
 
-    let prevPoint: Coordinates;
-    let prevPointIndex = 0;
+    let targetIndex = 0;
     let isPrevSide = false;
-    if (color) {
-      renderer.setColor(color);
-    }
+
+    yield this.getNailKey(0);
 
     for (let i = 0; i < n; i++) {
-      if (!prevPoint) {
-        prevPoint = this.getPoint(0);
-      }
+      targetIndex = isPrevSide ? i : targetIndex + ringDistance;
 
-      const startPoint = prevPoint;
-      const positions: Array<Coordinates> = [];
-      prevPointIndex = isPrevSide ? i : prevPointIndex + ringDistance;
-      prevPoint = this.getPoint(prevPointIndex);
-      positions.push(prevPoint);
-
-      renderer.renderLine(startPoint, prevPoint);
-      yield;
+      yield this.getNailKey(targetIndex);
 
       if (i < n - 1) {
-        prevPointIndex++;
-        const nextPoint = this.getPoint(prevPointIndex);
-        renderer.renderLine(prevPoint, nextPoint);
-        yield;
-        prevPoint = nextPoint;
-        positions.push(prevPoint);
+        targetIndex++;
+        yield this.getNailKey(targetIndex);
       }
 
       isPrevSide = !isPrevSide;
     }
+  }
+
+  getRingLayer({
+    ringSize,
+    color,
+  }: {
+    ringSize: number;
+    color?: ColorValue;
+  }): Layer {
+    const { n } = this.config;
+    const ringDistance = Math.floor(ringSize * n);
+
+    return {
+      color,
+      directions: this.#genRingDirections(ringDistance),
+    };
   }
 
   getRingStepCount(): number {

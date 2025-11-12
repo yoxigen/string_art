@@ -20,9 +20,9 @@ describe('StarShape', () => {
         ...config,
         size,
       });
-      const drawGen = star.drawStrings(renderer);
-      let drawCount = 0;
-      while (!drawGen.next().done) {
+      const directions = star.getLayer().directions;
+      let drawCount = -1; // The first direction isn't a step, it's a starting point
+      while (!directions.next().done) {
         drawCount++;
       }
 

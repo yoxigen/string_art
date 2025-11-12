@@ -745,10 +745,12 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     }
 
     if (renderRing && ringSize) {
-      yield* this.calc.ringCircle.drawRing(renderer, {
+      const ringLayer = this.calc.ringCircle.getRingLayer({
         ringSize: ringSize / 2,
         color: ringColor,
       });
+      ringLayer.nailsGroup = 'ring';
+      yield* this.drawLayer(renderer, this.nails, ringLayer);
     }
   }
 

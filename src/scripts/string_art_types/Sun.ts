@@ -13,7 +13,7 @@ import type {
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { Coordinates } from '../types/general.types';
 import Renderer from '../infra/renderers/Renderer';
-import { CalcOptions } from '../types/stringart.types';
+import { CalcOptions, NailGroupKey, NailKey } from '../types/stringart.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
@@ -21,6 +21,8 @@ import {
 } from '../helpers/size_utils';
 import NailsGroup from '../infra/nails/NailsGroup';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Layer from '../infra/Layer';
+import { createArray } from '../helpers/array_utils';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;
@@ -342,68 +344,91 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     return getBoundingRectAspectRatio(boundingRect);
   }
 
-  *drawStar(renderer: Renderer, size?: number): Generator<void> {
-    yield* this.calc.star.drawStrings(renderer, { size });
+  getStarLayer(size?: number): Layer {
+    return this.calc.star.getLayer({ size });
   }
 
-  *generateLayers(renderer: Renderer): Generator<void> {
-    const { layers } = this.config;
-
-    for (let layer = 0; layer < layers; layer++) {
-      const color = this.#color.getColor(layer);
-      renderer.setColor(color);
-
-      const layerSize = this.#getLayerSize(layer);
-      yield* this.drawStar(renderer, layerSize);
-    }
+  getStarLayers(): Layer[] {
+    return createArray(this.config.layers, layerIndex => ({
+      color: this.#color.getColor(layerIndex),
+      ...this.calc.star.getLayer({ size: this.#getLayerSize(layerIndex) }),
+    }));
   }
 
-  *drawBackdrop(renderer: Renderer): Generator<void> {
+  *genBackdropLayers(): Generator<Layer> {
     // For each side, add a nail between two star sides, at the specified backdropRadius.
     // For the backdrop size, connect the nail to the number of points in the star for the two sides near the backdrop nail
 
     const { backdropNails, circle, star } = this.calc;
-    const { sides, backdropShift, sideNails, backdropSkip } = this.config;
+    const {
+      sides,
+      backdropShift,
+      sideNails,
+      backdropSkip,
+      backdropIsMultiColor,
+      backdropColorCount,
+    } = this.config;
 
     const shouldSkip = backdropSkip && sides > 3;
-    let prevPoint: Coordinates;
     let currentSide = 0;
     const shift = Math.floor(backdropShift * (sideNails - backdropNails));
 
     let currentSideIndex = shift + backdropNails - 1;
 
-    for (let side = 0; side < sides; side++) {
-      renderer.setColor(this.#backdropColor.getColor(side % 2 ? 0 : 1));
-      const backdropPoint = circle.getPoint(
-        shouldSkip ? (side + 1) % sides : side
-      );
+    function* genSideDirections(
+      side: number
+    ): Generator<NailKey | { group: NailGroupKey; nail: NailKey }> {
       let alternate = false;
       const direction = side % 2 ? 1 : -1; // 1 if backdrop threading starts at the bottom and goes up, -1 if it goes down
-      prevPoint = star.getSidePoint(side, currentSideIndex);
+      yield star.getSideNailKey(side, currentSideIndex);
+
+      const backdropNailKey = {
+        group: 'backdrop',
+        nail: circle.getNailKey(shouldSkip ? (side + 1) % sides : side),
+      };
 
       for (let i = 0; i < backdropNails; i++) {
-        renderer.renderLine(prevPoint, backdropPoint);
-        yield;
+        yield backdropNailKey;
 
         currentSide = (alternate ? side : side + (shouldSkip ? 3 : 1)) % sides;
-        prevPoint = star.getSidePoint(currentSide, currentSideIndex);
-        renderer.renderLine(backdropPoint, prevPoint);
-        yield;
+        yield star.getSideNailKey(currentSide, currentSideIndex);
 
         if (i < backdropNails - 1) {
           alternate = !alternate;
           currentSideIndex += direction;
-          const nextPoint = star.getSidePoint(currentSide, currentSideIndex);
-          renderer.renderLine(prevPoint, nextPoint);
-          prevPoint = nextPoint;
+          yield star.getSideNailKey(currentSide, currentSideIndex);
         }
+      }
+    }
+
+    function* genAllSidesDirections(): Generator<
+      NailKey | { group: NailGroupKey; nail: NailKey }
+    > {
+      for (let side = 0; side < sides; side++) {
+        yield* genSideDirections(side);
+      }
+    }
+
+    if (!backdropIsMultiColor || backdropColorCount === 1) {
+      yield {
+        color: this.#backdropColor.getColor(0),
+        directions: genAllSidesDirections(),
+        name: 'backdrop',
+      };
+    } else {
+      for (let side = 0; side < sides; side++) {
+        yield {
+          color: this.#backdropColor.getColor(side % 2 ? 0 : 1),
+          directions: genSideDirections(side),
+          name: `backdrop_${side}`,
+        };
       }
     }
   }
 
   *drawStrings(renderer: Renderer) {
-    yield* this.drawBackdrop(renderer);
-    yield* this.generateLayers(renderer);
+    yield* this.drawLayers(renderer, this.nails, this.genBackdropLayers());
+    yield* this.drawLayers(renderer, this.nails, this.getStarLayers());
   }
 
   drawNails(nails: NailsSetter) {
@@ -435,7 +460,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     const { layers, sides } = this.config;
     const { backdropNails } = this.getCalc(options);
 
-    const backdropStepCount = sides * backdropNails * 2;
+    const backdropStepCount = sides * (backdropNails * 3 - 1);
 
     let stepCount = backdropStepCount;
     for (let layer = 0; layer < layers; layer++) {
