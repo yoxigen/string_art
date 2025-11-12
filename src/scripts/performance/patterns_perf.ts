@@ -6,6 +6,15 @@ import { Dimensions } from '../types/general.types';
 import { TestRenderer } from '../infra/renderers/TestRenderer';
 import { getAllPatternsTypes } from '../helpers/pattern_utils';
 
+const COLORS = {
+  green: '\x1b[32m',
+  red: '\x1b[31m',
+  white: '\x1b[37m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[36m',
+  gray: '\x1b[90m',
+};
+
 export interface PatternPerfResult {
   stepCount: number;
   runsPerSecond: number;
@@ -17,9 +26,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const logFile: string = path.join(__dirname, 'pattern_run_times.csv');
+let previousData: Map<string, number>;
 
 // Clear the file before running tests
 if (fs.existsSync(logFile)) {
+  const data = fs.readFileSync(logFile, 'utf8');
+  const rows = data
+    .trim()
+    .split('\n')
+    .map(line => line.split(','));
+
+  previousData = new Map();
+  rows.slice(1).forEach(row => {
+    previousData.set(row[0], Number(row[3]));
+  });
   fs.unlinkSync(logFile);
 }
 
@@ -39,12 +59,18 @@ patterns.forEach((pattern, i) => {
     longestPatternNameLength,
     '_'
   )} [${String(i + 1).padStart(2, '0')}/${patterns.length}]`;
-  process.stdout.write('\x1b[37m' + patternStr + ' \x1b[36m(working...)');
-  const result = measurePattern(pattern);
   process.stdout.write(
-    `\r\x1b[37m${patternStr} ${getTimeColor(result.time)}${String(
+    COLORS.white + patternStr + COLORS.blue + ' (working...)'
+  );
+  const result = measurePattern(pattern);
+
+  process.stdout.write(
+    `\r${COLORS.white}${patternStr} ${getTimeColor(result.time)}${String(
       Math.trunc(result.time)
-    ).padStart(5)} ms               \n`
+    ).padStart(5)} ms  ${getChangeText(
+      previousData?.get(pattern.name),
+      result.time
+    )}             \n`
   );
   patternTimes.push([
     pattern.name,
@@ -54,18 +80,45 @@ patterns.forEach((pattern, i) => {
   ]);
 });
 
-function getTimeColor(time: number): string {
-  if (time < 800) {
-    return '\x1b[32m';
-  }
-  if (time > 8000) {
-    return '\x1b[31m';
-  }
-  if (time > 4000) {
-    return '\x1b[33m';
+function getChangeText(
+  previousTime: number | null,
+  currentTime: number
+): string {
+  if (previousTime == null) {
+    return '';
   }
 
-  return '\x1b[37m';
+  const change = Math.round((currentTime / previousTime - 1) * 100);
+  const color =
+    change < -5
+      ? COLORS.green
+      : change > 8
+      ? COLORS.red
+      : change > 5
+      ? COLORS.yellow
+      : COLORS.gray;
+
+  return `${color}(${
+    change > 0
+      ? `${change}% slower`
+      : change < 0
+      ? `${Math.abs(change)}% faster`
+      : 'no change'
+  })`;
+}
+
+function getTimeColor(time: number): string {
+  if (time < 800) {
+    return COLORS.green;
+  }
+  if (time > 8000) {
+    return COLORS.red;
+  }
+  if (time > 4000) {
+    return COLORS.yellow;
+  }
+
+  return COLORS.white;
 }
 
 const CSV =
