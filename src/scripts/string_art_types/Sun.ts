@@ -21,7 +21,7 @@ import {
 } from '../helpers/size_utils';
 import NailsGroup from '../infra/nails/NailsGroup';
 import NailsSetter from '../infra/nails/NailsSetter';
-import Layer from '../infra/Layer';
+import type { Layer } from '../infra/Layer';
 import { createArray } from '../helpers/array_utils';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
@@ -59,7 +59,9 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
       children: [
         ...insertAfter<SunConfig>(
           [
+            // @ts-ignore
             ...StarShape.StarConfig,
+            // @ts-ignore
             Color.getConfig({
               defaults: {
                 isMultiColor: true,
@@ -414,6 +416,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
         color: this.#backdropColor.getColor(0),
         directions: genAllSidesDirections(),
         name: 'backdrop',
+        hasMultipleNailGroups: true,
       };
     } else {
       for (let side = 0; side < sides; side++) {
@@ -421,6 +424,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
           color: this.#backdropColor.getColor(side % 2 ? 0 : 1),
           directions: genSideDirections(side),
           name: `backdrop_${side}`,
+          hasMultipleNailGroups: true,
         };
       }
     }

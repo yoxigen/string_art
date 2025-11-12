@@ -11,7 +11,7 @@ import Shape from './Shape';
 import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from './Shape';
-import Layer from '../infra/Layer';
+import type { Layer } from '../infra/Layer';
 
 export type StarShapeConfig = ShapeConfig & {
   sideNails: number;

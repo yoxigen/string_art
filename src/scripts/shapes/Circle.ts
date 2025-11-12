@@ -11,7 +11,7 @@ import Shape from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from './Shape';
-import Layer from '../infra/Layer';
+import type { Layer } from '../infra/Layer';
 import { NailKey } from '../types/stringart.types';
 
 export type CircleConfig = ShapeConfig & {
@@ -271,7 +271,7 @@ export default class Circle extends Shape {
     affectsStepCount: false,
   };
 
-  static nailsConfig: Readonly<ControlConfig<CircleConfig>> = {
+  static nailsConfig: Readonly<ControlConfig<{ n: number }>> = {
     key: 'n',
     label: 'Number of nails',
     defaultValue: 144,

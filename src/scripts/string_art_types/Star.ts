@@ -8,7 +8,7 @@ import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions, NailKey } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
-import Layer from '../infra/Layer';
+import type { Layer } from '../infra/Layer';
 
 interface StarConfig {
   sides: number;

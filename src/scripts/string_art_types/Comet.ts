@@ -212,7 +212,7 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     return (this.config.n - layerRingDistance + 1) * 2 - 1;
   }
 
-  *drawLayer(renderer: Renderer, layerIndex = 0): Generator<void> {
+  *#drawLayer(renderer: Renderer, layerIndex = 0): Generator<void> {
     const { n } = this.config;
     const ringDistance = this.getLayerRingDistance(layerIndex);
     const stepCount = n - ringDistance + 1;
@@ -235,7 +235,7 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
 
   *drawStrings(renderer: Renderer) {
     for (let layer = 0; layer < this.config.layers; layer++) {
-      yield* this.drawLayer(renderer, layer);
+      yield* this.#drawLayer(renderer, layer);
     }
   }
 

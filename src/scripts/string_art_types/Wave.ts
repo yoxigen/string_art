@@ -99,7 +99,7 @@ export default class Wave extends Mandala<WaveConfig> {
     const { layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      yield* this.drawLayer(renderer, layer);
+      yield* this.drawMultiplicationLayer(renderer, layer);
     }
   }
 }

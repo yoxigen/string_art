@@ -18,7 +18,7 @@ import { Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Controller from './Controller';
 import NailsSetter from './nails/NailsSetter';
-import Layer from './Layer';
+import type { Layer } from './Layer';
 
 const COLORS = {
   dark: '#0e0e0e',
@@ -470,13 +470,20 @@ abstract class StringArt<
       nailsGroup.getNailCoordinates(firstNailResult.value)
     );
 
-    for (const nailKey of layer.directions) {
-      const coordinates =
-        typeof nailKey === 'object'
-          ? nails.getGroup(nailKey.group).getNailCoordinates(nailKey.nail)
-          : nailsGroup.getNailCoordinates(nailKey);
-      renderer.lineTo(coordinates);
-      yield;
+    if ('hasMultipleNailGroups' in layer) {
+      for (const nailKey of layer.directions) {
+        const coordinates =
+          typeof nailKey === 'object'
+            ? nails.getGroup(nailKey.group).getNailCoordinates(nailKey.nail)
+            : nailsGroup.getNailCoordinates(nailKey);
+        renderer.lineTo(coordinates);
+        yield;
+      }
+    } else {
+      for (const nailKey of layer.directions) {
+        renderer.lineTo(nailsGroup.getNailCoordinates(nailKey));
+        yield;
+      }
     }
   }
 

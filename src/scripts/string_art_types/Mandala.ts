@@ -125,7 +125,10 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     return calc.circle.getAspectRatio();
   }
 
-  *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
+  protected *drawMultiplicationLayer(
+    renderer: Renderer,
+    layerIndex: number
+  ): Generator<void> {
     const { reverse, base } = this.config;
     const { n, layerShift, stringsPerLayer, circle } = this.calc;
     const direction = reverse ? 1 : -1;
@@ -159,7 +162,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     const { layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      yield* this.drawLayer(renderer, layer);
+      yield* this.drawMultiplicationLayer(renderer, layer);
     }
   }
 

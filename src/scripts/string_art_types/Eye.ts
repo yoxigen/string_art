@@ -269,7 +269,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     }
   }
 
-  *drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
+  *#drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
     const { colorPerLayer, sides } = this.config;
 
     for (let i = 0; i < sides; i++) {
@@ -283,7 +283,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
 
   *drawStrings(renderer: Renderer) {
     for (let layer = this.calc.layers.length - 1; layer >= 0; layer--) {
-      yield* this.drawLayer(renderer, layer);
+      yield* this.#drawLayer(renderer, layer);
     }
   }
 
