@@ -3,9 +3,9 @@ import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import { ColorConfig } from '../helpers/color/color.types';
 import { ControlsConfig } from '../types/config.types';
-import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Controller from '../infra/Controller';
 
 export interface MandalaConfig extends ColorConfig {
   n: number;
@@ -126,7 +126,7 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
   }
 
   protected *drawMultiplicationLayer(
-    renderer: Renderer,
+    controller: Controller,
     layerIndex: number
   ): Generator<void> {
     const { reverse, base } = this.config;
@@ -135,10 +135,8 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
 
     const shift = layerShift * layerIndex * direction;
     const color = this.color.getColor(layerIndex);
-    renderer.setColor(color);
-    renderer.setStartingPoint(
-      this.nails.getNailCoordinates(circle.getNailKey(shift))
-    );
+    controller.startLayer({ color, name: String(layerIndex) });
+    controller.goto(circle.getNailKey(shift));
 
     for (let i = 1; i < stringsPerLayer; i += 2) {
       const multipliedIndex = ((i * base) % n) + shift;
@@ -150,19 +148,17 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
       ];
 
       for (const position of positions) {
-        renderer.lineTo(
-          this.nails.getNailCoordinates(circle.getNailKey(position))
-        );
+        controller.stringTo(circle.getNailKey(position));
         yield;
       }
     }
   }
 
-  *drawStrings(renderer: Renderer): Generator<void> {
+  *drawStrings(controller: Controller): Generator<void> {
     const { layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      yield* this.drawMultiplicationLayer(renderer, layer);
+      yield* this.drawMultiplicationLayer(controller, layer);
     }
   }
 

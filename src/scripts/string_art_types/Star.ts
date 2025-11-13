@@ -3,12 +3,12 @@ import Circle, { CircleConfig } from '../shapes/Circle';
 import StarShape, { StarShapeConfig } from '../shapes/StarShape';
 import { ColorValue } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
-import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions, NailKey } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
 import type { Layer } from '../infra/Layer';
+import Controller from '../infra/Controller';
 
 interface StarConfig {
   sides: number;
@@ -243,7 +243,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     }
   }
 
-  *drawStrings(renderer: Renderer): Generator<void> {
+  *drawStrings(controller: Controller): Generator<void> {
     const {
       ringSize,
       ringColor,
@@ -252,7 +252,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       renderStar = true,
     } = this.config;
     if (isSingleColor) {
-      renderer.setColor(singleColor);
+      controller.startLayer({ color: singleColor });
     }
 
     const layers = [
@@ -265,7 +265,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       renderStar && this.getStarLayer(),
     ].filter(Boolean);
 
-    yield* this.drawLayers(renderer, this.nails, layers);
+    yield* controller.drawLayers(layers);
   }
 
   drawNails(nails: NailsSetter): void {

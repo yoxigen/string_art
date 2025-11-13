@@ -1,7 +1,6 @@
 import StringArt from '../infra/StringArt';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
-import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import {
@@ -16,6 +15,7 @@ import { createArray } from '../helpers/array_utils';
 import { PI2 } from '../helpers/math_utils';
 import { getCenter } from '../helpers/size_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Controller from '../infra/Controller';
 
 type CrossesOrientation = 'v' | 'h';
 
@@ -782,7 +782,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
   }
 
   private *connectLines(
-    renderer: Renderer,
+    controller: Controller,
     {
       verticalLineIndex,
       row,
@@ -799,41 +799,31 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     const { verticalLines, horizontalLines } = this.calc;
     const rowLines = horizontalLines[row];
 
-    renderer.setColor(color);
-    renderer.setStartingPoint(
-      this.nails.getNailCoordinates(rowLines[0].getNailIndex(0))
-    );
+    controller.startLayer({ color });
+    controller.goto(rowLines[0].getNailIndex(0));
 
     let alternate = false;
     let side: number;
 
     for (let i = 0; i < n; i++) {
       if (side != null) {
-        renderer.lineTo(
-          this.nails.getNailCoordinates(rowLines[side].getNailIndex(i))
-        );
+        controller.stringTo(rowLines[side].getNailIndex(i));
         yield;
       }
-      renderer.lineTo(
-        this.nails.getNailCoordinates(
-          verticalLines[verticalLineIndex].getNailIndex(
-            isReverse ? i : n - 1 - i
-          )
-        )
+      controller.stringTo(
+        verticalLines[verticalLineIndex].getNailIndex(isReverse ? i : n - 1 - i)
       );
       yield;
 
       side = alternate ? 0 : 1;
-      renderer.lineTo(
-        this.nails.getNailCoordinates(rowLines[side].getNailIndex(i))
-      );
+      controller.stringTo(rowLines[side].getNailIndex(i));
       yield;
 
       alternate = !alternate;
     }
   }
 
-  *drawStrings(renderer: Renderer) {
+  *drawStrings(controller: Controller) {
     const { setCenterColor, centerColor } = this.config;
 
     const connections = [
@@ -869,7 +859,7 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
         );
       }
 
-      yield* this.connectLines(renderer, {
+      yield* this.connectLines(controller, {
         verticalLineIndex,
         row: horizontalRow,
         isReverse,

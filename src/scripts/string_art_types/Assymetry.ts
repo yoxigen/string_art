@@ -1,14 +1,14 @@
 import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
-import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
-import { CalcOptions } from '../types/stringart.types';
+import { CalcOptions, NailKey } from '../types/stringart.types';
 import { PI2 } from '../helpers/math_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { createArray } from '../helpers/array_utils';
 import { Line } from '../shapes/Line';
 import { getCenter } from '../helpers/size_utils';
+import Controller from '../infra/Controller';
 
 const LAYER_DEFAULTS = [
   { start: 0.25, end: 1, color: '#a94fb0' },
@@ -215,36 +215,28 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     }
   }
 
-  #getCoordinatesForIndex(index: number): Coordinates {
-    const exceeds = index - (this.calc.totalNailCount - 1);
-    if (exceeds > 0) {
-      return this.nails.getNailCoordinates(
-        this.calc.lineNailCount - exceeds + 1
-      );
-    }
-
-    return this.nails.getNailCoordinates(index % this.calc.totalNailCount);
-  }
-
   *drawCircle(
-    renderer: Renderer,
+    controller: Controller,
     { endIndex, color, isReverse, start }
   ): Generator<void> {
+    const { lineNailCount, totalNailCount } = this.calc;
+    const lastNailIndex = totalNailCount - 1;
+
     let prevPointIndex: number;
     let isPrevSide = false;
-    renderer.setColor(color);
+    controller.startLayer({ color });
     const self = this;
     const advance = isReverse ? -1 : 1;
 
-    renderer.setStartingPoint(this.#getCoordinatesForIndex(getPointIndex(0)));
+    controller.goto(getCoordinatesForIndex(getPointIndex(0)));
 
     for (let index = 0; index <= endIndex; index++) {
       if (index) {
-        renderer.lineTo(this.#getCoordinatesForIndex(prevPointIndex + advance));
+        controller.stringTo(getCoordinatesForIndex(prevPointIndex + advance));
         yield;
       }
       prevPointIndex = getPointIndex(isPrevSide ? index : index + start);
-      renderer.lineTo(this.#getCoordinatesForIndex(prevPointIndex));
+      controller.stringTo(getCoordinatesForIndex(prevPointIndex));
 
       yield;
 
@@ -254,11 +246,20 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     function getPointIndex(index: number): number {
       return isReverse ? self.calc.totalIndexCount - index : index;
     }
+
+    function getCoordinatesForIndex(index: number): NailKey {
+      const exceeds = index - lastNailIndex;
+      if (exceeds > 0) {
+        return lineNailCount - exceeds + 1;
+      }
+
+      return index % totalNailCount;
+    }
   }
 
-  *drawStrings(renderer: Renderer) {
+  *drawStrings(controller: Controller) {
     for (const layer of this.calc.layers) {
-      yield* this.drawCircle(renderer, layer);
+      yield* this.drawCircle(controller, layer);
     }
   }
 

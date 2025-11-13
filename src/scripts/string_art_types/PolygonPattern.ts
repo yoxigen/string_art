@@ -2,10 +2,10 @@ import StringArt from '../infra/StringArt';
 import Polygon, { PolygonConfig } from '../shapes/Polygon';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
-import Renderer from '../infra/renderers/Renderer';
 import { Config, ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Controller from '../infra/Controller';
 
 interface PolygonPatternConfig extends ColorConfig {
   sides: number;
@@ -132,63 +132,47 @@ export default class PolygonPattern extends StringArt<
     return polygon.getAspectRatio();
   }
 
-  *drawStrings(renderer: Renderer) {
+  *drawStrings(controller: Controller) {
     const { sides, bezier, n } = this.config;
     const limitedBezier = Math.min(bezier, Math.ceil(sides / 2) - 1);
     const polygon = this.calc.polygon;
 
-    renderer.setColor(this.color.getColor(0));
-
-    renderer.setStartingPoint(
-      this.nails.getNailCoordinates(this.calc.polygon.getSideNailIndex(0, 0))
-    );
+    controller.goto(this.calc.polygon.getSideNailIndex(0, 0));
 
     for (let side = 0; side < sides; side++) {
       const nextSide = (side + limitedBezier) % sides;
 
-      renderer.setColor(this.color.getColor(side));
+      controller.startLayer({ color: this.color.getColor(side) });
 
       for (let i = 0; i < n - 1; i++) {
         if (i || side) {
-          renderer.lineTo(
-            this.nails.getNailCoordinates(polygon.getSideNailIndex(side, i))
-          );
+          controller.stringTo(polygon.getSideNailIndex(side, i));
 
           yield;
         }
 
-        renderer.lineTo(
-          this.nails.getNailCoordinates(polygon.getSideNailIndex(nextSide, i))
-        );
+        controller.stringTo(polygon.getSideNailIndex(nextSide, i));
 
         yield;
 
         if (i !== n - 2) {
           i++;
-          renderer.lineTo(
-            this.nails.getNailCoordinates(polygon.getSideNailIndex(nextSide, i))
-          );
+          controller.stringTo(polygon.getSideNailIndex(nextSide, i));
 
           yield;
 
-          renderer.lineTo(
-            this.nails.getNailCoordinates(polygon.getSideNailIndex(side, i))
-          );
+          controller.stringTo(polygon.getSideNailIndex(side, i));
 
           yield;
         } else {
-          renderer.lineTo(
-            this.nails.getNailCoordinates(
-              polygon.getSideNailIndex((nextSide + 1) % sides, 0)
-            )
+          controller.stringTo(
+            polygon.getSideNailIndex((nextSide + 1) % sides, 0)
           );
         }
       }
     }
 
-    renderer.lineTo(
-      this.nails.getNailCoordinates(this.calc.polygon.getSideNailIndex(0, 0))
-    );
+    controller.stringTo(this.calc.polygon.getSideNailIndex(0, 0));
     yield;
   }
 

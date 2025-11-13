@@ -178,19 +178,19 @@ abstract class StringArt<
 
   protected calc: TCalc;
   protected controller: Controller;
-  protected nails: Nails;
+  private nails: Nails;
 
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Readonly<Config<TConfig>> | null;
-  #controller: TaskController;
+  #taskController: TaskController;
 
   constructor() {
     super();
   }
 
   abstract drawNails(nails: NailsSetter): void;
-  abstract drawStrings(renderer: Renderer): Generator<void>;
+  abstract drawStrings(controller: Controller): Generator<void>;
   abstract getStepCount(options: CalcOptions): number;
   abstract getAspectRatio(options: CalcOptions): number;
 
@@ -407,14 +407,6 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
-    this.controller = new Controller(renderer, {
-      nailsOptions: {
-        color: this.config.nailsColor,
-        fontSize: this.config.nailNumbersFontSize,
-        radius: this.config.nailRadius,
-        renderNumbers: this.config.showNailNumbers,
-      },
-    });
 
     this.setUpDraw({ size });
   }
@@ -428,73 +420,22 @@ abstract class StringArt<
       return () => {};
     }
 
-    if (this.#controller && !this.#controller.signal.aborted) {
-      this.#controller.abort('Redraw');
+    if (this.#taskController && !this.#taskController.signal.aborted) {
+      this.#taskController.abort('Redraw');
     }
 
-    this.#controller = new TaskController({ priority: 'background' });
+    this.#taskController = new TaskController({ priority: 'background' });
     scheduler
       .postTask(() => this.#draw(renderer, options), {
-        signal: this.#controller.signal,
+        signal: this.#taskController.signal,
       })
       .catch(reason => {
         // The controller was aborted
       });
 
     return () => {
-      this.#controller?.abort('Cancelled');
+      this.#taskController?.abort('Cancelled');
     };
-  }
-
-  protected *drawLayer(
-    renderer: Renderer,
-    nails: Nails,
-    layer: Layer
-  ): Generator<void> {
-    const nailsGroup = layer.nailsGroup
-      ? nails.getGroup(layer.nailsGroup)
-      : nails;
-
-    if (layer.color) {
-      renderer.setColor(layer.color);
-    }
-
-    const firstNailResult = layer.directions.next();
-    if (firstNailResult.done) {
-      console.warn(
-        `Layer ${layer.name ? `"${layer.name} "` : ''} has no directions.`
-      );
-    }
-
-    renderer.setStartingPoint(
-      nailsGroup.getNailCoordinates(firstNailResult.value)
-    );
-
-    if ('hasMultipleNailGroups' in layer) {
-      for (const nailKey of layer.directions) {
-        const coordinates =
-          typeof nailKey === 'object'
-            ? nails.getGroup(nailKey.group).getNailCoordinates(nailKey.nail)
-            : nailsGroup.getNailCoordinates(nailKey);
-        renderer.lineTo(coordinates);
-        yield;
-      }
-    } else {
-      for (const nailKey of layer.directions) {
-        renderer.lineTo(nailsGroup.getNailCoordinates(nailKey));
-        yield;
-      }
-    }
-  }
-
-  protected *drawLayers(
-    renderer: Renderer,
-    nails: Nails,
-    layers: Iterable<Layer>
-  ): Generator<void> {
-    for (const layer of layers) {
-      yield* this.drawLayer(renderer, nails, layer);
-    }
   }
 
   /**
@@ -538,8 +479,10 @@ abstract class StringArt<
       });
     }
 
+    const controller = new Controller(renderer, this.nails);
+
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
-      this.stringsIterator = this.drawStrings(renderer);
+      this.stringsIterator = this.drawStrings(controller);
       this.position = 0;
 
       while (
@@ -549,7 +492,7 @@ abstract class StringArt<
     }
 
     return () => {
-      this.#controller?.abort('Cancelled');
+      this.#taskController?.abort('Cancelled');
     };
   }
 

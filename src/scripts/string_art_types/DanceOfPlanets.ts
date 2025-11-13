@@ -2,7 +2,6 @@ import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
-import Renderer from '../infra/renderers/Renderer';
 import {
   ControlConfig,
   ControlsConfig,
@@ -19,6 +18,7 @@ import {
 import { Dimensions } from '../types/general.types';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from '../shapes/Shape';
+import Controller from '../infra/Controller';
 
 type ShapeType = 'circle' | 'polygon';
 
@@ -338,14 +338,13 @@ export default class DanceOfPlanets extends StringArt<
     return greaterNailCount * this.config.rounds;
   }
 
-  *drawStrings(renderer: Renderer) {
+  *drawStrings(controller: Controller) {
     const { shape1NailCount, shape2NailCount } = this.calc;
     const { reverse } = this.config;
 
     const steps = this.#getConnectionCount();
 
-    renderer.setColor('#ffffff');
-    renderer.setStartingPoint(this.nails.getNailCoordinates(0));
+    controller.goto(0);
 
     let toShape2 = true;
 
@@ -359,21 +358,17 @@ export default class DanceOfPlanets extends StringArt<
     for (let step = 0; step < steps; step++) {
       const stepColor = this.colorMap.get(step);
       if (stepColor) {
-        renderer.setColor(stepColor);
+        controller.startLayer({ color: stepColor });
       }
 
-      renderer.lineTo(
-        toShape2
-          ? this.nails.getNailCoordinates(getShape2Index(step))
-          : this.nails.getNailCoordinates(step % shape1NailCount)
+      controller.stringTo(
+        toShape2 ? getShape2Index(step) : step % shape1NailCount
       );
       yield;
 
       if (step !== steps - 1) {
-        renderer.lineTo(
-          toShape2
-            ? this.nails.getNailCoordinates(getShape2Index(step + 1))
-            : this.nails.getNailCoordinates((step + 1) % shape1NailCount)
+        controller.stringTo(
+          toShape2 ? getShape2Index(step + 1) : (step + 1) % shape1NailCount
         );
         yield;
 
