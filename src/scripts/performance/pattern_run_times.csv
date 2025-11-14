@@ -1,18 +1,18 @@
 Pattern type, Runs per second, Step count, Time
-Assymetry,17152,789,583
-Comet,19157,737,522
-Crosses,13661,740,732
-Dance of Planets,21052,599,475
-Flower,5420,1416,1845
-Flower of Life,949,5705,10531
-Freestyle,28735,240,348
-Lotus,1885,2970,5303
-Mandala,3909,2436,2558
-Maurer Rose,10341,512,967
-Polygon,14025,590,713
-Spiral,9267,1000,1079
+Assymetry,15649,789,639
+Comet,18050,737,554
+Crosses,13717,740,729
+Dance of Planets,19762,599,506
+Flower,5274,1416,1896
+Flower of Life,895,5705,11165
+Freestyle,29069,240,344
+Lotus,1667,2970,5998
+Mandala,3723,2436,2686
+Maurer Rose,10152,512,985
+Polygon,13661,596,732
+Spiral,9174,1000,1090
 Spirals,20576,237,486
-Star,11627,625,860
-Sun,2712,2627,3687
-Vortex,3692,1272,2708
-Wave,4088,2156,2446
+Star,12195,625,820
+Sun,2801,2627,3570
+Vortex,3524,1272,2837
+Wave,3988,2156,2507

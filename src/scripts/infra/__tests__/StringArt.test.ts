@@ -7,9 +7,6 @@ import { TestRenderer } from '../renderers/TestRenderer';
 import { Dimensions } from '../../types/general.types';
 import type StringArt from '../StringArt';
 import { MeasureRenderer } from '../renderers/MeasureRenderer';
-import Controller from '../Controller';
-import TestNails from '../nails/TestNails';
-import Nails from '../nails/Nails';
 
 const size: Dimensions = [1000, 1000];
 
@@ -76,18 +73,9 @@ describe('StringArt', () => {
 
     function testPatternStepCount(pattern: StringArt) {
       const renderer = new TestRenderer(size);
-      const nails = new Nails();
-      const controller = new Controller(renderer, nails);
-
-      let drawCount = 0;
-      pattern.initDraw(renderer);
       pattern.position = 0;
-      const drawStringsGen = pattern.drawStrings(controller);
-      while (!drawStringsGen.next().done) {
-        drawCount++;
-      }
-
-      expect(pattern.getStepCount({ size })).toEqual(drawCount);
+      pattern.draw(renderer);
+      expect(pattern.getStepCount({ size })).toEqual(renderer.strings.length);
     }
 
     for (const pattern of patterns) {

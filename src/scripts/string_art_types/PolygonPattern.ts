@@ -145,40 +145,35 @@ export default class PolygonPattern extends StringArt<
       controller.startLayer({ color: this.color.getColor(side) });
 
       for (let i = 0; i < n - 1; i++) {
-        if (i || side) {
-          controller.stringTo(polygon.getSideNailIndex(side, i));
-
-          yield;
+        if (i) {
+          yield controller.stringTo(polygon.getSideNailIndex(side, i));
         }
 
-        controller.stringTo(polygon.getSideNailIndex(nextSide, i));
+        yield controller.stringTo(polygon.getSideNailIndex(nextSide, i));
 
-        yield;
-
-        if (i !== n - 2) {
+        if (i < n - 2) {
           i++;
-          controller.stringTo(polygon.getSideNailIndex(nextSide, i));
+          yield controller.stringTo(polygon.getSideNailIndex(nextSide, i));
+          yield controller.stringTo(polygon.getSideNailIndex(side, i));
+        }
 
-          yield;
-
-          controller.stringTo(polygon.getSideNailIndex(side, i));
-
-          yield;
-        } else {
-          controller.stringTo(
-            polygon.getSideNailIndex((nextSide + 1) % sides, 0)
-          );
+        if (i === n - 2) {
+          if (!(n % 2)) {
+            yield controller.stringTo(
+              polygon.getSideNailIndex((nextSide + 1) % sides, 0)
+            );
+          }
+          yield controller.stringTo(polygon.getSideNailIndex(nextSide, 0));
         }
       }
     }
 
-    controller.stringTo(this.calc.polygon.getSideNailIndex(0, 0));
-    yield;
+    yield controller.stringTo(this.calc.polygon.getSideNailIndex(1, 0));
   }
 
   getStepCount() {
     const { sides, n } = this.config;
-    return sides * (2 * (n - 1));
+    return sides * (2 * n - 1 - (n % 2 ? 1 : 0)) + 1;
   }
 
   drawNails(nails: NailsSetter) {
@@ -201,6 +196,10 @@ export default class PolygonPattern extends StringArt<
     {
       sides: 3,
       n: 10,
+    },
+    {
+      sides: 5,
+      n: 2,
     },
     {
       sides: 3,

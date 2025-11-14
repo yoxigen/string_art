@@ -4,6 +4,9 @@ import { Layer } from './Layer';
 import Nails from './nails/Nails';
 import Renderer from './renderers/Renderer';
 
+/**
+ * Controller is a metaphor for a person who creates the string art. It has methods similar to actions the person makes.
+ */
 export default class Controller {
   #nailNumbers: Map<NailKey, number>;
   #lastNail: NailKey;
