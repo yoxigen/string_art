@@ -1,16 +1,20 @@
 import { ColorValue } from '../helpers/color/color.types';
-import { NailKey } from '../types/stringart.types';
+import { NailGroupKey, NailKey } from '../types/stringart.types';
 import { Layer } from './Layer';
 import Nails from './nails/Nails';
 import Renderer from './renderers/Renderer';
+
+interface Nail {
+  nailKey: NailKey;
+  groupKey: NailGroupKey;
+}
 
 /**
  * Controller is a metaphor for a person who creates the string art. It has methods similar to actions the person makes.
  */
 export default class Controller {
-  #nailNumbers: Map<NailKey, number>;
-  #lastNail: NailKey;
-  #lastString: [NailKey, NailKey];
+  #lastNail: Nail;
+  #lastString: [Nail, Nail];
 
   constructor(private renderer: Renderer, private nails: Nails) {}
 
@@ -20,23 +24,23 @@ export default class Controller {
     }
   }
 
-  goto(key: NailKey): void {
-    const coordinates = this.nails.getNailCoordinates(key);
+  goto(nailKey: NailKey, groupKey?: NailGroupKey): void {
+    const coordinates = this.nails.getNailCoordinates(nailKey, groupKey);
     this.renderer.setStartingPoint(coordinates);
-    this.#lastNail = key;
+    this.#lastNail = { nailKey, groupKey };
   }
 
-  stringTo(key: NailKey) {
-    this.renderer.lineTo(this.nails.getNailCoordinates(key));
-    this.#lastString = [this.#lastNail, key];
-    this.#lastNail = key;
+  stringTo(nailKey: NailKey, groupKey?: NailGroupKey) {
+    this.renderer.lineTo(this.nails.getNailCoordinates(nailKey, groupKey));
+    const nail = { nailKey, groupKey };
+    this.#lastString = [this.#lastNail, nail];
+    this.#lastNail = nail;
   }
 
   getLastStringNumbers(): [number, number] {
-    return this.#lastString?.map(k => this.#nailNumbers.get(k)) as [
-      number,
-      number
-    ];
+    return this.#lastString?.map(({ nailKey, groupKey }) =>
+      this.nails.getNailNumber(nailKey, groupKey)
+    ) as [number, number];
   }
 
   *drawLayer(layer: Layer): Generator<void> {

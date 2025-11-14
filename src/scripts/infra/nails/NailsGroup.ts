@@ -34,6 +34,37 @@ export default class NailsGroup implements NailsSetter {
     return this.#nails.get(key);
   }
 
+  /**
+   * Returns a map of
+   * @param precision
+   * @returns
+   */
+  getNailNumbers({
+    precision = 1,
+    startNumber = 1,
+  }: { precision?: number; startNumber?: number } = {}): Map<NailKey, number> {
+    const addedCoordinates = new Map<number, number>();
+    const nailNumbers = new Map<NailKey, number>();
+
+    let nailNumber = startNumber;
+
+    for (const [key, coordinates] of this.#nails.entries()) {
+      const hash =
+        1e5 * Math.round(coordinates[0] * precision) +
+        Math.round(coordinates[1] * precision);
+      if (addedCoordinates.has(hash)) {
+        nailNumbers.set(key, addedCoordinates.get(hash));
+      } else {
+        nailNumbers.set(key, nailNumber);
+        addedCoordinates.set(hash, nailNumber);
+      }
+
+      nailNumber++;
+    }
+
+    return nailNumbers;
+  }
+
   *getUniqueNails(precision = 1): Generator<Coordinates> {
     const addedCoordinates = new Set<number>();
     for (const coordinates of this.#nails.values()) {
