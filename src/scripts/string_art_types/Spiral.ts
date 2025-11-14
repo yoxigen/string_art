@@ -7,10 +7,10 @@ import {
   ColorMap,
   ColorValue,
 } from '../helpers/color/color.types';
-import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Controller from '../infra/Controller';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -122,7 +122,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
   }
 
   *drawSpiral(
-    renderer: Renderer,
+    controller: Controller,
     {
       shift = 0,
       color = '#ffffff',
@@ -132,8 +132,8 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
 
     let currentInnerLength = Math.round(innerLength * n);
     let repetitionCount = 0;
-    renderer.setColor(color);
-    renderer.setStartingPoint(this.nails.getNailCoordinates(shift));
+    controller.startLayer({ color });
+    controller.goto(shift);
 
     let prevPointIndex = shift;
     let isPrevPoint = false;
@@ -141,7 +141,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
     for (let i = 0; currentInnerLength > 0; i++) {
       if (this.#colorMap) {
         if (this.#colorMap.has(i)) {
-          renderer.setColor(this.#colorMap.get(i));
+          controller.startLayer({ color: this.#colorMap.get(i) });
         }
       }
 
@@ -157,15 +157,15 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
         repetitionCount++;
       }
 
-      renderer.lineTo(this.nails.getNailCoordinates(prevPointIndex % n));
+      controller.stringTo(prevPointIndex % n);
 
       yield;
       isPrevPoint = !isPrevPoint;
     }
   }
 
-  *drawStrings(renderer: Renderer): Generator<void> {
-    yield* this.drawSpiral(renderer, {
+  *drawStrings(controller: Controller): Generator<void> {
+    yield* this.drawSpiral(controller, {
       color: this.#color.getColor(0),
     });
   }

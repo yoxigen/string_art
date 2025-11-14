@@ -8,7 +8,6 @@ import Nails from './nails/Nails';
 import { MeasureRenderer, ThreadsLength } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
 import type {
-  CommonConfig,
   Config,
   ControlConfig,
   ControlsConfig,
@@ -18,12 +17,8 @@ import { Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Controller from './Controller';
 import NailsSetter from './nails/NailsSetter';
-import type { Layer } from './Layer';
-
-const COLORS = {
-  dark: '#0e0e0e',
-  light: '#ffffff',
-};
+import { DEFAULT_COLORS } from '../helpers/color/default_colors';
+import { COMMON_CONFIG_CONTROLS } from './common_controls';
 
 export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
   renderer?: Renderer
@@ -37,173 +32,50 @@ export interface DrawOptions {
   precision?: number;
 }
 
-const COMMON_CONFIG_CONTROLS: ControlsConfig = [
-  {
-    key: 'strings',
-    label: 'Strings',
-    type: 'group',
-    defaultValue: 'minimized',
-    children: [
-      {
-        key: 'showStrings',
-        label: 'Show strings',
-        defaultValue: true,
-        type: 'checkbox',
-        isDisabled: ({ showNails }) => !showNails,
-        affectsNails: false,
-      },
-      {
-        key: 'stringWidth',
-        label: 'String width',
-        defaultValue: 1,
-        type: 'range',
-        attr: { min: 0.2, max: 4, step: 0.1, snap: '1' },
-        show: ({ showStrings }) => showStrings,
-        affectsNails: false,
-      },
-    ],
-  },
-  {
-    key: 'nails',
-    label: 'Nails',
-    type: 'group',
-    defaultValue: 'minimized',
-    children: [
-      {
-        key: 'showNails',
-        label: 'Show nails',
-        defaultValue: true,
-        type: 'checkbox',
-        isDisabled: ({ showStrings }) => !showStrings,
-        affectsStrings: false,
-      },
-      {
-        key: 'showNailNumbers',
-        label: 'Show nail numbers',
-        defaultValue: false,
-        type: 'checkbox',
-        show: ({ showNails }) => showNails,
-        affectsStrings: false,
-      },
-      {
-        key: 'nailNumbersFontSize',
-        label: 'Nail numbers font size',
-        defaultValue: 10,
-        type: 'range',
-        attr: { min: 6, max: 24, step: 0.5 },
-        displayValue: ({ nailNumbersFontSize }) => `${nailNumbersFontSize}px`,
-        show: ({ showNails, showNailNumbers }) => showNails && showNailNumbers,
-        affectsStrings: false,
-      },
-      {
-        key: 'margin',
-        label: 'Margin',
-        defaultValue: 20,
-        type: 'number',
-        attr: { min: 0, max: 500, step: 1 },
-        displayValue: ({ margin }) => `${margin}px`,
-        isStructural: true,
-      },
-      {
-        key: 'nailRadius',
-        label: 'Nail size',
-        defaultValue: 1.5,
-        type: 'range',
-        attr: { min: 0.5, max: 5, step: 0.25, snap: '1.5' },
-        show: ({ showNails }) => showNails,
-        affectsStrings: false,
-      },
-      {
-        key: 'nailsColor',
-        label: 'Nails color',
-        defaultValue: '#ffffff',
-        type: 'color',
-        show: ({ showNails }) => showNails,
-        affectsStrings: false,
-      },
-    ],
-  },
-  {
-    key: 'background',
-    label: 'Background',
-    type: 'group',
-    defaultValue: 'minimized',
-    children: [
-      {
-        key: 'darkMode',
-        label: 'Dark mode',
-        defaultValue: true,
-        type: 'checkbox',
-        affectsNails: false,
-        affectsStrings: false,
-      },
-      {
-        key: 'customBackgroundColor',
-        label: 'Custom background color',
-        defaultValue: false,
-        type: 'checkbox',
-        affectsNails: false,
-        affectsStrings: false,
-      },
-      {
-        key: 'backgroundColor',
-        label: 'Background color',
-        defaultValue: COLORS.dark,
-        type: 'color',
-        show: ({ customBackgroundColor }) => customBackgroundColor,
-        affectsNails: false,
-        affectsStrings: false,
-      },
-    ],
-  },
-];
-
 abstract class StringArt<
   TConfig = Record<string, PrimitiveValue>,
   TCalc = Record<string, any>
 > extends EventBus<{
   drawdone: void;
 }> {
-  controls: ControlsConfig<TConfig> = [];
-  defaultValues: Partial<Config<TConfig>> = {};
-  stepCount: number | null = null;
-  size: Dimensions = null;
-  position: number = 0;
-  stringsIterator: Iterator<void>;
-
-  id: string;
-  name: string;
+  abstract controls: ControlsConfig<TConfig>;
+  abstract id: string;
+  abstract name: string;
   link: string;
   linkText: string;
 
-  protected calc: TCalc;
-  protected controller: Controller;
-  protected nails: Nails;
+  defaultValues: Partial<Config<TConfig>> = {};
+  stepCount: number | null = null;
+  position: number = 0;
 
+  protected calc: TCalc;
+
+  private stringsIterator: Iterator<void>;
+  private nails: Nails;
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Readonly<Config<TConfig>> | null;
-  #controller: TaskController;
+  #taskController: TaskController;
 
   constructor() {
     super();
   }
 
   abstract drawNails(nails: NailsSetter): void;
-  abstract drawStrings(renderer: Renderer): Generator<void>;
+  abstract drawStrings(controller: Controller): Generator<void>;
   abstract getStepCount(options: CalcOptions): number;
   abstract getAspectRatio(options: CalcOptions): number;
 
+  /**
+   * Can be implemented in extending classes for a more efficient implementation. This is just a fallback
+   * @param size
+   * @param precision
+   * @returns
+   */
   getNailCount(size: Dimensions, precision?: number): number {
     const renderer = new MeasureRenderer(size);
     this.draw(renderer, { precision });
     return renderer.nailCount;
-  }
-
-  getThreadLengths(size: Dimensions): ThreadsLength {
-    const renderer = new MeasureRenderer(size);
-    this.draw(renderer);
-    return renderer.threadsLength;
   }
 
   thumbnailConfig:
@@ -216,12 +88,8 @@ abstract class StringArt<
 
   static type: string;
 
-  getCommonControls(): ControlsConfig<Partial<CommonConfig>> {
-    return COMMON_CONFIG_CONTROLS;
-  }
-
   get configControls(): ControlsConfig<TConfig> {
-    return (this.controls ?? []).concat(this.getCommonControls());
+    return (this.controls ?? []).concat(COMMON_CONFIG_CONTROLS);
   }
 
   get controlsIndex(): Record<keyof TConfig, ControlConfig<TConfig>> {
@@ -311,6 +179,7 @@ abstract class StringArt<
    */
   resetStructure() {
     this.calc = null;
+    this.nails = null;
   }
 
   /**
@@ -407,14 +276,6 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
-    this.controller = new Controller(renderer, {
-      nailsOptions: {
-        color: this.config.nailsColor,
-        fontSize: this.config.nailNumbersFontSize,
-        radius: this.config.nailRadius,
-        renderNumbers: this.config.showNailNumbers,
-      },
-    });
 
     this.setUpDraw({ size });
   }
@@ -428,73 +289,22 @@ abstract class StringArt<
       return () => {};
     }
 
-    if (this.#controller && !this.#controller.signal.aborted) {
-      this.#controller.abort('Redraw');
+    if (this.#taskController && !this.#taskController.signal.aborted) {
+      this.#taskController.abort('Redraw');
     }
 
-    this.#controller = new TaskController({ priority: 'background' });
+    this.#taskController = new TaskController({ priority: 'background' });
     scheduler
       .postTask(() => this.#draw(renderer, options), {
-        signal: this.#controller.signal,
+        signal: this.#taskController.signal,
       })
       .catch(reason => {
         // The controller was aborted
       });
 
     return () => {
-      this.#controller?.abort('Cancelled');
+      this.#taskController?.abort('Cancelled');
     };
-  }
-
-  protected *drawLayer(
-    renderer: Renderer,
-    nails: Nails,
-    layer: Layer
-  ): Generator<void> {
-    const nailsGroup = layer.nailsGroup
-      ? nails.getGroup(layer.nailsGroup)
-      : nails;
-
-    if (layer.color) {
-      renderer.setColor(layer.color);
-    }
-
-    const firstNailResult = layer.directions.next();
-    if (firstNailResult.done) {
-      console.warn(
-        `Layer ${layer.name ? `"${layer.name} "` : ''} has no directions.`
-      );
-    }
-
-    renderer.setStartingPoint(
-      nailsGroup.getNailCoordinates(firstNailResult.value)
-    );
-
-    if ('hasMultipleNailGroups' in layer) {
-      for (const nailKey of layer.directions) {
-        const coordinates =
-          typeof nailKey === 'object'
-            ? nails.getGroup(nailKey.group).getNailCoordinates(nailKey.nail)
-            : nailsGroup.getNailCoordinates(nailKey);
-        renderer.lineTo(coordinates);
-        yield;
-      }
-    } else {
-      for (const nailKey of layer.directions) {
-        renderer.lineTo(nailsGroup.getNailCoordinates(nailKey));
-        yield;
-      }
-    }
-  }
-
-  protected *drawLayers(
-    renderer: Renderer,
-    nails: Nails,
-    layers: Iterable<Layer>
-  ): Generator<void> {
-    for (const layer of layers) {
-      yield* this.drawLayer(renderer, nails, layer);
-    }
   }
 
   /**
@@ -523,8 +333,8 @@ abstract class StringArt<
         ? customBackgroundColor
           ? backgroundColor
           : darkMode
-          ? COLORS.dark
-          : COLORS.light
+          ? DEFAULT_COLORS.dark
+          : DEFAULT_COLORS.light
         : null
     );
 
@@ -538,8 +348,10 @@ abstract class StringArt<
       });
     }
 
+    const controller = new Controller(renderer, this.nails);
+
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
-      this.stringsIterator = this.drawStrings(renderer);
+      this.stringsIterator = this.drawStrings(controller);
       this.position = 0;
 
       while (
@@ -549,7 +361,7 @@ abstract class StringArt<
     }
 
     return () => {
-      this.#controller?.abort('Cancelled');
+      this.#taskController?.abort('Cancelled');
     };
   }
 

@@ -3,17 +3,15 @@ import Circle from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
-import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../infra/nails/Nails';
 import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import easing from '../helpers/easing';
-import NailsGroup from '../infra/nails/NailsGroup';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Controller from '../infra/Controller';
 
 interface SpiralsConfig extends ColorConfig {
   // radiusIncrease: number;
@@ -174,21 +172,21 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     ];
   }
 
-  *drawStrings(renderer: Renderer): Generator<void> {
+  *drawStrings(controller: Controller): Generator<void> {
     const points = this.generatePoints();
     let index = 0;
-    renderer.setColor(this.color.getColor(0));
-    renderer.setStartingPoint(this.calc.center);
+    controller.startLayer({ color: this.color.getColor(0) });
+    controller.goto(0);
 
     for (const _ of points) {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
-          renderer.setColor(stepColor);
+          controller.startLayer({ color: stepColor });
         }
       }
 
-      renderer.lineTo(this.nails.getNailCoordinates(index));
+      controller.stringTo(index);
       yield;
 
       index++;

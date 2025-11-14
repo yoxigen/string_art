@@ -1,18 +1,13 @@
 import StringArt from '../infra/StringArt';
 import Circle from '../shapes/Circle';
 import { ColorValue } from '../helpers/color/color.types';
-import Renderer from '../infra/renderers/Renderer';
-import {
-  ControlConfig,
-  ControlsConfig,
-  ControlType,
-  GroupValue,
-} from '../types/config.types';
+import { ControlsConfig, ControlType, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { createArray } from '../helpers/array_utils';
+import Controller from '../infra/Controller';
 
 interface FreestyleConfig {
   color: ColorValue;
@@ -236,12 +231,12 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
     return layer.circle.getPoint(index);
   }
 
-  *drawStrings(renderer: Renderer): Generator<void> {
+  *drawStrings(controller: Controller): Generator<void> {
     const { color } = this.config;
     const layerCount = this.calc.layers.length;
 
-    renderer.setColor(color);
-    renderer.setStartingPoint(this.nails.getNailCoordinates(0));
+    controller.startLayer({ color });
+    controller.goto(0);
 
     for (let i = 0; i < this.calc.roundsCount; i++) {
       for (
@@ -251,10 +246,8 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
       ) {
         const nextLayerIndex = (layerIndex + 1) % layerCount;
 
-        renderer.lineTo(
-          this.nails.getNailCoordinates(
-            this.calc.layers[nextLayerIndex].circle.getNailKey(i)
-          )
+        controller.stringTo(
+          this.calc.layers[nextLayerIndex].circle.getNailKey(i)
         );
         yield;
       }

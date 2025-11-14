@@ -4,8 +4,8 @@ import Mandala, { MandalaCalc, MandalaConfig } from './Mandala';
 import { ControlsConfig } from '../types/config.types';
 import { formatFractionAsPercent } from '../helpers/string_utils';
 import { withoutAttribute } from '../helpers/config_utils';
-import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
+import Controller from '../infra/Controller';
 
 export interface WaveConfig {
   layerSpread: number;
@@ -95,11 +95,11 @@ export default class Wave extends Mandala<WaveConfig> {
     };
   }
 
-  *drawStrings(renderer: Renderer) {
+  *drawStrings(controller: Controller) {
     const { layers } = this.config;
 
     for (let layer = 0; layer < layers; layer++) {
-      yield* this.drawMultiplicationLayer(renderer, layer);
+      yield* this.drawMultiplicationLayer(controller, layer);
     }
   }
 }

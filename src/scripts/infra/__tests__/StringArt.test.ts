@@ -73,15 +73,9 @@ describe('StringArt', () => {
 
     function testPatternStepCount(pattern: StringArt) {
       const renderer = new TestRenderer(size);
-      let drawCount = 0;
-      pattern.initDraw(renderer);
       pattern.position = 0;
-      const drawStringsGen = pattern.drawStrings(renderer);
-      while (!drawStringsGen.next().done) {
-        drawCount++;
-      }
-
-      expect(pattern.getStepCount({ size })).toEqual(drawCount);
+      pattern.draw(renderer);
+      expect(pattern.getStepCount({ size })).toEqual(renderer.strings.length);
     }
 
     for (const pattern of patterns) {

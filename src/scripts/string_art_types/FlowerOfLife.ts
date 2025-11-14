@@ -11,13 +11,12 @@ import {
 } from '../helpers/color/color.types';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
-import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions } from '../types/stringart.types';
 import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import NailsGroup from '../infra/nails/NailsGroup';
-import Nails from '../infra/nails/Nails';
+import Controller from '../infra/Controller';
 
 interface FlowerOfLifeConfig extends ColorConfig {
   levels: number;
@@ -408,7 +407,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     return trianglePoints;
   }
 
-  drawNails(nails: Nails) {
+  drawNails(nails: NailsSetter) {
     const { levels, renderCaps } = this.config;
 
     const largeDistance = this.calc.nailsLength;
@@ -492,7 +491,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
   }
 
   *generateTriangleStrings(
-    renderer: Renderer,
+    controller: Controller,
     {
       level,
       indexInSide,
@@ -505,7 +504,10 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       isCapLevel: boolean;
     }
   ): Generator<void> {
-    renderer.setColor(this.color.getColor(level));
+    controller.startLayer({
+      color: this.color.getColor(level),
+      name: 'triangles',
+    });
     const { density } = this.config;
 
     const initialSide = isCapLevel
@@ -516,24 +518,20 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
     for (let side = initialSide; side <= lastSide; side++) {
       const nextSide = this.#getNextIndexInTriangle(side, 1);
-      let prevPoint = this.nails.getNailCoordinates(
-        this.#getPointKey(level, triangleIndex, 0, 0)
-      );
+      controller.goto(this.#getPointKey(level, triangleIndex, 0, 0));
 
       for (let n = 0; n <= lastIndex; n++) {
         const isNextSide = n % 2 === 0;
 
         const nextSidePoint = isNextSide ? density - n : n;
         const targetSide = isNextSide ? nextSide : side;
-        const targetPoint = this.nails.getNailCoordinates(
+        controller.stringTo(
           this.#getPointKey(level, triangleIndex, targetSide, nextSidePoint)
         );
-
-        renderer.renderLine(prevPoint, targetPoint);
         yield;
 
         if (n < density) {
-          prevPoint = this.nails.getNailCoordinates(
+          controller.stringTo(
             this.#getPointKey(
               level,
               triangleIndex,
@@ -541,15 +539,14 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
               isNextSide ? nextSidePoint - 1 : nextSidePoint + 1
             )
           );
-          renderer.renderLine(targetPoint, prevPoint);
           yield;
         }
       }
     }
   }
 
-  *generateStringsBetweenTriangles(
-    renderer: Renderer,
+  *generateFill(
+    controller: Controller,
     {
       triangle1Index,
       triangle2Index,
@@ -570,7 +567,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     const levelSideCount = this.calc.countPerLevelSide[triangle1Level];
     const angleShift = (triangle1Index % levelSideCount) % 3;
 
-    renderer.setColor(fillColor);
+    controller.startLayer({ color: fillColor, name: 'fill' });
 
     const isLastTriangleInSide = triangleIndexInSide === levelSideCount - 1;
     const firstSide = angleShift;
@@ -592,22 +589,21 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
       const order = generateOrderInSide.call(this, s);
 
       for (const { pointIndex, triangle1Side, triangle2Side } of order) {
-        renderer.renderLine(
-          this.nails.getNailCoordinates(
-            this.#getPointKey(
-              triangle1Level,
-              triangle1Index,
-              triangle1Side,
-              pointIndex
-            )
-          ),
-          this.nails.getNailCoordinates(
-            this.#getPointKey(
-              triangle2Level,
-              triangle2Index,
-              triangle2Side,
-              pointIndex
-            )
+        controller.goto(
+          this.#getPointKey(
+            triangle1Level,
+            triangle1Index,
+            triangle1Side,
+            pointIndex
+          )
+        );
+
+        controller.stringTo(
+          this.#getPointKey(
+            triangle2Level,
+            triangle2Index,
+            triangle2Side,
+            pointIndex
           )
         );
 
@@ -665,7 +661,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     return result;
   }
 
-  *drawStrings(renderer: Renderer): Generator<void> {
+  *drawStrings(controller: Controller): Generator<void> {
     const {
       fill,
       renderTriangles,
@@ -694,7 +690,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
         if (fill && !isCapLevel) {
           if (triangleIndex === 0) {
-            yield* this.generateStringsBetweenTriangles(renderer, {
+            yield* this.generateFill(controller, {
               triangle1Index: lastIndexInLevel,
               triangle2Index: triangleIndex,
               triangle1Level: levelIndex,
@@ -703,7 +699,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
             });
           }
           if (triangleIndex !== lastIndexInLevel) {
-            yield* this.generateStringsBetweenTriangles(renderer, {
+            yield* this.generateFill(controller, {
               triangle1Index: triangleIndex,
               triangle2Index: triangleIndex + 1,
               triangle1Level: levelIndex,
@@ -722,7 +718,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
             const nextLevelTriangleIndex =
               side * nextLevelSideCount + triangleIndexInSide + 1;
 
-            yield* this.generateStringsBetweenTriangles(renderer, {
+            yield* this.generateFill(controller, {
               triangle1Index: triangleIndex,
               triangle2Index: nextLevelTriangleIndex,
               triangle1Level: levelIndex,
@@ -734,7 +730,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
         }
 
         if (renderTriangles && (!isCapLevel || triangleIndexInSide % 2)) {
-          yield* this.generateTriangleStrings(renderer, {
+          yield* this.generateTriangleStrings(controller, {
             level: levelIndex,
             indexInSide: triangleIndexInSide,
             triangleIndex,
@@ -750,7 +746,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
         color: ringColor,
       });
       ringLayer.nailsGroup = 'ring';
-      yield* this.drawLayer(renderer, this.nails, ringLayer);
+      yield* controller.drawLayer(ringLayer);
     }
   }
 

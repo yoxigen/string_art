@@ -1,5 +1,4 @@
-import Renderer from '../infra/renderers/Renderer';
-import { ControlConfig, ControlsConfig } from '../types/config.types';
+import { ControlConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { compareObjects } from '../helpers/object_utils';
 import Polygon from './Polygon';

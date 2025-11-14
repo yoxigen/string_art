@@ -2,8 +2,8 @@ import Color from '../helpers/color/Color';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { PI2 } from '../helpers/math_utils';
 import { getCenter } from '../helpers/size_utils';
+import Controller from '../infra/Controller';
 import NailsSetter from '../infra/nails/NailsSetter';
-import Renderer from '../infra/renderers/Renderer';
 import StringArt from '../infra/StringArt';
 import Polygon from '../shapes/Polygon';
 import { Config, ControlsConfig } from '../types/config.types';
@@ -243,7 +243,7 @@ class Eye extends StringArt<EyeConfig, TCalc> {
   }
 
   *drawSide(
-    renderer: Renderer,
+    controller: Controller,
     {
       side,
       color = '#ffffff',
@@ -255,25 +255,20 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     }
   ): Generator<void> {
     const nextSide = (side + 1) % this.config.sides;
-    renderer.setColor(color);
+    controller.startLayer({ color });
 
     for (let i = 0; i < layer.layerSpaceCount; i++) {
-      renderer.renderLine(
-        this.nails.getNailCoordinates(layer.polygon.getSideNailIndex(side, i)),
-        this.nails.getNailCoordinates(
-          layer.polygon.getSideNailIndex(nextSide, i)
-        )
-      );
-
+      controller.goto(layer.polygon.getSideNailIndex(side, i));
+      controller.stringTo(layer.polygon.getSideNailIndex(nextSide, i));
       yield;
     }
   }
 
-  *#drawLayer(renderer: Renderer, layerIndex: number): Generator<void> {
+  *#drawLayer(controller: Controller, layerIndex: number): Generator<void> {
     const { colorPerLayer, sides } = this.config;
 
     for (let i = 0; i < sides; i++) {
-      yield* this.drawSide(renderer, {
+      yield* this.drawSide(controller, {
         color: this.color.getColor(colorPerLayer ? layerIndex : i),
         side: i,
         layer: this.calc.layers[layerIndex],
@@ -281,9 +276,9 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     }
   }
 
-  *drawStrings(renderer: Renderer) {
+  *drawStrings(controller: Controller) {
     for (let layer = this.calc.layers.length - 1; layer >= 0; layer--) {
-      yield* this.#drawLayer(renderer, layer);
+      yield* this.#drawLayer(controller, layer);
     }
   }
 

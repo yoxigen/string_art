@@ -2,10 +2,10 @@ import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import Color from '../helpers/color/Color';
 import { ColorConfig } from '../helpers/color/color.types';
-import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Controller from '../infra/Controller';
 
 type SpreadModeType = 'evenly' | 'distance';
 
@@ -212,30 +212,33 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     return (this.config.n - layerRingDistance + 1) * 2 - 1;
   }
 
-  *#drawLayer(renderer: Renderer, layerIndex = 0): Generator<void> {
+  *#drawLayer(controller: Controller, layerIndex = 0): Generator<void> {
     const { n } = this.config;
     const ringDistance = this.getLayerRingDistance(layerIndex);
     const stepCount = n - ringDistance + 1;
-    renderer.setStartingPoint(this.nails.getNailCoordinates(0));
+    controller.goto(0);
     let prevPointIndex = 0;
-    renderer.setColor(this.color.getColor(layerIndex));
+    controller.startLayer({
+      color: this.color.getColor(layerIndex),
+      name: String(layerIndex),
+    });
 
     for (let i = 0; i <= n - ringDistance; i++) {
-      renderer.lineTo(this.nails.getNailCoordinates((i + ringDistance) % n));
+      controller.stringTo((i + ringDistance) % n);
       yield;
 
       if (i !== stepCount - 1) {
         prevPointIndex = i + 1;
-        renderer.lineTo(this.nails.getNailCoordinates(prevPointIndex));
+        controller.stringTo(prevPointIndex);
 
         yield;
       }
     }
   }
 
-  *drawStrings(renderer: Renderer) {
+  *drawStrings(controller: Controller) {
     for (let layer = 0; layer < this.config.layers; layer++) {
-      yield* this.#drawLayer(renderer, layer);
+      yield* this.#drawLayer(controller, layer);
     }
   }
 

@@ -6,13 +6,11 @@ import { ColorConfig, ColorMap } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { gcd, PI2 } from '../helpers/math_utils';
 import { getCenter, mapDimensions } from '../helpers/size_utils';
-import Renderer from '../infra/renderers/Renderer';
 import { ControlsConfig } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
-import Nails from '../infra/nails/Nails';
-import NailsGroup from '../infra/nails/NailsGroup';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Controller from '../infra/Controller';
 
 export interface MaurerRoseConfig extends ColorConfig {
   n: number;
@@ -168,20 +166,20 @@ export default class MaurerRose extends StringArt<MaurerRoseConfig, TCalc> {
     }
   }
 
-  *drawStrings(renderer: Renderer): Generator<void> {
+  *drawStrings(controller: Controller): Generator<void> {
     const points = this.generatePoints(1);
 
-    renderer.setColor(this.color.getColor(0));
-    renderer.setStartingPoint(this.nails.getNailCoordinates(0));
+    controller.startLayer({ color: this.color.getColor(0) });
+    controller.goto(0);
     for (const index of points) {
       if (this.colorMap) {
         const stepColor = this.colorMap.get(index);
         if (stepColor) {
-          renderer.setColor(stepColor);
+          controller.startLayer({ color: stepColor });
         }
       }
 
-      renderer.lineTo(this.nails.getNailCoordinates(index));
+      controller.stringTo(index);
 
       yield;
     }

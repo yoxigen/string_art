@@ -1,4 +1,3 @@
-import Renderer from '../infra/renderers/Renderer';
 import { ControlConfig, GroupValue } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { ColorValue } from '../helpers/color/color.types';

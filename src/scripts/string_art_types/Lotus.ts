@@ -7,8 +7,7 @@ import { Coordinates, Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { getDistanceBetweenCoordinates, PI2 } from '../helpers/math_utils';
 import { formatFractionAsPercent } from '../helpers/string_utils';
-import Renderer from '../infra/renderers/Renderer';
-import { CalcOptions } from '../types/stringart.types';
+import { CalcOptions, NailKey } from '../types/stringart.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
@@ -16,6 +15,7 @@ import {
 } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
+import Controller from '../infra/Controller';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -342,7 +342,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
   }
 
   *#drawPatch(
-    renderer: Renderer,
+    controller: Controller,
     circleIndex: number,
     section: number
   ): Generator<void> {
@@ -355,44 +355,35 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     const prevCircle =
       this.calc.circles[circleIndex === 0 ? sides - 1 : circleIndex - 1];
 
-    renderer.setColor(color);
+    controller.startLayer({ color });
 
     if (section === 0) {
       // For first section (outtermost): connectPoint is `prevCircle[sideAngle * 2]
-      const connectPoint: Coordinates = this.nails.getNailCoordinates(
-        prevCircle.getNailKey(nailsPerSection * 2)
-      );
+      const connectPoint = prevCircle.getNailKey(nailsPerSection * 2);
 
       for (let i = nailsPerCircle - nailsPerSection; i < nailsPerCircle; i++) {
-        renderer.renderLine(
-          this.nails.getNailCoordinates(circle.getNailKey(i)),
-          connectPoint
-        );
+        controller.goto(circle.getNailKey(i));
+        controller.stringTo(connectPoint);
         yield;
       }
       for (let i = 0; i <= nailsPerSection; i++) {
-        renderer.renderLine(
-          this.nails.getNailCoordinates(circle.getNailKey(i)),
-          connectPoint
-        );
+        controller.goto(circle.getNailKey(i));
+        controller.stringTo(connectPoint);
         yield;
       }
     } else {
       // For middle sections, connectPoint is `circleIndex - 1`, (sideAngle * section + 1). Connect circleIndex[section] and `circleIndex + section`[section]
 
       const isLastSection = section === sections - 2;
-      const connectPoint: Coordinates = isLastSection
+      const connectPoint: NailKey = isLastSection
         ? this.calc.centerCircle
-          ? this.nails.getNailCoordinates(circleIndex)
-          : this.nails.getNailCoordinates('C')
-        : this.nails.getNailCoordinates(
-            prevCircle.getNailKey(
-              nailsPerSection * (section + 2 - removedSections) -
-                (sides % 2 && section === sections - 2
-                  ? nailsPerSection / 2
-                  : 0)
-            )
+          ? circleIndex
+          : 'C'
+        : prevCircle.getNailKey(
+            nailsPerSection * (section + 2 - removedSections) -
+              (sides % 2 && section === sections - 2 ? nailsPerSection / 2 : 0)
           );
+
       const firstCircle = this.calc.circles[(circleIndex + section) % sides];
 
       const firstCircleStart =
@@ -401,29 +392,24 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
         (removedSections ? 1 : 0);
 
       for (let i = 0; i <= nailsPerSection; i++) {
-        renderer.renderLine(
-          this.nails.getNailCoordinates(
-            firstCircle.getNailKey(firstCircleStart + i)
-          ),
-          connectPoint
-        );
+        controller.goto(firstCircle.getNailKey(firstCircleStart + i));
+        controller.stringTo(connectPoint);
         yield;
       }
 
       const startIndex = (section - removedSections) * nailsPerSection + 1;
       for (let i = startIndex; i < startIndex + nailsPerSection; i++) {
-        renderer.renderLine(
-          this.nails.getNailCoordinates(circle.getNailKey(i)),
-          connectPoint
-        );
+        controller.goto(circle.getNailKey(i));
+        controller.stringTo(connectPoint);
+
         yield;
       }
     }
   }
 
-  *drawStrings(renderer: Renderer): Generator<void> {
+  *drawStrings(controller: Controller): Generator<void> {
     for (const { side, section } of this.#generatePatches()) {
-      yield* this.#drawPatch(renderer, side, section);
+      yield* this.#drawPatch(controller, side, section);
     }
   }
 

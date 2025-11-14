@@ -11,8 +11,6 @@ import type {
   GroupValue,
 } from '../types/config.types';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
-import { Coordinates } from '../types/general.types';
-import Renderer from '../infra/renderers/Renderer';
 import { CalcOptions, NailGroupKey, NailKey } from '../types/stringart.types';
 import {
   combineBoundingRects,
@@ -23,6 +21,7 @@ import NailsGroup from '../infra/nails/NailsGroup';
 import NailsSetter from '../infra/nails/NailsSetter';
 import type { Layer } from '../infra/Layer';
 import { createArray } from '../helpers/array_utils';
+import Controller from '../infra/Controller';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;
@@ -430,9 +429,9 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     }
   }
 
-  *drawStrings(renderer: Renderer) {
-    yield* this.drawLayers(renderer, this.nails, this.genBackdropLayers());
-    yield* this.drawLayers(renderer, this.nails, this.getStarLayers());
+  *drawStrings(controller: Controller) {
+    yield* controller.drawLayers(this.genBackdropLayers());
+    yield* controller.drawLayers(this.getStarLayers());
   }
 
   drawNails(nails: NailsSetter) {
