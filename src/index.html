@@ -198,7 +198,7 @@
       </div>
       <article id="canvas_panel" class="pattern_only"></article>
       <nav id="player" class="noprint pattern_only">
-        <div id="player_controls">
+        <div id="player_continuous" class="player_controls" hidden>
           <div id="player_buttons">
             <button id="play_btn" class="circular_btn">
               <i class="icon-play"></i>
@@ -213,6 +213,12 @@
           <div id="player_text">
             <span id="step"></span>
           </div>
+        </div>
+        <div id="player_steps" class="player_controls">
+          <button id="player_start_btn" class="circular_btn">Start</button>
+          <button id="player_prev_btn" class="circular_btn">Prev</button>
+          <div id="player_step_directions"></div>
+          <button id="player_next_btn" class="circular_btn">Next</button>
         </div>
       </nav>
       <footer id="buttons" class="pattern_only">

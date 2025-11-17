@@ -2,6 +2,10 @@ import Viewer from '../viewer/Viewer';
 import viewOptions from '../viewer/ViewOptions';
 
 const SLOW_PLAY_SPEED = 200;
+enum PlayerMode {
+  CONTINUOUS,
+  STEPS,
+}
 
 /**
  * Represents the navigation that controls the StringArt when playing
@@ -15,11 +19,16 @@ export default class Player {
     playBtn: HTMLButtonElement;
     pauseBtn: HTMLButtonElement;
     text: HTMLDivElement;
+    prevBtn: HTMLButtonElement;
+    nextBtn: HTMLButtonElement;
+    startBtn: HTMLButtonElement;
+    stepDirections: HTMLDivElement;
   };
   stepCount: number;
   #isPlaying: boolean;
   #cancelNextPlayStep: Function;
   #cancelHideInstruction: Function;
+  mode: PlayerMode = PlayerMode.CONTINUOUS;
 
   constructor(parentEl: HTMLElement, viewer: Viewer) {
     this.viewer = viewer;
@@ -33,6 +42,10 @@ export default class Player {
       playBtn: parentEl.querySelector('#play_btn'),
       pauseBtn: parentEl.querySelector('#pause_btn'),
       text: parentEl.querySelector('#player_text'),
+      prevBtn: parentEl.querySelector('#player_prev_btn'),
+      nextBtn: parentEl.querySelector('#player_next_btn'),
+      startBtn: parentEl.querySelector('#player_start_btn'),
+      stepDirections: parentEl.querySelector('#player_step_directions'),
     };
     this.stepCount = 0;
     this.#isPlaying = false;
@@ -49,6 +62,18 @@ export default class Player {
 
     this.elements.pauseBtn.addEventListener('click', () => {
       this.pause();
+    });
+
+    this.elements.startBtn.addEventListener('click', () => {
+      this.gotoStart();
+    });
+
+    this.elements.prevBtn.addEventListener('click', () => {
+      this.prev();
+    });
+
+    this.elements.nextBtn.addEventListener('click', () => {
+      this.next();
     });
 
     viewer.addEventListener('positionChange', ({ changeBy }) =>
@@ -165,12 +190,6 @@ export default class Player {
     this.#cancelNextPlayStep?.();
 
     viewOptions.showInstructions = false;
-    // if (
-    //   viewOptions.instructionsMode === 'auto' ||
-    //   viewOptions.instructionsMode === 'show'
-    // ) {
-    //   viewOptions.showInstructions = true;
-    // }
 
     if (isAtEnd) {
       this.viewer.goto(0);
@@ -204,5 +223,25 @@ export default class Player {
     } else {
       this.play();
     }
+  }
+
+  prev() {
+    this.viewer.prev();
+    this.#updateDirections();
+  }
+
+  next() {
+    this.viewer.next();
+    this.#updateDirections();
+  }
+
+  gotoStart() {
+    this.viewer.goto(0);
+    this.#updateDirections();
+  }
+
+  #updateDirections() {
+    const directions = this.viewer.getLastStringNailNumbers();
+    this.elements.stepDirections.textContent = directions.join(' → ');
   }
 }

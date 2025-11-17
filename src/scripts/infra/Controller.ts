@@ -36,7 +36,7 @@ export default class Controller {
     this.#lastNail = nail;
   }
 
-  getLastStringNumbers(): [number, number] {
+  getLastStringNailNumbers(): [number, number] {
     return this.#lastString?.map(({ nailKey, groupKey }) =>
       this.nails.getNailNumber(nailKey, groupKey)
     ) as [number, number];

@@ -283,7 +283,6 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
-
     this.setUpDraw({ size, precision });
   }
 
@@ -367,6 +366,10 @@ abstract class StringArt<
     };
   }
 
+  getLastStringNailNumbers(): [number, number] {
+    return this.controller.getLastStringNailNumbers();
+  }
+
   goto(renderer: Renderer, position: number, { showInstructions = true } = {}) {
     if (position === this.position) {
       return;
@@ -383,7 +386,6 @@ abstract class StringArt<
 
     if (showInstructions) {
       renderer.renderInstructionsForLastLine();
-      console.log(`goto`, this.controller.getLastStringNumbers());
     }
   }
 

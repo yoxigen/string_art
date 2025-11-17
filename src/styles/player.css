@@ -29,13 +29,14 @@
   font-size: 22px;
 }
 
-#player_controls {
+.player_controls {
   gap: var(--player-gap);
   padding: 0 16px;
   display: flex;
   flex-direction: row;
   width: 100%;
   max-width: 800px;
+  justify-content: center;
 }
 
 #player_track {
