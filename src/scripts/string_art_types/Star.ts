@@ -5,9 +5,8 @@ import { ColorValue } from '../helpers/color/color.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import { ControlsConfig, GroupValue } from '../types/config.types';
 import { Coordinates } from '../types/general.types';
-import { CalcOptions, NailKey } from '../types/stringart.types';
+import { CalcOptions } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
-import type { Layer } from '../infra/Layer';
 import Controller from '../infra/Controller';
 
 interface StarConfig {
@@ -52,7 +51,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       label: 'Nails per side',
       defaultValue: 40,
       type: 'range',
-      attr: { min: 1, max: 200, step: 1 },
+      attr: { min: 2, max: 200, step: 1 },
       isStructural: true,
     },
     // @ts-ignore
@@ -181,26 +180,16 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     );
   }
 
-  getStarLayer(): Layer {
-    const { innerColor, isSingleColor } = this.config;
-
-    return {
-      color: !isSingleColor ? innerColor : null,
-      ...this.calc.star.getLayer(),
-    };
-  }
-
-  getCircleLayer(): Layer {
-    return {
-      color: !this.config.isSingleColor ? this.config.outerColor : null,
-      directions: this.#genCircleDirections(),
-    };
-  }
-
-  *#genCircleDirections(): Generator<NailKey> {
-    const { sides, sideNails } = this.config;
+  *drawCircleLayer(controller: Controller): Generator<void> {
+    const { sides, sideNails, isSingleColor } = this.config;
     const { star } = this.calc;
 
+    if (!isSingleColor) {
+      controller.startLayer({
+        color: !this.config.isSingleColor ? this.config.outerColor : null,
+        name: 'Circle backdrop',
+      });
+    }
     let alternate = false;
     let isStar = false;
 
@@ -208,7 +197,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
     let side = 0;
     const linesPerRound = sides % 2 ? sides * 4 : sides * 2;
 
-    yield star.getSideNailKey(0, 0);
+    controller.goto(star.getSideNailKey(0, 0));
 
     for (let round = 0; round < rounds; round++) {
       const isLastRound = round === rounds - 1;
@@ -224,9 +213,11 @@ export default class Star extends StringArt<StarConfig, TCalc> {
           sideIndex: alternate ? sideNails - round - 1 : round,
         };
 
-        yield isStar
-          ? star.getSideNailKey(pointPosition.side, pointPosition.sideIndex)
-          : pointPosition.side * (sideNails - 1) + pointPosition.sideIndex;
+        yield controller.stringTo(
+          isStar
+            ? star.getSideNailKey(pointPosition.side, pointPosition.sideIndex)
+            : pointPosition.side * (sideNails - 1) + pointPosition.sideIndex
+        );
 
         isStar = !isStar;
 
@@ -236,7 +227,7 @@ export default class Star extends StringArt<StarConfig, TCalc> {
         }
       }
       if (!isLastRound) {
-        yield star.getSideNailKey(0, round + 1);
+        yield controller.stringTo(star.getSideNailKey(0, round + 1));
         isStar = false;
         alternate = false;
       }
@@ -250,22 +241,30 @@ export default class Star extends StringArt<StarConfig, TCalc> {
       isSingleColor,
       singleColor,
       renderStar = true,
+      innerColor,
     } = this.config;
     if (isSingleColor) {
       controller.startLayer({ color: singleColor });
     }
 
-    const layers = [
-      this.getCircleLayer(),
-      ringSize !== 0 &&
-        this.calc.circle.getRingLayer({
-          ringSize,
-          color: isSingleColor ? null : ringColor,
-        }),
-      renderStar && this.getStarLayer(),
-    ].filter(Boolean);
+    yield* this.drawCircleLayer(controller);
+    if (ringSize !== 0) {
+      controller.startLayer({
+        name: 'Ring',
+        color: isSingleColor ? null : ringColor,
+      });
+      yield* this.calc.circle.drawRingLayer(controller, {
+        ringSize,
+      });
+    }
 
-    yield* controller.drawLayers(layers);
+    if (renderStar) {
+      controller.startLayer({
+        color: !isSingleColor ? innerColor : null,
+        name: 'Star',
+      });
+      yield* this.calc.star.drawStar(controller);
+    }
   }
 
   drawNails(nails: NailsSetter): void {

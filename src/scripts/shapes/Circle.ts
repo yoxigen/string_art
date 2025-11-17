@@ -10,8 +10,8 @@ import Shape from './Shape';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from './Shape';
-import type { Layer } from '../infra/Layer';
-import { NailKey } from '../types/stringart.types';
+import Controller from '../infra/Controller';
+import { NailGroupKey } from '../types/stringart.types';
 
 export type CircleConfig = ShapeConfig & {
   n: number;
@@ -212,42 +212,36 @@ export default class Circle extends Shape {
     }
   }
 
-  *#genRingDirections(ringDistance: number): Generator<NailKey> {
+  *drawRingLayer(
+    controller: Controller,
+    {
+      ringSize,
+      nailGroup,
+    }: {
+      ringSize: number;
+      nailGroup?: NailGroupKey;
+    }
+  ): Generator<void> {
     const { n } = this.config;
+    const ringDistance = Math.floor(ringSize * n);
 
     let targetIndex = 0;
     let isPrevSide = false;
 
-    yield this.getNailKey(0);
+    controller.goto(this.getNailKey(0), nailGroup);
 
     for (let i = 0; i < n; i++) {
       targetIndex = isPrevSide ? i : targetIndex + ringDistance;
 
-      yield this.getNailKey(targetIndex);
+      yield controller.stringTo(this.getNailKey(targetIndex), nailGroup);
 
       if (i < n - 1) {
         targetIndex++;
-        yield this.getNailKey(targetIndex);
+        yield controller.stringTo(this.getNailKey(targetIndex), nailGroup);
       }
 
       isPrevSide = !isPrevSide;
     }
-  }
-
-  getRingLayer({
-    ringSize,
-    color,
-  }: {
-    ringSize: number;
-    color?: ColorValue;
-  }): Layer {
-    const { n } = this.config;
-    const ringDistance = Math.floor(ringSize * n);
-
-    return {
-      color,
-      directions: this.#genRingDirections(ringDistance),
-    };
   }
 
   getRingStepCount(): number {

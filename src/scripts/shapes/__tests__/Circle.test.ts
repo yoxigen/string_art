@@ -2,6 +2,8 @@ import { describe, test, expect } from '@jest/globals';
 import Circle from '../Circle';
 import { TestRenderer } from '../../infra/renderers/TestRenderer';
 import Nails from '../../infra/nails/Nails';
+import { Dimensions } from '../../types/general.types';
+import Controller from '../../infra/Controller';
 
 describe('Circle', () => {
   describe('aspectRatio', () => {
@@ -37,15 +39,17 @@ describe('Circle', () => {
 
   test('step count is the same as number of yields for drawing a ring', () => {
     const nails = new Nails();
+    const size = [1000, 600] as Dimensions;
 
     const circle = new Circle({
       n: 20,
-      size: [1000, 600],
+      size,
     });
     circle.drawNails(nails);
-    const ringLayer = circle.getRingLayer({ ringSize: 2 });
-    let drawCount = -1; // Starting at -1 because the first direction isn't a step, just the starting nail
-    while (!ringLayer.directions.next().done) {
+    const controller = new Controller(new TestRenderer(size), nails);
+    const genRing = circle.drawRingLayer(controller, { ringSize: 2 });
+    let drawCount = 0;
+    while (!genRing.next().done) {
       drawCount++;
     }
 

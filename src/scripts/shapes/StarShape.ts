@@ -10,7 +10,7 @@ import Shape from './Shape';
 import { getBoundingRectAspectRatio, getCenter } from '../helpers/size_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from './Shape';
-import type { Layer } from '../infra/Layer';
+import Controller from '../infra/Controller';
 
 export type StarShapeConfig = ShapeConfig & {
   sideNails: number;
@@ -177,7 +177,10 @@ export default class StarShape extends Shape {
   // The threading is: star at the center (or centerRadius, if > 0), then next side at the edge (outtermost nail) or the size param which represents the count of nails to use,
   // then back to the center for the next side,   // until all sides have been connected both center and edge (for odd-side-count stars) or until all sides have been
   // connected (for odd-side-count), then move up one nail from the center and start another round.
-  *#genDirections({ size }: { size?: number } = {}): Generator<number> {
+  *drawStar(
+    controller: Controller,
+    { size }: { size?: number } = {}
+  ): Generator<void> {
     const { sideNails: sideNailsConfig, sides } = this.config;
     const { sidesConnectionCount, linesPerRound } = this.calc;
 
@@ -195,7 +198,7 @@ export default class StarShape extends Shape {
         : sideNails - minNailIndex;
 
     let prevPointIndex = minNailIndex;
-    yield this.getSideNailKey(0, minNailIndex);
+    controller.goto(this.getSideNailKey(0, minNailIndex));
 
     for (let round = 0; round < rounds; round++) {
       const isLastRound = round === rounds - 1;
@@ -207,7 +210,7 @@ export default class StarShape extends Shape {
         prevPointIndex = alternate
           ? sideNails - round - 1
           : round + minNailIndex;
-        yield this.getSideNailKey(side, prevPointIndex);
+        yield controller.stringTo(this.getSideNailKey(side, prevPointIndex));
 
         if (isLastRound && i === sides - 1 && sides % 2 && sideNails % 2) {
           break;
@@ -216,15 +219,9 @@ export default class StarShape extends Shape {
 
       if (!isLastRound) {
         prevPointIndex = alternate ? prevPointIndex - 1 : prevPointIndex + 1;
-        yield this.getSideNailKey(0, prevPointIndex);
+        yield controller.stringTo(this.getSideNailKey(0, prevPointIndex));
       }
     }
-  }
-
-  getLayer(options?: { size?: number }): Layer {
-    return {
-      directions: this.#genDirections(options),
-    };
   }
 
   getStepCount(size?: number) {
