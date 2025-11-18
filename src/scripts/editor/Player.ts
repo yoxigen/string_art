@@ -23,12 +23,18 @@ export default class Player {
     nextBtn: HTMLButtonElement;
     startBtn: HTMLButtonElement;
     stepDirections: HTMLDivElement;
+    stepDirectionsFrom: HTMLDivElement;
+    stepDirectionsTo: HTMLDivElement;
+    modeToggleBtn: HTMLButtonElement;
+    continuousMode: HTMLDivElement;
+    stepsMode: HTMLDivElement;
+    instructionsToggleBtn: HTMLButtonElement;
   };
   stepCount: number;
   #isPlaying: boolean;
   #cancelNextPlayStep: Function;
   #cancelHideInstruction: Function;
-  mode: PlayerMode = PlayerMode.CONTINUOUS;
+  mode: PlayerMode = PlayerMode.STEPS;
 
   constructor(parentEl: HTMLElement, viewer: Viewer) {
     this.viewer = viewer;
@@ -46,7 +52,18 @@ export default class Player {
       nextBtn: parentEl.querySelector('#player_next_btn'),
       startBtn: parentEl.querySelector('#player_start_btn'),
       stepDirections: parentEl.querySelector('#player_step_directions'),
+      stepDirectionsFrom: parentEl.querySelector(
+        '#player_step_directions_from'
+      ),
+      stepDirectionsTo: parentEl.querySelector('#player_step_directions_to'),
+      modeToggleBtn: parentEl.querySelector('#player_mode_toggle_btn'),
+      continuousMode: parentEl.querySelector('#player_continuous'),
+      stepsMode: parentEl.querySelector('#player_steps'),
+      instructionsToggleBtn: parentEl.querySelector(
+        '#player_instructions_toggle_btn'
+      ),
     };
+
     this.stepCount = 0;
     this.#isPlaying = false;
 
@@ -74,6 +91,29 @@ export default class Player {
 
     this.elements.nextBtn.addEventListener('click', () => {
       this.next();
+    });
+
+    this.elements.modeToggleBtn.addEventListener('click', () => {
+      if (this.mode === PlayerMode.CONTINUOUS) {
+        this.mode = PlayerMode.STEPS;
+        this.#updateDirections();
+        this.elements.continuousMode.setAttribute('hidden', 'hidden');
+        this.elements.stepsMode.removeAttribute('hidden');
+      } else {
+        this.mode = PlayerMode.CONTINUOUS;
+        this.elements.stepsMode.setAttribute('hidden', 'hidden');
+        this.elements.continuousMode.removeAttribute('hidden');
+      }
+    });
+
+    this.elements.instructionsToggleBtn.addEventListener('click', () => {
+      const shouldShowInstructions = !viewOptions.showInstructions;
+      viewOptions.showInstructions = shouldShowInstructions;
+      if (shouldShowInstructions) {
+        this.gotoStart();
+      } else {
+        this.gotoEnd();
+      }
     });
 
     viewer.addEventListener('positionChange', ({ changeBy }) =>
@@ -117,6 +157,7 @@ export default class Player {
       updateStringArt: draw,
       showInstructions: false,
     });
+    this.#updateDirections();
   }
 
   updatePosition(position: number) {
@@ -164,10 +205,6 @@ export default class Player {
         )
       )
     );
-  }
-
-  setInstructions(instructions) {
-    // this.elements.stepInstructions.innerText = instructions;
   }
 
   play({
@@ -226,22 +263,49 @@ export default class Player {
   }
 
   prev() {
-    this.viewer.prev();
+    viewOptions.showInstructions = true;
+    this.viewer.goto(this.viewer.position - 1);
     this.#updateDirections();
   }
 
   next() {
-    this.viewer.next();
+    viewOptions.showInstructions = true;
+    this.viewer.goto(this.viewer.position + 1);
     this.#updateDirections();
   }
 
   gotoStart() {
+    viewOptions.showInstructions = true;
     this.viewer.goto(0);
+    this.#updateDirections();
+  }
+
+  gotoEnd() {
+    this.viewer.goto(this.stepCount);
     this.#updateDirections();
   }
 
   #updateDirections() {
     const directions = this.viewer.getLastStringNailNumbers();
-    this.elements.stepDirections.textContent = directions.join(' → ');
+    if (directions) {
+      this.elements.stepDirectionsFrom.textContent = directions[0].toString();
+      this.elements.stepDirectionsTo.textContent = directions[1].toString();
+      this.elements.playerPosition.value = this.viewer.position.toString();
+    }
+
+    if (this.viewer.position === 1) {
+      this.elements.prevBtn.setAttribute('disabled', 'disabled');
+      this.elements.startBtn.setAttribute('disabled', 'disabled');
+      this.elements.nextBtn.removeAttribute('disabled');
+    } else {
+      this.elements.prevBtn.removeAttribute('disabled');
+      this.elements.startBtn.removeAttribute('disabled');
+
+      if (this.viewer.position === this.stepCount) {
+        this.elements.nextBtn.setAttribute('disabled', 'disabled');
+      } else {
+        this.elements.nextBtn.removeAttribute('disabled');
+      }
+    }
   }
 }

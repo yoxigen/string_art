@@ -25,10 +25,6 @@
   display: inline;
 }
 
-#player_buttons i {
-  font-size: 22px;
-}
-
 .player_controls {
   gap: var(--player-gap);
   padding: 0 16px;
@@ -37,6 +33,47 @@
   width: 100%;
   max-width: 800px;
   justify-content: center;
+  align-items: center;
+}
+
+.player_controls i {
+  font-size: 22px;
+}
+
+.player_controls [disabled] {
+  opacity: 0.3;
+}
+
+#player_step_directions {
+  min-width: 9em;
+  text-align: center;
+  font-weight: 500;
+  font-size: 1.1em;
+  display: flex;
+  flex-direction: row;
+}
+
+.player_step_directions_number {
+  flex: 1;
+  border: solid 1px white;
+  border-radius: 5px;
+  padding: 2px 0;
+  background: #3d3d3d;
+  border: 1px solid #ffffff38;
+  text-align: center;
+  padding-inline: 0.4em;
+  white-space: nowrap;
+}
+
+.player_step_directions_number::before {
+  content: '•';
+  display: inline-block;
+  margin-inline-end: 4px;
+}
+
+#player_step_directions_arrow {
+  flex: 0;
+  padding: 0 0.5em;
 }
 
 #player_track {

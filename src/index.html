@@ -215,11 +215,29 @@
           </div>
         </div>
         <div id="player_steps" class="player_controls">
-          <button id="player_start_btn" class="circular_btn">Start</button>
-          <button id="player_prev_btn" class="circular_btn">Prev</button>
-          <div id="player_step_directions"></div>
-          <button id="player_next_btn" class="circular_btn">Next</button>
+          <button id="player_start_btn" class="circular_btn" hidden>
+            Start
+          </button>
+          <button id="player_prev_btn" class="circular_btn">
+            <i class="icon-step_back"></i>
+          </button>
+          <div id="player_step_directions">
+            <div
+              id="player_step_directions_from"
+              class="player_step_directions_number"
+            ></div>
+            <div id="player_step_directions_arrow">→</div>
+            <div
+              id="player_step_directions_to"
+              class="player_step_directions_number"
+            ></div>
+          </div>
+          <button id="player_next_btn" class="circular_btn">
+            <i class="icon-step_forward"></i>
+          </button>
         </div>
+        <button id="player_instructions_toggle_btn">123</button>
+        <button id="player_mode_toggle_btn">^</button>
       </nav>
       <footer id="buttons" class="pattern_only">
         <button
