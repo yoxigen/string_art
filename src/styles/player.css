@@ -7,12 +7,27 @@
   background: var(--color-player);
   --player_text_width: 80px;
   --player-gap: 10px;
+  padding: 0 8px;
+}
+
+#player_controls_and_position {
+  flex: 1;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+#player_menu {
+  flex: 0;
+  margin-inline-start: 1em;
 }
 
 #player_text {
   display: flex;
   align-items: center;
   justify-content: end;
+  margin-inline-start: 10px;
 }
 
 #player #pause_btn {
@@ -27,7 +42,6 @@
 
 .player_controls {
   gap: var(--player-gap);
-  padding: 0 16px;
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -42,6 +56,11 @@
 
 .player_controls [disabled] {
   opacity: 0.3;
+  cursor: default;
+}
+
+#player_steps {
+  flex: 0;
 }
 
 #player_step_directions {
@@ -51,6 +70,7 @@
   font-size: 1.1em;
   display: flex;
   flex-direction: row;
+  margin-bottom: 2px;
 }
 
 .player_step_directions_number {
@@ -95,9 +115,7 @@
   height: 10px;
   width: 10px;
   border-radius: 50%;
-  background: #ff4500;
   box-shadow: 0 0 2px 0 #555;
-  transition: background 0.3s ease-in-out;
 }
 
 #player_buttons .circular_btn {

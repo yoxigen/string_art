@@ -42,20 +42,6 @@
       sizes="196x196"
     />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-1QTWZCWLPY"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag('js', new Date());
-
-      gtag('config', 'G-1QTWZCWLPY');
-    </script>
   </head>
   <body class="dialog_sidebar_form">
     <main hidden data-is-template="unknown" data-is-default-config="unknown">
@@ -87,11 +73,7 @@
         >
           <i class="icon-diskette_b"></i>
         </button>
-        <dropdown-menu
-          id="pattern_menu"
-          button-style="padding: 4px 8px"
-          class="non-template-only"
-        >
+        <dropdown-menu id="pattern_menu" button-style="padding: 4px 8px">
           <span slot="label">
             <i class="icon-menu btn-icon"></i>
           </span>
@@ -103,12 +85,32 @@
             <i slot="icon" class="icon-diskette_b"></i>
             Save
           </dropdown-menu-item>
-          <dropdown-menu-item value="save_as">
+          <dropdown-menu-item value="save_as" class="non-default-config-only">
             <i slot="icon" class="icon-plus"></i>
             Save as...</dropdown-menu-item
           >
-          <dropdown-menu-item value="rename">
+          <dropdown-menu-item value="rename" class="non-default-config-only">
             <i slot="icon" class="icon-pencil"></i> Rename</dropdown-menu-item
+          >
+          <dropdown-menu-item value="config" class="small_only">
+            <i slot="icon" class="icon-options"></i>
+            Design</dropdown-menu-item
+          >
+          <dropdown-menu-item value="instructions" class="small_only">
+            <i slot="icon" class="icon-play"></i>
+            Instructions</dropdown-menu-item
+          >
+          <dropdown-menu-item value="download">
+            <i slot="icon" class="icon-download"></i>
+            Download</dropdown-menu-item
+          >
+          <dropdown-menu-item value="info">
+            <span slot="icon" class="info_icon menu_info_icon">i</span>
+            Info</dropdown-menu-item
+          >
+          <dropdown-menu-item value="share" id="share_menu_item">
+            <i slot="icon" class="icon-share"></i>
+            Share</dropdown-menu-item
           >
           <dropdown-menu-item value="delete" class="non-template-only">
             <i slot="icon" class="icon-trash"></i>
@@ -198,92 +200,51 @@
       </div>
       <article id="canvas_panel" class="pattern_only"></article>
       <nav id="player" class="noprint pattern_only">
-        <div id="player_continuous" class="player_controls" hidden>
-          <div id="player_buttons">
-            <button id="play_btn" class="circular_btn">
-              <i class="icon-play"></i>
-            </button>
-            <button id="pause_btn" class="circular_btn">
-              <i class="icon-pause"></i>
-            </button>
+        <div id="player_controls_and_position">
+          <div id="player_continuous" class="player_controls">
+            <div id="player_buttons">
+              <button id="play_btn" class="circular_btn">
+                <i class="icon-play"></i>
+              </button>
+              <button id="pause_btn" class="circular_btn">
+                <i class="icon-pause"></i>
+              </button>
+            </div>
+            <div id="player_track">
+              <input id="player_position" type="range" min="1" step="1" />
+            </div>
           </div>
-          <div id="player_track">
-            <input id="player_position" type="range" min="1" step="1" />
+          <div id="player_steps" class="player_controls">
+            <button id="player_start_btn" class="circular_btn" hidden>
+              Start
+            </button>
+            <button id="player_prev_btn" class="circular_btn">
+              <i class="icon-step_back"></i>
+            </button>
+            <div id="player_step_directions">
+              <div
+                id="player_step_directions_from"
+                class="player_step_directions_number"
+              ></div>
+              <div id="player_step_directions_arrow">→</div>
+              <div
+                id="player_step_directions_to"
+                class="player_step_directions_number"
+              ></div>
+            </div>
+            <button id="player_next_btn" class="circular_btn">
+              <i class="icon-step_forward"></i>
+            </button>
           </div>
           <div id="player_text">
             <span id="step"></span>
           </div>
         </div>
-        <div id="player_steps" class="player_controls">
-          <button id="player_start_btn" class="circular_btn" hidden>
-            Start
-          </button>
-          <button id="player_prev_btn" class="circular_btn">
-            <i class="icon-step_back"></i>
-          </button>
-          <div id="player_step_directions">
-            <div
-              id="player_step_directions_from"
-              class="player_step_directions_number"
-            ></div>
-            <div id="player_step_directions_arrow">→</div>
-            <div
-              id="player_step_directions_to"
-              class="player_step_directions_number"
-            ></div>
-          </div>
-          <button id="player_next_btn" class="circular_btn">
-            <i class="icon-step_forward"></i>
-          </button>
+        <div id="player_menu">
+          <button hidden id="player_instructions_toggle_btn">123</button>
+          <button id="player_mode_toggle_btn">^</button>
         </div>
-        <button id="player_instructions_toggle_btn">123</button>
-        <button id="player_mode_toggle_btn">^</button>
       </nav>
-      <footer id="buttons" class="pattern_only">
-        <button
-          id="share_btn"
-          type="button"
-          class="circular_btn"
-          title="Share"
-          hidden
-        >
-          <i class="icon-share"></i>
-        </button>
-        <button
-          type="button"
-          id="download_btn"
-          class="circular_btn"
-          title="Download image"
-        >
-          <i class="icon-download"></i>
-        </button>
-        <button
-          type="button"
-          class="circular_btn active small_only"
-          data-toggle-for="sidebar_form"
-          title="Config"
-        >
-          <i class="icon-options"></i>
-        </button>
-        <button
-          id="player_btn"
-          type="button"
-          class="circular_btn small_only"
-          title="Player"
-          data-toggle-for="player"
-        >
-          <i class="icon-play"></i>
-        </button>
-        <button
-          type="button"
-          id="info_btn"
-          class="circular_btn"
-          title="Info"
-          data-toggle-for="info"
-        >
-          <span class="info_icon">i</span>
-        </button>
-      </footer>
       <download-dialog id="download_dialog"> </download-dialog>
       <article id="mobile_menu">
         <div id="mobile_menu_contents">

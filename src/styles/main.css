@@ -41,7 +41,7 @@ main {
       'header canvas'
       'pattern_select canvas'
       'config canvas'
-      'controls player';
+      'config player';
   }
 
   body.dialog_info[data-pattern] main {
@@ -53,7 +53,7 @@ main {
       'pattern_select canvas'
       'config canvas'
       'info canvas'
-      'controls player';
+      'info player';
   }
 }
 
@@ -156,6 +156,14 @@ a:hover {
   font-size: 1.2em;
   font-style: italic;
   font-weight: bold;
+}
+
+.menu_info_icon {
+  display: inline-block;
+  width: 17px;
+  text-align: center;
+  font-size: 1.5em;
+  line-height: 16px;
 }
 
 [data-is-template='true'] .non-template-only,

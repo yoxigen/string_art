@@ -269,9 +269,14 @@ export default class Player {
   }
 
   next() {
-    viewOptions.showInstructions = true;
-    this.viewer.goto(this.viewer.position + 1);
-    this.#updateDirections();
+    if (this.viewer.position === this.stepCount) {
+      viewOptions.showInstructions = false;
+      this.elements.nextBtn.setAttribute('disabled', 'disabled');
+    } else {
+      viewOptions.showInstructions = true;
+      this.viewer.goto(this.viewer.position + 1);
+      this.#updateDirections();
+    }
   }
 
   gotoStart() {
@@ -286,7 +291,9 @@ export default class Player {
   }
 
   #updateDirections() {
+    this.updatePosition(this.viewer.position);
     const directions = this.viewer.getLastStringNailNumbers();
+
     if (directions) {
       this.elements.stepDirectionsFrom.textContent = directions[0].toString();
       this.elements.stepDirectionsTo.textContent = directions[1].toString();
@@ -301,9 +308,7 @@ export default class Player {
       this.elements.prevBtn.removeAttribute('disabled');
       this.elements.startBtn.removeAttribute('disabled');
 
-      if (this.viewer.position === this.stepCount) {
-        this.elements.nextBtn.setAttribute('disabled', 'disabled');
-      } else {
+      if (this.viewer.position !== this.stepCount) {
         this.elements.nextBtn.removeAttribute('disabled');
       }
     }
