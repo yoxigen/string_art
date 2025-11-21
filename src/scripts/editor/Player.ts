@@ -7,6 +7,8 @@ enum PlayerMode {
   STEPS,
 }
 
+let updateStepsTimeout;
+
 /**
  * Represents the navigation that controls the StringArt when playing
  */
@@ -161,12 +163,16 @@ export default class Player {
       return;
     }
 
+    clearTimeout(updateStepsTimeout);
+
     this.#cancelHideInstruction?.();
     this.pause();
     this.updatePosition(position);
     if (showInstructions) {
-      viewOptions.showInstructions = true;
-      this.#updateDirections();
+      updateStepsTimeout = setTimeout(() => {
+        viewOptions.showInstructions = true;
+        this.#updateDirections(false);
+      }, 200);
     }
     if (updateStringArt) {
       this.viewer.goto(position);
@@ -279,14 +285,15 @@ export default class Player {
     this.#updateDirections();
   }
 
-  #updateDirections() {
-    this.updatePosition(this.viewer.position);
+  #updateDirections(updatePosition = true) {
+    if (updatePosition) {
+      this.updatePosition(this.viewer.position);
+    }
     const directions = this.viewer.getLastStringNailNumbers();
 
     if (directions) {
       this.elements.stepDirectionsFrom.textContent = directions[0].toString();
       this.elements.stepDirectionsTo.textContent = directions[1].toString();
-      this.elements.playerPosition.value = this.viewer.position.toString();
     }
 
     if (this.viewer.position === 1) {
