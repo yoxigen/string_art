@@ -200,25 +200,34 @@
       </div>
       <article id="canvas_panel" class="pattern_only"></article>
       <nav id="player" class="noprint pattern_only">
-        <div id="player_controls_and_position">
-          <div id="player_continuous" class="player_controls">
-            <div id="player_buttons">
-              <button id="play_btn" class="circular_btn">
-                <i class="icon-play"></i>
-              </button>
-              <button id="pause_btn" class="circular_btn">
-                <i class="icon-pause"></i>
-              </button>
-            </div>
-            <div id="player_track">
-              <input id="player_position" type="range" min="1" step="1" />
-            </div>
+        <!-- <div id="player_controls_and_position"> -->
+
+        <div id="player_continuous" class="player_controls">
+          <div id="player_buttons">
+            <button id="play_btn" class="circular_btn" title="Play">
+              <i class="icon-play"></i>
+            </button>
+            <button id="pause_btn" class="circular_btn">
+              <i class="icon-pause"></i>
+            </button>
           </div>
-          <div id="player_steps" class="player_controls">
+          <div id="player_track">
+            <input id="player_position" type="range" min="1" step="1" />
+          </div>
+          <div id="player_text">
+            <span id="step"></span>
+          </div>
+        </div>
+        <div id="player_steps" class="player_controls">
+          <div id="player_steps_controls">
             <button id="player_start_btn" class="circular_btn" hidden>
               Start
             </button>
-            <button id="player_prev_btn" class="circular_btn">
+            <button
+              id="player_prev_btn"
+              class="circular_btn"
+              title="Back one step"
+            >
               <i class="icon-step_back"></i>
             </button>
             <div id="player_step_directions">
@@ -232,17 +241,23 @@
                 class="player_step_directions_number"
               ></div>
             </div>
-            <button id="player_next_btn" class="circular_btn">
+            <button
+              id="player_next_btn"
+              class="circular_btn"
+              title="Forward one step"
+            >
               <i class="icon-step_forward"></i>
             </button>
           </div>
-          <div id="player_text">
-            <span id="step"></span>
+          <div id="player_steps_close">
+            <button
+              id="player_instructions_toggle_btn"
+              class="circular_btn"
+              title="Close"
+            >
+              <i class="icon-x"></i>
+            </button>
           </div>
-        </div>
-        <div id="player_menu">
-          <button hidden id="player_instructions_toggle_btn">123</button>
-          <button id="player_mode_toggle_btn">^</button>
         </div>
       </nav>
       <download-dialog id="download_dialog"> </download-dialog>

@@ -147,7 +147,7 @@ main[data-is-default-config='true'] #controls_menu #controls_reset_btn {
   pointer-events: none;
 }
 
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 800px) {
   #controls_menu {
     width: 72px;
     flex-direction: column;

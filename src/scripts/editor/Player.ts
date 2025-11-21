@@ -25,7 +25,6 @@ export default class Player {
     stepDirections: HTMLDivElement;
     stepDirectionsFrom: HTMLDivElement;
     stepDirectionsTo: HTMLDivElement;
-    modeToggleBtn: HTMLButtonElement;
     continuousMode: HTMLDivElement;
     stepsMode: HTMLDivElement;
     instructionsToggleBtn: HTMLButtonElement;
@@ -56,7 +55,6 @@ export default class Player {
         '#player_step_directions_from'
       ),
       stepDirectionsTo: parentEl.querySelector('#player_step_directions_to'),
-      modeToggleBtn: parentEl.querySelector('#player_mode_toggle_btn'),
       continuousMode: parentEl.querySelector('#player_continuous'),
       stepsMode: parentEl.querySelector('#player_steps'),
       instructionsToggleBtn: parentEl.querySelector(
@@ -93,19 +91,6 @@ export default class Player {
       this.next();
     });
 
-    this.elements.modeToggleBtn.addEventListener('click', () => {
-      if (this.mode === PlayerMode.CONTINUOUS) {
-        this.mode = PlayerMode.STEPS;
-        this.#updateDirections();
-        this.elements.continuousMode.setAttribute('hidden', 'hidden');
-        this.elements.stepsMode.removeAttribute('hidden');
-      } else {
-        this.mode = PlayerMode.CONTINUOUS;
-        this.elements.stepsMode.setAttribute('hidden', 'hidden');
-        this.elements.continuousMode.removeAttribute('hidden');
-      }
-    });
-
     this.elements.instructionsToggleBtn.addEventListener('click', () => {
       const shouldShowInstructions = !viewOptions.showInstructions;
       viewOptions.showInstructions = shouldShowInstructions;
@@ -133,6 +118,9 @@ export default class Player {
       ({ showInstructions }) => {
         if (showInstructions) {
           this.#cancelHideInstruction?.();
+          this.elements.player.classList.add('with_steps');
+        } else {
+          this.elements.player.classList.remove('with_steps');
         }
       }
     );
@@ -178,6 +166,7 @@ export default class Player {
     this.updatePosition(position);
     if (showInstructions) {
       viewOptions.showInstructions = true;
+      this.#updateDirections();
     }
     if (updateStringArt) {
       this.viewer.goto(position);
@@ -308,7 +297,9 @@ export default class Player {
       this.elements.prevBtn.removeAttribute('disabled');
       this.elements.startBtn.removeAttribute('disabled');
 
-      if (this.viewer.position !== this.stepCount) {
+      if (this.viewer.position === this.stepCount) {
+        this.elements.nextBtn.setAttribute('disabled', 'disabled');
+      } else {
         this.elements.nextBtn.removeAttribute('disabled');
       }
     }

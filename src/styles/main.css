@@ -31,7 +31,7 @@ main {
     'config canvas';
 }
 
-@media only screen and (min-width: 601px) {
+@media only screen and (min-width: 801px) {
   body[data-pattern] main {
     grid-template-columns: var(--sidebar-width) 1fr;
     grid-template-rows: var(--header-height) var(--select-height) 1fr var(

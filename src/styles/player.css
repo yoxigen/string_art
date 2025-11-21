@@ -1,13 +1,19 @@
 #player {
   grid-area: player;
   font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-player);
   --player_text_width: 80px;
   --player-gap: 10px;
-  padding: 0 8px;
+  position: relative;
+}
+
+@media only screen and (min-width: 801px) {
+  #player {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: var(--color-player);
+    justify-content: center;
+  }
 }
 
 #player_controls_and_position {
@@ -28,6 +34,7 @@
   align-items: center;
   justify-content: end;
   margin-inline-start: 10px;
+  flex: 0;
 }
 
 #player #pause_btn {
@@ -46,8 +53,11 @@
   flex-direction: row;
   width: 100%;
   max-width: 800px;
-  justify-content: center;
   align-items: center;
+  position: relative;
+  background: var(--color-player);
+  padding: 0 8px;
+  height: 50px;
 }
 
 .player_controls i {
@@ -59,18 +69,69 @@
   cursor: default;
 }
 
-#player_steps {
-  flex: 0;
+#player_continuous {
+  z-index: 2;
+  top: 50px;
+  padding-inline-end: 16px;
 }
 
+#player_steps {
+  flex: 0;
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+  transition: transform 300ms ease-out;
+  border-bottom: solid 1px black;
+  padding-inline-end: 0;
+}
+
+@media only screen and (min-width: 801px) {
+  #player_steps {
+    position: static;
+    width: auto;
+  }
+
+  #player_continuous {
+    top: 0;
+  }
+}
+
+#player_steps_controls {
+  gap: var(--player-gap);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+}
+
+#player_steps_close {
+  flex: 0;
+  opacity: 0.3;
+}
+
+#player_steps_close:hover {
+  opacity: 1;
+}
+
+#player_steps_close i {
+  font-size: 16px;
+}
+
+@media only screen and (max-width: 800px) {
+  #player.with_steps #player_steps {
+    transform: translateY(-50px);
+  }
+}
 #player_step_directions {
-  min-width: 9em;
+  min-width: 10em;
   text-align: center;
   font-weight: 500;
   font-size: 1.1em;
   display: flex;
   flex-direction: row;
-  margin-bottom: 2px;
+  align-items: center;
 }
 
 .player_step_directions_number {
@@ -94,6 +155,9 @@
 #player_step_directions_arrow {
   flex: 0;
   padding: 0 0.5em;
+  font-size: 1.3em;
+  position: relative;
+  top: -2px;
 }
 
 #player_track {
