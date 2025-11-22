@@ -9,15 +9,6 @@ export default class TestNails extends Nails {
     return this.#nailCount;
   }
 
-  constructor() {
-    super({
-      radius: 1,
-      color: '#fff',
-      fontSize: 10,
-      renderNumbers: false,
-    });
-  }
-
   addNail(key: string | number, coordinates: Coordinates): void {
     this.#nailCount++;
   }

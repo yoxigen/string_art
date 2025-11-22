@@ -78,6 +78,10 @@ export default class Viewer extends EventBus<{
     }
   }
 
+  getLastStringNailNumbers(): [number, number] {
+    return this.pattern.getLastStringNailNumbers();
+  }
+
   setRenderer(renderer: Renderer) {
     this.renderer = renderer;
 
@@ -136,6 +140,16 @@ export default class Viewer extends EventBus<{
   goto(position: number) {
     this.#withRenderer();
     this.pattern.goto(this.renderer, position, {
+      showInstructions: viewOptions.showInstructions,
+    });
+  }
+
+  prev() {
+    if (this.position === 0) {
+      return;
+    }
+
+    this.pattern.goto(this.renderer, this.position - 1, {
       showInstructions: viewOptions.showInstructions,
     });
   }

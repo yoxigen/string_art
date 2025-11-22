@@ -1,9 +1,10 @@
 class DropdownMenuItem extends HTMLElement {
   static get observedAttributes() {
-    return ['value'];
+    return ['value', 'selected'];
   }
 
   value: string = '';
+  #listItem: HTMLLIElement;
 
   constructor() {
     super();
@@ -22,6 +23,11 @@ class DropdownMenuItem extends HTMLElement {
         li:hover {
           background: rgba(255,255,255,.1);
         }
+
+        li.selected {
+          color: var( --color-accent);
+        }
+
         span:not(:empty) {
           float: left; 
           margin-right: .5em;
@@ -30,11 +36,15 @@ class DropdownMenuItem extends HTMLElement {
           top: 1px;
         }
       </style>
-      <li role="menuitem">
+      <li role="menuitem" ${
+        this.hasAttribute('selected') ? 'class="selected"' : ''
+      }>
         <span id="icon"><slot name="icon"></span>
         <slot></slot>
       </li>
     `;
+
+    this.#listItem = this.shadowRoot!.querySelector('li');
   }
 
   connectedCallback(): void {
@@ -54,6 +64,12 @@ class DropdownMenuItem extends HTMLElement {
   attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
     if (name === 'value') {
       this.value = newValue;
+    } else if (name === 'selected') {
+      if (newValue) {
+        this.#listItem.classList.add('selected');
+      } else {
+        this.#listItem.classList.remove('selected');
+      }
     }
   }
 }

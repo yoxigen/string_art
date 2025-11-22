@@ -115,8 +115,7 @@ export default abstract class Renderer extends EventBus<{
   abstract hideInstructions(): void;
 
   getSize(): Dimensions {
-    const { width, height } = this.parentElement.getBoundingClientRect();
-    return [width, height];
+    return [this.parentElement.clientWidth, this.parentElement.clientHeight];
   }
 
   /**

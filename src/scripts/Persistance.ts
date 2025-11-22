@@ -1,5 +1,4 @@
 import EventBus from './helpers/EventBus';
-import patternTypes from './pattern_types';
 import StringArt, { Pattern } from './infra/StringArt';
 import { AppData, PatternData } from './types/persistance.types';
 import type InputDialog from './components/dialogs/InputDialog';
@@ -29,36 +28,16 @@ export default class Persistance extends EventBus<{
       saveDialog: document.querySelector('#save_dialog'),
     };
 
-    document.querySelector('#pattern_menu').addEventListener('select', e => {
-      // @ts-ignore
-      switch (e.detail.value) {
-        case 'save_as':
-          this.#showSaveAsDialog();
-          break;
-        case 'delete':
-          this.deletePattern();
-          break;
-        case 'save':
-          this.saveCurrentPattern();
-          break;
-        case 'rename':
-          this.renameCurrentPattern();
-          break;
-        case 'export':
-          this.exportAllPatterns();
-      }
-    });
-
     document.querySelector('#save_btn').addEventListener('click', () => {
       if (this.currentPattern.isTemplate) {
-        this.#showSaveAsDialog();
+        this.showSaveAsDialog();
       } else {
         this.saveCurrentPattern();
       }
     });
   }
 
-  #showSaveAsDialog() {
+  showSaveAsDialog() {
     const nextId = this.#getNextAvailableId();
     const defaultName = getQueryParams().name ?? `Pattern #${nextId}`;
 

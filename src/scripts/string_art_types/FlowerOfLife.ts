@@ -281,15 +281,15 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     const edgeSize = polygon.sideSize / levels;
     const nailsLength = edgeSize / (2 * Math.cos(Math.PI / 6));
 
-    const ringCircle =
-      renderRing && ringSize
-        ? new Circle({
-            size,
-            n: ringNailCount,
-            margin: margin,
-            rotation: globalRotation,
-          })
-        : null;
+    let ringCircle: Circle;
+    if (renderRing && ringSize) {
+      ringCircle = new Circle({
+        size,
+        n: ringNailCount,
+        margin: margin,
+        rotation: globalRotation,
+      });
+    }
 
     const countPerLevelSide = new Array(levels + (renderCaps ? 1 : 0))
       .fill(null)
@@ -741,12 +741,11 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     }
 
     if (renderRing && ringSize) {
-      const ringLayer = this.calc.ringCircle.getRingLayer({
+      controller.startLayer({ name: 'Ring', color: ringColor });
+      yield* this.calc.ringCircle.drawRingLayer(controller, {
         ringSize: ringSize / 2,
-        color: ringColor,
+        nailGroup: 'ring',
       });
-      ringLayer.nailsGroup = 'ring';
-      yield* controller.drawLayer(ringLayer);
     }
   }
 

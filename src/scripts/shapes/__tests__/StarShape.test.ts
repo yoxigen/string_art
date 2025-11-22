@@ -2,6 +2,8 @@ import { describe, test, expect } from '@jest/globals';
 import { TestRenderer } from '../../infra/renderers/TestRenderer';
 import StarShape from '../StarShape';
 import type { Dimensions } from '../../types/general.types';
+import Nails from '../../infra/nails/Nails';
+import Controller from '../../infra/Controller';
 
 describe('StarShape', () => {
   describe('step count is the same as number of yields for drawing a star', () => {
@@ -13,15 +15,18 @@ describe('StarShape', () => {
     ];
 
     const size = [1000, 600] as Dimensions;
-    const renderer = new TestRenderer(size);
 
     for (const config of configs) {
+      const renderer = new TestRenderer(size);
+      const nails = new Nails();
+      const controller = new Controller(renderer, nails);
       const star = new StarShape({
         ...config,
         size,
       });
-      const directions = star.getLayer().directions;
-      let drawCount = -1; // The first direction isn't a step, it's a starting point
+      star.drawNails(nails);
+      const directions = star.drawStar(controller);
+      let drawCount = 0;
       while (!directions.next().done) {
         drawCount++;
       }

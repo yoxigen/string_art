@@ -52,6 +52,8 @@ abstract class StringArt<
 
   private stringsIterator: Iterator<void>;
   private nails: Nails;
+  private controller: Controller;
+
   #config: Config<TConfig>;
   #controlsIndex: Record<keyof TConfig, ControlConfig<TConfig>>;
   #defaultConfig: Readonly<Config<TConfig>> | null;
@@ -231,13 +233,13 @@ abstract class StringArt<
     }
   }
 
-  setUpDraw(options?: CalcOptions) {
+  setUpDraw({ precision, ...options }: CalcOptions & { precision?: number }) {
     if (!this.calc) {
       this.calc = this.getCalc(options);
     }
 
     if (!this.nails) {
-      this.nails = new Nails();
+      this.nails = new Nails({ precision });
       this.drawNails(this.nails);
     }
   }
@@ -257,7 +259,12 @@ abstract class StringArt<
    */
   initDraw(
     renderer: Renderer,
-    { redrawNails = true, redrawStrings = true, sizeChanged }: DrawOptions = {}
+    {
+      redrawNails = true,
+      redrawStrings = true,
+      sizeChanged,
+      precision,
+    }: DrawOptions = {}
   ) {
     if (sizeChanged) {
       this.resetStructure();
@@ -276,8 +283,7 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
-
-    this.setUpDraw({ size });
+    this.setUpDraw({ size, precision });
   }
 
   draw(
@@ -312,11 +318,7 @@ abstract class StringArt<
    */
   #draw(
     renderer: Renderer,
-    {
-      position,
-      precision,
-      ...drawOptions
-    }: { position?: number } & DrawOptions = {}
+    { position, ...drawOptions }: { position?: number } & DrawOptions = {}
   ): () => void {
     this.initDraw(renderer, drawOptions);
 
@@ -340,7 +342,6 @@ abstract class StringArt<
 
     if (showNails && drawOptions.redrawNails !== false) {
       this.nails.draw(renderer, {
-        precision,
         color: this.config.nailsColor,
         fontSize: this.config.nailNumbersFontSize,
         radius: this.config.nailRadius,
@@ -348,10 +349,10 @@ abstract class StringArt<
       });
     }
 
-    const controller = new Controller(renderer, this.nails);
+    this.controller = new Controller(renderer, this.nails);
 
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
-      this.stringsIterator = this.drawStrings(controller);
+      this.stringsIterator = this.drawStrings(this.controller);
       this.position = 0;
 
       while (
@@ -363,6 +364,10 @@ abstract class StringArt<
     return () => {
       this.#taskController?.abort('Cancelled');
     };
+  }
+
+  getLastStringNailNumbers(): [number, number] {
+    return this.controller.getLastStringNailNumbers();
   }
 
   goto(renderer: Renderer, position: number, { showInstructions = true } = {}) {

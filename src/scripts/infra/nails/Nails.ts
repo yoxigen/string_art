@@ -11,10 +11,13 @@ import NailsSetter from './NailsSetter';
 export default class Nails implements NailsSetter {
   #groups: Map<NailGroupKey, NailsGroup>;
   #defaultNailsGroup: NailsGroup;
+  #nailNumbers: Map<NailGroupKey, Map<NailKey, number>>;
+  precision: number;
 
-  constructor() {
+  constructor({ precision }: { precision?: number } = {}) {
     this.#defaultNailsGroup = new NailsGroup();
     this.#groups = new Map([[null, this.#defaultNailsGroup]]);
+    this.precision = precision;
   }
 
   addNail(key: NailKey, coordinates: Coordinates) {
@@ -36,6 +39,31 @@ export default class Nails implements NailsSetter {
     return this.#groups.get(groupKey);
   }
 
+  #setNailNumbers() {
+    this.#nailNumbers = new Map();
+    let groupNumbersStart = 1;
+
+    for (const [key, group] of this.#groups.entries()) {
+      this.#nailNumbers.set(
+        key,
+        group.getNailNumbers({
+          precision: this.precision,
+          startNumber: groupNumbersStart,
+        })
+      );
+
+      groupNumbersStart += group.length;
+    }
+  }
+
+  getNailNumber(nailKey: NailKey, groupKey?: NailGroupKey): number {
+    if (!this.#nailNumbers) {
+      this.#setNailNumbers();
+    }
+
+    return this.#nailNumbers.get(groupKey ?? null).get(nailKey);
+  }
+
   getNailCoordinates(
     nailKey: NailKey,
     groupKey: NailGroupKey = null
@@ -51,15 +79,12 @@ export default class Nails implements NailsSetter {
     return coordinates;
   }
 
-  draw(
-    renderer: Renderer,
-    { precision, ...options }: { precision?: number } & NailsRenderOptions
-  ) {
+  draw(renderer: Renderer, options: NailsRenderOptions) {
     let numbersStart = 1;
     for (const group of this.#groups.values()) {
       renderer.renderNails(
-        precision || options.renderNumbers
-          ? group.getUniqueNails(precision)
+        this.precision || options.renderNumbers
+          ? group.getUniqueNails(this.precision)
           : group.coordinates,
         {
           ...options,

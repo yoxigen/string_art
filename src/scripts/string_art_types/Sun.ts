@@ -11,7 +11,7 @@ import type {
   GroupValue,
 } from '../types/config.types';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
-import { CalcOptions, NailGroupKey, NailKey } from '../types/stringart.types';
+import { CalcOptions } from '../types/stringart.types';
 import {
   combineBoundingRects,
   getBoundingRectAspectRatio,
@@ -19,9 +19,9 @@ import {
 } from '../helpers/size_utils';
 import NailsGroup from '../infra/nails/NailsGroup';
 import NailsSetter from '../infra/nails/NailsSetter';
-import type { Layer } from '../infra/Layer';
-import { createArray } from '../helpers/array_utils';
 import Controller from '../infra/Controller';
+import { COMMON_CONFIG_CONTROLS } from '../infra/common_controls';
+import { createArray } from '../helpers/array_utils';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;
@@ -225,7 +225,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
 
   getCommonControls(): ControlsConfig<Partial<SunConfig>> {
     return insertAfter<Partial<SunConfig>>(
-      super.getCommonControls(),
+      COMMON_CONFIG_CONTROLS,
       'nailsColor',
       [
         {
@@ -345,18 +345,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     return getBoundingRectAspectRatio(boundingRect);
   }
 
-  getStarLayer(size?: number): Layer {
-    return this.calc.star.getLayer({ size });
-  }
-
-  getStarLayers(): Layer[] {
-    return createArray(this.config.layers, layerIndex => ({
-      color: this.#color.getColor(layerIndex),
-      ...this.calc.star.getLayer({ size: this.#getLayerSize(layerIndex) }),
-    }));
-  }
-
-  *genBackdropLayers(): Generator<Layer> {
+  *drawBackdrop(controller: Controller): Generator<void> {
     // For each side, add a nail between two star sides, at the specified backdropRadius.
     // For the backdrop size, connect the nail to the number of points in the star for the two sides near the backdrop nail
 
@@ -373,65 +362,76 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     const shouldSkip = backdropSkip && sides > 3;
     let currentSide = 0;
     const shift = Math.floor(backdropShift * (sideNails - backdropNails));
-
     let currentSideIndex = shift + backdropNails - 1;
 
-    function* genSideDirections(
-      side: number
-    ): Generator<NailKey | { group: NailGroupKey; nail: NailKey }> {
+    function* genSideDirections(side: number): Generator<void> {
       let alternate = false;
       const direction = side % 2 ? 1 : -1; // 1 if backdrop threading starts at the bottom and goes up, -1 if it goes down
-      yield star.getSideNailKey(side, currentSideIndex);
+      controller.goto(star.getSideNailKey(side, currentSideIndex));
 
-      const backdropNailKey = {
-        group: 'backdrop',
-        nail: circle.getNailKey(shouldSkip ? (side + 1) % sides : side),
-      };
-
+      const backdropNailKey = circle.getNailKey(
+        shouldSkip ? (side + 1) % sides : side
+      );
       for (let i = 0; i < backdropNails; i++) {
-        yield backdropNailKey;
+        yield controller.stringTo(backdropNailKey, 'backdrop');
 
         currentSide = (alternate ? side : side + (shouldSkip ? 3 : 1)) % sides;
-        yield star.getSideNailKey(currentSide, currentSideIndex);
+        yield controller.stringTo(
+          star.getSideNailKey(currentSide, currentSideIndex)
+        );
 
         if (i < backdropNails - 1) {
           alternate = !alternate;
           currentSideIndex += direction;
-          yield star.getSideNailKey(currentSide, currentSideIndex);
+          yield controller.stringTo(
+            star.getSideNailKey(currentSide, currentSideIndex)
+          );
         }
       }
     }
 
-    function* genAllSidesDirections(): Generator<
-      NailKey | { group: NailGroupKey; nail: NailKey }
-    > {
+    function* genAllSidesDirections(): Generator<void> {
       for (let side = 0; side < sides; side++) {
         yield* genSideDirections(side);
       }
     }
 
     if (!backdropIsMultiColor || backdropColorCount === 1) {
-      yield {
+      controller.startLayer({
+        name: 'Backdrop',
         color: this.#backdropColor.getColor(0),
-        directions: genAllSidesDirections(),
-        name: 'backdrop',
-        hasMultipleNailGroups: true,
-      };
+      });
+      yield* genAllSidesDirections();
     } else {
+      const layers: Map<number, { name: string; color: ColorValue }> = new Map(
+        createArray(2, i => [
+          i,
+          {
+            name: `Backdrop #${i + 1}`,
+            color: this.#backdropColor.getColor(i),
+          },
+        ])
+      );
+
       for (let side = 0; side < sides; side++) {
-        yield {
-          color: this.#backdropColor.getColor(side % 2 ? 0 : 1),
-          directions: genSideDirections(side),
-          name: `backdrop_${side}`,
-          hasMultipleNailGroups: true,
-        };
+        controller.startLayer(layers.get(side % 2));
+        yield* genSideDirections(side);
       }
     }
   }
 
-  *drawStrings(controller: Controller) {
-    yield* controller.drawLayers(this.genBackdropLayers());
-    yield* controller.drawLayers(this.getStarLayers());
+  *drawStrings(controller: Controller): Generator<void> {
+    yield* this.drawBackdrop(controller);
+
+    for (let layerIndex = 0; layerIndex < this.config.layers; layerIndex++) {
+      controller.startLayer({
+        name: `Layer ${layerIndex + 1}`,
+        color: this.#color.getColor(layerIndex),
+      });
+      yield* this.calc.star.drawStar(controller, {
+        size: this.#getLayerSize(layerIndex),
+      });
+    }
   }
 
   drawNails(nails: NailsSetter) {

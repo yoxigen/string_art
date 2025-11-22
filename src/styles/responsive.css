@@ -1,4 +1,4 @@
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 800px) {
   main {
     grid-template-columns: 1fr;
     grid-template-rows: var(--select-height) 1fr;
@@ -9,14 +9,11 @@
 
   body[data-pattern] main {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--select-height) 1fr var(--player-mobile-height) var(
-        --controls-height
-      );
+    grid-template-rows: var(--select-height) 1fr var(--player-mobile-height);
     grid-template-areas:
       'pattern_select'
       'canvas'
-      'player'
-      'controls';
+      'player';
   }
 
   .dialog_sidebar_form main,
@@ -30,16 +27,15 @@
   body[data-pattern].dialog_sidebar_form main,
   body[data-pattern].dialog_info main {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--select-height) 100vw 1fr var(--controls-height);
+    grid-template-rows: var(--select-height) min(100vw, 50vh) 1fr;
     grid-template-areas:
       'pattern_select'
       'canvas'
-      'config'
-      'controls';
+      'config';
   }
 
   body[data-pattern].dialog_info main {
-    grid-template-rows: var(--select-height) 70vw 1fr var(--controls-height);
+    grid-template-rows: var(--select-height) 70vw 1fr;
   }
 
   #main_header {
@@ -83,7 +79,7 @@
   }
 }
 
-@media only screen and (min-width: 601px) {
+@media only screen and (min-width: 801px) {
   .large_only {
     display: inherit !important;
   }

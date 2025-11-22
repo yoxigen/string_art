@@ -155,14 +155,15 @@ export default class CanvasRenderer extends Renderer {
     }
 
     const realSize = size.map(v => v * this.pixelRatio) as Dimensions;
-    this.canvases.forEach(canvas => {
-      canvas.setAttribute('width', String(realSize[0]));
-      canvas.setAttribute('height', String(realSize[1]));
-      canvas.style.setProperty('width', `${size[0]}px`);
-      canvas.style.setProperty('height', `${size[1]}px`);
-    });
 
     if (!this.currentSize || !areDimensionsEqual(realSize, this.currentSize)) {
+      this.canvases.forEach(canvas => {
+        canvas.setAttribute('width', String(realSize[0]));
+        canvas.setAttribute('height', String(realSize[1]));
+        canvas.style.setProperty('width', `${size[0]}px`);
+        canvas.style.setProperty('height', `${size[1]}px`);
+      });
+
       this.currentSize = realSize;
 
       this.emit('sizeChange', { size: realSize });

@@ -18,9 +18,11 @@ import { hide, unHide } from './helpers/dom_utils';
 import info from './Info';
 import 'scheduler-polyfill';
 import posthog from 'posthog-js';
+import { DropdownMenu } from './components/DropdownMenu';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
+  posthog.captureException(event);
 });
 
 window.addEventListener('load', main);
@@ -28,11 +30,7 @@ window.addEventListener('load', main);
 async function main() {
   const elements = {
     main: document.querySelector('main'),
-    downloadBtn: document.querySelector('#download_btn'),
     resetBtn: document.querySelector('#controls_reset_btn'),
-    shareBtn: document.querySelector('#share_btn'),
-    playerBtn: document.querySelector('#player_btn'),
-    infoBtn: document.querySelector('#info_btn'),
     buttons: document.querySelector('#buttons'),
     instructionsLink: document.querySelector(
       '#pattern_select_dropdown_instructions'
@@ -41,7 +39,8 @@ async function main() {
 
   posthog.init('phc_hYSU225vNE9x5Xz1f9YBYf89Gzzqo0GAdXuMiu0NQII', {
     api_host: 'https://us.i.posthog.com',
-    person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+    person_profiles: 'always',
+    persistence: 'localStorage',
   });
 
   const persistance = new Persistance();
@@ -62,26 +61,81 @@ async function main() {
   type Pattern = StringArt<any>;
 
   const showShare = await isShareSupported();
-  if (showShare) {
-    unHide(elements.shareBtn);
+  if (!showShare) {
+    document.querySelector('#share_menu_item').remove();
   }
 
-  elements.downloadBtn.addEventListener('click', () => {
-    const downloadDialog = document.querySelector(
-      '#download_dialog'
-    ) as DownloadDialog;
-    downloadDialog!.show(viewer.pattern);
+  const downloadDialog = document.querySelector(
+    '#download_dialog'
+  ) as DownloadDialog;
+
+  const menuActions = {
+    save_as: () => persistance.showSaveAsDialog(),
+    delete: () => persistance.deletePattern(),
+    save: () => persistance.saveCurrentPattern(),
+    rename: () => persistance.renameCurrentPattern(),
+    export: () => persistance.exportAllPatterns(),
+    download: () => downloadDialog!.show(viewer.pattern),
+    instructions: () => showPanel('player'),
+    config: () => showPanel('sidebar_form'),
+    info: () => showPanel('info'),
+    share: () => sharePattern(),
+  };
+
+  (document.querySelector('#pattern_menu') as DropdownMenu)!.addEventListener(
+    'select',
+    (e: CustomEvent) => {
+      const menuItemValue = e.detail.value as keyof typeof menuActions;
+      const itemElement = document.querySelector(
+        `dropdown-menu-item[value="${menuItemValue}"]`
+      );
+
+      if (itemElement?.hasAttribute('selectable')) {
+        document
+          .querySelector('#pattern_menu [selected]')
+          ?.removeAttribute('selected');
+
+        itemElement.setAttribute('selected', 'selected');
+      }
+
+      const action = menuActions[menuItemValue];
+      if (action) {
+        action();
+        posthog.capture('pattern_menu_select', {
+          menu_item: menuItemValue,
+        });
+      } else {
+        throw new Error(
+          `No action available for menu item "${menuItemValue}".`
+        );
+      }
+    }
+  );
+
+  document.body.addEventListener('click', e => {
+    const toggleBtn =
+      e.target instanceof HTMLElement && e.target.closest('[data-toggle-for]');
+    if (toggleBtn instanceof HTMLElement && toggleBtn) {
+      const dialogId = toggleBtn.dataset.toggleFor;
+
+      toggleBtn.classList.toggle('active');
+
+      const toggledElement = document.querySelector('#' + dialogId);
+      if (toggledElement) {
+        toggledElement.classList.toggle('open');
+        document.body.classList.toggle('dialog_' + dialogId);
+      }
+    }
   });
 
   elements.resetBtn.addEventListener('click', reset);
-  elements.shareBtn.addEventListener(
-    'click',
-    async () =>
-      await share({
-        renderer: viewer.renderer,
-        pattern: viewer.pattern,
-      })
-  );
+
+  async function sharePattern() {
+    await share({
+      renderer: viewer.renderer,
+      pattern: viewer.pattern,
+    });
+  }
 
   elements.instructionsLink.addEventListener('click', e => {
     e.preventDefault();
@@ -97,30 +151,31 @@ async function main() {
     });
   });
 
-  document.body.addEventListener('click', e => {
-    const toggleBtn =
-      e.target instanceof HTMLElement && e.target.closest('[data-toggle-for]');
-    if (toggleBtn instanceof HTMLElement && toggleBtn) {
-      const dialogId = toggleBtn.dataset.toggleFor;
+  const PANELS = ['info', 'sidebar_form', 'player'];
 
-      deactivateTabs([dialogId]);
-      toggleBtn.classList.toggle('active');
-
-      const toggledElement = document.querySelector('#' + dialogId);
-      if (toggledElement) {
-        toggledElement.classList.toggle('open');
-        document.body.classList.toggle('dialog_' + dialogId);
-        currentPattern && viewer.update();
+  function showPanel(panelId: string) {
+    PANELS.forEach(panel => {
+      if (panel !== panelId) {
+        document.querySelector('#' + panel).classList.remove('open');
+        document.body.classList.remove('dialog_' + panel);
       }
+    });
 
-      if (dialogId === 'info') {
-        showInfo = toggleBtn.classList.contains('active');
-        if (showInfo) {
-          info.setPattern(currentPattern, viewer.size);
-        }
+    const toggledElement = document.querySelector('#' + panelId);
+    if (toggledElement) {
+      toggledElement.classList.toggle('open');
+      document.body.classList.toggle('dialog_' + panelId);
+      currentPattern && viewer.update();
+    }
+
+    if (panelId === 'info') {
+      showInfo = !showInfo;
+
+      if (showInfo) {
+        info.setPattern(currentPattern, viewer.size);
       }
     }
-  });
+  }
 
   persistance.addEventListener('deletePattern', ({ pattern }) => {
     const templatePattern = findPatternById(pattern.type);
