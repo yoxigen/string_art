@@ -86,6 +86,17 @@ async function main() {
     'select',
     (e: CustomEvent) => {
       const menuItemValue = e.detail.value as keyof typeof menuActions;
+      const itemElement = document.querySelector(
+        `dropdown-menu-item[value="${menuItemValue}"]`
+      );
+
+      if (itemElement?.hasAttribute('selectable')) {
+        document
+          .querySelector('#pattern_menu [selected]')
+          ?.removeAttribute('selected');
+
+        itemElement.setAttribute('selected', 'selected');
+      }
 
       const action = menuActions[menuItemValue];
       if (action) {

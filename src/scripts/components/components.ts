@@ -4,6 +4,7 @@ import './inputs/DimensionsInput';
 import './inputs/StringArtCheckbox';
 import './DropdownMenu';
 import './DropdownMenuItem';
+import './DropdownMenuSeparator';
 import './dialogs/InputDialog';
 import './dialogs/ConfirmDialog';
 import './dialogs/download_dialog/DownloadDialog';

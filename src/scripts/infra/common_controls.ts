@@ -54,7 +54,7 @@ export const COMMON_CONFIG_CONTROLS: ControlsConfig<Partial<CommonConfig>> = [
         label: 'Nail numbers font size',
         defaultValue: 10,
         type: 'range',
-        attr: { min: 6, max: 24, step: 0.5 },
+        attr: { min: 6, max: 32, step: 0.5 },
         displayValue: ({ nailNumbersFontSize }) => `${nailNumbersFontSize}px`,
         show: ({ showNails, showNailNumbers }) => showNails && showNailNumbers,
         affectsStrings: false,

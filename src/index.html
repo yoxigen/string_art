@@ -89,32 +89,44 @@
             <i slot="icon" class="icon-plus"></i>
             Save as...</dropdown-menu-item
           >
-          <dropdown-menu-item value="rename" class="non-default-config-only">
+          <dropdown-menu-item value="rename" class="non-template-only">
             <i slot="icon" class="icon-pencil"></i> Rename</dropdown-menu-item
           >
-          <dropdown-menu-item value="config" class="small_only">
+          <dropdown-menu-item value="delete" class="non-template-only">
+            <i slot="icon" class="icon-trash"></i>
+            Delete</dropdown-menu-item
+          >
+          <dropdown-menu-separator
+            class="non-template-only"
+          ></dropdown-menu-separator>
+          <dropdown-menu-item
+            value="config"
+            class="small_only"
+            selected="selected"
+            selectable
+          >
             <i slot="icon" class="icon-options"></i>
             Design</dropdown-menu-item
           >
-          <dropdown-menu-item value="instructions" class="small_only">
+          <dropdown-menu-item
+            value="instructions"
+            class="small_only"
+            selectable
+          >
             <i slot="icon" class="icon-play"></i>
             Instructions</dropdown-menu-item
+          >
+          <dropdown-menu-item value="info" selectable>
+            <span slot="icon" class="info_icon menu_info_icon">i</span>
+            Info</dropdown-menu-item
           >
           <dropdown-menu-item value="download">
             <i slot="icon" class="icon-download"></i>
             Download</dropdown-menu-item
           >
-          <dropdown-menu-item value="info">
-            <span slot="icon" class="info_icon menu_info_icon">i</span>
-            Info</dropdown-menu-item
-          >
           <dropdown-menu-item value="share" id="share_menu_item">
             <i slot="icon" class="icon-share"></i>
             Share</dropdown-menu-item
-          >
-          <dropdown-menu-item value="delete" class="non-template-only">
-            <i slot="icon" class="icon-trash"></i>
-            Delete</dropdown-menu-item
           >
           <!-- <dropdown-menu-item value="export">
             <i slot="icon" class="icon-download"></i>

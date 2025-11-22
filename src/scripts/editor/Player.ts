@@ -7,7 +7,7 @@ enum PlayerMode {
   STEPS,
 }
 
-let updateStepsTimeout;
+let updateStepsTimeout: ReturnType<typeof setTimeout>;
 
 /**
  * Represents the navigation that controls the StringArt when playing
@@ -35,6 +35,7 @@ export default class Player {
   #isPlaying: boolean;
   #cancelNextPlayStep: Function;
   #cancelHideInstruction: Function;
+  #showSteps = false;
   mode: PlayerMode = PlayerMode.STEPS;
 
   constructor(parentEl: HTMLElement, viewer: Viewer) {
@@ -120,9 +121,9 @@ export default class Player {
       ({ showInstructions }) => {
         if (showInstructions) {
           this.#cancelHideInstruction?.();
-          this.elements.player.classList.add('with_steps');
         } else {
           this.elements.player.classList.remove('with_steps');
+          this.#showSteps = false;
         }
       }
     );
@@ -139,9 +140,9 @@ export default class Player {
     this.stepCount = stepCount;
     this.elements.playerPosition.setAttribute('max', String(this.stepCount));
     this.elements.step.innerText = `${this.stepCount}/${this.stepCount}`;
-    this.elements.text.style.removeProperty('width');
-    this.elements.text.style.width =
-      (this.elements.text.clientWidth || 70) + 'px';
+    // this.elements.text.style.removeProperty('width');
+    // this.elements.text.style.width =
+    //   (this.elements.text.clientWidth || 70) + 'px';
     viewOptions.showInstructions = false;
     this.goto(this.stepCount, {
       updateStringArt: draw,
@@ -169,8 +170,13 @@ export default class Player {
     this.pause();
     this.updatePosition(position);
     if (showInstructions) {
+      viewOptions.showInstructions = true;
+
       updateStepsTimeout = setTimeout(() => {
-        viewOptions.showInstructions = true;
+        if (!this.#showSteps) {
+          this.elements.player.classList.add('with_steps');
+          this.#showSteps = true;
+        }
         this.#updateDirections(false);
       }, 200);
     }

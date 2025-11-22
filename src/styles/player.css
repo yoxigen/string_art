@@ -90,7 +90,14 @@
 @media only screen and (min-width: 801px) {
   #player_steps {
     position: static;
-    width: auto;
+    transition: opacity 0.5s ease-out;
+    opacity: 0;
+    display: none;
+  }
+
+  #player.with_steps #player_steps {
+    opacity: 1;
+    display: flex;
   }
 
   #player_continuous {
