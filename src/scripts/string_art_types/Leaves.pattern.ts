@@ -20,7 +20,7 @@ interface LeavesConfig extends ColorConfig {
 type TCalc = {
   //   sideLength: number,
   angleRadians: number;
-  polygons: Polygon[];
+  basePolygon: Polygon;
   center: Coordinates;
 };
 
@@ -48,7 +48,7 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       label: 'Density',
       attr: {
         min: 5,
-        max: 100,
+        max: 500,
         step: 1,
       },
       defaultValue: 30,
@@ -56,16 +56,12 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     },
     {
       key: 'angle',
+      label: 'Layer angle',
+      defaultValue: 0.01,
+      displayValue: ({ angle, sides }) =>
+        `${Math.round((180 * angle) / sides)}°`,
       type: 'range',
-      label: 'Sides rotation',
-      attr: {
-        min: 0.001,
-        max: 0.2,
-        step: 0.001,
-      },
-      displayValue: ({ angle }) => `${roundNumber((angle ?? 0) * 360, 2)}°`,
-      defaultValue: 0.025,
-      affectsStepCount: false,
+      attr: { min: 0.01, max: 0.15, step: 0.001 },
       isStructural: true,
     },
     Color.getConfig({
@@ -88,21 +84,21 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
 
   getCalc({ size }: CalcOptions): TCalc {
     const { sides, angle, margin } = this.config;
+    const center = getCenter(size);
 
-    const polygons = [
-      new Polygon({
-        sides,
-        size,
-        nailsPerSide: 2,
-        fitSize: true,
-        margin,
-      }),
-    ];
+    const basePolygon = new Polygon({
+      size,
+      sides,
+      nailsPerSide: 2,
+      center,
+      fitSize: true,
+      margin,
+    });
 
     return {
-      polygons,
+      basePolygon,
       angleRadians: (angle * PI2) / sides,
-      center: getCenter(size),
+      center,
     };
   }
 
@@ -123,13 +119,13 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     const { sides, n } = this.config;
 
     for (let i = 0; i < n; i++) {
-      for (let side = 0; side < sides; side++) {
-        if (i || side) {
-          yield controller.stringTo(n * side + i);
+      if (i) {
+        if (!(i % sides)) {
+          yield controller.stringTo(i - sides);
         }
-      }
 
-      yield controller.stringTo(i);
+        yield controller.stringTo(i);
+      }
     }
   }
 
@@ -144,41 +140,58 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
   }
 
   drawNails(nails: NailsSetter) {
-    const { polygons, angleRadians } = this.calc;
-    const { n, sides } = this.config;
-    const nailsPerPolygon = n * sides;
-    const theta = Math.PI * (1 - 2 / sides);
-
-    const distanceProportion =
-      Math.tan(angleRadians) /
-      (Math.sin(theta) + Math.tan(angleRadians) * (1 + Math.cos(theta)));
+    const { basePolygon, angleRadians } = this.calc;
+    const { n, sides, angle } = this.config;
+    const piSides = Math.PI / sides;
+    let totalNailsCount = basePolygon.getNailsCount();
 
     function drawPolygonNails(polygon: Polygon, polygonIndex: number = 0) {
-      const startIndex = nailsPerPolygon * polygonIndex;
+      let previousPolygon = polygon;
 
-      for (let side = 0; side < sides; side++) {
-        const sideStartIndex = startIndex + n * side;
-        let base = polygon.sideSize;
-        let prevPoint = polygon.getSidePoint({ side, index: 0 });
-        nails.addNail(sideStartIndex, prevPoint);
-        const sideAngle =
-          (side * PI2) / sides + (sides % 2 ? Math.PI / sides : Math.PI * 0.75);
+      polygon.drawNails(nails);
 
-        for (let i = 1; i < n; i++) {
-          const distance = base * distanceProportion;
-          const point = [
-            prevPoint[0] + distance * Math.cos(sideAngle + angleRadians * i),
-            prevPoint[1] + distance * Math.sin(sideAngle + angleRadians * i),
-          ] as Coordinates;
-
-          nails.addNail(sideStartIndex + i, point);
-          prevPoint = point;
-          base -= distance;
+      for (let layer = 0; layer < 200; layer++) {
+        const layerIndexStart = totalNailsCount;
+        if (previousPolygon.sideSize <= 5) {
+          break;
         }
+
+        const layerAngle =
+          piSides -
+          Math.atan(
+            (previousPolygon.sideSize * (0.5 - angle)) /
+              previousPolygon.getApothem()
+          );
+
+        if (layerAngle <= 0) {
+          break;
+        }
+
+        const radius =
+          (previousPolygon.radius * Math.cos(piSides)) /
+          Math.cos(layerAngle - piSides);
+
+        const polygon = new Polygon({
+          size: [100, 100],
+          sides,
+          nailsPerSide: 2,
+          rotation: layerAngle / PI2 + (previousPolygon.config.rotation ?? 0),
+          center: basePolygon.center,
+          radius,
+          getUniqueKey: layerIndexStart ? k => layerIndexStart + k : undefined,
+        });
+
+        if (previousPolygon.sideSize - polygon.sideSize < 5) {
+          break;
+        }
+
+        polygon.drawNails(nails);
+        previousPolygon = polygon;
+        totalNailsCount += polygon.getNailsCount();
       }
     }
 
-    drawPolygonNails(polygons[0]);
+    drawPolygonNails(basePolygon);
   }
 
   thumbnailConfig = (config: LeavesConfig) => ({
