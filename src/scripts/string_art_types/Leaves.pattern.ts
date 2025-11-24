@@ -23,6 +23,8 @@ type TCalc = {
   angleRadians: number;
   polygons: Polygon[];
   nailsPerSide: number;
+  nailsPerTile: number;
+  tiles: number;
 };
 
 export default class Leaves extends StringArt<LeavesConfig, TCalc> {
@@ -46,7 +48,7 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     {
       key: 'angle',
       label: 'Layer angle',
-      defaultValue: 0.01,
+      defaultValue: 0.088,
       displayValue: ({ angle, sides }) =>
         `${roundNumber((180 * angle) / sides, 2)}°`,
       type: 'range',
@@ -85,10 +87,10 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     const center = getCenter(size);
 
     const piSides = Math.PI / sides;
-    const helperPolygonSides = 360 / (180 - 360 / sides);
+    const tiles = Math.floor(360 / (180 - 360 / sides));
 
     const patternPolygon = new Polygon({
-      sides: helperPolygonSides,
+      sides: tiles,
       size,
       fitSize: true,
       margin,
@@ -96,16 +98,19 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       rotation,
     });
 
+    const interiorAngle = ((sides - 2) * Math.PI) / sides;
+
     const centerHelperPolygon = new Polygon({
-      sides: helperPolygonSides,
-      radius: patternPolygon.radius / 2,
+      sides: tiles,
+      radius: patternPolygon.radius / (2 * Math.cos(interiorAngle / 2)),
       nailsPerSide: 2,
-      rotation: rotation + 1 / (2 * helperPolygonSides),
+      rotation: rotation + 1 / (2 * tiles),
       size: [1, 1],
       center: patternPolygon.center,
     });
 
     let totalNailsCount = 0;
+    let nailsPerSide = 0;
 
     function getPolygonsForBase(
       basePolygon: Polygon,
@@ -158,7 +163,7 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       return polygons;
     }
 
-    const polygons = createArray(patternPolygon.config.sides, i => {
+    const polygons = createArray(tiles, i => {
       const layerIndexStart = totalNailsCount;
 
       const basePolygon = new Polygon({
@@ -171,16 +176,24 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
         getUniqueKey: k => k + layerIndexStart,
       });
 
-      return getPolygonsForBase(
+      const polygons = getPolygonsForBase(
         basePolygon,
         mirrorTiling ? (i % 2 ? -1 : 1) : 1
       );
+
+      if (i === 0) {
+        nailsPerSide = polygons.length;
+      }
+
+      return polygons;
     }).flat();
 
     return {
       polygons,
       angleRadians: (angle * PI2) / sides,
-      nailsPerSide: polygons.length,
+      nailsPerSide,
+      tiles: tiles,
+      nailsPerTile: nailsPerSide * sides,
     };
   }
 
@@ -195,27 +208,33 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
   }
 
   *drawStrings(controller: Controller): Generator<void> {
+    const { sides } = this.config;
+    const { tiles, nailsPerSide, nailsPerTile } = this.calc;
+
     controller.startLayer({ color: '#ffffff', name: '1' });
     controller.goto(0);
 
-    const { sides } = this.config;
-    const totalNailsCount = this.calc.nailsPerSide * sides;
+    for (let tile = 0; tile < tiles; tile++) {
+      const tileStart = nailsPerTile * tile;
 
-    for (let i = 0; i < totalNailsCount; i++) {
-      if (i) {
-        if (!(i % sides)) {
-          yield controller.stringTo(i - sides);
+      controller.goto(tileStart);
+      for (let i = 0; i < nailsPerTile; i++) {
+        if (i) {
+          if (!(i % sides)) {
+            yield controller.stringTo(tileStart + i - sides);
+          }
+
+          yield controller.stringTo(tileStart + i);
         }
-
-        yield controller.stringTo(i);
       }
     }
   }
 
   getStepCount(options: CalcOptions): number {
-    const { nailsPerSide } = this.calc ?? this.getCalc(options);
+    const { nailsPerSide, tiles, nailsPerTile } =
+      this.calc ?? this.getCalc(options);
     const { sides } = this.config;
-    return 6 * (nailsPerSide * (sides + 1) - 1);
+    return tiles * (nailsPerSide * (sides + 1) - 2);
   }
 
   getNailCount(): number {
