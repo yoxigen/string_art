@@ -9,19 +9,21 @@ import Controller from '../infra/Controller';
 import Polygon from '../shapes/Polygon';
 import { PI2, roundNumber } from '../helpers/math_utils';
 import { Coordinates } from '../types/general.types';
-import { getCenter } from '../helpers/size_utils';
+import { getCenter, mapDimensions } from '../helpers/size_utils';
+import { createArray } from '../helpers/array_utils';
 
 interface LeavesConfig extends ColorConfig {
-  n: number;
   angle: number;
   sides: number;
+  rotation: number;
+  mirrorTiling: boolean;
 }
 
 type TCalc = {
-  //   sideLength: number,
   angleRadians: number;
-  basePolygon: Polygon;
+  polygons: Polygon[];
   center: Coordinates;
+  nailsPerSide: number;
 };
 
 export default class Leaves extends StringArt<LeavesConfig, TCalc> {
@@ -43,27 +45,24 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       isStructural: true,
     },
     {
-      type: 'range',
-      key: 'n',
-      label: 'Density',
-      attr: {
-        min: 5,
-        max: 500,
-        step: 1,
-      },
-      defaultValue: 30,
-      isStructural: true,
-    },
-    {
       key: 'angle',
       label: 'Layer angle',
       defaultValue: 0.01,
       displayValue: ({ angle, sides }) =>
-        `${Math.round((180 * angle) / sides)}°`,
+        `${roundNumber((180 * angle) / sides, 2)}°`,
       type: 'range',
       attr: { min: 0.01, max: 0.15, step: 0.001 },
       isStructural: true,
     },
+    {
+      key: 'mirrorTiling',
+      label: 'Mirror tiling',
+      defaultValue: true,
+      type: 'checkbox',
+      isStructural: true,
+      affectsStepCount: false,
+    },
+    Polygon.rotationConfig,
     Color.getConfig({
       defaults: {
         isMultiColor: true,
@@ -83,78 +82,43 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
   color: Color;
 
   getCalc({ size }: CalcOptions): TCalc {
-    const { sides, angle, margin } = this.config;
+    const { sides, angle, margin, rotation, mirrorTiling } = this.config;
     const center = getCenter(size);
 
-    const basePolygon = new Polygon({
+    const piSides = Math.PI / sides;
+    const helperPolygonSides = 360 / (180 - 360 / sides);
+
+    const patternPolygon = new Polygon({
+      sides: helperPolygonSides,
       size,
-      sides,
-      nailsPerSide: 2,
-      center,
       fitSize: true,
       margin,
+      nailsPerSide: 2,
+      rotation,
     });
 
-    return {
-      basePolygon,
-      angleRadians: (angle * PI2) / sides,
-      center,
-    };
-  }
+    const centerHelperPolygon = new Polygon({
+      sides: helperPolygonSides,
+      radius: patternPolygon.radius / 2,
+      nailsPerSide: 2,
+      rotation: rotation + 1 / (2 * helperPolygonSides),
+      size: [1, 1],
+      center: patternPolygon.center,
+    });
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
+    let totalNailsCount = 0;
 
-    this.color = new Color(this.config);
-  }
+    function getPolygonsForBase(
+      basePolygon: Polygon,
+      direction: number
+    ): Polygon[] {
+      totalNailsCount += basePolygon.getNailsCount();
 
-  getAspectRatio(): number {
-    return 1;
-  }
+      let previousPolygon = basePolygon;
+      const polygons = [basePolygon];
 
-  *drawStrings(controller: Controller): Generator<void> {
-    controller.startLayer({ color: '#ffffff', name: '1' });
-    controller.goto(0);
-
-    const { sides, n } = this.config;
-
-    for (let i = 0; i < n; i++) {
-      if (i) {
-        if (!(i % sides)) {
-          yield controller.stringTo(i - sides);
-        }
-
-        yield controller.stringTo(i);
-      }
-    }
-  }
-
-  getStepCount(): number {
-    const { n, sides } = this.config;
-    return n * (sides + 1) - 1;
-  }
-
-  getNailCount(): number {
-    const { n, sides } = this.config;
-    return n * sides;
-  }
-
-  drawNails(nails: NailsSetter) {
-    const { basePolygon, angleRadians } = this.calc;
-    const { n, sides, angle } = this.config;
-    const piSides = Math.PI / sides;
-    let totalNailsCount = basePolygon.getNailsCount();
-
-    function drawPolygonNails(polygon: Polygon, polygonIndex: number = 0) {
-      let previousPolygon = polygon;
-
-      polygon.drawNails(nails);
-
-      for (let layer = 0; layer < 200; layer++) {
+      for (let layer = 0; layer < 500; layer++) {
         const layerIndexStart = totalNailsCount;
-        if (previousPolygon.sideSize <= 5) {
-          break;
-        }
 
         const layerAngle =
           piSides -
@@ -175,23 +139,95 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
           size: [100, 100],
           sides,
           nailsPerSide: 2,
-          rotation: layerAngle / PI2 + (previousPolygon.config.rotation ?? 0),
+          rotation:
+            (previousPolygon.config.rotation ?? 0) +
+            (direction * layerAngle) / PI2,
           center: basePolygon.center,
           radius,
           getUniqueKey: layerIndexStart ? k => layerIndexStart + k : undefined,
         });
 
-        if (previousPolygon.sideSize - polygon.sideSize < 5) {
+        if (previousPolygon.sideSize - polygon.sideSize < 8) {
           break;
         }
 
-        polygon.drawNails(nails);
+        polygons.push(polygon);
         previousPolygon = polygon;
         totalNailsCount += polygon.getNailsCount();
       }
+
+      return polygons;
     }
 
-    drawPolygonNails(basePolygon);
+    const polygons = createArray(patternPolygon.config.sides, i => {
+      const layerIndexStart = totalNailsCount;
+
+      const basePolygon = new Polygon({
+        size: center,
+        radius: centerHelperPolygon.sideSize,
+        sides,
+        nailsPerSide: 2,
+        center: centerHelperPolygon.getSidePoint({ side: i, index: 0 }),
+        rotation: rotation + (1 / centerHelperPolygon.config.sides) * (i + 1),
+        getUniqueKey: k => k + layerIndexStart,
+      });
+
+      return getPolygonsForBase(
+        basePolygon,
+        mirrorTiling ? (i % 2 ? -1 : 1) : 1
+      );
+    }).flat();
+
+    return {
+      polygons,
+      angleRadians: (angle * PI2) / sides,
+      center,
+      nailsPerSide: polygons.length,
+    };
+  }
+
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw(options);
+
+    this.color = new Color(this.config);
+  }
+
+  getAspectRatio(): number {
+    return 1;
+  }
+
+  *drawStrings(controller: Controller): Generator<void> {
+    controller.startLayer({ color: '#ffffff', name: '1' });
+    controller.goto(0);
+
+    const { sides } = this.config;
+    const totalNailsCount = this.calc.nailsPerSide * sides;
+
+    for (let i = 0; i < totalNailsCount; i++) {
+      if (i) {
+        if (!(i % sides)) {
+          yield controller.stringTo(i - sides);
+        }
+
+        yield controller.stringTo(i);
+      }
+    }
+  }
+
+  getStepCount(options: CalcOptions): number {
+    const { nailsPerSide } = this.calc ?? this.getCalc(options);
+    const { sides } = this.config;
+    return 6 * (nailsPerSide * (sides + 1) - 1);
+  }
+
+  getNailCount(): number {
+    const { n, sides } = this.config;
+    return n * sides;
+  }
+
+  drawNails(nails: NailsSetter) {
+    const { polygons } = this.calc;
+    polygons.forEach(polygon => polygon.drawNails(nails));
   }
 
   thumbnailConfig = (config: LeavesConfig) => ({

@@ -1,7 +1,6 @@
 import { ControlConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { getDistanceBetweenCoordinates, PI2 } from '../helpers/math_utils';
-import { compareObjects } from '../helpers/object_utils';
 import {
   centerRect,
   getBoundingRectAspectRatio,
@@ -42,14 +41,12 @@ interface TCalc {
 }
 
 export default class Polygon extends Shape {
-  config: PolygonConfig;
-  #points: Map<string, Coordinates>;
   #calc: TCalc;
 
-  constructor(config: PolygonConfig) {
+  constructor(public config: PolygonConfig) {
     super(config);
 
-    this.setConfig(config);
+    this.#calc = this.#getCalc();
   }
 
   get center(): Coordinates {
@@ -66,20 +63,6 @@ export default class Polygon extends Shape {
 
   get radiusNailsCount(): number {
     return this.#calc.radiusNailsCount;
-  }
-
-  setConfig(config: PolygonConfig) {
-    if (!compareObjects(config, this.config)) {
-      this.config = config;
-
-      if (this.#points) {
-        this.#points.clear();
-      } else {
-        this.#points = new Map();
-      }
-
-      this.#calc = this.#getCalc();
-    }
   }
 
   #fitSize({
