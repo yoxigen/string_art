@@ -22,7 +22,6 @@ interface LeavesConfig extends ColorConfig {
 type TCalc = {
   angleRadians: number;
   polygons: Polygon[];
-  center: Coordinates;
   nailsPerSide: number;
 };
 
@@ -181,7 +180,6 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     return {
       polygons,
       angleRadians: (angle * PI2) / sides,
-      center,
       nailsPerSide: polygons.length,
     };
   }
@@ -221,16 +219,12 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
   }
 
   getNailCount(): number {
-    const { n, sides } = this.config;
-    return n * sides;
+    const { sides } = this.config;
+    return sides;
   }
 
   drawNails(nails: NailsSetter) {
     const { polygons } = this.calc;
     polygons.forEach(polygon => polygon.drawNails(nails));
   }
-
-  thumbnailConfig = (config: LeavesConfig) => ({
-    n: Math.min(10, config.n),
-  });
 }
