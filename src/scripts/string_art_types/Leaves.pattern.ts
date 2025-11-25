@@ -7,7 +7,11 @@ import { formatFractionAsAngle } from '../helpers/string_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
 import Polygon from '../shapes/Polygon';
-import { PI2, roundNumber } from '../helpers/math_utils';
+import {
+  getDistanceBetweenCoordinates,
+  PI2,
+  roundNumber,
+} from '../helpers/math_utils';
 import { Coordinates } from '../types/general.types';
 import { getCenter, mapDimensions } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
@@ -17,6 +21,8 @@ interface LeavesConfig extends ColorConfig {
   sides: number;
   rotation: number;
   mirrorTiling: boolean;
+  crossWeave: boolean;
+  withSides: boolean;
 }
 
 type TCalc = {
@@ -62,6 +68,20 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       type: 'checkbox',
       isStructural: true,
       affectsStepCount: false,
+    },
+    {
+      key: 'crossWeave',
+      label: 'Cross weave',
+      defaultValue: true,
+      type: 'checkbox',
+      isStructural: false,
+    },
+    {
+      key: 'withSides',
+      label: 'With sides',
+      defaultValue: true,
+      type: 'checkbox',
+      isStructural: false,
     },
     Polygon.rotationConfig,
     Color.getConfig({
@@ -151,7 +171,12 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
           getUniqueKey: layerIndexStart ? k => layerIndexStart + k : undefined,
         });
 
-        if (previousPolygon.sideSize - polygon.sideSize < 8) {
+        if (
+          getDistanceBetweenCoordinates(
+            previousPolygon.getSidePoint({ side: 0, index: 0 }),
+            polygon.getSidePoint({ side: 0, index: 0 })
+          ) < 2
+        ) {
           break;
         }
 
@@ -207,34 +232,99 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     return 1;
   }
 
-  *drawStrings(controller: Controller): Generator<void> {
-    const { sides } = this.config;
-    const { tiles, nailsPerSide, nailsPerTile } = this.calc;
+  #getNailIndex(tile: number, side: number, index: number): number {
+    return this.calc.nailsPerTile * tile + side + index * this.config.sides;
+  }
 
-    controller.startLayer({ color: '#ffffff', name: '1' });
+  *#drawSpiralsOnly(controller: Controller): Generator<void> {
+    const { sides } = this.config;
+    const { tiles, nailsPerTile } = this.calc;
+
+    controller.startLayer({ color: this.color.getColor(0), name: '1' });
     controller.goto(0);
 
     for (let tile = 0; tile < tiles; tile++) {
       const tileStart = nailsPerTile * tile;
 
       controller.goto(tileStart);
-      for (let i = 0; i < nailsPerTile; i++) {
-        if (i) {
-          if (!(i % sides)) {
-            yield controller.stringTo(tileStart + i - sides);
+      for (let i = 1; i < nailsPerTile; i++) {
+        if (!(i % sides)) {
+          yield controller.stringTo(tileStart + i - sides);
+        }
+
+        yield controller.stringTo(tileStart + i);
+      }
+    }
+  }
+
+  *#drawAll(controller: Controller): Generator<void> {
+    const { sides, withSides } = this.config;
+    const { tiles, nailsPerSide, nailsPerTile } = this.calc;
+
+    for (let tile = 0; tile < tiles; tile++) {
+      const sideIndex = 1;
+
+      controller.startLayer({
+        name: sideIndex.toString(),
+        color: this.color.getColor(tile % 2),
+      });
+      const nextTile = (tile + 1) % tiles;
+      const nextSide = (sideIndex + 1) % sides;
+      const nextUpperSide = nextSide;
+      const nextTileSide = sideIndex - 1;
+
+      controller.goto(this.#getNailIndex(tile, nextSide, 0));
+      yield controller.stringTo(this.#getNailIndex(tile, sideIndex, 0));
+      for (let i = 1; i < nailsPerSide; i++) {
+        yield controller.stringTo(this.#getNailIndex(tile, sideIndex, i));
+        yield controller.stringTo(this.#getNailIndex(tile, nextSide, i));
+        yield controller.stringTo(
+          this.#getNailIndex(nextTile, nextUpperSide, i)
+        );
+        yield controller.stringTo(
+          this.#getNailIndex(nextTile, nextTileSide, i)
+        );
+        yield controller.stringTo(this.#getNailIndex(tile, sideIndex, i));
+        // stringTo tile.side(i) to tile.nextSide(i), then to nextTile.nextSide(i) then tile.side(i).
+      }
+
+      if (withSides) {
+        controller.startLayer({ name: 'Sides', color: this.color.getColor(2) });
+        controller.goto(this.#getNailIndex(tile, sideIndex, 0));
+        let alternate = false;
+
+        for (let i = 0; i < nailsPerSide - 1; i++) {
+          if (alternate) {
+            yield controller.stringTo(this.#getNailIndex(tile, 1, i));
+            yield controller.stringTo(this.#getNailIndex(tile, 1, i + 1));
+          } else {
+            yield controller.stringTo(this.#getNailIndex(tile, 0, i));
+            yield controller.stringTo(this.#getNailIndex(tile, 0, i + 1));
           }
 
-          yield controller.stringTo(tileStart + i);
+          alternate = !alternate;
         }
       }
+    }
+  }
+
+  *drawStrings(controller: Controller): Generator<void> {
+    if (this.config.crossWeave) {
+      yield* this.#drawAll(controller);
+    } else {
+      yield* this.#drawSpiralsOnly(controller);
     }
   }
 
   getStepCount(options: CalcOptions): number {
     const { nailsPerSide, tiles, nailsPerTile } =
       this.calc ?? this.getCalc(options);
-    const { sides } = this.config;
-    return tiles * (nailsPerSide * (sides + 1) - 2);
+
+    const { sides, crossWeave, withSides } = this.config;
+
+    return crossWeave
+      ? tiles * ((nailsPerSide - 1) * (5 + (withSides ? 2 : 0)) + 1)
+      : tiles * Math.floor((nailsPerTile - 1) * (1 + 1 / sides));
   }
 
   getNailCount(): number {
