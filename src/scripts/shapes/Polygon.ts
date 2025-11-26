@@ -366,10 +366,10 @@ export default class Polygon extends Shape {
     attr: {
       min: 0,
       max: 1,
-      step: 0.02,
+      step: 0.0025,
     },
     displayValue: ({ rotation, sides }) =>
-      formatFractionAsAngle(rotation / (2 * sides)),
+      formatFractionAsAngle(rotation / (2 * sides), 1),
     isStructural: true,
     affectsStepCount: false,
   };

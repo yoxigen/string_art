@@ -1,7 +1,7 @@
 import StringArt from '../infra/StringArt';
 import Color from '../helpers/color/Color';
 import { ColorConfig } from '../helpers/color/color.types';
-import { ControlsConfig } from '../types/config.types';
+import { Config, ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import { formatFractionAsAngle } from '../helpers/string_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
@@ -15,11 +15,13 @@ import {
 import { Coordinates } from '../types/general.types';
 import { getCenter, mapDimensions } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
+import { connectTwoSides } from '../helpers/draw_utils';
 
 interface LeavesConfig extends ColorConfig {
   angle: number;
   sides: number;
   rotation: number;
+  maxDensity: number;
   mirrorTiling: boolean;
   crossWeave: boolean;
   withSides: boolean;
@@ -62,6 +64,14 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       isStructural: true,
     },
     {
+      key: 'maxDensity',
+      label: 'Max density',
+      defaultValue: 5,
+      type: 'range',
+      attr: { min: 1, max: 20, step: 0.01 },
+      isStructural: true,
+    },
+    {
       key: 'mirrorTiling',
       label: 'Mirror tiling',
       defaultValue: true,
@@ -72,7 +82,7 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     {
       key: 'crossWeave',
       label: 'Cross weave',
-      defaultValue: true,
+      defaultValue: false,
       type: 'checkbox',
       isStructural: false,
     },
@@ -83,17 +93,20 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       type: 'checkbox',
       isStructural: false,
     },
-    Polygon.rotationConfig,
+    {
+      ...Polygon.rotationConfig,
+      displayValue: ({ rotation }) => formatFractionAsAngle(rotation),
+    },
     Color.getConfig({
       defaults: {
         isMultiColor: true,
-        colorCount: 1,
+        colorCount: 3,
         color: '#ffffff',
-        multicolorRange: 1,
-        multicolorStart: 1,
+        multicolorRange: 88,
+        multicolorStart: 180,
         multicolorByLightness: true,
-        minLightness: 40,
-        maxLightness: 100,
+        minLightness: 60,
+        maxLightness: 64,
         reverseColors: true,
       },
       maxColorCount: 10,
@@ -103,7 +116,8 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
   color: Color;
 
   getCalc({ size }: CalcOptions): TCalc {
-    const { sides, angle, margin, rotation, mirrorTiling } = this.config;
+    const { sides, angle, margin, rotation, mirrorTiling, maxDensity } =
+      this.config;
     const center = getCenter(size);
 
     const piSides = Math.PI / sides;
@@ -175,7 +189,7 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
           getDistanceBetweenCoordinates(
             previousPolygon.getSidePoint({ side: 0, index: 0 }),
             polygon.getSidePoint({ side: 0, index: 0 })
-          ) < 2
+          ) < maxDensity
         ) {
           break;
         }
@@ -257,8 +271,53 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     }
   }
 
-  *#drawAll(controller: Controller): Generator<void> {
+  *#connectSides(
+    controller: Controller,
+    tile: number,
+    fromSide: number,
+    toSide: number
+  ): Generator<void> {
+    let isFirst = true;
+
+    for (const { side, index } of connectTwoSides(this.calc.nailsPerSide, [
+      fromSide,
+      toSide,
+    ])) {
+      if (isFirst) {
+        controller.goto(this.#getNailIndex(tile, side, index));
+        isFirst = false;
+      } else {
+        yield controller.stringTo(this.#getNailIndex(tile, side, index));
+      }
+    }
+  }
+
+  *#drawTile(controller: Controller, tile: number): Generator<void> {
     const { sides, withSides } = this.config;
+
+    for (let side = 0; side < sides; side++) {
+      if (!withSides && side === 0) {
+        continue;
+      }
+      const colorIndex =
+        tile % 2 ? (side === 1 ? 2 : side === 2 ? 1 : side) : side;
+
+      controller.startLayer({
+        name: side.toString(),
+        color: this.color.getColor(colorIndex),
+      });
+      yield* this.#connectSides(controller, tile, side, (side + 1) % sides);
+    }
+  }
+
+  *#drawTiles(controller: Controller): Generator<void> {
+    for (let tile = 0; tile < this.calc.tiles; tile++) {
+      yield* this.#drawTile(controller, tile);
+    }
+  }
+
+  *#drawAll(controller: Controller): Generator<void> {
+    const { sides, withSides, mirrorTiling } = this.config;
     const { tiles, nailsPerSide, nailsPerTile } = this.calc;
 
     for (let tile = 0; tile < tiles; tile++) {
@@ -304,6 +363,13 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
 
           alternate = !alternate;
         }
+      } else {
+        // Close the outward-pointing leaves, since there are no sides to close them
+        for (let i = nailsPerSide - 1; i >= 0; i--) {
+          yield controller.stringTo(
+            this.#getNailIndex(nextTile, nextTileSide, i)
+          );
+        }
       }
     }
   }
@@ -311,6 +377,11 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
   *drawStrings(controller: Controller): Generator<void> {
     if (this.config.crossWeave) {
       yield* this.#drawAll(controller);
+    } else if (
+      (this.config.isMultiColor && this.config.colorCount > 1) ||
+      !this.config.withSides
+    ) {
+      yield* this.#drawTiles(controller);
     } else {
       yield* this.#drawSpiralsOnly(controller);
     }
@@ -322,9 +393,21 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
 
     const { sides, crossWeave, withSides } = this.config;
 
-    return crossWeave
-      ? tiles * ((nailsPerSide - 1) * (5 + (withSides ? 2 : 0)) + 1)
-      : tiles * Math.floor((nailsPerTile - 1) * (1 + 1 / sides));
+    if (crossWeave) {
+      return (
+        tiles *
+        ((nailsPerSide - 1) * (5 + (withSides ? 2 : 0)) +
+          (!withSides ? nailsPerSide : 0) +
+          1)
+      );
+    } else if (
+      (this.config.isMultiColor && this.config.colorCount > 1) ||
+      !this.config.withSides
+    ) {
+      return tiles * (sides - (withSides ? 0 : 1)) * (nailsPerSide * 2 - 1);
+    } else {
+      return tiles * Math.floor((nailsPerTile - 1) * (1 + 1 / sides));
+    }
   }
 
   getNailCount(): number {
@@ -336,4 +419,8 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     const { polygons } = this.calc;
     polygons.forEach(polygon => polygon.drawNails(nails));
   }
+
+  thumbnailConfig: Partial<Config<LeavesConfig>> = {
+    maxDensity: 1,
+  };
 }
