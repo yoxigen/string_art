@@ -292,6 +292,12 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     }
   }
 
+  #getColor(tile: number, side: number): string {
+    return this.color.getColor(
+      tile % 2 ? (side === 1 ? 2 : side === 2 ? 1 : side) : side
+    );
+  }
+
   *#drawTile(controller: Controller, tile: number): Generator<void> {
     const { sides, withSides } = this.config;
 
@@ -299,12 +305,10 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       if (!withSides && side === 0) {
         continue;
       }
-      const colorIndex =
-        tile % 2 ? (side === 1 ? 2 : side === 2 ? 1 : side) : side;
 
       controller.startLayer({
         name: side.toString(),
-        color: this.color.getColor(colorIndex),
+        color: this.#getColor(tile, side),
       });
       yield* this.#connectSides(controller, tile, side, (side + 1) % sides);
     }
@@ -317,15 +321,15 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
   }
 
   *#drawAll(controller: Controller): Generator<void> {
-    const { sides, withSides, mirrorTiling } = this.config;
-    const { tiles, nailsPerSide, nailsPerTile } = this.calc;
+    const { sides, withSides } = this.config;
+    const { tiles, nailsPerSide } = this.calc;
 
     for (let tile = 0; tile < tiles; tile++) {
       const sideIndex = 1;
 
       controller.startLayer({
         name: sideIndex.toString(),
-        color: this.color.getColor(tile % 2),
+        color: this.#getColor(tile, sideIndex),
       });
       const nextTile = (tile + 1) % tiles;
       const nextSide = (sideIndex + 1) % sides;
@@ -348,21 +352,11 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       }
 
       if (withSides) {
-        controller.startLayer({ name: 'Sides', color: this.color.getColor(2) });
-        controller.goto(this.#getNailIndex(tile, sideIndex, 0));
-        let alternate = false;
-
-        for (let i = 0; i < nailsPerSide - 1; i++) {
-          if (alternate) {
-            yield controller.stringTo(this.#getNailIndex(tile, 1, i));
-            yield controller.stringTo(this.#getNailIndex(tile, 1, i + 1));
-          } else {
-            yield controller.stringTo(this.#getNailIndex(tile, 0, i));
-            yield controller.stringTo(this.#getNailIndex(tile, 0, i + 1));
-          }
-
-          alternate = !alternate;
-        }
+        controller.startLayer({
+          name: 'Sides',
+          color: this.color.getColor(0),
+        });
+        yield* this.#connectSides(controller, tile, 1, 0);
       } else {
         // Close the outward-pointing leaves, since there are no sides to close them
         for (let i = nailsPerSide - 1; i >= 0; i--) {
@@ -396,8 +390,8 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     if (crossWeave) {
       return (
         tiles *
-        ((nailsPerSide - 1) * (5 + (withSides ? 2 : 0)) +
-          (!withSides ? nailsPerSide : 0) +
+        ((nailsPerSide - 1) * 5 +
+          (withSides ? nailsPerSide * 2 - 1 : nailsPerSide) +
           1)
       );
     } else if (
