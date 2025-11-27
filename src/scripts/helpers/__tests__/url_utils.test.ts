@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import Lotus from '../../string_art_types/Lotus';
+import Lotus from '../../string_art_types/Lotus.pattern';
 import { getPatternURL } from '../url_utils';
 
 describe('url utils', () => {
