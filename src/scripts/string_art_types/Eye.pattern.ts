@@ -195,7 +195,6 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       const layerIndexStart = totalNailsCount;
 
       const polygon = new Polygon({
-        size,
         sides,
         nailsPerSide: layerSideNailCount,
         rotation:

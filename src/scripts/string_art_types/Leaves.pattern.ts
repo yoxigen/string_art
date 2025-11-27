@@ -12,10 +12,10 @@ import {
   PI2,
   roundNumber,
 } from '../helpers/math_utils';
-import { Coordinates } from '../types/general.types';
-import { getCenter, mapDimensions } from '../helpers/size_utils';
+import { getCenter } from '../helpers/size_utils';
 import { createArray } from '../helpers/array_utils';
 import { connectTwoSides } from '../helpers/draw_utils';
+import { Dimensions } from '../types/general.types';
 
 interface LeavesConfig extends ColorConfig {
   angle: number;
@@ -52,6 +52,7 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       },
       defaultValue: 3,
       isStructural: true,
+      show: () => false,
     },
     {
       key: 'angle',
@@ -60,7 +61,7 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       displayValue: ({ angle, sides }) =>
         `${roundNumber((180 * angle) / sides, 2)}°`,
       type: 'range',
-      attr: { min: 0.01, max: 0.15, step: 0.001 },
+      attr: { min: 0.02, max: 0.15, step: 0.001 },
       isStructural: true,
     },
     {
@@ -118,8 +119,6 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
   getCalc({ size }: CalcOptions): TCalc {
     const { sides, angle, margin, rotation, mirrorTiling, maxDensity } =
       this.config;
-    const center = getCenter(size);
-
     const piSides = Math.PI / sides;
     const tiles = Math.floor(360 / (180 - 360 / sides));
 
@@ -139,7 +138,6 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       radius: patternPolygon.radius / (2 * Math.cos(interiorAngle / 2)),
       nailsPerSide: 2,
       rotation: rotation + 1 / (2 * tiles),
-      size: [1, 1],
       center: patternPolygon.center,
     });
 
@@ -174,7 +172,6 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
           Math.cos(layerAngle - piSides);
 
         const polygon = new Polygon({
-          size: [100, 100],
           sides,
           nailsPerSide: 2,
           rotation:
@@ -206,7 +203,6 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
       const layerIndexStart = totalNailsCount;
 
       const basePolygon = new Polygon({
-        size: center,
         radius: centerHelperPolygon.sideSize,
         sides,
         nailsPerSide: 2,
@@ -402,11 +398,6 @@ export default class Leaves extends StringArt<LeavesConfig, TCalc> {
     } else {
       return tiles * Math.floor((nailsPerTile - 1) * (1 + 1 / sides));
     }
-  }
-
-  getNailCount(): number {
-    const { sides } = this.config;
-    return sides;
   }
 
   drawNails(nails: NailsSetter) {

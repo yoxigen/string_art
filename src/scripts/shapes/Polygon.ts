@@ -15,20 +15,31 @@ import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from './Shape';
 import { Line } from './Line';
 
-export type PolygonConfig = ShapeConfig & {
+type PolygonSizeConfig = {
   size: Dimensions;
-  sides: number;
   fitSize?: boolean;
-  nailsPerSide: number;
-  margin?: number;
-  rotation?: number;
-  center?: Coordinates;
-  radiusNailsCountSameAsSides?: boolean;
-  radius?: number;
-  drawCenter?: boolean;
-  drawSides?: boolean;
-  drawCenterNail?: boolean;
 };
+
+type PolygonWithRadiusConfig = {
+  radius: number;
+};
+
+type PolygonSizeOrRadiusConfig =
+  | (PolygonSizeConfig & { radius?: never })
+  | (PolygonWithRadiusConfig & { size?: never; fitSize?: boolean });
+
+export type PolygonConfig = ShapeConfig &
+  PolygonSizeOrRadiusConfig & {
+    sides: number;
+    nailsPerSide: number;
+    rotation?: number;
+    center?: Coordinates;
+    radiusNailsCountSameAsSides?: boolean;
+    drawCenter?: boolean;
+    drawSides?: boolean;
+    drawCenterNail?: boolean;
+    margin?: number;
+  };
 
 interface TCalc {
   center: Coordinates;
@@ -126,7 +137,6 @@ export default class Polygon extends Shape {
       radius: radiusConfig,
     } = this.config;
     const rotationRadians = PI2 * rotation;
-    const sizeWithoutMargin = mapDimensions(size, v => v - 2 * margin);
     let center = configCenter ?? getCenter(size);
     const angle = PI2 / sides;
     const startingAngle =
@@ -143,14 +153,16 @@ export default class Polygon extends Shape {
     if (fitSize) {
       const fitted = this.#fitSize({
         center,
-        size: sizeWithoutMargin,
+        size: mapDimensions(size, v => v - 2 * margin),
         verticesCosSin,
       });
       center = fitted.center;
       radius = fitted.radius;
     } else {
       const getRadius = (): number => {
-        const smallestSide = Math.min(...sizeWithoutMargin);
+        const smallestSide = Math.min(
+          ...mapDimensions(size, v => v - 2 * margin)
+        );
         return smallestSide / 2;
       };
 
