@@ -28,7 +28,6 @@ interface Layer {
   nailSpacing: number;
 }
 interface TCalc {
-  maxSize: number;
   nailSpacing: number;
   layers: ReadonlyArray<Layer>;
   center: Coordinates;
@@ -130,7 +129,6 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       margin,
     });
 
-    const maxSize = Math.min(...size) - 2 * margin;
     const nailSpacing = basePolygon.sideSize / (n - 1);
     const spacesChangePerLayer = Math.max(1, Math.floor((angle * n) / 2));
     const piSides = Math.PI / sides;
@@ -197,7 +195,6 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       const layerIndexStart = totalNailsCount;
 
       const polygon = new Polygon({
-        size,
         sides,
         nailsPerSide: layerSideNailCount,
         rotation:
@@ -224,7 +221,6 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     const layersCount = layers.length;
 
     return {
-      maxSize,
       nailSpacing,
       layers,
       center,

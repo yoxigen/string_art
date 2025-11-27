@@ -1,7 +1,6 @@
 import { ControlConfig } from '../types/config.types';
 import { BoundingRect, Coordinates, Dimensions } from '../types/general.types';
 import { getDistanceBetweenCoordinates, PI2 } from '../helpers/math_utils';
-import { compareObjects } from '../helpers/object_utils';
 import {
   centerRect,
   getBoundingRectAspectRatio,
@@ -16,20 +15,31 @@ import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from './Shape';
 import { Line } from './Line';
 
-export type PolygonConfig = ShapeConfig & {
+type PolygonSizeConfig = {
   size: Dimensions;
-  sides: number;
   fitSize?: boolean;
-  nailsPerSide: number;
-  margin?: number;
-  rotation?: number;
-  center?: Coordinates;
-  radiusNailsCountSameAsSides?: boolean;
-  radius?: number;
-  drawCenter?: boolean;
-  drawSides?: boolean;
-  drawCenterNail?: boolean;
 };
+
+type PolygonWithRadiusConfig = {
+  radius: number;
+};
+
+type PolygonSizeOrRadiusConfig =
+  | (PolygonSizeConfig & { radius?: never })
+  | (PolygonWithRadiusConfig & { size?: never; fitSize?: boolean });
+
+export type PolygonConfig = ShapeConfig &
+  PolygonSizeOrRadiusConfig & {
+    sides: number;
+    nailsPerSide: number;
+    rotation?: number;
+    center?: Coordinates;
+    radiusNailsCountSameAsSides?: boolean;
+    drawCenter?: boolean;
+    drawSides?: boolean;
+    drawCenterNail?: boolean;
+    margin?: number;
+  };
 
 interface TCalc {
   center: Coordinates;
@@ -42,14 +52,12 @@ interface TCalc {
 }
 
 export default class Polygon extends Shape {
-  config: PolygonConfig;
-  #points: Map<string, Coordinates>;
   #calc: TCalc;
 
-  constructor(config: PolygonConfig) {
+  constructor(public config: PolygonConfig) {
     super(config);
 
-    this.setConfig(config);
+    this.#calc = this.#getCalc();
   }
 
   get center(): Coordinates {
@@ -66,20 +74,6 @@ export default class Polygon extends Shape {
 
   get radiusNailsCount(): number {
     return this.#calc.radiusNailsCount;
-  }
-
-  setConfig(config: PolygonConfig) {
-    if (!compareObjects(config, this.config)) {
-      this.config = config;
-
-      if (this.#points) {
-        this.#points.clear();
-      } else {
-        this.#points = new Map();
-      }
-
-      this.#calc = this.#getCalc();
-    }
   }
 
   #fitSize({
@@ -143,7 +137,6 @@ export default class Polygon extends Shape {
       radius: radiusConfig,
     } = this.config;
     const rotationRadians = PI2 * rotation;
-    const sizeWithoutMargin = mapDimensions(size, v => v - 2 * margin);
     let center = configCenter ?? getCenter(size);
     const angle = PI2 / sides;
     const startingAngle =
@@ -160,14 +153,16 @@ export default class Polygon extends Shape {
     if (fitSize) {
       const fitted = this.#fitSize({
         center,
-        size: sizeWithoutMargin,
+        size: mapDimensions(size, v => v - 2 * margin),
         verticesCosSin,
       });
       center = fitted.center;
       radius = fitted.radius;
     } else {
       const getRadius = (): number => {
-        const smallestSide = Math.min(...sizeWithoutMargin);
+        const smallestSide = Math.min(
+          ...mapDimensions(size, v => v - 2 * margin)
+        );
         return smallestSide / 2;
       };
 
@@ -383,10 +378,10 @@ export default class Polygon extends Shape {
     attr: {
       min: 0,
       max: 1,
-      step: 0.02,
+      step: 0.0025,
     },
     displayValue: ({ rotation, sides }) =>
-      formatFractionAsAngle(rotation / (2 * sides)),
+      formatFractionAsAngle(rotation / (2 * sides), 1),
     isStructural: true,
     affectsStepCount: false,
   };
