@@ -68,6 +68,13 @@ export default class Polygon extends Shape {
     return this.#calc.radius;
   }
 
+  /**
+   * The angle inside the polygon between two sides
+   */
+  get interiorAngle(): number {
+    return ((this.config.sides - 2) * Math.PI) / this.config.sides;
+  }
+
   get sideSize(): number {
     return this.#calc.sideSize;
   }

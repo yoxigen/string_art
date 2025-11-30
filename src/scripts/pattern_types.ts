@@ -15,7 +15,8 @@ import Sun from './string_art_types/Sun.pattern';
 import Lotus from './string_art_types/Lotus.pattern';
 import DanceOfPlanets from './string_art_types/DanceOfPlanets.pattern';
 import Crosses from './string_art_types/Crosses.pattern';
-import Leaves from './string_art_types/Leaves.pattern';
+import HexagonSpades from './string_art_types/HexagonSpades.pattern';
+import StarOfDavid from './string_art_types/StarOfDavid.pattern';
 
 const patternTypes = [
   Star,
@@ -35,7 +36,8 @@ const patternTypes = [
   Lotus,
   DanceOfPlanets,
   Crosses,
-  Leaves,
+  HexagonSpades,
+  StarOfDavid,
 ];
 
 export default patternTypes;
