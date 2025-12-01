@@ -2,12 +2,14 @@ import { createArray } from '../helpers/array_utils';
 import Color from '../helpers/color/Color';
 import Controller from '../infra/Controller';
 import Polygon from '../shapes/Polygon';
-import { ControlsConfig } from '../types/config.types';
+import { Config, ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import leavesCommonControls from './leaves/leaves_controls';
 import Leaves, { LeavesCalc, LeavesConfig, Tile } from './leaves/LeavesBase';
 
-export interface StarOfDavidConfig extends LeavesConfig {}
+export interface StarOfDavidConfig extends LeavesConfig {
+  mirrorTiling: boolean;
+}
 
 export default class StarOfDavid extends Leaves<StarOfDavidConfig> {
   static type = 'star_of_david';
@@ -15,24 +17,37 @@ export default class StarOfDavid extends Leaves<StarOfDavidConfig> {
   name = 'Star of David';
   controls: ControlsConfig<StarOfDavidConfig> = [
     ...leavesCommonControls,
+    {
+      key: 'mirrorTiling',
+      label: 'Mirror tiling',
+      defaultValue: false,
+      type: 'checkbox',
+      isStructural: true,
+      affectsStepCount: false,
+    },
     Color.getConfig({
       defaults: {
         isMultiColor: true,
-        colorCount: 3,
+        colorCount: 6,
         color: '#ffffff',
-        multicolorRange: 88,
-        multicolorStart: 180,
+        multicolorStart: 45,
+        multicolorRange: 1,
         multicolorByLightness: true,
         minLightness: 60,
-        maxLightness: 64,
-        reverseColors: true,
+        maxLightness: 100,
+        reverseColors: false,
       },
-      maxColorCount: 10,
+      maxColorCount: 6,
     }),
   ];
 
+  defaultValues: Partial<Config<StarOfDavidConfig>> = {
+    maxDensity: 2.66,
+    angle: 0.063,
+  };
+
   getCalc({ size }: CalcOptions): LeavesCalc {
-    const { margin, rotation, maxDensity, angle } = this.config;
+    const { margin, rotation, mirrorTiling } = this.config;
 
     const outerHexagon = new Polygon({
       sides: 6,
@@ -97,7 +112,7 @@ export default class StarOfDavid extends Leaves<StarOfDavidConfig> {
           ({
             polygon,
             depth: triangleDepth,
-            direction: -1,
+            direction: mirrorTiling ? 1 : -1,
             nailIndexStart: trianglesStartIndex + nailsPerTriangle * i,
           } as Tile)
       ),
@@ -106,14 +121,17 @@ export default class StarOfDavid extends Leaves<StarOfDavidConfig> {
     return { tiles };
   }
 
-  //   #getColor(tile: number, side: number): string {
-  //     return this.color.getColor(
-  //       tile % 2 ? (side === 1 ? 2 : side === 2 ? 1 : side) : side
-  //     );
-  //   }
-
-  getStepCount(options: CalcOptions): number {
-    return 1000;
+  protected getColor(tile: number, side: number): string {
+    if (tile) {
+      return side === 2
+        ? this.color.getColor(tile - 1)
+        : this.color.getColor(
+            this.config.colorCount === 2 ? tile : tile + side
+          );
+    }
+    return this.color.getColor(
+      tile % 2 ? (side === 1 ? 2 : side === 2 ? 1 : side) : side
+    );
   }
 
   getAspectRatio({ size }: CalcOptions): number {
@@ -130,4 +148,11 @@ export default class StarOfDavid extends Leaves<StarOfDavidConfig> {
 
     return patternPolygon.getAspectRatio();
   }
+
+  testStepCountConfig = [
+    {
+      isMultiColor: false,
+      colorCount: 1,
+    },
+  ];
 }

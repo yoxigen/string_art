@@ -75,7 +75,9 @@ export default abstract class Leaves<
   }
 
   protected getNailIndex(tile: Tile, side: number, index: number): number {
-    return tile.nailIndexStart + side + index * tile.polygon.config.sides;
+    return (
+      (tile.nailIndexStart ?? 0) + side + index * tile.polygon.config.sides
+    );
   }
 
   protected *drawSpiralsOnly(controller: Controller): Generator<void> {
@@ -111,7 +113,7 @@ export default abstract class Leaves<
     }
   }
 
-  #getColor(tile: number, side: number): string {
+  protected getColor(tile: number, side: number): string {
     return this.color.getColor(
       tile % 2 ? (side === 1 ? 2 : side === 2 ? 1 : side) : side
     );
@@ -131,7 +133,7 @@ export default abstract class Leaves<
 
       controller.startLayer({
         name: side.toString(),
-        color: this.#getColor(tileIndex, side),
+        color: this.getColor(tileIndex, side),
       });
       yield* this.connectSides(
         controller,
@@ -146,7 +148,7 @@ export default abstract class Leaves<
     controller: Controller,
     tile: Tile
   ): Generator<void> {
-    const startIndex = tile.polygon.getSideNailIndex(0);
+    const startIndex = tile.nailIndexStart ?? 0;
     controller.goto(startIndex);
 
     const nailsPerTile = tile.polygon.config.sides * tile.depth;
@@ -209,7 +211,11 @@ export default abstract class Leaves<
   }
 
   *drawStrings(controller: Controller): Generator<void> {
-    yield* this.drawSpiralsOnly(controller);
+    if (this.config.isMultiColor && this.config.colorCount > 1) {
+      yield* this.drawTiles(controller);
+    } else {
+      yield* this.drawSpiralsOnly(controller);
+    }
   }
 
   getStepCount(options: CalcOptions): number {
@@ -218,7 +224,9 @@ export default abstract class Leaves<
     return tiles.reduce(
       (stepCount, tile) =>
         stepCount +
-        Math.floor((tile.depth - 1) * (1 + 1 / tile.polygon.config.sides)),
+        (this.config.isMultiColor && this.config.colorCount > 1
+          ? tile.polygon.config.sides * (tile.depth * 2 - 1)
+          : tile.depth * (tile.polygon.config.sides + 1) - 2),
       0
     );
   }
