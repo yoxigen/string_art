@@ -16,7 +16,7 @@ import type {
 const elements = {
   controls: document.querySelector('#controls') as HTMLElement,
   controlsPanel: document.querySelector('#controls_panel') as HTMLElement,
-  sidebarForm: document.querySelector('#sidebar_form') as HTMLElement,
+  design: document.querySelector('#design') as HTMLElement,
 };
 
 const STATE_LOCAL_STORAGE_KEY = 'controls_state';
@@ -98,11 +98,8 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
     );
     elements.controls.addEventListener('mousedown', this.#onMouseDown);
     this.#boundToggleFieldset = this.#toggleFieldset.bind(this);
-    elements.sidebarForm.addEventListener('click', this.#boundToggleFieldset);
-    elements.sidebarForm.addEventListener(
-      'keydown',
-      this.#toggleFieldSetOnEnter
-    );
+    elements.design.addEventListener('click', this.#boundToggleFieldset);
+    elements.design.addEventListener('keydown', this.#toggleFieldSetOnEnter);
     this.controlElements = {};
     this.renderControls();
 
@@ -136,14 +133,8 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
 
   destroy() {
     elements.controls.removeEventListener('input', this.#wrappedOnInput);
-    elements.sidebarForm.removeEventListener(
-      'click',
-      this.#boundToggleFieldset
-    );
-    elements.sidebarForm.removeEventListener(
-      'keydown',
-      this.#toggleFieldSetOnEnter
-    );
+    elements.design.removeEventListener('click', this.#boundToggleFieldset);
+    elements.design.removeEventListener('keydown', this.#toggleFieldSetOnEnter);
     elements.controls.removeEventListener(
       'touchstart',
       this.#wrappedOnTouchStart
@@ -554,7 +545,7 @@ export default class EditorControls<TConfig extends Config> extends EventBus<{
   }
 
   updateGroupsState() {
-    const groups = elements.sidebarForm.querySelectorAll('[data-group]');
+    const groups = elements.design.querySelectorAll('[data-group]');
     groups.forEach(groupEl => {
       if (groupEl instanceof HTMLFieldSetElement) {
         const groupId = groupEl.dataset.group;

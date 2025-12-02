@@ -69,6 +69,8 @@ async function main() {
     '#download_dialog'
   ) as DownloadDialog;
 
+  // TODO: Return true/false whether the action should be added to the URL.
+  // When URL changes, close an open dialog
   const menuActions = {
     save_as: () => persistance.showSaveAsDialog(),
     delete: () => persistance.deletePattern(),
@@ -77,10 +79,16 @@ async function main() {
     export: () => persistance.exportAllPatterns(),
     download: () => downloadDialog!.show(viewer.pattern),
     instructions: () => showPanel('player'),
-    config: () => showPanel('sidebar_form'),
+    design: () => showPanel('design'),
     info: () => showPanel('info'),
     share: () => sharePattern(),
   };
+
+  routing.addEventListener('dialog', dialogId => {
+    if (dialogId in menuActions) {
+      menuActions[dialogId]();
+    }
+  });
 
   (document.querySelector('#pattern_menu') as DropdownMenu)!.addEventListener(
     'select',
@@ -151,9 +159,9 @@ async function main() {
     });
   });
 
-  const PANELS = ['info', 'sidebar_form', 'player'];
+  const PANELS = ['info', 'design', 'player'];
 
-  function showPanel(panelId: string) {
+  function showPanel(panelId: string, navigateToFolder = true) {
     PANELS.forEach(panel => {
       if (panel !== panelId) {
         document.querySelector('#' + panel).classList.remove('open');
@@ -175,7 +183,13 @@ async function main() {
         info.setPattern(currentPattern, viewer.size);
       }
     }
+
+    if (navigateToFolder) {
+      routing.navigateToFolder(panelId);
+    }
   }
+
+  routing.addEventListener('folder', folder => showPanel(folder, false));
 
   persistance.addEventListener('deletePattern', ({ pattern }) => {
     const templatePattern = findPatternById(pattern.type);

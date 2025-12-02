@@ -486,6 +486,10 @@ export default class DownloadDialog extends HTMLElement {
     return [dimensions[1], dimensions[0]];
   }
 
+  close() {
+    this.dialog.close();
+  }
+
   /**
    * Opens the dialog, optionally with an initial value.
    */

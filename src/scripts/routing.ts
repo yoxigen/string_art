@@ -1,8 +1,10 @@
 import EventBus from './helpers/EventBus';
 import { findPatternById } from './helpers/pattern_utils';
 import {
+  Folder,
   getPatternURL,
   getQueryParams,
+  serializeQueryParams,
   StringArtQueryParams,
 } from './helpers/url_utils';
 import StringArt from './infra/StringArt';
@@ -20,9 +22,14 @@ class Routing extends EventBus<{
   pattern: PatternRoute;
   main: void;
   renderer: RendererType;
+  dialogClosed: string;
+  dialog: string;
+  folder: Folder;
 }> {
   #popStateListener: (this: Window, ev: PopStateEvent) => any;
   #currentRenderer: RendererType = 'canvas';
+  #currentDialog: string | null = null;
+  #currentFolder: string | null = null;
 
   constructor() {
     super();
@@ -44,6 +51,8 @@ class Routing extends EventBus<{
       name: patternName,
       config,
       renderer = 'canvas',
+      dialog,
+      folder,
     } = state;
 
     const actualRenderer = renderer === 'svg' ? 'svg' : 'canvas';
@@ -73,6 +82,17 @@ class Routing extends EventBus<{
       }
     } else {
       this.emit('main', null);
+    }
+
+    if (dialog && dialog !== this.#currentDialog) {
+      this.navigateToDialog(dialog, false);
+    } else if (this.#currentDialog && !dialog) {
+      this.closeDialog(false);
+    }
+
+    if (folder != this.#currentFolder) {
+      this.emit('folder', (this.#currentFolder = folder ?? 'design'));
+      this.#currentFolder = folder;
     }
   }
 
@@ -124,6 +144,56 @@ class Routing extends EventBus<{
 
     if (!replaceState) {
       this.emit('pattern', { pattern, renderer });
+    }
+  }
+
+  navigateToFolder(folder: string) {
+    this.#currentFolder = folder;
+    history.pushState(
+      {
+        ...history.state,
+        folder,
+      },
+      null,
+      `/${folder === 'design' ? '' : folder}${document.location.search}`
+    );
+  }
+
+  navigateToDialog(dialogId: string, pushState = true) {
+    const params = getQueryParams();
+    if (this.#currentDialog) {
+      if (this.#currentDialog != dialogId) {
+        this.emit('dialogClosed', params.dialog);
+        this.#currentDialog = null;
+      } else {
+        return;
+      }
+    }
+
+    if (pushState) {
+      if (dialogId) {
+        params.dialog = dialogId;
+      } else {
+        if (!params.dialog) {
+          return;
+        }
+        delete params.dialog;
+      }
+
+      history.pushState(params, null, `?${serializeQueryParams(params)}`);
+    }
+
+    if (dialogId) {
+      this.#currentDialog = dialogId;
+      this.emit('dialog', dialogId);
+    }
+  }
+
+  closeDialog(pushState = true) {
+    if (this.#currentDialog) {
+      this.emit('dialogClosed', this.#currentDialog);
+      this.#currentDialog = null;
+      this.navigateToDialog(null, pushState);
     }
   }
 }

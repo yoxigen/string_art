@@ -120,6 +120,13 @@ export default class ConfirmDialog extends HTMLElement {
     });
   }
 
+  /**
+   * Closes the dialog
+   */
+  close() {
+    this.dialog.close();
+  }
+
   submit() {
     this.submitBtn.click();
   }

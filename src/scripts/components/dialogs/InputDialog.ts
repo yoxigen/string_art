@@ -83,6 +83,10 @@ export default class InputDialog extends HTMLElement {
     return this.dialog.show().then(() => this.input.value);
   }
 
+  close() {
+    this.dialog.close();
+  }
+
   /**
    * Gets the value entered by the user if submitted,
    * or null if canceled.

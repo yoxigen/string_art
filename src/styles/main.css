@@ -60,7 +60,7 @@ main {
 button {
   font-family: Roboto;
 }
-#sidebar_form {
+#design {
   border-right: var(--border-light);
   max-height: 100%;
   grid-area: config;
