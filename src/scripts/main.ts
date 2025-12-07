@@ -184,9 +184,9 @@ async function main() {
       .setAttribute('selected', 'selected');
 
     const toggledElement = document.querySelector('#' + panelId);
-    if (toggledElement) {
-      toggledElement.classList.toggle('open');
-      document.body.classList.toggle('dialog_' + panelId);
+    if (toggledElement && !toggledElement.classList.contains('open')) {
+      toggledElement.classList.add('open');
+      document.body.classList.add('dialog_' + panelId);
       currentPattern && viewer.update();
     }
 

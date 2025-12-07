@@ -16,7 +16,7 @@ export function getPatternURL(
     ? undefined
     : serializeConfig(pattern);
 
-  return `?pattern=${!patternAsTemplate ? pattern.id : pattern.type}${
+  return `/?pattern=${!patternAsTemplate ? pattern.id : pattern.type}${
     configQuery ? `&config=${encodeURIComponent(configQuery)}` : ''
   }${renderer === 'svg' ? '&renderer=svg' : ''}`;
 }

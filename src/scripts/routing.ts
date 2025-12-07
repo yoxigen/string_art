@@ -145,6 +145,12 @@ class Routing extends EventBus<{
     if (!replaceState) {
       this.emit('pattern', { pattern, renderer });
     }
+
+    if (this.#currentDialog) {
+      this.closeDialog(false);
+    }
+
+    this.emit('folder', 'design');
   }
 
   navigateToFolder(folder: string) {
@@ -183,7 +189,11 @@ class Routing extends EventBus<{
       history.pushState(
         { ...params, folder: history.state.folder },
         null,
-        `${history.state.folder ?? '/'}?${serializeQueryParams(params)}`
+        `/${
+          history.state.folder === 'design' || !history.state.folder
+            ? ''
+            : history.state.folder
+        }?${serializeQueryParams(params)}`
       );
     }
 
