@@ -1,4 +1,4 @@
-#player {
+#instructions {
   grid-area: player;
   font-size: 14px;
   --player_text_width: 80px;
@@ -7,7 +7,7 @@
 }
 
 @media only screen and (min-width: 801px) {
-  #player {
+  #instructions {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -37,13 +37,13 @@
   flex: 0;
 }
 
-#player #pause_btn {
+#instructions #pause_btn {
   display: none;
 }
-#player.playing #play_btn {
+#instructions.playing #play_btn {
   display: none;
 }
-#player.playing #pause_btn {
+#instructions.playing #pause_btn {
   display: inline;
 }
 
@@ -95,7 +95,7 @@
     display: none;
   }
 
-  #player.with_steps #player_steps {
+  #instructions.with_steps #player_steps {
     opacity: 1;
     display: flex;
   }
@@ -127,7 +127,7 @@
 }
 
 @media only screen and (max-width: 800px) {
-  #player.with_steps #player_steps {
+  #instructions.with_steps #player_steps {
     transform: translateY(-50px);
   }
 }

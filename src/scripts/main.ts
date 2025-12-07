@@ -52,7 +52,7 @@ async function main() {
   let showInfo = false;
 
   const viewer = (window['viewer'] = new Viewer());
-  const player = new Player(document.querySelector('#player'), viewer);
+  const player = new Player(document.querySelector('#instructions'), viewer);
 
   await initServiceWorker();
 
@@ -77,8 +77,11 @@ async function main() {
     save: () => persistance.saveCurrentPattern(),
     rename: () => persistance.renameCurrentPattern(),
     export: () => persistance.exportAllPatterns(),
-    download: () => downloadDialog!.show(viewer.pattern),
-    instructions: () => showPanel('player'),
+    download: () => {
+      downloadDialog!.show(viewer.pattern).finally(() => routing.closeDialog());
+      routing.navigateToDialog('download');
+    },
+    instructions: () => showPanel('instructions'),
     design: () => showPanel('design'),
     info: () => showPanel('info'),
     share: () => sharePattern(),
@@ -88,6 +91,10 @@ async function main() {
     if (dialogId in menuActions) {
       menuActions[dialogId]();
     }
+  });
+
+  routing.addEventListener('dialogClosed', () => {
+    downloadDialog.close();
   });
 
   (document.querySelector('#pattern_menu') as DropdownMenu)!.addEventListener(
@@ -159,15 +166,22 @@ async function main() {
     });
   });
 
-  const PANELS = ['info', 'design', 'player'];
+  const PANELS = ['info', 'design', 'instructions'];
 
   function showPanel(panelId: string, navigateToFolder = true) {
     PANELS.forEach(panel => {
       if (panel !== panelId) {
         document.querySelector('#' + panel).classList.remove('open');
+        document
+          .querySelector(`dropdown-menu-item[value='${panel}']`)
+          .removeAttribute('selected');
         document.body.classList.remove('dialog_' + panel);
       }
     });
+
+    document
+      .querySelector(`dropdown-menu-item[value='${panelId}']`)
+      .setAttribute('selected', 'selected');
 
     const toggledElement = document.querySelector('#' + panelId);
     if (toggledElement) {

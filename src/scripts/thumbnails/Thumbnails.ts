@@ -3,6 +3,7 @@ import type StringArt from '../infra/StringArt';
 import Persistance from '../Persistance';
 import EventBus from '../helpers/EventBus';
 import { getAllPatternsTypes } from '../helpers/pattern_utils';
+import routing from '../routing';
 
 const THUMBNAIL_WIDTH_PX = '100px';
 const MINIMIZED_CLASS = 'minimized';
@@ -71,6 +72,22 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
 
       this.emit('select', { patternId: link.dataset.pattern });
     });
+
+    routing.addEventListener('dialog', dialog => {
+      if (dialog === 'thumbnails') {
+        if (!this.isOpen) {
+          this.open();
+        }
+      } else {
+        this.close();
+      }
+    });
+
+    routing.addEventListener('dialogClosed', dialog => {
+      if (dialog === 'thumbnails') {
+        this.close();
+      }
+    });
   }
 
   get isOpen(): boolean {
@@ -80,8 +97,10 @@ export class Thumbnails extends EventBus<{ select: { patternId: string } }> {
   toggle() {
     if (!this.isOpen) {
       this.open();
+      routing.navigateToDialog('thumbnails');
     } else if (this.pattern) {
       this.close();
+      routing.closeDialog();
     }
   }
 

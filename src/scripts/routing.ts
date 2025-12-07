@@ -180,7 +180,11 @@ class Routing extends EventBus<{
         delete params.dialog;
       }
 
-      history.pushState(params, null, `?${serializeQueryParams(params)}`);
+      history.pushState(
+        { ...params, folder: history.state.folder },
+        null,
+        `${history.state.folder ?? '/'}?${serializeQueryParams(params)}`
+      );
     }
 
     if (dialogId) {
@@ -189,11 +193,13 @@ class Routing extends EventBus<{
     }
   }
 
-  closeDialog(pushState = true) {
+  closeDialog(setState = true) {
     if (this.#currentDialog) {
       this.emit('dialogClosed', this.#currentDialog);
       this.#currentDialog = null;
-      this.navigateToDialog(null, pushState);
+      if (setState) {
+        history.back();
+      }
     }
   }
 }

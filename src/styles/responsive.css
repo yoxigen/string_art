@@ -61,8 +61,8 @@
     display: block;
   }
 
-  .dialog_design #player,
-  .dialog_info #player {
+  .dialog_design #instructions,
+  .dialog_info #instructions {
     display: none !important;
   }
 
