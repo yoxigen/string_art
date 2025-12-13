@@ -57,5 +57,5 @@ export function serializeQueryParams(params: StringArtQueryParams): string {
 }
 
 export function getCurrentFolder(): string {
-  return document.location.pathname.replace(/\/$/, '');
+  return document.location.pathname.replace(/\/$/, '').replace(/^\//, '');
 }

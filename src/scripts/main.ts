@@ -19,6 +19,7 @@ import info from './Info';
 import 'scheduler-polyfill';
 import posthog from 'posthog-js';
 import { DropdownMenu } from './components/DropdownMenu';
+import { getCurrentFolder } from './helpers/url_utils';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
@@ -174,7 +175,7 @@ async function main() {
         document.querySelector('#' + panel).classList.remove('open');
         document
           .querySelector(`dropdown-menu-item[value='${panel}']`)
-          .removeAttribute('selected');
+          ?.removeAttribute('selected');
         document.body.classList.remove('dialog_' + panel);
       }
     });
@@ -228,6 +229,12 @@ async function main() {
   initRouting();
 
   function initRouting() {
+    setTimeout(() => {
+      const currentPanel = getCurrentFolder();
+      if (currentPanel) {
+        showPanel(currentPanel);
+      }
+    });
     routing.addEventListener('pattern', ({ pattern, renderer }) => {
       selectPattern(pattern);
       viewer.setPattern(pattern);
@@ -240,19 +247,6 @@ async function main() {
     });
 
     routing.init();
-  }
-
-  function deactivateTabs(exclude?: string[]) {
-    document
-      .querySelectorAll('#buttons [data-toggle-for].active')
-      .forEach(btn => {
-        if (
-          btn instanceof HTMLElement &&
-          !exclude?.includes(btn.getAttribute('data-toggle-for'))
-        ) {
-          btn.click();
-        }
-      });
   }
 
   function reset() {
