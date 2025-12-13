@@ -16,7 +16,7 @@
       'player';
   }
 
-  .dialog_sidebar_form main,
+  .dialog_design main,
   .dialog_info main {
     grid-template-rows: var(--select-height) 100vw;
     grid-template-areas:
@@ -24,7 +24,7 @@
       'canvas';
   }
 
-  body[data-pattern].dialog_sidebar_form main,
+  body[data-pattern].dialog_design main,
   body[data-pattern].dialog_info main {
     grid-template-columns: 1fr;
     grid-template-rows: var(--select-height) min(100vw, 50vh) 1fr;
@@ -42,7 +42,7 @@
     display: none;
   }
 
-  #sidebar_form {
+  #design {
     border-right: none;
     border-top: var(--border-light);
     box-shadow: 0 -5px 8px rgb(0 0 0 / 40%), 0 -1px 0 black;
@@ -57,12 +57,12 @@
     padding-inline-start: 8px;
   }
 
-  .dialog_sidebar_form #sidebar_form {
+  .dialog_design #design {
     display: block;
   }
 
-  .dialog_sidebar_form #player,
-  .dialog_info #player {
+  .dialog_design #instructions,
+  .dialog_info #instructions {
     display: none !important;
   }
 

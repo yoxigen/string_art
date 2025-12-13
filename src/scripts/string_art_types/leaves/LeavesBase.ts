@@ -65,8 +65,11 @@ export default abstract class Leaves<
     );
     const layerAngle = piSides - layerAngleChange;
     const sizeRatio = Math.cos(piSides) / Math.cos(-layerAngleChange);
-    const depth = Math.ceil(
-      Math.log(maxDensity / (baseSideSize * angle)) / Math.log(sizeRatio)
+    const depth = Math.max(
+      1,
+      Math.ceil(
+        Math.log(maxDensity / (baseSideSize * angle)) / Math.log(sizeRatio)
+      )
     );
 
     const params = { layerAngle, sizeRatio, depth };

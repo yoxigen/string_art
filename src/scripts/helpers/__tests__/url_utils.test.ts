@@ -11,7 +11,7 @@ describe('url utils', () => {
         density: 88,
       };
 
-      expect(getPatternURL(pattern)).toEqual('?pattern=lotus&config=9_88');
+      expect(getPatternURL(pattern)).toEqual('/?pattern=lotus&config=9_88');
     });
 
     test('returns the correct URL for a saved pattern', () => {
@@ -23,7 +23,7 @@ describe('url utils', () => {
       pattern.id = '1';
 
       expect(getPatternURL(pattern, { patternAsTemplate: true })).toEqual(
-        '?pattern=lotus&config=9_88'
+        '/?pattern=lotus&config=9_88'
       );
     });
 
@@ -35,7 +35,7 @@ describe('url utils', () => {
       };
 
       expect(getPatternURL(pattern, { renderer: 'svg' })).toEqual(
-        '?pattern=lotus&config=9_88&renderer=svg'
+        '/?pattern=lotus&config=9_88&renderer=svg'
       );
     });
 
@@ -48,10 +48,10 @@ describe('url utils', () => {
       pattern.id = '1';
 
       expect(getPatternURL(pattern, { patternAsTemplate: false })).toEqual(
-        '?pattern=1&config=9_88'
+        '/?pattern=1&config=9_88'
       );
 
-      expect(getPatternURL(pattern)).toEqual('?pattern=1&config=9_88');
+      expect(getPatternURL(pattern)).toEqual('/?pattern=1&config=9_88');
     });
   });
 });

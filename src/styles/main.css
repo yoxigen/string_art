@@ -45,22 +45,25 @@ main {
   }
 
   body.dialog_info[data-pattern] main {
-    grid-template-rows: var(--header-height) var(--select-height) 1fr 1fr var(
+    grid-template-rows: var(--header-height) var(--select-height) 1fr var(
         --controls-height
       );
     grid-template-areas:
       'header canvas'
       'pattern_select canvas'
-      'config canvas'
       'info canvas'
       'info player';
+  }
+
+  body.dialog_info[data-pattern] #design {
+    display: none;
   }
 }
 
 button {
   font-family: Roboto;
 }
-#sidebar_form {
+#design {
   border-right: var(--border-light);
   max-height: 100%;
   grid-area: config;
@@ -84,6 +87,9 @@ button {
   position: relative;
   z-index: 2;
   padding: 0 var(--horizontal-padding);
+}
+#main_header a {
+  text-decoration: none;
 }
 
 h1 {

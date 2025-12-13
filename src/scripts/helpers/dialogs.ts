@@ -1,6 +1,7 @@
 import type InputDialog from '../components/dialogs/InputDialog';
 import type ConfirmDialog from '../components/dialogs/ConfirmDialog';
 import type { ConfirmDialogType } from '../components/dialogs/ConfirmDialog';
+import routing from '../routing';
 
 export interface ConfirmOptions {
   title: string;
@@ -9,13 +10,20 @@ export interface ConfirmOptions {
   submitIcon?: string;
   cancel?: string;
   type?: ConfirmDialogType;
+  dialogId?: string;
 }
 export type PromptOptions = ConfirmOptions & {
   value?: string;
 };
 
 const promptDialogId = 'prompt_dialog';
-export function prompt({ value, ...options }: PromptOptions): Promise<string> {
+let closeDialog: Function;
+
+export function prompt({
+  value,
+  dialogId,
+  ...options
+}: PromptOptions): Promise<string> {
   let dialog: InputDialog = document.querySelector(`#${promptDialogId}`);
   if (!dialog) {
     dialog = document.createElement('input-dialog') as InputDialog;
@@ -33,7 +41,16 @@ export function prompt({ value, ...options }: PromptOptions): Promise<string> {
     }
   );
 
-  return dialog.show(value);
+  routing.navigateToDialog(dialogId);
+
+  closeDialog = () => {
+    dialog.close();
+    closeDialog = null;
+  };
+
+  return dialog.show(value).finally(() => {
+    routing.closeDialog();
+  });
 
   function getAttributeForProp(prop: string): string {
     switch (prop) {
@@ -68,5 +85,16 @@ export function confirm(options: ConfirmOptions): Promise<void> {
     }
   });
 
-  return dialog.show();
+  routing.navigateToDialog(options.dialogId);
+  closeDialog = () => {
+    dialog.close();
+    closeDialog = null;
+  };
+  return dialog.show().finally(() => {
+    routing.closeDialog();
+  });
 }
+
+routing.addEventListener('dialogClosed', () => {
+  closeDialog?.();
+});

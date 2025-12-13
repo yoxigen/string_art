@@ -46,6 +46,7 @@ export default class Persistance extends EventBus<{
       description: 'Name this pattern:',
       submit: 'Save',
       value: defaultName,
+      dialogId: 'save_as',
     }).then(
       patternName => {
         this.saveNewPattern({
@@ -153,6 +154,7 @@ export default class Persistance extends EventBus<{
       description: 'Name this pattern:',
       submit: 'Save',
       value: this.currentPattern.name,
+      dialogId: 'rename',
     }).then(newPatternName => {
       if (newPatternName !== this.currentPattern.name) {
         const patternData = Persistance.loadPatternDataById(
@@ -172,6 +174,7 @@ export default class Persistance extends EventBus<{
       description: 'Are you sure you wish to delete this pattern?',
       submit: 'Delete',
       type: 'error',
+      dialogId: 'delete',
     }).then(
       () => {
         const appData = Persistance.loadAppData();

@@ -19,6 +19,7 @@ import info from './Info';
 import 'scheduler-polyfill';
 import posthog from 'posthog-js';
 import { DropdownMenu } from './components/DropdownMenu';
+import { getCurrentFolder } from './helpers/url_utils';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
@@ -52,7 +53,7 @@ async function main() {
   let showInfo = false;
 
   const viewer = (window['viewer'] = new Viewer());
-  const player = new Player(document.querySelector('#player'), viewer);
+  const player = new Player(document.querySelector('#instructions'), viewer);
 
   await initServiceWorker();
 
@@ -69,18 +70,33 @@ async function main() {
     '#download_dialog'
   ) as DownloadDialog;
 
+  // TODO: Return true/false whether the action should be added to the URL.
+  // When URL changes, close an open dialog
   const menuActions = {
     save_as: () => persistance.showSaveAsDialog(),
     delete: () => persistance.deletePattern(),
     save: () => persistance.saveCurrentPattern(),
     rename: () => persistance.renameCurrentPattern(),
     export: () => persistance.exportAllPatterns(),
-    download: () => downloadDialog!.show(viewer.pattern),
-    instructions: () => showPanel('player'),
-    config: () => showPanel('sidebar_form'),
+    download: () => {
+      downloadDialog!.show(viewer.pattern).finally(() => routing.closeDialog());
+      routing.navigateToDialog('download');
+    },
+    instructions: () => showPanel('instructions'),
+    design: () => showPanel('design'),
     info: () => showPanel('info'),
     share: () => sharePattern(),
   };
+
+  routing.addEventListener('dialog', dialogId => {
+    if (dialogId in menuActions) {
+      menuActions[dialogId]();
+    }
+  });
+
+  routing.addEventListener('dialogClosed', () => {
+    downloadDialog.close();
+  });
 
   (document.querySelector('#pattern_menu') as DropdownMenu)!.addEventListener(
     'select',
@@ -151,20 +167,27 @@ async function main() {
     });
   });
 
-  const PANELS = ['info', 'sidebar_form', 'player'];
+  const PANELS = ['info', 'design', 'instructions'];
 
-  function showPanel(panelId: string) {
+  function showPanel(panelId: string, navigateToFolder = true) {
     PANELS.forEach(panel => {
       if (panel !== panelId) {
         document.querySelector('#' + panel).classList.remove('open');
+        document
+          .querySelector(`dropdown-menu-item[value='${panel}']`)
+          ?.removeAttribute('selected');
         document.body.classList.remove('dialog_' + panel);
       }
     });
 
+    document
+      .querySelector(`dropdown-menu-item[value='${panelId}']`)
+      .setAttribute('selected', 'selected');
+
     const toggledElement = document.querySelector('#' + panelId);
-    if (toggledElement) {
-      toggledElement.classList.toggle('open');
-      document.body.classList.toggle('dialog_' + panelId);
+    if (toggledElement && !toggledElement.classList.contains('open')) {
+      toggledElement.classList.add('open');
+      document.body.classList.add('dialog_' + panelId);
       currentPattern && viewer.update();
     }
 
@@ -175,7 +198,13 @@ async function main() {
         info.setPattern(currentPattern, viewer.size);
       }
     }
+
+    if (navigateToFolder) {
+      routing.navigateToFolder(panelId);
+    }
   }
+
+  routing.addEventListener('folder', folder => showPanel(folder, false));
 
   persistance.addEventListener('deletePattern', ({ pattern }) => {
     const templatePattern = findPatternById(pattern.type);
@@ -200,6 +229,12 @@ async function main() {
   initRouting();
 
   function initRouting() {
+    setTimeout(() => {
+      const currentPanel = getCurrentFolder();
+      if (currentPanel) {
+        showPanel(currentPanel);
+      }
+    });
     routing.addEventListener('pattern', ({ pattern, renderer }) => {
       selectPattern(pattern);
       viewer.setPattern(pattern);
@@ -212,19 +247,6 @@ async function main() {
     });
 
     routing.init();
-  }
-
-  function deactivateTabs(exclude?: string[]) {
-    document
-      .querySelectorAll('#buttons [data-toggle-for].active')
-      .forEach(btn => {
-        if (
-          btn instanceof HTMLElement &&
-          !exclude?.includes(btn.getAttribute('data-toggle-for'))
-        ) {
-          btn.click();
-        }
-      });
   }
 
   function reset() {

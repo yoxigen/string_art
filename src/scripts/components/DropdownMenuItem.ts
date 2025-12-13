@@ -26,6 +26,7 @@ class DropdownMenuItem extends HTMLElement {
 
         li.selected {
           color: var( --color-accent);
+          pointer-events: none;
         }
 
         span:not(:empty) {
