@@ -20,6 +20,13 @@ export default class Nails implements NailsSetter {
     this.precision = precision;
   }
 
+  get isEmpty(): boolean {
+    return this.#groups
+      .values()
+      .toArray()
+      .every(group => !group.length);
+  }
+
   addNail(key: NailKey, coordinates: Coordinates) {
     this.#defaultNailsGroup.addNail(key, coordinates);
   }
@@ -54,6 +61,24 @@ export default class Nails implements NailsSetter {
 
       groupNumbersStart += group.length;
     }
+  }
+
+  /**
+   * Returns an array of the coordinates of all nails, in all groups.
+   * The indexes of the array are the numbers of the nails, as displayed on the pattern
+   */
+  getAllNailsCoordinates(): Coordinates[] {
+    if (!this.#nailNumbers) {
+      this.#setNailNumbers();
+    }
+
+    const coordinates: Coordinates[][] = [];
+
+    for (const group of this.#groups.values()) {
+      coordinates.push(group.getNailsCoordinates());
+    }
+
+    return coordinates.flat();
   }
 
   getNailNumber(nailKey: NailKey, groupKey?: NailGroupKey): number {

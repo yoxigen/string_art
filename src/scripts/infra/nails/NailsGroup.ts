@@ -65,6 +65,15 @@ export default class NailsGroup implements NailsSetter {
     return nailNumbers;
   }
 
+  getNailsCoordinates(): Coordinates[] {
+    const nailsNumbers = this.getNailNumbers();
+    const coordinates = new Array(nailsNumbers.size);
+    nailsNumbers.entries().forEach(([nailKey, nailNumber]) => {
+      coordinates[nailNumber] = this.getNailCoordinates(nailKey);
+    });
+    return coordinates;
+  }
+
   *getUniqueNails(precision = 1): Generator<Coordinates> {
     const addedCoordinates = new Set<number>();
     for (const coordinates of this.#nails.values()) {

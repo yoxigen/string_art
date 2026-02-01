@@ -20,6 +20,8 @@ import 'scheduler-polyfill';
 import posthog from 'posthog-js';
 import { DropdownMenu } from './components/DropdownMenu';
 import { getCurrentFolder } from './helpers/url_utils';
+import { createPatternInstructions } from './download/download_instructions';
+import { Dimensions } from './types/general.types';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
@@ -86,6 +88,7 @@ async function main() {
     design: () => showPanel('design'),
     info: () => showPanel('info'),
     share: () => sharePattern(),
+    download_instructions: () => downloadInstructions(),
   };
 
   routing.addEventListener('dialog', dialogId => {
@@ -151,6 +154,10 @@ async function main() {
       renderer: viewer.renderer,
       pattern: viewer.pattern,
     });
+  }
+
+  function downloadInstructions() {
+    createPatternInstructions(viewer.pattern, { dimensions: [100, 100] });
   }
 
   elements.instructionsLink.addEventListener('click', e => {

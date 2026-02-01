@@ -31,6 +31,7 @@ export interface DrawOptions {
   enableScheduler?: boolean;
   precision?: number;
   controller?: Controller;
+  nails?: Nails;
 }
 
 abstract class StringArt<
@@ -239,7 +240,7 @@ abstract class StringArt<
       this.calc = this.getCalc(options);
     }
 
-    if (!this.nails) {
+    if (!this.nails || this.nails.isEmpty) {
       this.nails = new Nails({ precision });
       this.drawNails(this.nails);
     }
@@ -265,6 +266,7 @@ abstract class StringArt<
       redrawStrings = true,
       sizeChanged,
       precision,
+      nails,
     }: DrawOptions = {}
   ) {
     if (sizeChanged) {
@@ -284,6 +286,10 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
+    if (nails) {
+      this.nails = nails;
+    }
+
     this.setUpDraw({ size, precision });
   }
 

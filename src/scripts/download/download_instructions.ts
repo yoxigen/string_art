@@ -1,7 +1,10 @@
 import { ColorValue } from '../helpers/color/color.types';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 import Renderer from '../infra/renderers/Renderer';
+import { TestRenderer } from '../infra/renderers/TestRenderer';
 import StringArt from '../infra/StringArt';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { NailGroupKey, NailKey } from '../types/stringart.types';
 
 interface Layer {
@@ -9,13 +12,18 @@ interface Layer {
   points: NailKey[];
 }
 
+export type Instructions = {
+  layers: Layer[];
+  nails: Coordinates[];
+};
+
 class InstructionsController extends Controller {
   layers: Layer[] = [];
 
   private currentLayer: Layer;
 
   startLayer({ color }: { name?: string; color?: ColorValue }): void {
-    this.currentLayer = { color, points: [] };
+    this.layers.push((this.currentLayer = { color, points: [] }));
   }
 
   goto(nailKey: NailKey, groupKey: NailGroupKey): void {
@@ -35,6 +43,29 @@ class InstructionsController extends Controller {
   }
 }
 
-export function downloadInstructions(pattern: StringArt) {
-  const controller = new InstructionsController();
+export interface DownloadInstructionsOptions {
+  dimensions: Dimensions;
+}
+
+export function createPatternInstructions(
+  pattern: StringArt,
+  options: DownloadInstructionsOptions
+): Instructions {
+  const renderer = new TestRenderer(options.dimensions);
+  const nails = new Nails();
+
+  const controller = new InstructionsController(renderer, nails);
+
+  pattern.draw(renderer, {
+    controller,
+    nails,
+  });
+
+  const instructions: Instructions = {
+    layers: controller.layers,
+    nails: nails.getAllNailsCoordinates(),
+  };
+
+  console.log('INSTRUCTIONS', instructions);
+  return instructions;
 }
