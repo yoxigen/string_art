@@ -30,6 +30,7 @@ export interface DrawOptions {
   sizeChanged?: boolean;
   enableScheduler?: boolean;
   precision?: number;
+  controller?: Controller;
 }
 
 abstract class StringArt<
@@ -257,7 +258,7 @@ abstract class StringArt<
    * @param renderer
    * @param param1
    */
-  initDraw(
+  private initDraw(
     renderer: Renderer,
     {
       redrawNails = true,
@@ -318,7 +319,11 @@ abstract class StringArt<
    */
   #draw(
     renderer: Renderer,
-    { position, ...drawOptions }: { position?: number } & DrawOptions = {}
+    {
+      position,
+      controller,
+      ...drawOptions
+    }: { position?: number } & DrawOptions = {}
   ): () => void {
     this.initDraw(renderer, drawOptions);
 
@@ -349,7 +354,7 @@ abstract class StringArt<
       });
     }
 
-    this.controller = new Controller(renderer, this.nails);
+    this.controller = controller ?? new Controller(renderer, this.nails);
 
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
       this.stringsIterator = this.drawStrings(this.controller);
