@@ -1,0 +1,59 @@
+<confirm-dialog
+  dialog-title="Download instructions"
+  submit="Download"
+  submit-icon="download"
+  centered
+  width="640"
+>
+  <div id="wrapper">
+    <form>
+      <label for="size">Board size</label>
+      <section>
+        <div style="flex: 1; white-space: nowrap; margin-top: 0.5em">
+          <div id="width_and_height">
+            <dimensions-input
+              id="image_dimensions"
+              name="image_dimensions"
+            ></dimensions-input>
+            <select class="dialog-lesser-select unit-select" name="unit">
+              <option value="cm">cm</option>
+              <option value="inch">inch</option>
+            </select>
+          </div>
+        </div>
+      </section>
+      <section>
+        <label for="pattern_size">Pattern size</label>
+        <dimensions-input
+          id="pattern_size"
+          name="pattern_dimensions"
+        ></dimensions-input>
+        <select class="dialog-lesser-select unit-select" name="unit">
+          <option value="cm">cm</option>
+          <option value="inch">inch</option>
+        </select>
+      </section>
+      <section>
+        <label for="margin">Margin</label>
+        <input
+          type="number"
+          id="margin"
+          value="0"
+          style="width: 70px"
+          min="0"
+          step="1"
+          class="dialog-input size-input"
+          name="margin"
+        />
+        <select class="dialog-lesser-select unit-select" name="unit">
+          <option value="cm">cm</option>
+          <option value="inch">inch</option>
+        </select>
+      </section>
+    </form>
+    <div id="preview">
+      Preview
+      <article id="canvas"></article>
+    </div>
+  </div>
+</confirm-dialog>

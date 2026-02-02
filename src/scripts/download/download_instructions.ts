@@ -67,6 +67,5 @@ export function createPatternInstructions(
     nails: pattern.getNailsCoordinates(),
   };
 
-  console.log('INSTRUCTIONS', instructions);
   return instructions;
 }
