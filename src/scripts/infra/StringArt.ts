@@ -5,7 +5,7 @@ import {
 import EventBus from '../helpers/EventBus';
 import { compareObjects } from '../helpers/object_utils';
 import Nails from './nails/Nails';
-import { MeasureRenderer, ThreadsLength } from './renderers/MeasureRenderer';
+import { MeasureRenderer } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
 import type {
   Config,
@@ -13,7 +13,7 @@ import type {
   ControlsConfig,
   PrimitiveValue,
 } from '../types/config.types';
-import { Dimensions } from '../types/general.types';
+import { Coordinates, Dimensions } from '../types/general.types';
 import { CalcOptions } from '../types/stringart.types';
 import Controller from './Controller';
 import NailsSetter from './nails/NailsSetter';
@@ -31,7 +31,6 @@ export interface DrawOptions {
   enableScheduler?: boolean;
   precision?: number;
   controller?: Controller;
-  nails?: Nails;
 }
 
 abstract class StringArt<
@@ -80,6 +79,10 @@ abstract class StringArt<
     const renderer = new MeasureRenderer(size);
     this.draw(renderer, { precision });
     return renderer.nailCount;
+  }
+
+  getNailsCoordinates(): Coordinates[] {
+    return this.nails.getAllNailsCoordinates();
   }
 
   thumbnailConfig:
@@ -240,7 +243,7 @@ abstract class StringArt<
       this.calc = this.getCalc(options);
     }
 
-    if (!this.nails || this.nails.isEmpty) {
+    if (!this.nails) {
       this.nails = new Nails({ precision });
       this.drawNails(this.nails);
     }
@@ -266,7 +269,6 @@ abstract class StringArt<
       redrawStrings = true,
       sizeChanged,
       precision,
-      nails,
     }: DrawOptions = {}
   ) {
     if (sizeChanged) {
@@ -286,10 +288,6 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
-    if (nails) {
-      this.nails = nails;
-    }
-
     this.setUpDraw({ size, precision });
   }
 

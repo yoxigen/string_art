@@ -68,10 +68,6 @@ export default class Nails implements NailsSetter {
    * The indexes of the array are the numbers of the nails, as displayed on the pattern
    */
   getAllNailsCoordinates(): Coordinates[] {
-    if (!this.#nailNumbers) {
-      this.#setNailNumbers();
-    }
-
     const coordinates: Coordinates[][] = [];
 
     for (const group of this.#groups.values()) {

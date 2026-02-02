@@ -23,7 +23,9 @@ class InstructionsController extends Controller {
   private currentLayer: Layer;
 
   startLayer({ color }: { name?: string; color?: ColorValue }): void {
-    this.layers.push((this.currentLayer = { color, points: [] }));
+    if (this.currentLayer?.color !== color) {
+      this.layers.push((this.currentLayer = { color, points: [] }));
+    }
   }
 
   goto(nailKey: NailKey, groupKey: NailGroupKey): void {
@@ -58,12 +60,11 @@ export function createPatternInstructions(
 
   pattern.draw(renderer, {
     controller,
-    nails,
   });
 
   const instructions: Instructions = {
     layers: controller.layers,
-    nails: nails.getAllNailsCoordinates(),
+    nails: pattern.getNailsCoordinates(),
   };
 
   console.log('INSTRUCTIONS', instructions);
