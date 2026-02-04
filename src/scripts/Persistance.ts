@@ -257,7 +257,9 @@ export default class Persistance extends EventBus<{
   static loadAppData(): AppData {
     const rawData = localStorage.getItem(APP_DATA_STORAGE_KEY);
     try {
-      return rawData ? JSON.parse(rawData) : { patterns: [], downloadData: {} };
+      return rawData
+        ? JSON.parse(rawData)
+        : { patterns: [], downloadData: {}, downloadInstructionsData: {} };
     } catch (error) {
       throw new Error(
         'App data is corrupted, failed to load it. ' + error.message

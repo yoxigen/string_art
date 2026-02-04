@@ -40,6 +40,15 @@ export function downloadFile({ data, filename }: DownloadData) {
   URL.revokeObjectURL(dataUrl);
 }
 
+export function downloadTextFile(
+  contents: string,
+  filename: string,
+  mimeType = 'text/plain'
+) {
+  const data = new Blob([contents], { type: mimeType });
+  downloadFile({ data, filename });
+}
+
 export async function downloadPattern(
   pattern: StringArt,
   { type, ...options }: DownloadPatternOptions

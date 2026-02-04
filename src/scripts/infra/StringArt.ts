@@ -14,7 +14,7 @@ import type {
   PrimitiveValue,
 } from '../types/config.types';
 import { Coordinates, Dimensions } from '../types/general.types';
-import { CalcOptions } from '../types/stringart.types';
+import { CalcOptions, NailGroupKey, NailKey } from '../types/stringart.types';
 import Controller from './Controller';
 import NailsSetter from './nails/NailsSetter';
 import { DEFAULT_COLORS } from '../helpers/color/default_colors';
@@ -83,6 +83,10 @@ abstract class StringArt<
 
   getNailsCoordinates(): Coordinates[] {
     return this.nails.getAllNailsCoordinates();
+  }
+
+  getNailNumber(nailKey: NailKey, groupKey: NailGroupKey): number {
+    return this.nails.getNailNumber(nailKey, groupKey);
   }
 
   thumbnailConfig:

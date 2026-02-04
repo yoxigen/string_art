@@ -1,12 +1,9 @@
-import { Dimensions, LengthUnit } from '../../../types/general.types';
+import { ColorFormat } from '../../../helpers/color/color.types';
 
 export interface DownloadInstructionsOptions {
-  size: Dimensions;
-  margin: number;
-  type: 'txt' | 'json';
+  format: 'txt' | 'json';
   includeNailPositions: boolean;
   includeInstructions: boolean;
-  colorFormat: 'rgb' | 'hsl' | 'hex';
+  colorFormat: ColorFormat;
   filename?: string;
-  units?: LengthUnit;
 }

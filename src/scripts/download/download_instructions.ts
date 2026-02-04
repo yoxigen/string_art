@@ -13,14 +13,18 @@ interface Layer {
 }
 
 export type Instructions = {
-  layers: Layer[];
-  nails: Coordinates[];
+  layers?: Layer[];
+  nails?: Coordinates[];
 };
 
 class InstructionsController extends Controller {
   layers: Layer[] = [];
 
   private currentLayer: Layer;
+
+  constructor(renderer: Renderer, private pattern: StringArt) {
+    super(renderer, new Nails());
+  }
 
   startLayer({ color }: { name?: string; color?: ColorValue }): void {
     if (this.currentLayer?.color !== color) {
@@ -34,29 +38,40 @@ class InstructionsController extends Controller {
       this.startLayer({ color: this.currentLayer.color });
     }
 
-    this.currentLayer.points.push(nailKey);
+    this.currentLayer.points.push(
+      this.pattern.getNailNumber(nailKey, groupKey)
+    );
     // const coordinates = this.nails.getNailCoordinates(nailKey, groupKey);
     //this.renderer.setStartingPoint(coordinates);
   }
 
   stringTo(nailKey: NailKey, groupKey?: NailGroupKey) {
     // this.renderer.lineTo(this.nails.getNailCoordinates(nailKey, groupKey));
-    this.currentLayer.points.push(nailKey);
+    this.currentLayer.points.push(
+      this.pattern.getNailNumber(nailKey, groupKey)
+    );
   }
 }
 
 export interface DownloadInstructionsOptions {
   dimensions: Dimensions;
+  includeNails: boolean;
 }
+
+const DEFAULT_OPTIONS: DownloadInstructionsOptions = {
+  dimensions: [100, 100],
+  includeNails: true,
+};
 
 export function createPatternInstructions(
   pattern: StringArt,
-  options: DownloadInstructionsOptions
+  options: Partial<DownloadInstructionsOptions> = {}
 ): Instructions {
+  const allOptions = Object.assign({}, DEFAULT_OPTIONS, options);
   const renderer = new TestRenderer(options.dimensions);
   const nails = new Nails();
 
-  const controller = new InstructionsController(renderer, nails);
+  const controller = new InstructionsController(renderer, pattern);
 
   pattern.draw(renderer, {
     controller,
@@ -64,8 +79,11 @@ export function createPatternInstructions(
 
   const instructions: Instructions = {
     layers: controller.layers,
-    nails: pattern.getNailsCoordinates(),
   };
+
+  if (allOptions.includeNails) {
+    instructions.nails = pattern.getNailsCoordinates();
+  }
 
   return instructions;
 }
