@@ -135,8 +135,8 @@ export default class DownloadInstructionsDialog extends HTMLElement {
       };
     }
 
-    this.setFormat(downloadOptions.format);
-    this.setColorFormat(downloadOptions.colorFormat);
+    this.setFormat(downloadOptions.format ?? 'json');
+    this.setColorFormat(downloadOptions.colorFormat ?? 'rgb');
     this.updatePreview();
   }
 

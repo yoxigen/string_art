@@ -216,12 +216,12 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     const { n } = this.config;
     const ringDistance = this.getLayerRingDistance(layerIndex);
     const stepCount = n - ringDistance + 1;
-    controller.goto(0);
     let prevPointIndex = 0;
     controller.startLayer({
       color: this.color.getColor(layerIndex),
       name: String(layerIndex),
     });
+    controller.goto(0);
 
     for (let i = 0; i <= n - ringDistance; i++) {
       controller.stringTo((i + ringDistance) % n);

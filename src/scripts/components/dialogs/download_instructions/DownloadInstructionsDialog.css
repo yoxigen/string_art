@@ -31,6 +31,12 @@ h4 {
   margin-bottom: 0;
 }
 
+hr {
+  position: relative;
+  top: -0.5em;
+  opacity: 0.2;
+}
+
 #output {
   flex: 1;
   overflow: auto;

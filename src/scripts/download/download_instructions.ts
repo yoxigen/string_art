@@ -21,6 +21,7 @@ class InstructionsController extends Controller {
   layers: Layer[] = [];
 
   private currentLayer: Layer;
+  private layerStart: [NailKey, NailGroupKey];
 
   constructor(renderer: Renderer, private pattern: StringArt) {
     super(renderer, new Nails());
@@ -30,9 +31,19 @@ class InstructionsController extends Controller {
     if (this.currentLayer?.color !== color) {
       this.layers.push((this.currentLayer = { color, points: [] }));
     }
+
+    if (this.layerStart) {
+      this.goto(...this.layerStart);
+      this.layerStart = null;
+    }
   }
 
   goto(nailKey: NailKey, groupKey: NailGroupKey): void {
+    if (!this.currentLayer) {
+      this.layerStart = [nailKey, groupKey];
+      return;
+    }
+
     // If the current layer hasn't been started yet, there's no need to initialize the current layer
     if (this.currentLayer?.points.length) {
       this.startLayer({ color: this.currentLayer.color });
