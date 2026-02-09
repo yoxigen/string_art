@@ -22,3 +22,6 @@ export interface ColorConfig {
 
 export type ColorValue = string;
 export type ColorMap = Map<number, ColorValue>;
+export type ColorFormat = 'rgb' | 'hsl' | 'hex';
+export type RGB = [number, number, number];
+export type HSL = [number, number, number];

@@ -1,0 +1,59 @@
+<confirm-dialog
+  dialog-title="Textual instructions"
+  submit="Download"
+  submit-icon="download"
+  centered
+  description="The numbers are nail numbers, which can be printed with the nail positions. This output can also be used with other software, which is used to automatically create a string art project."
+  width="640"
+>
+  <div id="wrapper">
+    <form>
+      <hr />
+      <fieldset>
+        <label for="format">Output format</label>
+        <div class="radio-list">
+          <input
+            type="radio"
+            name="format"
+            id="format_json"
+            value="json"
+            checked
+          />
+          <label for="format_json">JSON</label>
+          <input type="radio" name="format" id="format_txt" value="txt" />
+          <label for="format_txt">Text</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <label for="color">Color format</label>
+        <div class="radio-list">
+          <input type="radio" name="color" id="color_rgb" value="rgb" checked />
+          <label for="color_rgb">RGB</label>
+          <input type="radio" name="color" id="color_hex" value="hex" />
+          <label for="color_hex">Hexadecimal</label>
+          <input type="radio" name="color" id="color_hsl" value="hsl" />
+          <label for="color_hsl">HSL</label>
+        </div>
+      </fieldset>
+      <!-- <fieldset class="dialog-checkbox">
+        <string-art-checkbox
+          id="include_nails"
+          label="Include nail positions"
+          name="include_nails"
+          checked="checked"
+        />
+      </fieldset> -->
+      <!-- <fieldset class="dialog-checkbox">
+        <string-art-checkbox
+          id="include_layers"
+          label="Include string instructions"
+          name="include_layers"
+          checked="checked"
+        />
+      </fieldset> -->
+    </form>
+    <h4>Ouput</h4>
+    <pre id="output"></pre>
+  </div>
+</confirm-dialog>

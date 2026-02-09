@@ -20,6 +20,9 @@ import 'scheduler-polyfill';
 import posthog from 'posthog-js';
 import { DropdownMenu } from './components/DropdownMenu';
 import { getCurrentFolder } from './helpers/url_utils';
+import { createPatternInstructions } from './download/download_instructions';
+import { Dimensions } from './types/general.types';
+import DownloadInstructionsDialog from './components/dialogs/download_instructions/DownloadInstructionsDialog';
 
 window.addEventListener('error', function (event) {
   alert('Error:\n' + event.message + '\n\nStack:\n' + event.error.stack);
@@ -70,6 +73,10 @@ async function main() {
     '#download_dialog'
   ) as DownloadDialog;
 
+  const downloadInstructionsDialog = document.querySelector(
+    '#download_instructions_dialog'
+  ) as DownloadInstructionsDialog;
+
   // TODO: Return true/false whether the action should be added to the URL.
   // When URL changes, close an open dialog
   const menuActions = {
@@ -79,23 +86,39 @@ async function main() {
     rename: () => persistance.renameCurrentPattern(),
     export: () => persistance.exportAllPatterns(),
     download: () => {
-      downloadDialog!.show(viewer.pattern).finally(() => routing.closeDialog());
       routing.navigateToDialog('download');
     },
     instructions: () => showPanel('instructions'),
     design: () => showPanel('design'),
     info: () => showPanel('info'),
     share: () => sharePattern(),
+    download_instructions: () => {
+      routing.navigateToDialog('download_instructions');
+    },
+  };
+
+  const dialogs = {
+    download: () => {
+      downloadDialog!.show(viewer.pattern).finally(() => routing.closeDialog());
+    },
+    download_instructions: () => {
+      downloadInstructionsDialog!
+        .show(viewer.pattern)
+        .finally(() => routing.closeDialog());
+    },
   };
 
   routing.addEventListener('dialog', dialogId => {
-    if (dialogId in menuActions) {
+    if (dialogId in dialogs) {
+      dialogs[dialogId]();
+    } else if (dialogId in menuActions) {
       menuActions[dialogId]();
     }
   });
 
   routing.addEventListener('dialogClosed', () => {
     downloadDialog.close();
+    downloadInstructionsDialog.close();
   });
 
   (document.querySelector('#pattern_menu') as DropdownMenu)!.addEventListener(

@@ -8,4 +8,5 @@ import './DropdownMenuSeparator';
 import './dialogs/InputDialog';
 import './dialogs/ConfirmDialog';
 import './dialogs/download_dialog/DownloadDialog';
+import './dialogs/download_instructions/DownloadInstructionsDialog';
 import './expandable_panel/ExpandablePanel';

@@ -1,0 +1,47 @@
+@import '../../forms.css';
+@import '../../../../styles/icons.css';
+@import '../../../../styles/buttons.css';
+
+#wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 90%;
+}
+
+form {
+  flex: 0;
+}
+
+section {
+  margin-bottom: 1;
+}
+
+label:not(.icon_btn) {
+  display: block;
+  margin-bottom: 4px;
+}
+
+input[type='checkbox']:checked + .icon_btn {
+  color: White;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+h4 {
+  margin-bottom: 0;
+}
+
+hr {
+  position: relative;
+  top: -0.5em;
+  opacity: 0.2;
+}
+
+#output {
+  flex: 1;
+  overflow: auto;
+  border: var(--border-light);
+  padding: 1em;
+  background: var(--color-canvas-background);
+  max-height: 30vh;
+}

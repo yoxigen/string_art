@@ -5,7 +5,7 @@ import {
 import EventBus from '../helpers/EventBus';
 import { compareObjects } from '../helpers/object_utils';
 import Nails from './nails/Nails';
-import { MeasureRenderer, ThreadsLength } from './renderers/MeasureRenderer';
+import { MeasureRenderer } from './renderers/MeasureRenderer';
 import Renderer from './renderers/Renderer';
 import type {
   Config,
@@ -13,8 +13,8 @@ import type {
   ControlsConfig,
   PrimitiveValue,
 } from '../types/config.types';
-import { Dimensions } from '../types/general.types';
-import { CalcOptions } from '../types/stringart.types';
+import { Coordinates, Dimensions } from '../types/general.types';
+import { CalcOptions, NailGroupKey, NailKey } from '../types/stringart.types';
 import Controller from './Controller';
 import NailsSetter from './nails/NailsSetter';
 import { DEFAULT_COLORS } from '../helpers/color/default_colors';
@@ -30,6 +30,7 @@ export interface DrawOptions {
   sizeChanged?: boolean;
   enableScheduler?: boolean;
   precision?: number;
+  controller?: Controller;
 }
 
 abstract class StringArt<
@@ -78,6 +79,14 @@ abstract class StringArt<
     const renderer = new MeasureRenderer(size);
     this.draw(renderer, { precision });
     return renderer.nailCount;
+  }
+
+  getNailsCoordinates(): Coordinates[] {
+    return this.nails.getAllNailsCoordinates();
+  }
+
+  getNailNumber(nailKey: NailKey, groupKey: NailGroupKey): number {
+    return this.nails.getNailNumber(nailKey, groupKey);
   }
 
   thumbnailConfig:
@@ -257,7 +266,7 @@ abstract class StringArt<
    * @param renderer
    * @param param1
    */
-  initDraw(
+  private initDraw(
     renderer: Renderer,
     {
       redrawNails = true,
@@ -318,7 +327,11 @@ abstract class StringArt<
    */
   #draw(
     renderer: Renderer,
-    { position, ...drawOptions }: { position?: number } & DrawOptions = {}
+    {
+      position,
+      controller,
+      ...drawOptions
+    }: { position?: number } & DrawOptions = {}
   ): () => void {
     this.initDraw(renderer, drawOptions);
 
@@ -349,7 +362,7 @@ abstract class StringArt<
       });
     }
 
-    this.controller = new Controller(renderer, this.nails);
+    this.controller = controller ?? new Controller(renderer, this.nails);
 
     if (drawOptions.redrawStrings !== false && this.config.showStrings) {
       this.stringsIterator = this.drawStrings(this.controller);

@@ -7,6 +7,7 @@ import { getQueryParams } from './helpers/url_utils';
 import { ID } from './types/stringart.types';
 import { downloadFile, DownloadPatternOptions } from './download/Download';
 import { createPatternInstance } from './helpers/pattern_utils';
+import { DownloadInstructionsOptions } from './components/dialogs/download_instructions/download_instructions_types';
 
 const APP_DATA_STORAGE_KEY = 'string_art_app_data';
 
@@ -229,15 +230,36 @@ export default class Persistance extends EventBus<{
     this.saveAppData(appData);
   }
 
+  static savePatternDownloadInstructionsData(
+    patternId: ID,
+    data: DownloadInstructionsOptions
+  ) {
+    const appData = Persistance.loadAppData();
+    if (!appData.downloadInstructionsData) {
+      appData.downloadInstructionsData = {};
+    }
+    appData.downloadInstructionsData[patternId] = data;
+    this.saveAppData(appData);
+  }
+
   static getPatternDownloadData(patternId: ID): DownloadPatternOptions | null {
     const appData = Persistance.loadAppData();
     return appData.downloadData?.[patternId];
   }
 
+  static getPatternDownloadInstructionsData(
+    patternId: ID
+  ): DownloadInstructionsOptions | null {
+    const appData = Persistance.loadAppData();
+    return appData.downloadInstructionsData?.[patternId];
+  }
+
   static loadAppData(): AppData {
     const rawData = localStorage.getItem(APP_DATA_STORAGE_KEY);
     try {
-      return rawData ? JSON.parse(rawData) : { patterns: [], downloadData: {} };
+      return rawData
+        ? JSON.parse(rawData)
+        : { patterns: [], downloadData: {}, downloadInstructionsData: {} };
     } catch (error) {
       throw new Error(
         'App data is corrupted, failed to load it. ' + error.message
