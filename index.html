@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang=en><script type=importmap>{"imports":{"6Njhd":"./string_art_studio.9b10ffa9.ttf","c5Q5N":"./string_art_studio.f214000c.woff","lNdri":"./string_art_studio.b922ab9a.svg"}}</script><title>String Art Studio</title><link rel=stylesheet href=string_art.3ad90eea.css><script type=module src=string_art.1c873783.js></script><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Yossi Kolesnicov"><meta name=description content="An app to design and help produce string art projects"><meta name=theme-color content=#262629><link rel=icon type=image/png href=favicon-16.2f1470d8.png sizes=16x16><link rel=icon type=image/png href=favicon-32.c9a5c761.png sizes=32x32><link rel=icon type=image/png href=favicon-96.f47611a0.png sizes=96x96><link rel=apple-touch-icon-precomposed type=image/png href=favicon-152.c9bfea9e.png sizes=152x152><link rel=icon type=image/png href=favicon-196.815ccb95.png sizes=196x196><link rel=manifest href=manifest.webmanifest><body class=dialog_design>
+<!DOCTYPE html><html lang=en><script type=importmap>{"imports":{"4PdUL":"./string_art_studio.ae7f2e94.svg","hDzzV":"./string_art_studio.9cced145.ttf","kEbxv":"./string_art_studio.44d13d52.woff"}}</script><title>String Art Studio</title><link rel=stylesheet href=string_art.48c5feab.css><script type=module src=string_art.44c92c17.js></script><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Yossi Kolesnicov"><meta name=description content="An app to design and help produce string art projects"><meta name=theme-color content=#262629><link rel=icon type=image/png href=favicon-16.2f1470d8.png sizes=16x16><link rel=icon type=image/png href=favicon-32.c9a5c761.png sizes=32x32><link rel=icon type=image/png href=favicon-96.f47611a0.png sizes=96x96><link rel=apple-touch-icon-precomposed type=image/png href=favicon-152.c9bfea9e.png sizes=152x152><link rel=icon type=image/png href=favicon-196.815ccb95.png sizes=196x196><link rel=manifest href=manifest.webmanifest><body class=dialog_design>
     <main hidden data-is-template=unknown data-is-default-config=unknown>
       <header id=main_header>
         <a href=/>
@@ -48,6 +48,10 @@
           <dropdown-menu-item value=download>
             <i slot=icon class=icon-download></i>
             Download</dropdown-menu-item>
+          <dropdown-menu-item value=download_instructions>
+            <i slot=icon class=icon-text></i>
+            Textual instructions
+          </dropdown-menu-item>
           <dropdown-menu-item value=share id=share_menu_item>
             <i slot=icon class=icon-share></i>
             Share</dropdown-menu-item>
@@ -150,6 +154,7 @@
         </div>
       </nav>
       <download-dialog id=download_dialog> </download-dialog>
+      <download-instructions-dialog id=download_instructions_dialog></download-instructions-dialog>
       <article id=mobile_menu>
         <div id=mobile_menu_contents>
           <header id=mobile_menu_header>
