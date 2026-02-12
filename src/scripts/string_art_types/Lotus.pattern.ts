@@ -1,7 +1,7 @@
 import StringArt from '../infra/StringArt';
 import Circle, { CircleConfig } from '../shapes/Circle';
 import Color from '../helpers/color/Color';
-import type { ControlsConfig } from '../types/config.types';
+import type { Config, ControlsConfig } from '../types/config.types';
 import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 import { Coordinates, Dimensions } from '../types/general.types';
 import { withoutAttribute } from '../helpers/config_utils';
@@ -378,7 +378,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       const connectPoint: NailKey = isLastSection
         ? this.calc.centerCircle
           ? circleIndex
-          : 'C'
+          : 0
         : prevCircle.getNailKey(
             nailsPerSection * (section + 2 - removedSections) -
               (sides % 2 && section === sections - 2 ? nailsPerSection / 2 : 0)
@@ -435,7 +435,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
   }
 
   drawNails(nails: NailsSetter) {
-    const { renderCenter, density } = this.config;
+    const { renderCenter } = this.config;
     const { circles, centerCircle, excludedNailRange, nailsPerSection } =
       this.calc;
 
@@ -443,7 +443,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       if (centerCircle) {
         centerCircle.drawNails(nails);
       } else {
-        nails.addNail('C', this.calc.center);
+        nails.addNail(0, this.calc.center);
       }
     }
 
@@ -481,6 +481,13 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
   thumbnailConfig = ({ density }) => ({
     density: Math.min(density, 5),
   });
+
+  testStepCountConfig: Partial<Config<LotusConfig>>[] = [
+    {
+      renderCenter: true,
+      centerRadius: 0,
+    },
+  ];
 }
 
 function getSectionsCount(sides: number): number {

@@ -816,7 +816,7 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     triangle: number,
     side: number,
     index: number
-  ): string | number {
+  ): number {
     return index
       ? 1e6 * level + 1e3 * triangle + side * 1e2 + index
       : 1e6 * level + 1e3 * triangle;
