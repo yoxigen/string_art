@@ -153,8 +153,6 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     layerDistance: 1,
   };
 
-  color: Color;
-
   getCalc(options: CalcOptions): TCalc {
     const circleConfig = {
       size: options.size,
@@ -172,13 +170,7 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-
-    if (!this.stepCount) {
-      this.stepCount = this.getStepCount();
-    }
-
+  initColor(): Color {
     const { isMultiColor, colorCount, layers, colorPerLayer } = this.config;
     const realColorCount = isMultiColor
       ? colorPerLayer
@@ -186,7 +178,7 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
         : Math.min(colorCount, layers)
       : 1;
 
-    this.color = new Color({
+    return new Color({
       ...this.config,
       isMultiColor,
       colorCount: realColorCount,

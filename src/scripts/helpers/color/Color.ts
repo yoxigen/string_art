@@ -89,19 +89,19 @@ export default class Color {
     return null;
   }
 
-  getColorMap({
-    stepCount,
-    colorCount,
-  }: {
-    stepCount: number;
-    colorCount: number;
-  }): ColorMap {
-    if (!colorCount) {
+  getColorMap(
+    options?: Partial<{
+      stepCount: number;
+      colorCount: number;
+    }>
+  ): ColorMap {
+    options = Object.assign({}, this.config, options);
+    if (!options.colorCount) {
       throw new Error("Can't get color map, no colorCount provided!");
     }
-    const stepsPerColor = Math.floor(stepCount / colorCount);
+    const stepsPerColor = Math.floor(options.stepCount / options.colorCount);
     const colorMap = new Map();
-    for (let i = 0; i < colorCount; i++) {
+    for (let i = 0; i < options.colorCount; i++) {
       colorMap.set(i * stepsPerColor, this.getColor(i));
     }
     return colorMap;

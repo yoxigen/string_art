@@ -107,8 +107,6 @@ class Eye extends StringArt<EyeConfig, TCalc> {
     nailsColor: '#000000',
   };
 
-  color: Color;
-
   getCalc({ size }: CalcOptions): TCalc {
     const {
       n: nConfig,
@@ -227,11 +225,6 @@ class Eye extends StringArt<EyeConfig, TCalc> {
       totalNailsCount,
       layersCount,
     };
-  }
-
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-    this.color = new Color(this.config);
   }
 
   getAspectRatio(): number {

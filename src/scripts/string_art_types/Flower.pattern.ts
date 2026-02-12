@@ -90,8 +90,6 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     stringWidth: 0.5,
   };
 
-  color: Color;
-
   getCalc({ size }: CalcOptions): TCalc {
     const { n, rotation, sides, layers, margin } = this.config;
 
@@ -120,11 +118,10 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     return { polygons };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
+  initColor(): Color {
     const { layers, isMultiColor } = this.config;
 
-    this.color = new Color({
+    return new Color({
       ...this.config,
       isMultiColor,
       colorCount: layers,

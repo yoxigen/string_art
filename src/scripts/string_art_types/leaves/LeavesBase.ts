@@ -30,14 +30,7 @@ export type LeavesCalc = {
 export default abstract class Leaves<
   TConfig extends LeavesConfig
 > extends StringArt<TConfig, LeavesCalc> {
-  color: Color;
-
   abstract getCalc({ size }: CalcOptions): LeavesCalc;
-
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-    this.color = new Color(this.config);
-  }
 
   protected getInnerRotationParams({
     sides,

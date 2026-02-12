@@ -237,7 +237,6 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     nailsColor: '#474747',
   };
 
-  color: Color;
   colorMap: ColorMap;
 
   getCalc(options: CalcOptions): TCalc {
@@ -310,23 +309,9 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-
-    const {
-      isMultiColor,
-      levels,
-      colorPerLevel,
-      colorCount,
-      renderRing,
-      ringSize,
-      ringNailCount,
-      ...config
-    } = this.config;
-
-    if (!this.stepCount) {
-      this.stepCount = this.getStepCount(options);
-    }
+  initColor(): Color {
+    const { isMultiColor, levels, colorPerLevel, colorCount, ...config } =
+      this.config;
 
     const realColorCount = isMultiColor
       ? colorPerLevel
@@ -334,16 +319,22 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
         : Math.min(colorCount, levels)
       : 1;
 
-    this.color = new Color({
+    return new Color({
       ...config,
       isMultiColor,
       colorCount: realColorCount,
     });
+  }
 
-    if (isMultiColor) {
+  setUpDraw(options: CalcOptions) {
+    if (!this.stepCount) {
+      this.stepCount = this.getStepCount(options);
+    }
+
+    if (this.config.isMultiColor) {
       this.colorMap = this.color.getColorMap({
-        stepCount: realColorCount,
-        colorCount: realColorCount,
+        stepCount: this.color.config.colorCount,
+        colorCount: this.color.config.colorCount,
       });
     } else {
       this.colorMap = null;

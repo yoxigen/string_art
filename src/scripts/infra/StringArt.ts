@@ -19,6 +19,8 @@ import Controller from './Controller';
 import NailsSetter from './nails/NailsSetter';
 import { DEFAULT_COLORS } from '../helpers/color/default_colors';
 import { COMMON_CONFIG_CONTROLS } from './common_controls';
+import Color from '../helpers/color/Color';
+import { ColorMap } from '../helpers/color/color.types';
 
 export type Pattern<TConfig = Record<string, PrimitiveValue>> = new (
   renderer?: Renderer
@@ -50,7 +52,7 @@ abstract class StringArt<
   position: number = 0;
 
   protected calc: TCalc;
-
+  protected color: Color;
   private stringsIterator: Iterator<void>;
   private nails: Nails;
   private controller: Controller;
@@ -242,15 +244,9 @@ abstract class StringArt<
     }
   }
 
-  setUpDraw({ precision, ...options }: CalcOptions & { precision?: number }) {
-    if (!this.calc) {
-      this.calc = this.getCalc(options);
-    }
-
-    if (!this.nails) {
-      this.nails = new Nails({ precision });
-      this.drawNails(this.nails);
-    }
+  setUpDraw(options: CalcOptions) {}
+  initColor(): Color {
+    return new Color(this.config);
   }
 
   afterDraw() {
@@ -292,7 +288,18 @@ abstract class StringArt<
     renderer.setLineWidth(this.config.stringWidth);
 
     const size = renderer.getSize();
-    this.setUpDraw({ size, precision });
+    const options: CalcOptions = { size };
+    if (!this.calc) {
+      this.calc = this.getCalc(options);
+    }
+
+    if (!this.nails) {
+      this.nails = new Nails({ precision });
+      this.drawNails(this.nails);
+    }
+
+    this.color = this.initColor();
+    this.setUpDraw(options);
   }
 
   draw(

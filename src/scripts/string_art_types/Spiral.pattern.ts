@@ -79,8 +79,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
     COLOR_CONFIG,
   ];
 
-  #color: Color;
-  #colorMap: ColorMap;
+  private colorMap: ColorMap;
 
   getCalc({ size }: CalcOptions): TCalc {
     const { n, rotation, margin, repetition, distortion } = this.config;
@@ -99,19 +98,11 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
     };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-    const { colorCount } = this.config;
-
-    this.#color = new Color({
-      ...this.config,
-      colorCount: colorCount,
-    });
-
-    if (colorCount) {
-      this.#colorMap = this.#color.getColorMap({
+  setUpDraw() {
+    if (this.color.config.colorCount) {
+      this.colorMap = this.color.getColorMap({
         stepCount: this.getStepCount(),
-        colorCount,
+        colorCount: this.color.config.colorCount,
       });
     }
   }
@@ -139,9 +130,9 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
     let isPrevPoint = false;
 
     for (let i = 0; currentInnerLength > 0; i++) {
-      if (this.#colorMap) {
-        if (this.#colorMap.has(i)) {
-          controller.startLayer({ color: this.#colorMap.get(i) });
+      if (this.colorMap) {
+        if (this.colorMap.has(i)) {
+          controller.startLayer({ color: this.colorMap.get(i) });
         }
       }
 
@@ -166,7 +157,7 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
 
   *drawStrings(controller: Controller): Generator<void> {
     yield* this.drawSpiral(controller, {
-      color: this.#color.getColor(0),
+      color: this.color.getColor(0),
     });
   }
 

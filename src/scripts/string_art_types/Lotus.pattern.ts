@@ -148,8 +148,6 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     nailsColor: '#a08346',
   };
 
-  #color: Color;
-
   getCalc({ size }: CalcOptions): TCalc {
     const {
       sides,
@@ -307,9 +305,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     }
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-
+  initColor(): Color {
     let colorCount = this.config.radialColor
       ? this.calc.sections - this.calc.removedSections - 1
       : this.config.colorCount;
@@ -318,7 +314,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
       colorCount--;
     }
 
-    this.#color = new Color({
+    return new Color({
       ...this.config,
       colorCount,
     });
@@ -336,7 +332,7 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     const { radialColor } = this.config;
     const { removedSections } = this.calc;
 
-    return this.#color.getColor(
+    return this.color.getColor(
       radialColor ? section - removedSections : circleIndex
     );
   }

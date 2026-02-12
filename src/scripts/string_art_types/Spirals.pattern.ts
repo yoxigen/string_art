@@ -111,7 +111,6 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     }),
   ];
 
-  color: Color;
   colorMap: ColorMap;
 
   getCalc({ size }: CalcOptions): TCalc {
@@ -127,15 +126,9 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-
-    const { colorCount } = this.config;
-
-    this.color = new Color(this.config);
+  setUpDraw() {
     this.colorMap = this.color.getColorMap({
       stepCount: this.getStepCount(),
-      colorCount,
     });
   }
 

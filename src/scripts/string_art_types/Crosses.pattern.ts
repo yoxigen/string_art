@@ -426,8 +426,6 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     }),
   ];
 
-  color: Color;
-
   getCalc({ size }: CalcOptions): TCalc {
     const {
       n,
@@ -764,12 +762,6 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
       height,
       horizontalLinesIndexStart: n * 4,
     };
-  }
-
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-
-    this.color = new Color(this.config);
   }
 
   getAspectRatio(): number {

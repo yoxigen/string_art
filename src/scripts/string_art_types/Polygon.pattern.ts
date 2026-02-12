@@ -87,7 +87,6 @@ export default class PolygonPattern extends StringArt<
     nailRadius: 1,
   };
 
-  color: Color;
   colorMap: ColorMap;
 
   getCalc({ size }: CalcOptions): TCalc {
@@ -107,20 +106,23 @@ export default class PolygonPattern extends StringArt<
     };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
+  initColor(): Color {
     const { sides, isMultiColor } = this.config;
 
-    this.color = new Color({
+    return new Color({
       ...this.config,
       isMultiColor,
       colorCount: sides,
     });
+  }
 
-    if (isMultiColor) {
+  setUpDraw(options: CalcOptions) {
+    super.setUpDraw(options);
+
+    if (this.config.isMultiColor) {
       this.colorMap = this.color.getColorMap({
         stepCount: this.getStepCount(),
-        colorCount: sides,
+        colorCount: this.color.config.colorCount,
       });
     } else {
       this.colorMap = null;

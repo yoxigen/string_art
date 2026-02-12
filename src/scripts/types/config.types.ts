@@ -1,4 +1,4 @@
-import { ColorValue } from '../helpers/color/color.types';
+import { ColorConfig, ColorValue } from '../helpers/color/color.types';
 
 export type ControlType =
   | 'range'
@@ -39,7 +39,9 @@ export interface BackgroundConfig {
 
 export type CommonConfig = NailsConfig & StringsConfig & BackgroundConfig;
 
-export type Config<T = Record<string, PrimitiveValue>> = T & CommonConfig;
+export type Config<T = Record<string, PrimitiveValue>> = T &
+  CommonConfig &
+  ColorConfig;
 
 export type ConfigFunction<
   TConfig = Record<string, PrimitiveValue>,

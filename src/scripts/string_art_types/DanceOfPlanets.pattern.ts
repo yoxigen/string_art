@@ -215,7 +215,6 @@ export default class DanceOfPlanets extends StringArt<
     colorCount: 2,
   };
 
-  color: Color;
   colorMap: ColorMap;
 
   getCalc({ size }: CalcOptions): TCalc {
@@ -307,11 +306,8 @@ export default class DanceOfPlanets extends StringArt<
     };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
+  setUpDraw() {
     const { colorCount } = this.config;
-
-    this.color = new Color(this.config);
 
     if (colorCount) {
       this.colorMap = this.color.getColorMap({

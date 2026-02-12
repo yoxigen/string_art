@@ -249,7 +249,6 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     );
   }
 
-  #color: Color;
   #backdropColor: Color;
 
   defaultValues = {
@@ -316,15 +315,17 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
+  initColor(): Color {
+    const { layers } = this.config;
 
-    const { layers, backdropColorCount } = this.config;
-
-    this.#color = new Color({
+    return new Color({
       ...this.config,
       colorCount: layers,
     });
+  }
+
+  setUpDraw() {
+    const { backdropColorCount } = this.config;
 
     // @ts-ignore this is fine for now, until the color config is managed in a single control
     this.#backdropColor = new Color({
@@ -426,7 +427,7 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     for (let layerIndex = 0; layerIndex < this.config.layers; layerIndex++) {
       controller.startLayer({
         name: `Layer ${layerIndex + 1}`,
-        color: this.#color.getColor(layerIndex),
+        color: this.color.getColor(layerIndex),
       });
       yield* this.calc.star.drawStar(controller, {
         size: this.#getLayerSize(layerIndex),

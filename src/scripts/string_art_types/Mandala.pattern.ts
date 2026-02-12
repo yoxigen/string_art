@@ -72,8 +72,6 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     }),
   ];
 
-  color: Color;
-
   get n() {
     return this.calc.n;
   }
@@ -109,12 +107,10 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     };
   }
 
-  setUpDraw(options: CalcOptions) {
-    super.setUpDraw(options);
-
+  initColor(): Color {
     const { layers } = this.config;
 
-    this.color = new Color({
+    return new Color({
       ...this.config,
       colorCount: layers,
     });
