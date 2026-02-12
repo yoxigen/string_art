@@ -328,7 +328,7 @@ export default class Polygon extends Shape {
     return getBoundingRectAspectRatio(this.getBoundingRect());
   }
 
-  drawNails(nails: NailsSetter) {
+  addNails(nails: NailsSetter) {
     const { sideLines, centerLines, center } = this.#calc;
     const {
       sides,
@@ -343,15 +343,32 @@ export default class Polygon extends Shape {
 
     if (drawCenter) {
       for (let side = 0; side < sides; side++) {
-        centerLines[side].drawNails(nails);
+        centerLines[side].addNails(nails);
       }
     }
 
     if (drawSides) {
       for (let side = 0; side < sides; side++) {
-        sideLines[side].drawNails(nails);
+        sideLines[side].addNails(nails);
       }
     }
+  }
+
+  getNailCount(): number {
+    let nailCount = 0;
+    if (this.config.drawCenterNail) {
+      nailCount += 1;
+    }
+
+    if (this.config.drawCenter) {
+      nailCount += this.config.sides * this.#calc.centerLines[0].getNailCount();
+    }
+
+    if (this.config.drawSides) {
+      nailCount += this.config.sides * this.#calc.sideLines[0].getNailCount();
+    }
+
+    return nailCount;
   }
 
   getNailsCount(): number {

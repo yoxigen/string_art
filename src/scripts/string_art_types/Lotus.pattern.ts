@@ -16,6 +16,7 @@ import {
 import { createArray } from '../helpers/array_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 interface LotusConfig extends ColorConfig {
   sides: number;
@@ -430,21 +431,23 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
     }
   }
 
-  drawNails(nails: NailsSetter) {
+  getNails(precision?: number): Nails {
     const { renderCenter } = this.config;
     const { circles, centerCircle, excludedNailRange, nailsPerSection } =
       this.calc;
 
+    const nails = new Nails(precision);
+
     if (renderCenter) {
       if (centerCircle) {
-        centerCircle.drawNails(nails);
+        centerCircle.addNails(nails);
       } else {
         nails.addNail(0, this.calc.center);
       }
     }
 
     circles.forEach((circle, i) => {
-      circle.drawNails(nails, {
+      circle.addNails(nails, {
         filter: excludedNailRange
           ? (circleNailIndex: number) => {
               if (
@@ -461,6 +464,8 @@ export default class Lotus extends StringArt<LotusConfig, TCalc> {
           : undefined,
       });
     });
+
+    return nails;
   }
 
   getStepCount(options: CalcOptions) {

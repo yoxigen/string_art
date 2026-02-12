@@ -9,6 +9,7 @@ import { PI2 } from '../../helpers/math_utils';
 import { connectTwoSides } from '../../helpers/draw_utils';
 import { ColorConfig } from '../../helpers/color/color.types';
 import { createArray } from '../../helpers/array_utils';
+import Nails from '../../infra/nails/Nails';
 
 export interface LeavesConfig extends ColorConfig {
   angle: number;
@@ -261,12 +262,14 @@ export default abstract class Leaves<
     return polygons;
   }
 
-  drawNails(nails: NailsSetter) {
+  getNails(precision?: number): Nails {
     const { tiles } = this.calc;
+    const nails = new Nails(precision);
     tiles.forEach(tile => {
       const polygons = this.getPolygonsForTile(tile);
-      polygons.forEach(polygon => polygon.drawNails(nails));
+      polygons.forEach(polygon => polygon.addNails(nails));
     });
+    return nails;
   }
 
   thumbnailConfig: Partial<Config<TConfig>> = {

@@ -131,7 +131,7 @@ export default class Viewer extends EventBus<{
     });
   }
 
-  update(options?: DrawOptions) {
+  update(options?: Omit<DrawOptions, 'precision'>) {
     viewOptions.showInstructions = false;
     this.#withRenderer();
     this.pattern?.draw(this.renderer, { ...options });

@@ -12,12 +12,10 @@ export default class Nails implements NailsSetter {
   #groups: Map<NailGroupKey, NailsGroup>;
   #defaultNailsGroup: NailsGroup;
   #nailNumbers: Map<NailGroupKey, Map<NailKey, number>>;
-  precision: number;
 
-  constructor({ precision }: { precision?: number } = {}) {
+  constructor(public precision?: number) {
     this.#defaultNailsGroup = new NailsGroup();
     this.#groups = new Map([[null, this.#defaultNailsGroup]]);
-    this.precision = precision;
   }
 
   get isEmpty(): boolean {

@@ -6,6 +6,7 @@ import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 type SpreadModeType = 'evenly' | 'distance';
 
@@ -253,8 +254,8 @@ export default class Comet extends StringArt<CometConfig, TCalc> {
     return this.config.n;
   }
 
-  drawNails(nails: NailsSetter) {
-    this.calc.circle.drawNails(nails);
+  getNails(precision?: number): Nails {
+    return this.calc.circle.getNails(precision);
   }
 
   thumbnailConfig = ({ n, layers }) => ({

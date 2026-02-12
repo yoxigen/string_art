@@ -11,6 +11,7 @@ import { CalcOptions } from '../types/stringart.types';
 import { withoutAttribute } from '../helpers/config_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 const COLOR_CONFIG = Color.getConfig({
   defaults: {
@@ -166,8 +167,8 @@ export default class Spiral extends StringArt<SpiralConfig, TCalc> {
     return Math.round(n * (innerLength * 2) * repetition);
   }
 
-  drawNails(nails: NailsSetter) {
-    this.calc.circle.drawNails(nails);
+  getNails(precision?: number): Nails {
+    return this.calc.circle.getNails(precision);
   }
 
   thumbnailConfig = ({ n }) => ({

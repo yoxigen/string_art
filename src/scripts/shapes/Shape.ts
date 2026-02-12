@@ -1,3 +1,4 @@
+import Nails from '../infra/nails/Nails';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { BoundingRect, Coordinates } from '../types/general.types';
 
@@ -18,5 +19,13 @@ export default abstract class Shape {
     const rect = this.getBoundingRect();
     return rect.width / rect.height;
   }
-  abstract drawNails(nails: NailsSetter): void;
+  abstract addNails(nails: NailsSetter): void;
+
+  abstract getNailCount(): number;
+
+  getNails(precision?: number): Nails {
+    const nails = new Nails(precision);
+    this.addNails(nails);
+    return nails;
+  }
 }

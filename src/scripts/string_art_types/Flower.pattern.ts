@@ -12,6 +12,7 @@ import { Dimensions } from '../types/general.types';
 import { createArray } from '../helpers/array_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 export interface FlowerConfig extends ColorConfig {
   sides: number;
@@ -194,10 +195,12 @@ export default class Flower extends StringArt<FlowerConfig, TCalc> {
     }
   }
 
-  drawNails(nails: NailsSetter) {
+  getNails(precision?: number): Nails {
+    const nails = new Nails(precision);
     this.calc.polygons.forEach((polygon, i) => {
-      polygon.drawNails(nails);
+      polygon.addNails(nails);
     });
+    return nails;
   }
 
   getStepCount(): number {

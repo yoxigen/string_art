@@ -1,6 +1,5 @@
 import { createArray } from '../helpers/array_utils';
 import Color from '../helpers/color/Color';
-import Controller from '../infra/Controller';
 import Polygon from '../shapes/Polygon';
 import { Config, ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';

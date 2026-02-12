@@ -80,8 +80,6 @@ export function createPatternInstructions(
 ): Instructions {
   const allOptions = Object.assign({}, DEFAULT_OPTIONS, options);
   const renderer = new TestRenderer(options.dimensions);
-  const nails = new Nails();
-
   const controller = new InstructionsController(renderer, pattern);
 
   pattern.draw(renderer, {

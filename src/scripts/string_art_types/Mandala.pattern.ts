@@ -6,6 +6,7 @@ import { ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 export interface MandalaConfig extends ColorConfig {
   n: number;
@@ -158,8 +159,8 @@ export default class Mandala<TCustomConfig = void> extends StringArt<
     }
   }
 
-  drawNails(nails: NailsSetter) {
-    this.calc.circle.drawNails(nails);
+  getNails(precision?: number): Nails {
+    return this.calc.circle.getNails(precision);
   }
 
   getStepCount(options: CalcOptions): number {

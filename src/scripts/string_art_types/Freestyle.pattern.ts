@@ -8,6 +8,7 @@ import { formatFractionAsAngle } from '../helpers/string_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { createArray } from '../helpers/array_utils';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 interface FreestyleConfig {
   color: ColorValue;
@@ -254,8 +255,10 @@ export default class Freestyle extends StringArt<FreestyleConfig, TCalc> {
     }
   }
 
-  drawNails(nails: NailsSetter) {
-    this.calc.layers.forEach(({ circle }, i) => circle.drawNails(nails));
+  getNails(precision?: number): Nails {
+    const nails = new Nails(precision);
+    this.calc.layers.forEach(({ circle }, i) => circle.addNails(nails));
+    return nails;
   }
 
   getStepCount(options: CalcOptions) {

@@ -108,7 +108,7 @@ export class Line extends Shape {
     return this.getUniqueKey?.(realIndex) ?? realIndex;
   }
 
-  drawNails(nails: NailsSetter): void {
+  addNails(nails: NailsSetter): void {
     const { drawStartIndex: startIndex = 0, drawEndIndex: endIndex } =
       this.config;
 

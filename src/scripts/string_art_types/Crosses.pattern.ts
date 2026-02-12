@@ -16,6 +16,7 @@ import { PI2 } from '../helpers/math_utils';
 import { getCenter } from '../helpers/size_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 type CrossesOrientation = 'v' | 'h';
 
@@ -869,14 +870,17 @@ export default class Crosses extends StringArt<CrossesConfig, TCalc> {
     return this.config.n * 10;
   }
 
-  drawNails(nails: NailsSetter) {
-    this.calc.verticalLines.forEach((line, i) => line.drawNails(nails));
+  getNails(precision?: number): Nails {
+    const nails = new Nails(precision);
+    this.calc.verticalLines.forEach((line, i) => line.addNails(nails));
 
     this.calc.horizontalLines.forEach(sideLines => {
       for (const line of sideLines) {
-        line.drawNails(nails);
+        line.addNails(nails);
       }
     });
+
+    return nails;
   }
 
   thumbnailConfig = (config: CrossesConfig) => ({

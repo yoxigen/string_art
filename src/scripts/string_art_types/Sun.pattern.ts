@@ -22,6 +22,7 @@ import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
 import { COMMON_CONFIG_CONTROLS } from '../infra/common_controls';
 import { createArray } from '../helpers/array_utils';
+import Nails from '../infra/nails/Nails';
 
 interface SunConfig extends StarShapeConfig, ColorConfig {
   layers: number;
@@ -435,20 +436,22 @@ export default class Sun extends StringArt<SunConfig, TCalc> {
     }
   }
 
-  drawNails(nails: NailsSetter) {
+  getNails(precision?: number): Nails {
     const { backdropSize, backdropNailsColor, backdropNailsRadius } =
       this.config;
 
-    this.calc.star.drawNails(nails);
+    const nails = new Nails(precision);
+    this.calc.star.addNails(nails);
     if (backdropSize) {
       const backdropNailsGroup = new NailsGroup({
         color: backdropNailsColor,
         radius: backdropNailsRadius,
       });
 
-      this.calc.circle.drawNails(backdropNailsGroup);
+      this.calc.circle.addNails(backdropNailsGroup);
       nails.addGroup(backdropNailsGroup, 'backdrop');
     }
+    return nails;
   }
 
   #getLayerSize(layer: number): number {

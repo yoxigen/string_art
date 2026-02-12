@@ -9,6 +9,7 @@ import { createArray } from '../helpers/array_utils';
 import { Line } from '../shapes/Line';
 import { getCenter } from '../helpers/size_utils';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 const LAYER_DEFAULTS = [
   { start: 0.25, end: 1, color: '#a94fb0' },
@@ -263,9 +264,11 @@ export default class Assymetry extends StringArt<AssymetryConfig, TCalc> {
     }
   }
 
-  drawNails(nails: NailsSetter) {
-    this.calc.line.drawNails(nails);
-    this.calc.circle.drawNails(nails);
+  getNails(precision?: number): Nails {
+    const nails = new Nails(precision);
+    this.calc.line.addNails(nails);
+    this.calc.circle.addNails(nails);
+    return nails;
   }
 
   getStepCount(options: CalcOptions): number {

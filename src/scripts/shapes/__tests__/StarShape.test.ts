@@ -24,7 +24,7 @@ describe('StarShape', () => {
         ...config,
         size,
       });
-      star.drawNails(nails);
+      star.addNails(nails);
       const directions = star.drawStar(controller);
       let drawCount = 0;
       while (!directions.next().done) {

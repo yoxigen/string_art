@@ -19,6 +19,7 @@ import { Dimensions } from '../types/general.types';
 import NailsSetter from '../infra/nails/NailsSetter';
 import { ShapeConfig } from '../shapes/Shape';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 type ShapeType = 'circle' | 'polygon';
 
@@ -388,9 +389,11 @@ export default class DanceOfPlanets extends StringArt<
     return calc.shape1NailCount + calc.shape2NailCount;
   }
 
-  drawNails(nails: NailsSetter) {
-    this.calc.shape1.drawNails(nails);
-    this.calc.shape2.drawNails(nails);
+  getNails(precision?: number): Nails {
+    const nails = new Nails(precision);
+    this.calc.shape1.addNails(nails);
+    this.calc.shape2.addNails(nails);
+    return nails;
   }
 
   #getShapeNailCount(

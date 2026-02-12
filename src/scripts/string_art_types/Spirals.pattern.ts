@@ -12,6 +12,7 @@ import { formatFractionAsAngle } from '../helpers/string_utils';
 import easing from '../helpers/easing';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 interface SpiralsConfig extends ColorConfig {
   // radiusIncrease: number;
@@ -191,13 +192,15 @@ class Spirals extends StringArt<SpiralsConfig, TCalc> {
     return (nailsPerSpiral - 1) * nSpirals;
   }
 
-  drawNails(nails: NailsSetter) {
+  getNails(precision?: number): Nails {
     const points = this.generatePoints();
+    const nails = new Nails(precision);
     let i = 0;
     for (const [side, index] of points) {
       nails.addNail(i, this.getPoint(side, index));
       i++;
     }
+    return nails;
   }
 
   getNailCount(): number {

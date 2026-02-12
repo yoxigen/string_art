@@ -134,7 +134,7 @@ export default class StarShape extends Shape {
   /**
    * Given a Nails instance, uses it to draw the nails of this Circle
    */
-  drawNails(
+  addNails(
     nails: NailsSetter,
     {
       reverseOrder,

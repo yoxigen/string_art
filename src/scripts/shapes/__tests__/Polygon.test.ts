@@ -61,7 +61,7 @@ describe('Polygon', () => {
       });
 
       const nails = new TestNails();
-      polygonWithCenter.drawNails(nails);
+      polygonWithCenter.addNails(nails);
       expect(polygonWithCenter.getNailsCount()).toEqual(nails.nailCount);
     });
 
@@ -77,7 +77,7 @@ describe('Polygon', () => {
       });
 
       const nails = new TestNails();
-      polygonWithCenter.drawNails(nails);
+      polygonWithCenter.addNails(nails);
       expect(polygonWithCenter.getNailsCount()).toEqual(nails.nailCount);
     });
   });

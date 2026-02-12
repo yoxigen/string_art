@@ -6,6 +6,7 @@ import { Config, ControlsConfig } from '../types/config.types';
 import { CalcOptions } from '../types/stringart.types';
 import NailsSetter from '../infra/nails/NailsSetter';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 interface PolygonPatternConfig extends ColorConfig {
   sides: number;
@@ -178,8 +179,8 @@ export default class PolygonPattern extends StringArt<
     return sides * (2 * n - 1 - (n % 2 ? 1 : 0)) + 1;
   }
 
-  drawNails(nails: NailsSetter) {
-    this.calc.polygon.drawNails(nails);
+  getNails(precision?: number): Nails {
+    return this.calc.polygon.getNails(precision);
   }
 
   testStepCountConfig: Partial<Config<PolygonPatternConfig>>[] = [

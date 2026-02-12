@@ -204,7 +204,7 @@ export default class Circle extends Shape {
    * @param {Nails} nails
    * @param {{nailsNumberStart?: number, getNumber?: Function}} param1
    */
-  drawNails(nails: NailsSetter, { filter }: CircleNailsOptions = {}): void {
+  addNails(nails: NailsSetter, { filter }: CircleNailsOptions = {}): void {
     for (let i = 0; i < this.config.n; i++) {
       if (!filter || filter(i)) {
         nails.addNail(this.getUniqueKey?.(i) ?? i, this.getPoint(i));
@@ -246,6 +246,11 @@ export default class Circle extends Shape {
 
   getRingStepCount(): number {
     return this.config.n * 2 - 1;
+  }
+
+  getNailCount(): number {
+    // TODO: addNails uses filter, should it be used here too?
+    return this.config.n;
   }
 
   static rotationConfig: ControlConfig<{ rotation?: number }> = {

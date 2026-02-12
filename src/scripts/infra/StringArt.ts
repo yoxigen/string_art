@@ -66,7 +66,7 @@ abstract class StringArt<
     super();
   }
 
-  abstract drawNails(nails: NailsSetter): void;
+  abstract getNails(precision?: number): Nails;
   abstract drawStrings(controller: Controller): Generator<void>;
   abstract getStepCount(options: CalcOptions): number;
   abstract getAspectRatio(options: CalcOptions): number;
@@ -294,8 +294,7 @@ abstract class StringArt<
     }
 
     if (!this.nails) {
-      this.nails = new Nails({ precision });
-      this.drawNails(this.nails);
+      this.nails = this.getNails(precision);
     }
 
     this.color = this.initColor();

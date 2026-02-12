@@ -17,6 +17,7 @@ import { createArray } from '../helpers/array_utils';
 import NailsSetter from '../infra/nails/NailsSetter';
 import NailsGroup from '../infra/nails/NailsGroup';
 import Controller from '../infra/Controller';
+import Nails from '../infra/nails/Nails';
 
 interface FlowerOfLifeConfig extends ColorConfig {
   levels: number;
@@ -398,13 +399,14 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
     return trianglePoints;
   }
 
-  drawNails(nails: NailsSetter) {
+  getNails(precision?: number): Nails {
     const { levels, renderCaps } = this.config;
 
     const largeDistance = this.calc.nailsLength;
     const smallDistance = this.calc.triangleHeight - largeDistance;
     const levelsCount = renderCaps ? levels + 1 : levels;
 
+    const nails = new Nails(precision);
     for (let level = 0; level < levelsCount; level++) {
       const isCapLevel = renderCaps && level === levels;
 
@@ -476,9 +478,11 @@ export default class FlowerOfLife extends StringArt<FlowerOfLifeConfig, TCalc> {
 
     if (this.config.renderRing) {
       const ringNailsGroup = new NailsGroup();
-      this.calc.ringCircle.drawNails(ringNailsGroup);
+      this.calc.ringCircle.addNails(ringNailsGroup);
       nails.addGroup(ringNailsGroup, 'ring');
     }
+
+    return nails;
   }
 
   *generateTriangleStrings(

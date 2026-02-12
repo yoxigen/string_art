@@ -45,7 +45,7 @@ describe('Circle', () => {
       n: 20,
       size,
     });
-    circle.drawNails(nails);
+    circle.addNails(nails);
     const controller = new Controller(new TestRenderer(size), nails);
     const genRing = circle.drawRingLayer(controller, { ringSize: 2 });
     let drawCount = 0;
